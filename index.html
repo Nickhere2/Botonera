@@ -255,6 +255,32 @@
          display: none; /* Hide the text */
      }
 
+    /* Estilos para el botón de edición principal (icono) */
+    #mainEditButton {
+        position: fixed;
+        top: 4.5rem; /* Ajusta la posición para que esté debajo del botón de modo oscuro */
+        right: 1rem; /* Alineado a la derecha como el botón de modo oscuro */
+        background-color: #6b7280; /* gray-500 */
+        border: none;
+        color: #fff;
+        padding: 0.5rem; /* Ajusta el padding para que sea redondo */
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        z-index: 1100;
+        width: 40px; /* Mismo tamaño que el botón de modo oscuro */
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #mainEditButton:hover {
+        background-color: #4b5563; /* gray-700 */
+    }
+     #mainEditButton i {
+         margin-right: 0; /* Elimina el margen para que solo se vea el icono */
+     }
+
 
     /* Estilos para edición en línea */
     .card .display-mode { display: block; }
@@ -307,6 +333,10 @@
   <button id="toggleDarkMode" class="flex items-center justify-center">
       <i class="fas fa-moon"></i> <span class="mode-text">Modo Oscuro</span>
   </button>
+
+   <button id="mainEditButton" class="flex items-center justify-center">
+       <i class="fas fa-edit"></i>
+   </button>
 
 
   <div class="container mx-auto px-4 py-8">
@@ -374,7 +404,7 @@
        <h2 class="text-2xl font-bold mb-4">Filtrar por categoría</h2>
        <div id="promptFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
         <div class="search-container mb-8">
-         <input type="text" id="promptCardSearchInput" placeholder="Buscar Prompts..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg">
+         <input type="text" id="promptCardSearchInput" placeholder="Buscar Prompts..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg">
        </div>
       <div id="promptsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
        <div id="noPromptsFound" class="hidden text-center text-gray-600 mt-8">No se encontraron prompts que coincidan con los filtros.</div>
@@ -384,7 +414,7 @@
        <h2 class="text-2xl font-bold mb-4">Filtrar por categoría</h2>
        <div id="noteFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
         <div class="search-container mb-8">
-           <input type="text" id="noteCardSearchInput" placeholder="Buscar Notas..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg">
+           <input type="text" id="noteCardSearchInput" placeholder="Buscar Notas..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 text-lg">
          </div>
        <div id="notesContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         <div id="noNotesFound" class="hidden text-center text-gray-600 mt-8">No se encontraron notas que coincidan con los filtros.</div>
@@ -394,7 +424,7 @@
         <h2 class="text-2xl font-bold mb-4">Filtrar por categoría</h2>
         <div id="taskFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
          <div class="search-container mb-8">
-           <input type="text" id="taskCardSearchInput" placeholder="Buscar Tareas..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg">
+           <input type="text" id="taskCardSearchInput" placeholder="Buscar Tareas..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-lg">
          </div>
        <div id="tasksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
         <div id="noTasksFound" class="hidden text-center text-gray-600 mt-8">No se encontraron tareas que coincidan con los filtros.</div>
@@ -957,10 +987,13 @@
         }
       });
 
-      // Open edit panel
-      // document.getElementById("editButton")?.addEventListener("click", function () { // Use optional chaining in case the button doesn't exist
-      //   document.getElementById("editPanel").classList.remove("hidden");
-      // });
+      // Open edit panel with the new main button
+      document.getElementById("mainEditButton").addEventListener("click", function () {
+        document.getElementById("editPanel").classList.remove("hidden");
+         // Populate the edit table when opening the panel
+         populateEditTable(data);
+      });
+
       // Close edit panel
       document.getElementById("closeEditButton").addEventListener("click", function () {
         document.getElementById("editPanel").classList.add("hidden");
@@ -1220,7 +1253,7 @@
                  addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
                  addCard.addEventListener("click", function () {
                    document.getElementById("editPanel").classList.remove("hidden");
-                   document.getElementById("newType").value = "Buscador";
+                   document.getElementById("newType").value = "Buscador"; // <-- This line sets the type
                    document.getElementById("newCategory").value = category; // Pre-fill with the current category
                     updateLivePreview(); // Update preview for new item
                     toggleSearchTermButton(); // Ensure search term button is visible if type is Buscador
@@ -1392,7 +1425,7 @@
         addCard.addEventListener("click", function () {
           document.getElementById("editPanel").classList.remove("hidden");
            // Optionally pre-fill the category field
-          document.getElementById("newType").value = "Link";
+          document.getElementById("newType").value = "Link"; // <-- This line sets the type
           document.getElementById("newCategory").value = category;
            updateLivePreview(); // Update preview for new item
             toggleSearchTermButton(); // Ensure search term button is hidden for Link type
@@ -1400,7 +1433,7 @@
         categoryContainer.appendChild(addCard);
         container.appendChild(categoryDiv);
       });
-       console.log("Links por categoría renderizados."); // Log exit
+       console.log("Links renderizados."); // Log exit
     }
 
     // Modified filterLinks to use searchTerm from the new input
@@ -1585,7 +1618,7 @@
           addCard.addEventListener("click", function () {
             document.getElementById("editPanel").classList.remove("hidden");
              // Optionally pre-fill the category field
-            document.getElementById("newType").value = "Promp";
+            document.getElementById("newType").value = "Promp"; // <-- This line sets the type
             document.getElementById("newCategory").value = category;
              updateLivePreview(); // Update preview for new item
               toggleSearchTermButton(); // Ensure search term button is hidden for Prompt type
@@ -1759,7 +1792,7 @@
                  addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
                  addCard.addEventListener("click", function () {
                    document.getElementById("editPanel").classList.remove("hidden");
-                   document.getElementById("newType").value = "Nota";
+                   document.getElementById("newType").value = "Nota"; // <-- This line sets the type
                    document.getElementById("newCategory").value = category; // Pre-fill with the current category
                     updateLivePreview(); // Update preview for new item
                      toggleSearchTermButton(); // Ensure search term button is hidden for Note type
@@ -1974,7 +2007,7 @@
                   addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
                   addCard.addEventListener("click", function () {
                     document.getElementById("editPanel").classList.remove("hidden");
-                    document.getElementById("newType").value = "Tarea";
+                    document.getElementById("newType").value = "Tarea"; // <-- This line sets the type
                     document.getElementById("newCategory").value = category; // Pre-fill with the current category
                      updateLivePreview(); // Update preview for new item
                       toggleSearchTermButton(); // Ensure search term button is hidden for Task type
