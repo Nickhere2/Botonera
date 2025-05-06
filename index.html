@@ -29,6 +29,16 @@
       color: #ddd;
       border-color: #555;
     }
+     /* Estilos para botones de filtro en modo oscuro */
+    body.dark .filter-btn {
+        background-color: #3a3a3a;
+        color: #ddd;
+    }
+     body.dark .filter-btn.active {
+        background-color: #3b82f6; /* Blue color for active in dark mode */
+        color: white;
+     }
+
     /* Navegación y transiciones */
     .nav-btn {
       transition: all 0.3s ease;
@@ -178,6 +188,21 @@
         text-decoration: line-through;
         color: #6b7280; /* gray-500 */
     }
+     /* Estilo para la lista de tareas */
+     .task-list {
+         list-style: none;
+         padding: 0;
+         margin: 0;
+     }
+     .task-list li {
+         margin-bottom: 4px;
+         display: flex;
+         align-items: center;
+     }
+     .task-list input[type="checkbox"] {
+         margin-right: 8px;
+     }
+
     @media print {
       .page-break {
         page-break-after: avoid;
@@ -209,15 +234,27 @@
       background-color: #3b82f6;
       border: none;
       color: #fff;
-      padding: 0.5rem 1rem;
+      padding: 0.5rem; /* Adjusted padding for icon only */
       border-radius: 9999px;
       cursor: pointer;
       transition: background-color 0.3s;
       z-index: 1100;
+      width: 40px; /* Fixed width and height for a round button */
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     #toggleDarkMode:hover {
       background-color: #2563eb;
     }
+     #toggleDarkMode i {
+         margin-right: 0; /* Remove margin for icon only */
+     }
+     #toggleDarkMode .mode-text {
+         display: none; /* Hide the text */
+     }
+
 
     /* Estilos para edición en línea */
     .card .display-mode { display: block; }
@@ -241,11 +278,36 @@
          color: #ddd;
          border-color: #555;
      }
+     .search-term-button {
+         background-color: #e2e8f0; /* gray-200 */
+         color: #4a5568; /* gray-700 */
+         padding: 0.2rem 0.5rem;
+         border-radius: 4px;
+         font-size: 0.75rem;
+         cursor: pointer;
+         margin-left: 5px;
+         transition: background-color 0.2s;
+         flex-shrink: 0; /* Prevent button from shrinking */
+     }
+     .search-term-button:hover {
+         background-color: #cbd5e0; /* gray-300 */
+     }
+     body.dark .search-term-button {
+         background-color: #4a5568; /* gray-700 */
+         color: #e2e8f0; /* gray-200 */
+     }
+      body.dark .search-term-button:hover {
+         background-color: #6366f1; /* indigo-500 */
+      }
+
 
   </style>
 </head>
 <body class="min-h-screen">
-  <button id="toggleDarkMode">Modo Oscuro</button>
+  <button id="toggleDarkMode" class="flex items-center justify-center">
+      <i class="fas fa-moon"></i> <span class="mode-text">Modo Oscuro</span>
+  </button>
+
 
   <div class="container mx-auto px-4 py-8">
     <h1 class="text-4xl font-bold text-center text-blue-600 mb-8">Centro de Búsqueda y Accesos</h1>
@@ -366,7 +428,10 @@
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">Acción (URL, texto, descripción)</label>
-              <input type="text" id="newAction" placeholder="Ej: https://www.google.com/search?q={search_term}" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+               <div class="flex items-center">
+                  <input type="text" id="newAction" placeholder="Ej: https://www.google.com/search?q={search_term}" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                   <button class="search-term-button hidden" data-input-id="newAction">{search_term}</button>
+               </div>
             </div>
             <div>
               <label class="block text-sm font-medium mb-1">Tipo</label>
@@ -424,12 +489,39 @@
   </div>
 
   <script>
-    // Modo oscuro: alterna la clase "dark" en el body
+    // Modo oscuro: alterna la clase "dark" en el body y guarda la preferencia
     const toggleDarkModeBtn = document.getElementById("toggleDarkMode");
+    const darkModePreference = localStorage.getItem("darkMode");
+    const modeIcon = toggleDarkModeBtn.querySelector("i");
+    const modeText = toggleDarkModeBtn.querySelector(".mode-text");
+
+    // Aplicar preferencia de modo oscuro al cargar
+    if (darkModePreference === "enabled") {
+        document.body.classList.add("dark");
+        modeIcon.classList.remove("fa-moon");
+        modeIcon.classList.add("fa-sun");
+        modeText.textContent = "Modo Claro"; // Keep text content for screen readers if needed, just hide visually
+    } else {
+        modeIcon.classList.remove("fa-sun");
+        modeIcon.classList.add("fa-moon");
+        modeText.textContent = "Modo Oscuro"; // Keep text content for screen readers if needed, just hide visually
+    }
+
     toggleDarkModeBtn.addEventListener("click", function() {
       document.body.classList.toggle("dark");
-      this.textContent = document.body.classList.contains("dark") ? "Modo Claro" : "Modo Oscuro";
+      if (document.body.classList.contains("dark")) {
+          localStorage.setItem("darkMode", "enabled");
+          modeIcon.classList.remove("fa-moon");
+          modeIcon.classList.add("fa-sun");
+          modeText.textContent = "Modo Claro";
+      } else {
+          localStorage.setItem("darkMode", "disabled");
+          modeIcon.classList.remove("fa-sun");
+          modeIcon.classList.add("fa-moon");
+          modeText.textContent = "Modo Oscuro";
+      }
     });
+
 
     // Búsqueda inteligente: se utiliza un datalist para sugerir términos
     let searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
@@ -510,7 +602,7 @@
       return `<i class="${item.icon} ${colorClass} text-xl"></i>`;
     }
 
-    // Datos iniciales (se cargarán desde data.json)
+    // Datos de la aplicación (se cargarán desde localStorage)
     let data = [];
 
     // Variables globales para Drag & Drop
@@ -619,7 +711,14 @@
       } else if (type === 'Nota') {
          contentHtml = `<div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 note-content">${action.replace(/\n/g, "<br>").substring(0, 100) + '...'}</div>`;
       } else if (type === 'Tarea') {
-         contentHtml = `<div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 task-content">${action.replace(/\n/g, "<br>").substring(0, 100) + '...'}</div>`;
+          // Display task action as a simple list in preview
+          const taskLines = action.split('\n').filter(line => line.trim() !== '');
+          let taskListHtml = '<ul class="task-list mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700">';
+          taskLines.forEach(line => {
+              taskListHtml += `<li><input type="checkbox" disabled> ${line}</li>`;
+          });
+          taskListHtml += '</ul>';
+          contentHtml = taskListHtml;
       } else { // Buscador or Link
          contentHtml = `<p class="text-sm text-gray-600 mt-2">${action}</p>`;
       }
@@ -648,14 +747,40 @@
     // Actualizar vista previa cuando hay cambios
     document.getElementById("newTitle").addEventListener("input", updateLivePreview);
     document.getElementById("newAction").addEventListener("input", updateLivePreview);
-    document.getElementById("newType").addEventListener("change", updateLivePreview);
+    document.getElementById("newType").addEventListener("change", function() {
+         updateLivePreview();
+         toggleSearchTermButton(); // Show/hide search term button based on type
+    });
     document.getElementById("newCategory").addEventListener("input", updateLivePreview);
     document.getElementById("newIcon").addEventListener("input", updateLivePreview);
     updateLivePreview(); // Initial preview render
 
+    // Show/hide search term button based on selected type in Add New Item
+    function toggleSearchTermButton() {
+        const newType = document.getElementById("newType").value;
+        const searchTermButton = document.querySelector("#editPanel .search-term-button");
+        if (newType === "Buscador") {
+            searchTermButton.classList.remove("hidden");
+        } else {
+            searchTermButton.classList.add("hidden");
+        }
+    }
+     toggleSearchTermButton(); // Initial check on load
+
+     // Add event listener to the search term button in Add New Item
+     document.querySelector("#editPanel .search-term-button").addEventListener("click", function() {
+         const inputId = this.dataset.inputId;
+         const inputElement = document.getElementById(inputId);
+         if (inputElement) {
+             inputElement.value += "{search_term}";
+             updateLivePreview(); // Update preview after inserting
+         }
+     });
+
+
     // Funciones principales
     document.addEventListener("DOMContentLoaded", function () {
-        console.log("DOM completamente cargado. Intentando cargar datos desde data.json o localStorage.");
+        console.log("DOM completamente cargado. Intentando cargar datos desde localStorage.");
         // Intenta cargar desde localStorage primero
         const savedData = localStorage.getItem("centroAccesosData");
         if (savedData) {
@@ -675,50 +800,24 @@
                 console.log("Inicialización completa con datos de localStorage.");
             } catch (e) {
                 console.error("Error al parsear datos de localStorage:", e);
-                showToast("Error al cargar datos guardados. Intentando cargar desde data.json.");
-                fetchDataFromJson(); // Si localStorage falla, intenta cargar desde data.json
-            }
-        } else {
-            console.log("No se encontraron datos en localStorage. Intentando cargar desde data.json.");
-            fetchDataFromJson(); // Si no hay datos en localStorage, carga desde data.json
-        }
-    });
-
-    function fetchDataFromJson() {
-        console.log("Cargando datos desde data.json...");
-        fetch('data.json')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(jsonData => {
-                console.log("Datos cargados desde data.json:", jsonData);
-                data = jsonData;
-                 // Ensure tasks have a completed status if loading from JSON
-                 data = data.map(item => {
-                     if (item.type === 'Tarea' && item.completed === undefined) {
-                         return { ...item, completed: false };
-                     }
-                     return item;
-                 });
-                saveData(data); // Guarda los datos cargados en localStorage
-                initializeUI(data);
-                setupNavigation();
-                setupEventListeners();
-                console.log("Inicialización completa con datos de data.json.");
-            })
-            .catch(error => {
-                console.error('Error al cargar data.json:', error);
-                showToast('Error al cargar los datos. Asegúrate de que data.json existe y el servidor está corriendo.');
-                 // Initialize with empty UI if data loading fails
-                 initializeUI([]);
+                showToast("Error al cargar datos guardados. Se iniciará con datos vacíos.");
+                 // Initialize with empty UI if localStorage fails
+                 data = [];
+                 initializeUI(data);
                  setupNavigation();
                  setupEventListeners();
-                 console.log("Inicialización completa con datos vacíos debido a error.");
-            });
-    }
+                 console.log("Inicialización completa con datos vacíos debido a error de localStorage.");
+            }
+        } else {
+            console.log("No se encontraron datos en localStorage. Iniciando con datos vacíos.");
+             // Initialize with empty UI if no data in localStorage
+             data = [];
+             initializeUI(data);
+             setupNavigation();
+             setupEventListeners();
+             console.log("Inicialización completa con datos vacíos.");
+        }
+    });
 
 
     function initializeUI(currentData) {
@@ -1035,7 +1134,10 @@
                        <label class="block text-sm font-medium mb-1">Título</label>
                        <input type="text" class="edit-title" value="${engine.title}">
                        <label class="block text-sm font-medium mb-1">Acción (URL)</label>
-                       <input type="text" class="edit-action" value="${engine.action}">
+                        <div class="flex items-center">
+                           <input type="text" class="edit-action w-full px-3 py-2 border border-gray-300 rounded-md" value="${engine.action}">
+                           <button class="search-term-button" data-input-class="edit-action">{search_term}</button>
+                       </div>
                        <label class="block text-sm font-medium mb-1">Categoría</label>
                        <input type="text" class="edit-category" value="${engine.category}">
                        <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
@@ -1052,6 +1154,13 @@
                 // Add event listener for the edit button
                 engineCard.querySelector(".edit-btn").addEventListener("click", function () {
                     engineCard.classList.add("editing");
+                     // Show/hide search term button in inline edit
+                    const searchTermButton = engineCard.querySelector(".search-term-button");
+                    if (engine.type === "Buscador") {
+                        searchTermButton.classList.remove("hidden");
+                    } else {
+                        searchTermButton.classList.add("hidden");
+                    }
                 });
 
                  // Add event listener for the delete button
@@ -1088,6 +1197,18 @@
                     // Revert input values (optional)
                  });
 
+                 // Add event listener to the search term button in inline edit
+                 const searchTermButton = engineCard.querySelector(".search-term-button");
+                 if (searchTermButton) {
+                     searchTermButton.addEventListener("click", function() {
+                         const inputClass = this.dataset.inputClass;
+                         const inputElement = engineCard.querySelector(`.${inputClass}`);
+                         if (inputElement) {
+                             inputElement.value += "{search_term}";
+                         }
+                     });
+                 }
+
 
                 categoryContainer.appendChild(engineCard);
             });
@@ -1102,6 +1223,7 @@
                    document.getElementById("newType").value = "Buscador";
                    document.getElementById("newCategory").value = category; // Pre-fill with the current category
                     updateLivePreview(); // Update preview for new item
+                    toggleSearchTermButton(); // Ensure search term button is visible if type is Buscador
                  });
                  categoryContainer.appendChild(addCard);
              }
@@ -1273,6 +1395,7 @@
           document.getElementById("newType").value = "Link";
           document.getElementById("newCategory").value = category;
            updateLivePreview(); // Update preview for new item
+            toggleSearchTermButton(); // Ensure search term button is hidden for Link type
         });
         categoryContainer.appendChild(addCard);
         container.appendChild(categoryDiv);
@@ -1306,7 +1429,7 @@
            noItemsMessage.classList.add("hidden");
        }
 
-      renderLinksByCategory(filteredLinks, container);
+       renderLinksByCategory(filteredLinks, container);
     }
 
     function renderPrompts(currentData) {
@@ -1413,6 +1536,9 @@
             // Add event listener for the edit button
             promptCard.querySelector(".edit-btn").addEventListener("click", function () {
               promptCard.classList.add("editing");
+               // Hide search term button for Prompt type
+               const searchTermButton = promptCard.querySelector(".search-term-button");
+               if (searchTermButton) searchTermButton.classList.add("hidden");
             });
 
             // Add event listener for the delete button
@@ -1462,6 +1588,7 @@
             document.getElementById("newType").value = "Promp";
             document.getElementById("newCategory").value = category;
              updateLivePreview(); // Update preview for new item
+              toggleSearchTermButton(); // Ensure search term button is hidden for Prompt type
           });
           categoryContainer.appendChild(addCard);
           container.appendChild(categoryDiv);
@@ -1587,6 +1714,9 @@
 
                 noteCard.querySelector(".edit-btn").addEventListener("click", function () {
                     noteCard.classList.add("editing");
+                     // Hide search term button for Note type
+                    const searchTermButton = noteCard.querySelector(".search-term-button");
+                    if (searchTermButton) searchTermButton.classList.add("hidden");
                 });
 
                 noteCard.querySelector(".delete-btn").addEventListener("click", function () {
@@ -1632,6 +1762,7 @@
                    document.getElementById("newType").value = "Nota";
                    document.getElementById("newCategory").value = category; // Pre-fill with the current category
                     updateLivePreview(); // Update preview for new item
+                     toggleSearchTermButton(); // Ensure search term button is hidden for Note type
                  });
                  categoryContainer.appendChild(addCard);
              }
@@ -1714,6 +1845,18 @@
                  addDragAndDropListeners(taskCard);
                  const iconHtml = getIconHtml(task, false);
 
+                 // Split action into lines and format as a list with interactive checkboxes
+                 const taskLines = task.action.split('\n').filter(line => line.trim() !== '');
+                 let taskListHtml = '<ul class="task-list">';
+                 taskLines.forEach((line, index) => {
+                     // Check if the line starts with "[x]" or "[ ]" to determine initial checked state
+                     const isChecked = line.trim().startsWith('[x]');
+                     const cleanedLine = line.replace(/^\[[x ]\]\s*/, '').trim(); // Remove "[x] " or "[ ] "
+                     taskListHtml += `<li><input type="checkbox" class="task-list-checkbox" data-item-index="${index}" ${isChecked ? 'checked' : ''}> ${cleanedLine}</li>`;
+                 });
+                 taskListHtml += '</ul>';
+
+
                  const displayModeHtml = `
                    <div class="display-mode card-content">
                      <div class="flex items-center justify-between">
@@ -1724,7 +1867,7 @@
                         <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">${task.category}</span>
                      </div>
                      <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 task-content">
-                       ${task.action.replace(/\n/g, "<br>")}
+                       ${taskListHtml}
                      </div>
                      <button class="edit-btn text-blue-600 mt-2 text-xs">
                        <i class="fas fa-edit"></i> Editar
@@ -1739,7 +1882,7 @@
                     <div class="edit-mode">
                       <label class="block text-sm font-medium mb-1">Título</label>
                       <input type="text" class="edit-title" value="${task.title}">
-                      <label class="block text-sm font-medium mb-1">Descripción</label>
+                      <label class="block text-sm font-medium mb-1">Descripción (una línea por item de lista - usa [ ] o [x] al inicio)</label>
                       <textarea class="edit-action w-full h-32">${task.action}</textarea>
                       <label class="block text-sm font-medium mb-1">Categoría</label>
                       <input type="text" class="edit-category" value="${task.category}">
@@ -1747,7 +1890,7 @@
                       <input type="text" class="edit-icon" value="${task.icon || ''}">
                        <div class="flex items-center mt-2">
                            <input type="checkbox" class="edit-completed mr-2" ${task.completed ? 'checked' : ''}>
-                           <label class="text-sm font-medium">Completada</label>
+                           <label class="text-sm font-medium">Completada (Marca la tarea completa)</label>
                        </div>
                       <div class="flex justify-end mt-2">
                         <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
@@ -1758,15 +1901,34 @@
 
                  taskCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`;
 
-                 // Add event listener for the checkbox
+                 // Add event listener for the main task checkbox (marks the whole task complete)
                  taskCard.querySelector(".task-checkbox").addEventListener("change", function () {
                      const itemId = taskCard.dataset.id;
                      const isCompleted = this.checked;
-                     updateItem(itemId, { completed: isCompleted });
+                     updateItem(itemId, { completed: isCompleted }); // Update item and save
                  });
+
+                  // Add event listeners for the individual list item checkboxes
+                  taskCard.querySelectorAll(".task-list-checkbox").forEach(checkbox => {
+                      checkbox.addEventListener("change", function() {
+                          const listItem = this.closest("li");
+                          if (this.checked) {
+                              listItem.classList.add("completed");
+                          } else {
+                              listItem.classList.remove("completed");
+                          }
+                          // Note: This change to individual list items is NOT saved
+                          // in the current data structure (action is a single string).
+                          // It's a visual-only change for now.
+                      });
+                  });
+
 
                  taskCard.querySelector(".edit-btn").addEventListener("click", function () {
                      taskCard.classList.add("editing");
+                      // Hide search term button for Task type
+                     const searchTermButton = taskCard.querySelector(".search-term-button");
+                     if (searchTermButton) searchTermButton.classList.add("hidden");
                  });
 
                  taskCard.querySelector(".delete-btn").addEventListener("click", function () {
@@ -1777,7 +1939,7 @@
 
                  taskCard.querySelector(".save-btn").addEventListener("click", function () {
                      const updatedTitle = taskCard.querySelector(".edit-title").value.trim();
-                     const updatedAction = taskCard.querySelector(".edit-action").value.trim();
+                     const updatedAction = taskCard.querySelector(".edit-action").value.trim(); // Get the text from the textarea
                      const updatedCategory = taskCard.querySelector(".edit-category").value.trim();
                      const updatedIcon = taskCard.querySelector(".edit-icon").value.trim();
                      const updatedCompleted = taskCard.querySelector(".edit-completed").checked;
@@ -1786,7 +1948,7 @@
                      if (updatedTitle && updatedAction && updatedCategory) {
                         updateItem(task.id, {
                           title: updatedTitle,
-                          action: updatedAction,
+                          action: updatedAction, // Save the raw text from the textarea
                           type: task.type,
                           category: updatedCategory,
                           icon: updatedIcon,
@@ -1815,6 +1977,7 @@
                     document.getElementById("newType").value = "Tarea";
                     document.getElementById("newCategory").value = category; // Pre-fill with the current category
                      updateLivePreview(); // Update preview for new item
+                      toggleSearchTermButton(); // Ensure search term button is hidden for Task type
                   });
                   categoryContainer.appendChild(addCard);
               }
@@ -1864,7 +2027,7 @@
 
         let completedCheckboxHtml = '';
         if (item.type === 'Tarea') {
-            completedCheckboxHtml = `<div class="flex items-center mt-1"><input type="checkbox" class="edit-completed mr-2" ${item.completed ? 'checked' : ''}><label class="text-sm font-medium">Completada</label></div>`;
+            completedCheckboxHtml = `<div class="flex items-center mt-1"><input type="checkbox" class="edit-completed mr-2" ${item.completed ? 'checked' : ''}> <label class="text-sm font-medium">Completada</label></div>`;
         }
 
 
@@ -1925,6 +2088,7 @@
          data[itemIndex] = { ...data[itemIndex], ...updatedItem };
          saveData(data);
          initializeUI(data); // Re-render all sections
+         populateEditTable(data); // Also re-populate table to reflect changes
          showToast("Elemento actualizado correctamente");
        } else {
            console.warn(`Elemento con ID ${itemId} no encontrado para actualizar.`); // Log warning
@@ -1982,7 +2146,7 @@
                                }
                                return item;
                            });
-                          saveData(data);
+                          saveData(data); // Save imported data to localStorage
                           initializeUI(data);
                           showToast("Datos importados correctamente.");
                            console.log("Datos importados y UI actualizada."); // Log import complete
