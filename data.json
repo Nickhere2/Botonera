@@ -1,0 +1,500 @@
+[
+  {
+    "id": 1714851600001,
+    "title": "Google",
+    "action": "https://www.google.com/search?q={search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fab fa-google"
+  },
+  {
+    "id": 1714851600002,
+    "title": "YouTube",
+    "action": "https://www.youtube.com/results?search_query={search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fab fa-youtube"
+  },
+  {
+    "id": 1714851600003,
+    "title": "Maps",
+    "action": "https://www.google.com/maps/place/{search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fas fa-map-marker-alt"
+  },
+  {
+    "id": 1714851600004,
+    "title": "Libros",
+    "action": "https://annas-archive.org/search?index=&q={search_term}&sort=",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fas fa-book"
+  },
+  {
+    "id": 1714851600005,
+    "title": "ImGoogle",
+    "action": "https://www.google.com/search?q={search_term}&tbm=isch&tbs=ic:trans&hl=es-419&sa=X",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fas fa-images"
+  },
+  {
+    "id": 1714851600006,
+    "title": "AllMusic",
+    "action": "https://www.allmusic.com/search/all/{search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fas fa-music"
+  },
+  {
+    "id": 1714851600007,
+    "title": "AllMovie",
+    "action": "https://www.allmovie.com/search/movies/{search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fas fa-film"
+  },
+  {
+    "id": 1714851600008,
+    "title": "Spotify",
+    "action": "spotify:search:{search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fab fa-spotify"
+  },
+  {
+    "id": 1714851600009,
+    "title": "Pexels",
+    "action": "https://www.pexels.com/es-es/buscar/videos/{search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fas fa-video"
+  },
+  {
+    "id": 1714851600010,
+    "title": "Pixabay",
+    "action": "https://pixabay.com/images/search/{search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fas fa-image"
+  },
+  {
+    "id": 1714851600011,
+    "title": "Pinterest",
+    "action": "https://www.pinterest.com/search/pins/?q={search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fab fa-pinterest"
+  },
+  {
+    "id": 1714851600012,
+    "title": "Wikipedia",
+    "action": "https://es.wikipedia.org/wiki/{search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fab fa-wikipedia-w"
+  },
+  {
+    "id": 1714851600013,
+    "title": "MercadoL",
+    "action": "https://listado.mercadolibre.com.ar/{search_term}_Envio_Full_OrderId_PRICE_NoIndex_True",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fas fa-shopping-cart"
+  },
+  {
+    "id": 1714851600014,
+    "title": "Soft",
+    "action": "https://compu-pc.com/?s={search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fas fa-laptop"
+  },
+  {
+    "id": 1714851600015,
+    "title": "IMDb",
+    "action": "https://www.imdb.com/find?q={search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fab fa-imdb"
+  },
+  {
+    "id": 1714851600016,
+    "title": "Rotten Tomatoes",
+    "action": "https://www.rottentomatoes.com/search?search={search_term}",
+    "type": "Buscador",
+    "category": "Búsqueda",
+    "icon": "fas fa-film"
+  },
+  {
+    "id": 1714851600017,
+    "title": "ChatGPT",
+    "action": "https://chat.openai.com/",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-robot"
+  },
+  {
+    "id": 1714851600018,
+    "title": "Poe",
+    "action": "https://poe.com/",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-comment-dots"
+  },
+  {
+    "id": 1714851600019,
+    "title": "Gemini",
+    "action": "https://gemini.google.com/app",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fab fa-google"
+  },
+  {
+    "id": 1714851600020,
+    "title": "Bing",
+    "action": "https://www.bing.com/",
+    "type": "Link",
+    "category": "Búsqueda",
+    "icon": "fab fa-microsoft"
+  },
+  {
+    "id": 1714851600021,
+    "title": "Dall-e",
+    "action": "https://www.bing.com/create",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-paint-brush"
+  },
+  {
+    "id": 1714851600022,
+    "title": "Notebook",
+    "action": "https://notebooklm.google/",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-book-open"
+  },
+  {
+    "id": 1714851600023,
+    "title": "Chatgot",
+    "action": "https://start.chatgot.io/",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-comment"
+  },
+  {
+    "id": 1714851600024,
+    "title": "Facebook",
+    "action": "https://www.facebook.com/",
+    "type": "Link",
+    "category": "Redes Sociales",
+    "icon": "fab fa-facebook"
+  },
+  {
+    "id": 1714851600025,
+    "title": "Gmail",
+    "action": "https://mail.google.com/mail/u/0/",
+    "type": "Link",
+    "category": "Correo",
+    "icon": "fas fa-envelope"
+  },
+  {
+    "id": 1714851600026,
+    "title": "Whatsapp",
+    "action": "https://web.whatsapp.com/",
+    "type": "Link",
+    "category": "Redes Sociales",
+    "icon": "fab fa-whatsapp"
+  },
+  {
+    "id": 1714851600027,
+    "title": "ImageFX",
+    "action": "https://labs.google/fx/es-419/tools/image-fx",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-image"
+  },
+  {
+    "id": 1714851600028,
+    "title": "Designify",
+    "action": "https://www.designify.com/",
+    "type": "Link",
+    "category": "Diseño",
+    "icon": "fas fa-palette"
+  },
+  {
+    "id": 1714851600029,
+    "title": "Clima",
+    "action": "https://www.google.com/search?q=clima+carlos+paz",
+    "type": "Link",
+    "category": "Utilidades",
+    "icon": "fas fa-cloud-sun"
+  },
+  {
+    "id": 1714851600030,
+    "title": "Diario",
+    "action": "https://docs.google.com/spreadsheets/d/1FBTpKAfrS2g7yx3_wYIl5wJayD3Cwx5A6YvSXU2LTzM/edit",
+    "type": "Link",
+    "category": "Utilidades",
+    "icon": "fas fa-calendar-day"
+  },
+  {
+    "id": 1714851600031,
+    "title": "Calendar",
+    "action": "https://calendar.google.com/calendar/u/0/r",
+    "type": "Link",
+    "category": "Utilidades",
+    "icon": "fas fa-calendar-alt"
+  },
+  {
+    "id": 1714851600032,
+    "title": "Ole",
+    "action": "https://www.ole.com.ar/agenda-deportiva",
+    "type": "Link",
+    "category": "Deportes",
+    "icon": "fas fa-futbol"
+  },
+  {
+    "id": 1714851600033,
+    "title": "Anima",
+    "action": "https://www.adobe.com/express/feature/video/animation/audio",
+    "type": "Link",
+    "category": "Diseño",
+    "icon": "fas fa-film"
+  },
+  {
+    "id": 1714851600034,
+    "title": "GeneraApp",
+    "action": "https://v0.dev/",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-laptop-code"
+  },
+  {
+    "id": 1714851600035,
+    "title": "Qwenlm",
+    "action": "https://chat.qwenlm.ai/",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-brain"
+  },
+  {
+    "id": 1714851600036,
+    "title": "Deepseek",
+    "action": "https://www.deepseek.com/",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-search"
+  },
+  {
+    "id": 1714851600037,
+    "title": "Le Chat",
+    "action": "https://chat.mistral.ai/",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-comments"
+  },
+  {
+    "id": 1714851600038,
+    "title": "Hailuoai",
+    "action": "https://hailuoai.video/create",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-video"
+  },
+  {
+    "id": 1714851600039,
+    "title": "Google Labs",
+    "action": "https://labs.google/fx/es",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fab fa-google"
+  },
+  {
+    "id": 1714851600040,
+    "title": "Endless.io",
+    "action": "https://endless.io/es",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-infinity"
+  },
+  {
+    "id": 1714851600041,
+    "title": "Freepik",
+    "action": "https://www.freepik.es/",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-images"
+  },
+  {
+    "id": 1714851600042,
+    "title": "Edita imagenes",
+    "action": "https://magicquill.art/demo/",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-edit"
+  },
+  {
+    "id": 1714851600043,
+    "title": "ai studio",
+    "action": "https://aistudio.google.com/",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-laptop-code"
+  },
+  {
+    "id": 1714851600044,
+    "title": "Claude",
+    "action": "https://claude.ai/onboarding",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-robot"
+  },
+  {
+    "id": 1714851600045,
+    "title": "Genspark",
+    "action": "https://www.genspark.ai",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-sparkles"
+  },
+  {
+    "id": 1714851600046,
+    "title": "Hidream",
+    "action": "https://hidream.org/es",
+    "type": "Link",
+    "category": "Herramientas de IA",
+    "icon": "fas fa-moon"
+  },
+  {
+    "id": 1714851600047,
+    "title": "Asistente",
+    "action": "Hola, quiero que seas mi asistente, guíame paso a paso.",
+    "type": "Promp",
+    "category": "Prompts",
+    "icon": "fas fa-user-tie"
+  },
+  {
+    "id": 1714851600048,
+    "title": "Python",
+    "action": "Eres un experto en Python. Pregunta para aclarar dudas; ayúdame a desarrollar el programa.",
+    "type": "Promp",
+    "category": "Prompts",
+    "icon": "fab fa-python"
+  },
+  {
+    "id": 1714851600049,
+    "title": "Codigo Completo",
+    "action": "Por favor, pásame el código completo de principio a fin, sin abreviaturas.",
+    "type": "Promp",
+    "category": "Prompts",
+    "icon": "fas fa-code"
+  },
+  {
+    "id": 1714851600050,
+    "title": "Web app",
+    "action": "Ayúdame a desarrollar una web app. Haz las preguntas necesarias para entender el proyecto y luego muéstrame el código completo.",
+    "type": "Promp",
+    "category": "Prompts",
+    "icon": "fas fa-laptop-code"
+  },
+  {
+    "id": 1714851600051,
+    "title": "Problema",
+    "action": "Descríbeme un problema y sugiéreme cómo resolverlo con un software o mediante un programa.",
+    "type": "Promp",
+    "category": "Prompts",
+    "icon": "fas fa-puzzle-piece"
+  },
+  {
+    "id": 1714851600052,
+    "title": "Editor",
+    "action": "Reescribe el siguiente texto para que sea más claro y esté mejor estructurado.",
+    "type": "Promp",
+    "category": "Prompts",
+    "icon": "fas fa-edit"
+  },
+  {
+    "id": 1714851600053,
+    "title": "Crea Promps",
+    "action": "Contexto: Vamos a diseñar uno de los mejores prompts jamás creados para ChatGPT... [Texto largo estructurado]",
+    "type": "Promp",
+    "category": "Prompts",
+    "icon": "fas fa-magic"
+  },
+  {
+    "id": 1714851600054,
+    "title": "Recomienda",
+    "action": "Basándote en mis gustos, haz todas las preguntas necesarias para afinar tu recomendación y luego sugiéreme lo mejor.",
+    "type": "Promp",
+    "category": "Prompts",
+    "icon": "fas fa-thumbs-up"
+  },
+  {
+    "id": 1714851600055,
+    "title": "YouTube",
+    "action": "Mi canal de YouTube se llama Proyectos Colectivos, en el que publico tutoriales, entretenimiento y contenido educativo.",
+    "type": "Promp",
+    "category": "Prompts",
+    "icon": "fab fa-youtube"
+  },
+  {
+    "id": 1714851600056,
+    "title": "Emilia",
+    "action": "Eres un experto en crianza positiva. Mi hija de 9 años tiene desafíos, ayúdame con consejos y recomendaciones.",
+    "type": "Promp",
+    "category": "Prompts",
+    "icon": "fas fa-child"
+  },
+  {
+    "id": 1714851600057,
+    "title": "Resumen Video",
+    "action": "Esta es la transcripción de un vídeo de youtube. Dime los 10 conceptos más importantes que se tratan en este vídeo, ponlos en formato bullet point. Y acompáñalos de una explicación. Necesito ver la información del video en español.",
+    "type": "Promp",
+    "category": "Prompts",
+    "icon": "fas fa-list"
+  },
+  {
+    "id": 1714851600058,
+    "title": "libritos",
+    "action": "C.R.A.F.T. Prompt para Crear un Libro de Autoayuda de 10x15 cm\nContexto:\nEres un emprendedor que utiliza materiales sobrantes...",
+    "type": "Promp",
+    "category": "Emprendimiento",
+    "icon": "fas fa-book"
+  },
+   {
+     "id": 1714851600059,
+     "title": "Idea de Proyecto",
+     "action": "Desarrollar una app simple con HTML/JS para organizar links y prompts.",
+     "type": "Nota",
+     "category": "Ideas",
+     "icon": "fas fa-lightbulb"
+   },
+   {
+     "id": 1714851600060,
+     "title": "Lista de Compras",
+     "action": "- Leche\n- Pan\n- Huevos",
+     "type": "Nota",
+     "category": "Personal",
+     "icon": "fas fa-shopping-basket"
+   },
+   {
+     "id": 1714851600061,
+     "title": "Implementar Drag&Drop",
+     "action": "Mejorar la lógica de arrastrar y soltar para guardar el orden.",
+     "type": "Tarea",
+     "category": "Desarrollo",
+     "icon": "fas fa-code",
+     "completed": false
+   },
+   {
+     "id": 1714851600062,
+     "title": "Añadir Búsqueda",
+     "action": "Crear campos de búsqueda para Links y Prompts.",
+     "type": "Tarea",
+     "category": "Desarrollo",
+     "icon": "fas fa-search",
+     "completed": true
+   }
+]
