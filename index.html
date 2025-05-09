@@ -87,14 +87,18 @@
     }
      .card.dragging { /* Style for the dragged card */
         opacity: 0.5;
-        border: 2px dashed #3b82f6;
+        /* border: 2px dashed #3b82f6; /* Optional: Add border to the dragged card itself */
      }
      /* Style to indicate drop target position */
-     .drag-over-top {
-         border-top: 2px dashed #000;
+     .card.drag-over-top { /* Más específico para asegurar que se aplique a la tarjeta */
+         border-top: 2px dashed #000 !important; /* Usar !important para sobrescribir posibles conflictos */
+         /* Asegurarse de que el borde no se superponga con el contenido */
+         /* padding-top: calc(0.5rem - 2px); /* Ajustar padding si es necesario para que el borde no "empuje" */
+         /* box-sizing: border-box; /* Ensure padding is included in the element's total height/width */
      }
+      /* Estilo para indicar drop en el contenedor vacío o al final */
      .drag-over-container {
-         border: 2px dashed #000;
+         border: 2px dashed #000 !important; /* Usar !important */
      }
 
 
@@ -667,7 +671,7 @@
     function handleDragOver(e) {
       if (e.preventDefault) e.preventDefault();
       e.dataTransfer.dropEffect = "move";
-      const targetCard = e.target.closest(".card:not(.editing)"); // Ensure not dropping on an editing card
+      const targetCard = e.target.closest(".card:not(.editing)"); // Encuentra el .card más cercano que no esté editando
       // Remove previous drag-over classes from all cards and containers
       document.querySelectorAll('.card').forEach(card => card.classList.remove('drag-over-top'));
       document.querySelectorAll('.category-engines, .category-links, .category-prompts, .category-notes, .category-tasks').forEach(container => container.classList.remove('drag-over-container'));
@@ -676,7 +680,10 @@
       if (targetCard && targetCard !== draggedCard) {
          // Only add class if the target is a different card within the same type
          if (draggedCard && targetCard.dataset.type === draggedCard.dataset.type) {
+             console.log("DragOver: Target card found and type matches. Adding drag-over-top to:", targetCard.dataset.id); // Add this log
              targetCard.classList.add('drag-over-top'); // Indicate dropping *before* this card
+         } else {
+              console.log("DragOver: Target card found but type mismatch or is dragged card itself.");
          }
 
       } else if (!targetCard && e.target.closest('.category-engines, .category-links, .category-prompts, .category-notes, .category-tasks')) {
@@ -695,24 +702,34 @@
                );
 
            if (isTypeMatch) {
+               console.log("DragOver: Target container found and type matches.", containerType); // Add this log
                container.classList.add('drag-over-container'); // Indicate dropping at the end of the container
+           } else {
+               console.log("DragOver: Target container found but type mismatch.");
            }
+      } else {
+           console.log("DragOver: No valid target card or container found.");
       }
-      return false;
+      return false; // Return false to allow the drop
     }
 
     function handleDragLeave(e) {
        // This event is tricky, it fires when leaving the element AND its children.
        // For simplicity, we handle most cleanup in dragover and dragend.
        // We can remove the class from the exact element being left, but dragover re-adds it if needed.
-        const targetCard = e.target.closest(".card");
-        if (targetCard) {
-            targetCard.classList.remove('drag-over-top');
-        }
-        const targetContainer = e.target.closest('.category-engines, .category-links, .category-prompts, .category-notes, .category-tasks');
-        if (targetContainer) {
-             targetContainer.classList.remove('drag-over-container');
-        }
+       // Adding a small timeout can help prevent flickering if just moving over children
+       setTimeout(() => {
+           const targetCard = e.target.closest(".card");
+           if (targetCard && !targetCard.matches(':hover')) { // Check if not hovering over the element or its children anymore
+             targetCard.classList.remove('drag-over-top');
+             console.log("DragLeave: Removing drag-over-top from card.");
+           }
+            const targetContainer = e.target.closest('.category-engines, .category-links, .category-prompts, .category-notes, .category-tasks');
+            if (targetContainer && !targetContainer.matches(':hover')) { // Check if not hovering over the container or its children
+                 targetContainer.classList.remove('drag-over-container');
+                 console.log("DragLeave: Removing drag-over-container from container.");
+            }
+       }, 50); // Small delay
     }
 
     function handleDrop(e) {
@@ -867,12 +884,14 @@
     // Función para agregar atributos de draggable a las tarjetas y sus event listeners
     function addDragAndDropListeners(card) {
       card.setAttribute("draggable", "true");
-      card.removeEventListener("dragstart", handleDragStart); // Prevent duplicate listeners
+      // Remove existing listeners to prevent duplicates when re-rendering
+      card.removeEventListener("dragstart", handleDragStart);
       card.removeEventListener("dragover", handleDragOver);
       card.removeEventListener("dragleave", handleDragLeave);
       card.removeEventListener("drop", handleDrop);
       card.removeEventListener("dragend", handleDragEnd);
 
+      // Add the listeners
       card.addEventListener("dragstart", handleDragStart, false);
       card.addEventListener("dragover", handleDragOver, false);
       card.addEventListener("dragleave", handleDragLeave, false);
@@ -977,7 +996,8 @@
                  // Ensure items have an ID if loading old data, and tasks have a completed status
                 data = data.map(item => {
                      if (item.id === undefined || item.id === null) {
-                         item.id = Date.now() + Math.floor(Math.random() * 1000); // Generate a simple ID if missing
+                         // Generate a more unique ID using timestamp and random number
+                         item.id = Date.now().toString() + Math.floor(Math.random() * 1000000).toString();
                      }
                     if (item.type === 'Tarea' && item.completed === undefined) {
                         return { ...item, completed: false };
@@ -1020,7 +1040,7 @@
                  // Ensure loaded data is an array and items have IDs, and tasks have completed status
                  data = Array.isArray(jsonData) ? jsonData.map(item => {
                      if (item.id === undefined || item.id === null) {
-                         item.id = Date.now() + Math.floor(Math.random() * 1000); // Generate a simple ID if missing
+                         item.id = Date.now().toString() + Math.floor(Math.random() * 1000000).toString(); // Generate a more unique ID
                      }
                      if (item.type === 'Tarea' && item.completed === undefined) {
                          return { ...item, completed: false };
@@ -1124,19 +1144,35 @@
            const sectionType = activeSectionId.replace('section-', ''); // e.g., 'buscadores', 'links'
            const itemType = sectionType.slice(0, -1); // e.g., 'buscador', 'link' (singular) - simple approximation
 
+           // Call a function to find the correct singular type from the plural section ID
+           const singularItemType = getSingularItemType(sectionType);
+
+
            // Use a single filter function call with the correct type
-           filterItems(itemType, category, searchTerm);
+           filterItems(singularItemType, category, searchTerm);
 
         });
       });
        console.log("Navegación configurada."); // Log exit
     }
 
+     // Helper function to get singular item type from plural section ID
+     function getSingularItemType(sectionType) {
+         if (sectionType === 'buscadores') return 'Buscador';
+         if (sectionType === 'links') return 'Link';
+         if (sectionType === 'prompts') return 'Promp';
+         if (sectionType === 'notes') return 'Nota';
+         if (sectionType === 'tasks') return 'Tarea';
+         return null; // Unknown type
+     }
+
+
      // Centralized filter function
      function filterItems(itemType, category, searchTerm) {
          console.log(`Filtrando ${itemType}s por categoría "${category}" y término "${searchTerm}"`);
 
-         const filteredItems = data.filter(item => item.type.toLowerCase() === itemType &&
+         // Filter data based on type, category, and search term
+         const filteredItems = data.filter(item => item.type === itemType && // Match the exact singular type
              (category === "" || item.category === category) && // Filter by category
              (searchTerm === "" || // Filter by search term
                  (item.title && item.title.toLowerCase().includes(searchTerm)) ||
@@ -1204,8 +1240,13 @@
             (item) => item.title === selectedEngine && item.type === "Buscador"
           );
           if (engine) {
-            const url = engine.action.replace("{search_term}", encodeURIComponent(searchTerm));
-            window.open(url, "_blank");
+            const url = engine.action ? engine.action.replace("{search_term}", encodeURIComponent(searchTerm)) : null;
+            if (url) {
+               window.open(url, "_blank");
+            } else {
+               console.warn(`Acción de búsqueda no definida para "${selectedEngine}".`);
+               showToast(`Acción de búsqueda no definida para "${selectedEngine}".`);
+            }
           } else {
                console.warn(`Motor de búsqueda "${selectedEngine}" no encontrado.`);
                showToast(`Motor de búsqueda "${selectedEngine}" no encontrado.`);
@@ -1263,21 +1304,17 @@
         const icon = document.getElementById("newIcon").value.trim();
 
         if (title && action && category) {
-          const newItem = { title, action, type, category, icon, id: Date.now() + Math.random() };
+          const newItem = { title, action, type, category, icon, id: Date.now().toString() + Math.random() }; // Generate ID
            if (type === 'Tarea') {
                newItem.completed = false; // Add completed status for tasks
            }
           data.push(newItem);
           saveData(data);
-          populateEditTable(data);
-          // Reset fields and update preview
-          document.getElementById("newTitle").value = "";
-          document.getElementById("newAction").value = "";
-          document.getElementById("newCategory").value = "";
-          document.getElementById("newIcon").value = "";
-          updateLivePreview();
+          // populateEditTable(data); // populateEditTable is called within initializeUI
           initializeUI(data); // Re-render all sections
           showToast("Elemento agregado correctamente");
+           // Close panel after adding? Or keep open? Keeping open for now.
+           // document.getElementById("editPanel").classList.add("hidden");
         } else {
             showToast("Por favor, completa Título, Acción y Categoría.");
         }
@@ -1301,17 +1338,9 @@
           }
       });
 
+       // No need for saveChangesButton if using inline edit buttons in table
+       // document.getElementById("saveChangesButton")?.addEventListener("click", function () { ... });
 
-      // The Save Changes button in the panel is less needed with inline editing,
-      // but keeping it for saving changes made directly in the table.
-      document.getElementById("saveChangesButton")?.addEventListener("click", function () {
-        // Data is already updated when using the table edit/delete buttons
-        // This button could be used for a "Save All Changes" feature if needed,
-        // but for now, the table buttons save individually.
-        // saveData(data);
-        document.getElementById("editPanel").classList.add("hidden");
-        showToast("Cambios guardados correctamente");
-      });
        console.log("Listeners de eventos configurados."); // Log exit
     }
 
@@ -1320,13 +1349,15 @@
       const container = document.getElementById("searchEnginesContainer");
       container.innerHTML = "";
       const allEngines = data.filter(item => item.type === 'Buscador');
-      const categories = [...new Set(allEngines.map((item) => item.category))]; // Use all engines for filter buttons
+      // Use all engines for filter buttons, then sort categories
+      const allCategories = [...new Set(allEngines.map((item) => item.category))];
+      const sortedAllCategories = allCategories.sort(); // Sort all categories alphabetically
       const filterContainer = document.getElementById("searchFilterButtons");
 
       // Render filter buttons only if data is not empty
       if (allEngines.length > 0) {
            filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
-           categories.forEach((category) => {
+           sortedAllCategories.forEach((category) => {
              filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
            });
             // Re-attach event listeners to filter buttons after re-rendering them
@@ -1358,16 +1389,16 @@
       const categorizedEngines = {};
       engines.forEach((engine) => { // Use the filtered list for rendering
           const category = engine.category || 'Sin Categoría'; // Handle items without category
-          if (!categorizedEngines[category]) categorizedEngitizedEngines[category] = [];
+          if (!categorizedEngines[category]) categorizedEngines[category] = [];
           categorizedEngines[category].push(engine);
       });
 
-      // Sort categories alphabetically
-      const sortedCategories = Object.keys(categorizedEngines).sort();
+      // Sort the categories that actually have items after filtering
+      const categoriesWithItems = Object.keys(categorizedEngines).sort();
 
-      //container.innerHTML = ""; // Clear existing content - already done at the start of the function
+      container.innerHTML = ""; // Clear existing content
 
-      sortedCategories.forEach((category) => {
+      categoriesWithItems.forEach((category) => {
           const categoryDiv = document.createElement("div");
           categoryDiv.className = "mb-8 col-span-full"; // Make category title span full width
           categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
@@ -1489,20 +1520,27 @@
           });
 
            // Add "Agregar nuevo" card
-           // Only add 'Add New' card if there are items of this type or the category is empty
-           const itemsInCategory = allEngines.filter(item => item.category === category);
-           if (itemsInCategory.length > 0 || category === 'Sin Categoría' || allEngines.length === 0) { // Add card if category has items, is 'Sin Categoría', or if there are no engines at all
-               const addCard = document.createElement("div");
-               addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
-               addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
-               addCard.addEventListener("click", function () {
-                 document.getElementById("editPanel").classList.remove("hidden");
-                 document.getElementById("newType").value = "Buscador"; // <-- This line sets the type
-                 document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
-                  updateLivePreview(); // Update preview for new item
-                  toggleSearchTermButton(); // Ensure search term button is visible if type is Buscador
-               });
-               categoryContainer.appendChild(addCard);
+           // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
+           // Check if *any* engine of this type exists in the full data array
+           const hasAnyEngine = data.some(item => item.type === 'Buscador');
+           if (hasAnyEngine || engines.length === 0) { // Add card if there are *any* engines OR the current filtered list is empty (allowing adding to empty results)
+           // Also check if the category being rendered exists in the list of categories from all engines, or if it's the 'Sin Categoría' special case.
+           // This prevents adding "Sin Categoría" cards in categories that don't exist in the full data.
+             const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
+
+             if (categoryExistsInAll) {
+                 const addCard = document.createElement("div");
+                 addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
+                 addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
+                 addCard.addEventListener("click", function () {
+                   document.getElementById("editPanel").classList.remove("hidden");
+                   document.getElementById("newType").value = "Buscador"; // <-- This line sets the type
+                   document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
+                    updateLivePreview(); // Update preview for new item
+                    toggleSearchTermButton(); // Ensure search term button is visible if type is Buscador
+                 });
+                 categoryContainer.appendChild(addCard);
+             }
            }
 
 
@@ -1522,13 +1560,15 @@
       const container = document.getElementById("linksContainer");
       container.innerHTML = "";
       const allLinks = data.filter(item => item.type === 'Link');
-      const categories = [...new Set(allLinks.map((item) => item.category))]; // Use all links for filter buttons
+      // Use all links for filter buttons, then sort categories
+      const allCategories = [...new Set(allLinks.map((item) => item.category))];
+      const sortedAllCategories = allCategories.sort();
       const filterContainer = document.getElementById("linkFilterButtons");
 
       // Render filter buttons only if data is not empty
        if (allLinks.length > 0) {
            filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
-           categories.forEach((category) => {
+           sortedAllCategories.forEach((category) => {
              filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
            });
             // Re-attach event listeners to filter buttons after re-rendering them
@@ -1663,21 +1703,24 @@
         });
 
         // Tarjeta para agregar nuevo enlace en esta categoría
-         // Only add 'Add New' card if there are items of this type or the category is empty
-        const itemsInCategory = allLinks.filter(item => item.category === category);
-        if (itemsInCategory.length > 0 || category === 'Sin Categoría' || allLinks.length === 0) {
-             const addCard = document.createElement("div");
-             addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
-             addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
-             addCard.addEventListener("click", function () {
-               document.getElementById("editPanel").classList.remove("hidden");
-                // Optionally pre-fill the category field
-               document.getElementById("newType").value = "Link"; // <-- This line sets the type
-               document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category;
-                updateLivePreview(); // Update preview for new item
-                 toggleSearchTermButton(); // Ensure search term button is hidden for Link type
-             });
-             categoryContainer.appendChild(addCard);
+         // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
+        const hasAnyLink = data.some(item => item.type === 'Link');
+        if (hasAnyLink || links.length === 0) {
+             const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
+             if (categoryExistsInAll) {
+                 const addCard = document.createElement("div");
+                 addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
+                 addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
+                 addCard.addEventListener("click", function () {
+                   document.getElementById("editPanel").classList.remove("hidden");
+                    // Optionally pre-fill the category field
+                   document.getElementById("newType").value = "Link"; // <-- This line sets the type
+                   document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category;
+                    updateLivePreview(); // Update preview for new item
+                     toggleSearchTermButton(); // Ensure search term button is hidden for Link type
+                 });
+                 categoryContainer.appendChild(addCard);
+             }
          }
         container.appendChild(categoryDiv);
       });
@@ -1691,13 +1734,15 @@
       const container = document.getElementById("promptsContainer");
       container.innerHTML = "";
       const allPrompts = data.filter(item => item.type === 'Promp');
-      const categories = [...new Set(allPrompts.map((item) => item.category))]; // Use all prompts for filter buttons
+      // Use all prompts for filter buttons, then sort categories
+      const allCategories = [...new Set(allPrompts.map((item) => item.category))];
+      const sortedAllCategories = allCategories.sort();
       const filterContainer = document.getElementById("promptFilterButtons");
 
        // Render filter buttons only if data is not empty
        if (allPrompts.length > 0) {
            filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
-           categories.forEach((category) => {
+           sortedAllCategories.forEach((category) => {
              filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
            });
             // Re-attach event listeners to filter buttons after re-rendering them
@@ -1856,21 +1901,24 @@
           });
 
           // Tarjeta para agregar nuevo prompt en esta categoría
-           // Only add 'Add New' card if there are items of this type or the category is empty
-          const itemsInCategory = allPrompts.filter(item => item.category === category);
-          if (itemsInCategory.length > 0 || category === 'Sin Categoría' || allPrompts.length === 0) {
-               const addCard = document.createElement("div");
-               addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
-               addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
-               addCard.addEventListener("click", function () {
-                 document.getElementById("editPanel").classList.remove("hidden");
-                  // Optionally pre-fill the category field
-                 document.getElementById("newType").value = "Promp"; // <-- This line sets the type
-                 document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category;
-                  updateLivePreview(); // Update preview for new item
-                   toggleSearchTermButton(); // Ensure search term button is hidden for Prompt type
-               });
-               categoryContainer.appendChild(addCard);
+           // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
+          const hasAnyPrompt = data.some(item => item.type === 'Promp');
+          if (hasAnyPrompt || prompts.length === 0) {
+             const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
+             if (categoryExistsInAll) {
+                 const addCard = document.createElement("div");
+                 addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
+                 addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
+                 addCard.addEventListener("click", function () {
+                   document.getElementById("editPanel").classList.remove("hidden");
+                    // Optionally pre-fill the category field
+                   document.getElementById("newType").value = "Promp"; // <-- This line sets the type
+                   document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category;
+                    updateLivePreview(); // Update preview for new item
+                    toggleSearchTermButton(); // Ensure search term button is hidden for Prompt type
+                 });
+                 categoryContainer.appendChild(addCard);
+             }
            }
           container.appendChild(categoryDiv);
       });
@@ -1884,13 +1932,15 @@
         const container = document.getElementById("notesContainer");
         container.innerHTML = "";
         const allNotes = data.filter(item => item.type === 'Nota');
-        const categories = [...new Set(allNotes.map((item) => item.category))]; // Use all notes for filter buttons
+        // Use all notes for filter buttons, then sort categories
+        const allCategories = [...new Set(allNotes.map((item) => item.category))];
+        const sortedAllCategories = allCategories.sort();
         const filterContainer = document.getElementById("noteFilterButtons");
 
          // Render filter buttons only if data is not empty
         if (allNotes.length > 0) {
             filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
-            categories.forEach((category) => {
+            sortedAllCategories.forEach((category) => {
                 filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
             });
              // Re-attach event listeners to filter buttons after re-rendering them
@@ -2029,21 +2079,24 @@
             });
 
              // Add "Agregar nuevo" card
-             // Only add 'Add New' card if there are items of this type or the category is empty
-            const itemsInCategory = allNotes.filter(item => item.category === category);
-            if (itemsInCategory.length > 0 || category === 'Sin Categoría' || allNotes.length === 0) {
-                  const addCard = document.createElement("div");
-                  addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
-                  addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
-                  addCard.addEventListener("click", function () {
-                    document.getElementById("editPanel").classList.remove("hidden");
-                    document.getElementById("newType").value = "Nota"; // <-- This line sets the type
-                    document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
-                     updateLivePreview(); // Update preview for new item
+             // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
+            const hasAnyNote = data.some(item => item.type === 'Nota');
+            if (hasAnyNote || notes.length === 0) {
+             const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
+             if (categoryExistsInAll) {
+                   const addCard = document.createElement("div");
+                   addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
+                   addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
+                   addCard.addEventListener("click", function () {
+                     document.getElementById("editPanel").classList.remove("hidden");
+                     document.getElementById("newType").value = "Nota"; // <-- This line sets the type
+                     document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
+                      updateLivePreview(); // Update preview for new item
                       toggleSearchTermButton(); // Ensure search term button is hidden for Note type
-                  });
-                  categoryContainer.appendChild(addCard);
+                   });
+                   categoryContainer.appendChild(addCard);
              }
+            }
 
             container.appendChild(categoryDiv);
         });
@@ -2057,13 +2110,15 @@
          const container = document.getElementById("tasksContainer");
          container.innerHTML = "";
          const allTasks = data.filter(item => item.type === 'Tarea');
-         const categories = [...new Set(allTasks.map((item) => item.category))]; // Use all tasks for filter buttons
+         // Use all tasks for filter buttons, then sort categories
+         const allCategories = [...new Set(allTasks.map((item) => item.category))];
+         const sortedAllCategories = allCategories.sort();
          const filterContainer = document.getElementById("taskFilterButtons");
 
           // Render filter buttons only if data is not empty
          if (allTasks.length > 0) {
              filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
-             categories.forEach((category) => {
+             sortedAllCategories.forEach((category) => {
                  filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
              });
               // Re-attach event listeners to filter buttons after re-rendering them
@@ -2246,9 +2301,11 @@
              });
 
               // Add "Agregar nuevo" card
-              // Only add 'Add New' card if there are items of this type or the category is empty
-             const itemsInCategory = allTasks.filter(item => item.category === category);
-             if (itemsInCategory.length > 0 || category === 'Sin Categoría' || allTasks.length === 0) {
+              // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
+             const hasAnyTask = data.some(item => item.type === 'Tarea');
+             if (hasAnyTask || tasks.length === 0) {
+                 const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
+                 if (categoryExistsInAll) {
                    const addCard = document.createElement("div");
                    addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
                    addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
@@ -2257,10 +2314,11 @@
                      document.getElementById("newType").value = "Tarea"; // <-- This line sets the type
                      document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
                       updateLivePreview(); // Update preview for new item
-                       toggleSearchTermButton(); // Ensure search term button is hidden for Task type
+                      toggleSearchTermButton(); // Ensure search term button is hidden for Task type
                    });
                    categoryContainer.appendChild(addCard);
-              }
+                 }
+             }
 
              container.appendChild(categoryDiv);
          });
@@ -2416,7 +2474,7 @@
                           // Ensure imported items have IDs, add if missing
                           data = importedData.map(item => {
                               if (item.id === undefined || item.id === null) {
-                                  item.id = Date.now() + Math.floor(Math.random() * 1000); // Generate a simple ID if missing
+                                  item.id = Date.now().toString() + Math.floor(Math.random() * 1000000).toString(); // Generate a more unique ID
                               }
                               // Ensure imported tasks have completed status if missing
                                if (item.type === 'Tarea' && item.completed === undefined) {
