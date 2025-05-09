@@ -1148,7 +1148,7 @@
               engineCard.className = "tooltip-container relative card bg-white p-4 rounded-lg text-center";
                engineCard.setAttribute("data-id", engine.id); // Add data-id attribute
                engineCard.setAttribute("data-type", engine.type); // Add data-type attribute
-               // addDragAndDropListeners(engineCard); // Removed DnD listeners
+               // REMOVED: engineCard.setAttribute("draggable", "true"); // Removed DnD listeners
 
               const iconHtml = getIconHtml(engine, false);
 
@@ -1370,7 +1370,7 @@
           linkCard.className = "tooltip-container relative card bg-white p-4 rounded-lg";
           linkCard.setAttribute("data-id", link.id); // Add data-id attribute
            linkCard.setAttribute("data-type", link.type); // Add data-type attribute
-          // addDragAndDropListeners(linkCard); // Removed DnD listeners
+          // REMOVED: addDragAndDropListeners(linkCard); // Removed DnD listeners
           const iconHtml = getIconHtml(link, false);
 
           // Display mode HTML
@@ -1545,7 +1545,7 @@
             promptCard.setAttribute("data-id", prompt.id); // Add data-id attribute
             promptCard.setAttribute("data-type", prompt.type); // Add data-type attribute
             promptCard.setAttribute("data-category", prompt.category);
-            // addDragAndDropListeners(promptCard); // Removed DnD listeners
+            // REMOVED: addDragAndDropListeners(promptCard); // Removed DnD listeners
             const iconHtml = getIconHtml(prompt, true);
 
             // Display mode HTML
@@ -1741,7 +1741,7 @@
                 noteCard.setAttribute("data-id", note.id);
                  noteCard.setAttribute("data-type", note.type);
                 noteCard.setAttribute("data-category", note.category);
-                // addDragAndDropListeners(noteCard); // Removed DnD listeners
+                // REMOVED: addDragAndDropListeners(noteCard); // Removed DnD listeners
                 const iconHtml = getIconHtml(note, false);
 
                 const displayModeHtml = `
@@ -1918,7 +1918,7 @@
                  taskCard.setAttribute("data-id", task.id);
                  taskCard.setAttribute("data-type", task.type);
                  taskCard.setAttribute("data-category", task.category);
-                 // addDragAndDropListeners(taskCard); // Removed DnD listeners
+                 // REMOVED: addDragAndDropListeners(taskCard); // Removed DnD listeners
                  const iconHtml = getIconHtml(task, false);
 
                  // Split action into lines and format as a list with interactive checkboxes
