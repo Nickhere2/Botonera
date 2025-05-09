@@ -722,10 +722,12 @@
 
     // --- Funciones de Drag & Drop ---
 
-    let draggedCard = null; // Moved global variable declaration here
+    // ** Variables globales para Drag & Drop **
+    let draggedCard = null;
+
 
     function handleDragStart(e) {
-      draggedCard = this;
+      draggedCard = this; // Assignment, not declaration
       e.dataTransfer.effectAllowed = "move";
       // Store the ID and type of the dragged card
       e.dataTransfer.setData("text/plain", JSON.stringify({ id: this.dataset.id, type: this.dataset.type }));
@@ -1402,7 +1404,7 @@
           const categoryContainer = categoryDiv.querySelector(".category-engines");
 
           // Sort engines within each category by title
-          categorizedEngines[category].sort((a, b) => a.title.localeCompare(b.title));
+          categorizedEngines[category].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
 
           categorizedEngines[category].forEach((engine) => {
               const engineCard = document.createElement("div");
