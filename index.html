@@ -73,7 +73,11 @@
       position: relative;
       display: flex; /* Use flexbox for card content */
       flex-direction: column;
+       cursor: grab; /* Indicate draggable */
     }
+     .card:active {
+         cursor: grabbing; /* Indicate dragging */
+     }
      .card .card-content { /* Wrapper for content excluding edit/delete buttons */
         flex-grow: 1;
      }
@@ -81,10 +85,19 @@
       transform: translateY(-5px);
       box-shadow: 0 10px 15px rgba(0,0,0,0.15);
     }
-     .card.dragging { /* Optional: style for the dragged card */
+     .card.dragging { /* Style for the dragged card */
         opacity: 0.5;
         border: 2px dashed #3b82f6;
      }
+     /* Style to indicate drop target position */
+     .drag-over-top {
+         border-top: 2px dashed #000;
+     }
+     .drag-over-container {
+         border: 2px dashed #000;
+     }
+
+
     .link-btn,
     .prompt-btn {
       transition: all 0.2s ease;
@@ -577,14 +590,14 @@
       const iconStr = item.icon;
       if (iconStr.includes("fa-google")) colorClass = "icon-google";
       else if (iconStr.includes("fa-youtube")) colorClass = "icon-youtube";
-      else if (iconStr.includes("fa-facebook")) colorClass = "icon-facebook";
-      else if (iconStr.includes("fa-twitter")) colorClass = "icon-twitter";
-      else if (iconStr.includes("fa-instagram")) colorClass = "icon-instagram";
-      else if (iconStr.includes("fa-linkedin")) colorClass = "icon-linkedin";
-      else if (iconStr.includes("fa-whatsapp")) colorClass = "icon-whatsapp";
-      else if (iconStr.includes("fa-spotify")) colorClass = "icon-spotify";
-      else if (iconStr.includes("fa-microsoft")) colorClass = "icon-microsoft";
-      else if (iconStr.includes("fa-imdb")) colorClass = "icon-imdb";
+      else if (iconStr.includes("fab fa-facebook")) colorClass = "icon-facebook"; // Corrected class name
+      else if (iconStr.includes("fab fa-twitter")) colorClass = "icon-twitter"; // Corrected class name
+      else if (iconStr.includes("fab fa-instagram")) colorClass = "icon-instagram"; // Corrected class name
+      else if (iconStr.includes("fab fa-linkedin")) colorClass = "icon-linkedin"; // Corrected class name
+      else if (iconStr.includes("fab fa-whatsapp")) colorClass = "icon-whatsapp"; // Corrected class name
+      else if (iconStr.includes("fab fa-spotify")) colorClass = "icon-spotify"; // Corrected class name
+      else if (iconStr.includes("fab fa-microsoft")) colorClass = "icon-microsoft"; // Corrected class name
+      else if (iconStr.includes("fab fa-imdb")) colorClass = "icon-imdb"; // Corrected class name
       else if (iconStr.includes("fa-map-marker-alt")) colorClass = "text-red-500";
       else if (iconStr.includes("fa-book") && !iconStr.includes("fa-book-open")) colorClass = "text-green-600";
       else if (iconStr.includes("fa-book-open")) colorClass = "text-purple-500";
@@ -600,11 +613,11 @@
       else if (iconStr.includes("fa-futbol")) colorClass = "text-green-500";
       else if (iconStr.includes("fa-laptop-code")) colorClass = "text-gray-700";
       else if (iconStr.includes("fa-brain")) colorClass = "text-purple-500";
-      else if (iconStr.includes("fa-search")) colorClass = "text-blue-500";
+      else if (iconStr.includes("fas fa-search")) colorClass = "text-blue-500"; // Adjusted from original code
       else if (iconStr.includes("fa-paint-brush")) colorClass = "text-pink-500";
       else if (iconStr.includes("fa-comment-dots")) colorClass = "text-blue-500";
-      else if (iconStr.includes("fa-comment")) colorClass = "text-blue-600";
-      else if (iconStr.includes("fa-robot")) colorClass = "text-green-500";
+      else if (iconStr.includes("fas fa-comment")) colorClass = "text-blue-600"; // Adjusted from original code
+      else if (iconStr.includes("fas fa-robot")) colorClass = "text-green-500"; // Adjusted from original code
       else if (iconStr.includes("fas fa-sparkles")) colorClass = "text-yellow-400";
       else if (iconStr.includes("fas fa-moon")) colorClass = "text-gray-500";
       else if (iconStr.includes("fas fa-child")) colorClass = "text-pink-500";
@@ -633,7 +646,7 @@
     }
 
     // Datos de la aplicación (se cargarán desde localStorage)
-    let data = [];
+    let data = []; // Ahora 'data' es el array global
 
     // Variables globales para Drag & Drop
     let draggedCard = null;
@@ -646,78 +659,220 @@
       e.dataTransfer.setData("text/plain", JSON.stringify({ id: this.dataset.id, type: this.dataset.type }));
        // Add a class to the dragged card for visual feedback
        setTimeout(() => {
-           draggedCard.classList.add('dragging');
+           if(draggedCard) draggedCard.classList.add('dragging'); // Check if draggedCard is still valid
        }, 0); // Use setTimeout to allow the drag image to be set before adding the class
+       console.log("Drag start:", this.dataset.id, "Type:", this.dataset.type);
     }
 
     function handleDragOver(e) {
       if (e.preventDefault) e.preventDefault();
       e.dataTransfer.dropEffect = "move";
       const targetCard = e.target.closest(".card:not(.editing)"); // Ensure not dropping on an editing card
+      // Remove previous drag-over classes from all cards and containers
+      document.querySelectorAll('.card').forEach(card => card.classList.remove('drag-over-top'));
+      document.querySelectorAll('.category-engines, .category-links, .category-prompts, .category-notes, .category-tasks').forEach(container => container.classList.remove('drag-over-container'));
+
+
       if (targetCard && targetCard !== draggedCard) {
-        // Optional: Add visual feedback to the target card
-        // targetCard.classList.add('drag-over');
+         // Only add class if the target is a different card within the same type
+         if (draggedCard && targetCard.dataset.type === draggedCard.dataset.type) {
+             targetCard.classList.add('drag-over-top'); // Indicate dropping *before* this card
+         }
+
+      } else if (!targetCard && e.target.closest('.category-engines, .category-links, .category-prompts, .category-notes, .category-tasks')) {
+          // If dragging over a category container itself (not over a specific card)
+           const container = e.target.closest('.category-engines, .category-links, .category-prompts, .category-notes, .category-tasks');
+           const containerType = container.closest('.section').id.replace('section-', '');
+           const draggedType = draggedCard ? draggedCard.dataset.type : null; // Get type from dragged card
+
+           // Match container type with dragged type (handling pluralization)
+           const isTypeMatch = draggedType && (
+               (draggedType === 'Buscador' && containerType === 'buscadores') ||
+               (draggedType === 'Link' && containerType === 'links') ||
+               (draggedType === 'Promp' && containerType === 'prompts') ||
+                (draggedType === 'Nota' && containerType === 'notes') || // Corrected type check
+                (draggedType === 'Tarea' && containerType === 'tasks') // Corrected type check
+               );
+
+           if (isTypeMatch) {
+               container.classList.add('drag-over-container'); // Indicate dropping at the end of the container
+           }
       }
       return false;
     }
 
     function handleDragLeave(e) {
-       const targetCard = e.target.closest(".card");
-       if (targetCard) {
-         // Optional: Remove visual feedback
-         // targetCard.classList.remove('drag-over');
-       }
+       // This event is tricky, it fires when leaving the element AND its children.
+       // For simplicity, we handle most cleanup in dragover and dragend.
+       // We can remove the class from the exact element being left, but dragover re-adds it if needed.
+        const targetCard = e.target.closest(".card");
+        if (targetCard) {
+            targetCard.classList.remove('drag-over-top');
+        }
+        const targetContainer = e.target.closest('.category-engines, .category-links, .category-prompts, .category-notes, .category-tasks');
+        if (targetContainer) {
+             targetContainer.classList.remove('drag-over-container');
+        }
     }
 
     function handleDrop(e) {
       if (e.stopPropagation) e.stopPropagation();
-      const targetCard = e.target.closest(".card:not(.editing)"); // Ensure not dropping on an editing card
-      if (targetCard && draggedCard !== targetCard) {
-        const draggedInfo = JSON.parse(e.dataTransfer.getData("text/plain"));
-        const draggedCardId = draggedInfo.id;
-        const draggedCardType = draggedInfo.type;
-        const targetCardId = targetCard.dataset.id;
-        const targetCardType = targetCard.dataset.type;
+      e.preventDefault(); // Crucial to allow drop
 
-        // Ensure dropping within the same section type
-        if (draggedCardType === targetCardType) {
-            let currentData = JSON.parse(localStorage.getItem("centroAccesosData")) || data; // Use localStorage data if available, otherwise use current data
-            const draggedIndex = currentData.findIndex(item => item.id == draggedCardId);
-            const targetIndex = currentData.findIndex(item => item.id == targetCardId);
 
-            if (draggedIndex > -1 && targetIndex > -1) {
-              // Reorder the data array
-              const [removed] = currentData.splice(draggedIndex, 1);
-              currentData.splice(targetIndex, 0, removed);
+      const targetCard = e.target.closest(".card:not(.editing)"); // Element DOM sobre el que se soltó
+      const targetContainer = e.target.closest('.category-engines, .category-links, .category-prompts, .category-notes, .category-tasks');
 
-              // Save the reordered data
-              saveData(currentData);
 
-              // Re-render the UI to reflect the new order
-              initializeUI(currentData);
-            }
-        } else {
-            showToast(`No se puede mover un elemento de ${draggedCardType} a ${targetCardType}.`);
-        }
+      // Clean up visual feedback before processing
+      document.querySelectorAll('.card').forEach(card => card.classList.remove('drag-over-top'));
+      document.querySelectorAll('.category-engines, .category-links, .category-prompts, .category-notes, .category-tasks').forEach(container => container.classList.remove('drag-over-container'));
+
+
+      if (!draggedCard) {
+         console.warn("Drop cancelado: draggedCard es nulo.");
+         return false; // Indicate drop failure
       }
-      // Optional: Remove visual feedback
-      // if (targetCard) targetCard.classList.remove('drag-over');
-      return false;
+
+      try {
+          const draggedInfo = JSON.parse(e.dataTransfer.getData("text/plain"));
+          const draggedCardId = draggedInfo.id;
+          const draggedCardType = draggedInfo.type;
+
+          // Find the data of the dragged item before removing it
+          const originalDraggedIndex = data.findIndex(item => item.id == draggedCardId);
+           if (originalDraggedIndex === -1) {
+               console.error("Elemento arrastrado no encontrado en los datos.");
+               return false; // Indicate drop failure
+           }
+           const movedItemData = data[originalDraggedIndex]; // Get data before splicing
+
+
+          let insertionIndex = data.length; // Default to appending at the end
+
+          if (targetCard && draggedCard !== targetCard) {
+            const targetCardId = targetCard.dataset.id;
+            const targetCardType = targetCard.dataset.type;
+
+             // Ensure dropping within the same section type
+            if (draggedCardType === targetCardType) {
+                 // Find the target index in the data array *BEFORE* removing the dragged item
+                const originalTargetIndex = data.findIndex(item => item.id == targetCardId);
+
+                if (originalTargetIndex === -1) {
+                    console.warn("Target item not found in data array during drop.");
+                    // Fallback: if target not found in data, append to end (less ideal)
+                    insertionIndex = data.length;
+                    showToast("Error al encontrar objetivo. Elemento movido al final.");
+                } else {
+                     // Calculate the insertion index *after* removing the dragged item
+                     if (originalDraggedIndex < originalTargetIndex) {
+                         // If the dragged item was originally before the target, the target's index
+                         // in the array after removal is one less than its original index.
+                         insertionIndex = originalTargetIndex - 1;
+                     } else {
+                         // If the dragged item was originally after the target, the target's index
+                         // in the array after removal is the same as its original index.
+                         insertionIndex = originalTargetIndex;
+                     }
+                     console.log(`Calculated insertion index based on data indices: originalDragged=${originalDraggedIndex}, originalTarget=${originalTargetIndex}, insertion=${insertionIndex}`);
+                }
+
+            } else {
+                showToast(`No se puede mover un elemento de "${draggedCardType}" a la sección de "${targetCardType}".`);
+                 console.log("Drop entre tipos de sección no permitido.");
+                return false; // Prevent drop if types don't match
+            }
+          } else if (targetContainer && !targetCard && draggedCard) {
+             // Dropped in an empty container or at the end of a container area
+             const containerType = targetContainer.closest('.section').id.replace('section-', '');
+             const draggedType = draggedCard.dataset.type;
+
+             // Match container type with dragged type (handling pluralization)
+             const isTypeMatch =
+                 (draggedType === 'Buscador' && containerType === 'buscadores') ||
+                 (draggedType === 'Link' && containerType === 'links') ||
+                 (draggedType === 'Promp' && containerType === 'prompts') ||
+                  (draggedType === 'Nota' && containerType === 'notes') ||
+                  (draggedType === 'Tarea' && containerType === 'tasks');
+
+             if (isTypeMatch) {
+                 insertionIndex = data.length; // Append to the end of the data array
+                 console.log(`Dropped in container of type ${containerType}. Appending to end.`);
+             } else {
+                 showToast(`No se puede mover un elemento de "${draggedType}" a la sección de "${containerType}".`);
+                  console.log("Drop entre tipos de sección no permitido en contenedor.");
+                 return false; // Prevent drop if types don't match the container
+             }
+          } else {
+              console.log("Dropped on dragged item or outside valid target area.");
+              return false; // Dropped on self or invalid area
+          }
+
+
+          // Remove the dragged item from its original position in the data array
+           // Ensure originalDraggedIndex is valid before splicing
+          if (originalDraggedIndex > -1) {
+               data.splice(originalDraggedIndex, 1);
+
+               // Ensure insertionIndex is within bounds for splice (0 to data.length inclusive)
+               insertionIndex = Math.max(0, Math.min(insertionIndex, data.length));
+
+               // Insert the item at the new position
+               data.splice(insertionIndex, 0, movedItemData);
+
+               console.log("Datos reordenados en memoria:", data.map(b => b.title));
+
+               // Save the updated data to localStorage
+               saveData(data);
+
+               // Re-render the UI to reflect the new order
+               initializeUI(data); // Re-render all sections
+
+               showToast("Elemento reordenado correctamente.");
+               return true; // Indicate drop success
+
+
+           } else {
+               console.error("Elemento arrastrado no encontrado en el array de datos durante la eliminación.");
+               return false; // Indicate drop failure
+           }
+      } catch (error) {
+          console.error("Error durante la operación de drop:", error);
+           showToast("Ocurrió un error al reordenar el elemento.");
+           return false; // Indicate drop failure
+      } finally {
+           // Ensure dragging class is removed even if an error occurs
+           if (draggedCard) {
+               draggedCard.classList.remove('dragging');
+           }
+           draggedCard = null; // Clear dragged item reference
+      }
     }
+
 
     function handleDragEnd() {
       if (draggedCard) {
          draggedCard.classList.remove('dragging'); // Remove the dragging class
       }
       draggedCard = null;
-      // Clean up any visual feedback from target cards
-      // document.querySelectorAll('.card').forEach(card => card.classList.remove('drag-over'));
+      // Clean up any visual feedback from target cards and containers
+      document.querySelectorAll('.card').forEach(card => card.classList.remove('drag-over-top'));
+       document.querySelectorAll('.category-engines, .category-links, .category-prompts, .category-notes, .category-tasks').forEach(container => container.classList.remove('drag-over-container'));
+
+      console.log("Drag end.");
     }
 
 
     // Función para agregar atributos de draggable a las tarjetas y sus event listeners
     function addDragAndDropListeners(card) {
       card.setAttribute("draggable", "true");
+      card.removeEventListener("dragstart", handleDragStart); // Prevent duplicate listeners
+      card.removeEventListener("dragover", handleDragOver);
+      card.removeEventListener("dragleave", handleDragLeave);
+      card.removeEventListener("drop", handleDrop);
+      card.removeEventListener("dragend", handleDragEnd);
+
       card.addEventListener("dragstart", handleDragStart, false);
       card.addEventListener("dragover", handleDragOver, false);
       card.addEventListener("dragleave", handleDragLeave, false);
@@ -737,20 +892,23 @@
       const tempItem = { title, action, type, category, icon, id: 'preview' };
       let contentHtml = '';
       if (type === 'Promp') {
-         contentHtml = `<div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 prompt-content">${action.replace(/\n/g, "<br>").substring(0, 100) + '...'}</div>`;
+         contentHtml = `<div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 prompt-content no-scrollbar">${action.replace(/\n/g, "<br>").substring(0, 100) + (action.length > 100 ? '...' : '')}</div>`;
       } else if (type === 'Nota') {
-         contentHtml = `<div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 note-content">${action.replace(/\n/g, "<br>").substring(0, 100) + '...'}</div>`;
+         contentHtml = `<div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 note-content no-scrollbar">${action.replace(/\n/g, "<br>").substring(0, 100) + (action.length > 100 ? '...' : '')}</div>`;
       } else if (type === 'Tarea') {
           // Display task action as a simple list in preview
           const taskLines = action.split('\n').filter(line => line.trim() !== '');
-          let taskListHtml = '<ul class="task-list mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700">';
+          let taskListHtml = '<ul class="task-list mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 no-scrollbar">';
           taskLines.forEach(line => {
-              taskListHtml += `<li><input type="checkbox" disabled> ${line}</li>`;
+              // Check if the line starts with "[x]" or "[ ]" to determine initial checked state
+              const isChecked = line.trim().startsWith('[x]');
+              const cleanedLine = line.replace(/^\[[x ]\]\s*/, '').trim(); // Remove "[x] " or "[ ] "
+              taskListHtml += `<li><input type="checkbox" disabled ${isChecked ? 'checked' : ''}> ${cleanedLine}</li>`;
           });
           taskListHtml += '</ul>';
           contentHtml = taskListHtml;
       } else { // Buscador or Link
-         contentHtml = `<p class="text-sm text-gray-600 mt-2">${action}</p>`;
+         contentHtml = `<p class="text-sm text-gray-600 mt-2">${action.substring(0, 100) + (action.length > 100 ? '...' : '')}</p>`;
       }
 
 
@@ -762,12 +920,11 @@
                       </div>
                       ${contentHtml}
                       <div class="mt-2 text-xs text-gray-500">Etiqueta: ${category}</div>
-                       <button class="edit-btn text-blue-600 mt-2 text-xs">
-                        <i class="fas fa-edit"></i> Editar
+                       <button class="edit-btn text-blue-600 mt-2 text-xs" style="pointer-events: none;">
+                        <i class="fas fa-edit"></i> Editar (previsualización)
                       </button>
                     </div>
-                    <div class="tooltip">Vista previa en tiempo real</div>
-                  </div>`;
+                    <div class="tooltip">Arrastra para reordenar (previsualización)</div> </div>`;
       previewContainer.innerHTML = html;
        // Add DnD in the preview (optional, might be confusing)
       // const card = previewContainer.querySelector(".card");
@@ -817,8 +974,11 @@
             try {
                 data = JSON.parse(savedData);
                 console.log("Datos cargados desde localStorage:", data);
-                 // Ensure tasks have a completed status if loading old data
+                 // Ensure items have an ID if loading old data, and tasks have a completed status
                 data = data.map(item => {
+                     if (item.id === undefined || item.id === null) {
+                         item.id = Date.now() + Math.floor(Math.random() * 1000); // Generate a simple ID if missing
+                     }
                     if (item.type === 'Tarea' && item.completed === undefined) {
                         return { ...item, completed: false };
                     }
@@ -839,21 +999,51 @@
                  console.log("Inicialización completa con datos vacíos debido a error de localStorage.");
             }
         } else {
-            console.log("No se encontraron datos en localStorage. Iniciando con datos vacíos.");
-             // Initialize with empty UI if no data in localStorage
-             data = [];
-             initializeUI(data);
-             setupNavigation();
-             setupEventListeners();
-             console.log("Inicialización completa con datos vacíos.");
+            console.log("No se encontraron datos en localStorage. Intentando cargar desde data.json...");
+            // If no data in localStorage, try loading from data.json (original source)
+            loadDataFromJson(); // Use a new function to load specifically from data.json
+             console.log("Cargando desde data.json...");
+
         }
     });
+
+     // New function to specifically load from data.json
+     async function loadDataFromJson() {
+         try {
+             const response = await fetch('data.json');
+             if (!response.ok) {
+                  console.warn(`No se pudo cargar data.json. Status: ${response.status}. Iniciando con datos vacíos.`);
+                  data = [];
+             } else {
+                 const jsonData = await response.json();
+                 console.log("Datos cargados desde data.json:", jsonData);
+                 // Ensure loaded data is an array and items have IDs, and tasks have completed status
+                 data = Array.isArray(jsonData) ? jsonData.map(item => {
+                     if (item.id === undefined || item.id === null) {
+                         item.id = Date.now() + Math.floor(Math.random() * 1000); // Generate a simple ID if missing
+                     }
+                     if (item.type === 'Tarea' && item.completed === undefined) {
+                         return { ...item, completed: false };
+                     }
+                     return item;
+                 }) : [];
+                 saveData(data); // Save loaded data to localStorage for future use
+             }
+         } catch (error) {
+             console.error("Error al cargar o procesar data.json:", error);
+             data = []; // In case of any error, initialize with empty data
+         }
+          initializeUI(data); // Render UI with loaded data
+          setupNavigation();
+          setupEventListeners();
+          console.log("Carga desde data.json completada.");
+     }
 
 
     function initializeUI(currentData) {
       console.log("Entrando a initializeUI con datos:", currentData); // Log entry
-      if (!currentData || currentData.length === 0) {
-          console.log("No hay datos para mostrar.");
+      if (!currentData || !Array.isArray(currentData) || currentData.length === 0) { // Added Array.isArray check
+          console.log("No hay datos o los datos son inválidos para mostrar.");
           // Optionally display a message in each section if data is empty
           document.getElementById("searchEnginesContainer").innerHTML = '<div class="text-center text-gray-600 mt-8 col-span-full">No hay buscadores disponibles.</div>';
           document.getElementById("linksContainer").innerHTML = '<div class="text-center text-gray-600 mt-8 col-span-full">No hay links disponibles.</div>';
@@ -883,17 +1073,17 @@
       }
 
       console.log("Llamando a renderSearchEngines..."); // Log before call
-      renderSearchEngines(currentData);
+      renderSearchEngines(currentData.filter(item => item.type === 'Buscador'));
       console.log("Llamando a populateSearchEngineDropdown..."); // Log before call
-      populateSearchEngineDropdown(currentData);
+      populateSearchEngineDropdown(currentData.filter(item => item.type === 'Buscador'));
       console.log("Llamando a renderLinks..."); // Log before call
-      renderLinks(currentData);
+      renderLinks(currentData.filter(item => item.type === 'Link'));
       console.log("Llamando a renderPrompts..."); // Log before call
-      renderPrompts(currentData);
+      renderPrompts(currentData.filter(item => item.type === 'Promp'));
       console.log("Llamando a renderNotes..."); // Log before call
-      renderNotes(currentData); // Render Notes
+      renderNotes(currentData.filter(item => item.type === 'Nota')); // Render Notes
       console.log("Llamando a renderTasks..."); // Log before call
-      renderTasks(currentData); // Render Tasks
+      renderTasks(currentData.filter(item => item.type === 'Tarea')); // Render Tasks
       console.log("Llamando a populateEditTable..."); // Log before call
       populateEditTable(currentData);
 
@@ -903,6 +1093,7 @@
        document.getElementById("noPromptsFound").classList.add("hidden");
        document.getElementById("noNotesFound").classList.add("hidden");
        document.getElementById("noTasksFound").classList.add("hidden");
+
 
        console.log("initializeUI completado (con datos)."); // Log exit
     }
@@ -921,30 +1112,81 @@
 
            // Trigger filter for the newly active section to apply any existing search term
            const activeSectionId = document.querySelector('.section:not(.hidden)').id;
-           if (activeSectionId === 'section-buscadores') {
-               filterSearchEngines(document.querySelector("#searchFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Buscador'), document.getElementById("searchCardSearchInput").value.toLowerCase());
-           } else if (activeSectionId === 'section-links') {
-               filterLinks(document.querySelector("#linkFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Link'), document.getElementById("linkCardSearchInput").value.toLowerCase());
-           } else if (activeSectionId === 'section-prompts') {
-               filterPrompts(document.querySelector("#promptFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Promp'), document.getElementById("promptCardSearchInput").value.toLowerCase());
-           } else if (activeSectionId === 'section-notes') {
-               filterNotes(document.querySelector("#noteFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Nota'), document.getElementById("noteCardSearchInput").value.toLowerCase());
-           } else if (activeSectionId === 'section-tasks') {
-               filterTasks(document.querySelector("#taskFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Tarea'), document.getElementById("taskCardSearchInput").value.toLowerCase());
-           }
+           // Find the correct search input for the active section
+           const sectionSearchInputId = activeSectionId.replace('section-', '') + 'CardSearchInput';
+           const searchTerm = document.getElementById(sectionSearchInputId)?.value.toLowerCase() || "";
+
+           // Find the active filter button for the active section
+           const sectionFilterButtonsId = activeSectionId.replace('section-', '') + 'FilterButtons';
+           const activeFilterBtn = document.querySelector(`#${sectionFilterButtonsId} .filter-btn.active`);
+           const category = activeFilterBtn ? activeFilterBtn.getAttribute("data-category") : "";
+
+           const sectionType = activeSectionId.replace('section-', ''); // e.g., 'buscadores', 'links'
+           const itemType = sectionType.slice(0, -1); // e.g., 'buscador', 'link' (singular) - simple approximation
+
+           // Use a single filter function call with the correct type
+           filterItems(itemType, category, searchTerm);
+
         });
       });
        console.log("Navegación configurada."); // Log exit
     }
 
+     // Centralized filter function
+     function filterItems(itemType, category, searchTerm) {
+         console.log(`Filtrando ${itemType}s por categoría "${category}" y término "${searchTerm}"`);
+
+         const filteredItems = data.filter(item => item.type.toLowerCase() === itemType &&
+             (category === "" || item.category === category) && // Filter by category
+             (searchTerm === "" || // Filter by search term
+                 (item.title && item.title.toLowerCase().includes(searchTerm)) ||
+                 (item.action && item.action.toLowerCase().includes(searchTerm)) ||
+                 (item.category && item.category.toLowerCase().includes(searchTerm))
+             )
+         );
+
+         console.log(`${itemType}s filtrados:`, filteredItems);
+
+         // Update the correct container and "no items found" message based on itemType
+         const containerId = itemType === 'Buscador' ? 'searchEnginesContainer' :
+                             itemType === 'Link' ? 'linksContainer' :
+                             itemType === 'Promp' ? 'promptsContainer' :
+                             itemType === 'Nota' ? 'notesContainer' :
+                             itemType === 'Tarea' ? 'tasksContainer' : null;
+
+         const noItemsMessageId = itemType === 'Buscador' ? 'noBuscadoresFound' :
+                                  itemType === 'Link' ? 'noLinksFound' :
+                                  itemType === 'Promp' ? 'noPromptsFound' :
+                                  itemType === 'Nota' ? 'noNotesFound' :
+                                  itemType === 'Tarea' ? 'noTasksFound' : null;
+
+         if (containerId && noItemsMessageId) {
+             if (filteredItems.length === 0) {
+                 document.getElementById(noItemsMessageId).classList.remove("hidden");
+             } else {
+                 document.getElementById(noItemsMessageId).classList.add("hidden");
+             }
+
+             // Call the specific render function for the type
+             if (itemType === 'Buscador') renderSearchEngines(filteredItems);
+             else if (itemType === 'Link') renderLinks(filteredItems);
+             else if (itemType === 'Promp') renderPrompts(filteredItems);
+             else if (itemType === 'Nota') renderNotes(filteredItems);
+             else if (itemType === 'Tarea') renderTasks(filteredItems);
+         } else {
+             console.error("Tipo de elemento desconocido:", itemType);
+         }
+     }
+
+
     function setupEventListeners() { // data is now a global variable
       console.log("Configurando listeners de eventos..."); // Log entry
       // Search input listeners for card filtering
-      document.getElementById("searchCardSearchInput").addEventListener("input", function() { filterSearchEngines(document.querySelector("#searchFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Buscador'), this.value.toLowerCase()); });
-      document.getElementById("linkCardSearchInput").addEventListener("input", function() { filterLinks(document.querySelector("#linkFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Link'), this.value.toLowerCase()); });
-      document.getElementById("promptCardSearchInput").addEventListener("input", function() { filterPrompts(document.querySelector("#promptFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Promp'), this.value.toLowerCase()); });
-       document.getElementById("noteCardSearchInput").addEventListener("input", function() { filterNotes(document.querySelector("#noteFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Nota'), this.value.toLowerCase()); });
-       document.getElementById("taskCardSearchInput").addEventListener("input", function() { filterTasks(document.querySelector("#taskFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Tarea'), this.value.toLowerCase()); });
+      document.getElementById("searchCardSearchInput").addEventListener("input", function() { filterItems('Buscador', document.querySelector("#searchFilterButtons .filter-btn.active")?.getAttribute("data-category"), this.value.toLowerCase()); });
+      document.getElementById("linkCardSearchInput").addEventListener("input", function() { filterItems('Link', document.querySelector("#linkFilterButtons .filter-btn.active")?.getAttribute("data-category"), this.value.toLowerCase()); });
+      document.getElementById("promptCardSearchInput").addEventListener("input", function() { filterItems('Promp', document.querySelector("#promptFilterButtons .filter-btn.active")?.getAttribute("data-category"), this.value.toLowerCase()); });
+       document.getElementById("noteCardSearchInput").addEventListener("input", function() { filterItems('Nota', document.querySelector("#noteFilterButtons .filter-btn.active")?.getAttribute("data-category"), this.value.toLowerCase()); });
+       document.getElementById("taskCardSearchInput").addEventListener("input", function() { filterItems('Tarea', document.querySelector("#taskFilterButtons .filter-btn.active")?.getAttribute("data-category"), this.value.toLowerCase()); });
 
 
       // Main search button (only for web search)
@@ -964,7 +1206,12 @@
           if (engine) {
             const url = engine.action.replace("{search_term}", encodeURIComponent(searchTerm));
             window.open(url, "_blank");
+          } else {
+               console.warn(`Motor de búsqueda "${selectedEngine}" no encontrado.`);
+               showToast(`Motor de búsqueda "${selectedEngine}" no encontrado.`);
           }
+        } else {
+             showToast("Por favor, ingresa un término de búsqueda.");
         }
       });
 
@@ -982,6 +1229,7 @@
       document.addEventListener("click", function (e) {
         const dropdown = document.getElementById("searchEngineDropdown");
         const toggle = document.getElementById("dropdownToggle");
+        // Check if the click target is inside the dropdown or the toggle button
         if (!dropdown.contains(e.target) && !toggle.contains(e.target)) {
           dropdown.classList.add("hidden");
         }
@@ -992,6 +1240,14 @@
         document.getElementById("editPanel").classList.remove("hidden");
          // Populate the edit table when opening the panel
          populateEditTable(data);
+          // Ensure new item form is reset and preview updated
+          document.getElementById("newTitle").value = "";
+          document.getElementById("newAction").value = "";
+          document.getElementById("newType").value = "Buscador"; // Default type
+          document.getElementById("newCategory").value = "";
+          document.getElementById("newIcon").value = "";
+          updateLivePreview();
+          toggleSearchTermButton(); // Ensure search term button visibility is correct for default type
       });
 
       // Close edit panel
@@ -1059,272 +1315,259 @@
        console.log("Listeners de eventos configurados."); // Log exit
     }
 
-    function renderSearchEngines(currentData) {
-      console.log("Renderizando Buscadores..."); // Log entry
-      const searchEnginesData = currentData.filter((item) => item.type === "Buscador");
+    function renderSearchEngines(engines) { // Receives filtered data
+      console.log("Renderizando Buscadores:", engines.length, "items"); // Log entry
       const container = document.getElementById("searchEnginesContainer");
       container.innerHTML = "";
-      const categories = [...new Set(searchEnginesData.map((item) => item.category))];
+      const allEngines = data.filter(item => item.type === 'Buscador');
+      const categories = [...new Set(allEngines.map((item) => item.category))]; // Use all engines for filter buttons
       const filterContainer = document.getElementById("searchFilterButtons");
-      filterContainer.innerHTML = `<button class="filter-btn active px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
-      categories.forEach((category) => {
-        filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
+
+      // Render filter buttons only if data is not empty
+      if (allEngines.length > 0) {
+           filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
+           categories.forEach((category) => {
+             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
+           });
+            // Re-attach event listeners to filter buttons after re-rendering them
+            document.querySelectorAll("#searchFilterButtons .filter-btn").forEach((btn) => {
+                btn.addEventListener("click", function () {
+                    document.querySelectorAll("#searchFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
+                    this.classList.add("active");
+                    const category = this.getAttribute("data-category");
+                     // Call the centralized filter function
+                    filterItems('Buscador', category, document.getElementById("searchCardSearchInput").value.toLowerCase());
+                });
+            });
+            // Ensure the currently active filter button remains active after re-render
+            const activeFilterBtn = document.querySelector("#searchFilterButtons .filter-btn.active");
+            if (activeFilterBtn) {
+                 const currentCategory = activeFilterBtn.getAttribute("data-category");
+                 document.querySelector(`#searchFilterButtons .filter-btn[data-category="${currentCategory}"]`)?.classList.add('active');
+            } else {
+                 // Default to 'Todos' if no filter is active
+                 document.querySelector("#searchFilterButtons .filter-btn.filter-all")?.classList.add('active');
+            }
+
+
+      } else {
+         filterContainer.innerHTML = ''; // Clear filter buttons if no data
+      }
+
+
+      const categorizedEngines = {};
+      engines.forEach((engine) => { // Use the filtered list for rendering
+          const category = engine.category || 'Sin Categoría'; // Handle items without category
+          if (!categorizedEngines[category]) categorizedEngitizedEngines[category] = [];
+          categorizedEngines[category].push(engine);
       });
-      document.querySelectorAll("#searchFilterButtons .filter-btn").forEach((btn) => {
-        btn.addEventListener("click", function () {
-          document.querySelectorAll("#searchFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
-          this.classList.add("active");
-          const category = this.getAttribute("data-category");
-          // Use the separate card search input for filtering
-          filterSearchEngines(category, searchEnginesData, document.getElementById("searchCardSearchInput").value.toLowerCase());
-        });
+
+      // Sort categories alphabetically
+      const sortedCategories = Object.keys(categorizedEngines).sort();
+
+      //container.innerHTML = ""; // Clear existing content - already done at the start of the function
+
+      sortedCategories.forEach((category) => {
+          const categoryDiv = document.createElement("div");
+          categoryDiv.className = "mb-8 col-span-full"; // Make category title span full width
+          categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
+              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 category-engines"></div>`;
+          const categoryContainer = categoryDiv.querySelector(".category-engines");
+
+          // Sort engines within each category by title
+          categorizedEngines[category].sort((a, b) => a.title.localeCompare(b.title));
+
+          categorizedEngines[category].forEach((engine) => {
+              const engineCard = document.createElement("div");
+              engineCard.className = "tooltip-container relative card bg-white p-4 rounded-lg text-center";
+               engineCard.setAttribute("data-id", engine.id); // Add data-id attribute
+               engineCard.setAttribute("data-type", engine.type); // Add data-type attribute
+               addDragAndDropListeners(engineCard); // Add DnD listeners
+
+              const iconHtml = getIconHtml(engine, false);
+
+              // Display mode HTML
+              const displayModeHtml = `
+                 <div class="display-mode card-content">
+                     <a href="${engine.action ? engine.action.replace("{search_term}", "") : '#'}" target="_blank" class="engine-link block" ${engine.action ? '' : 'onclick="return false;"'} style="pointer-events: auto;"> ${iconHtml}
+                         <div class="mt-2 font-medium text-sm">${engine.title}</div>
+                     </a>
+                      <div class="mt-2">
+                         <button class="edit-btn text-blue-600 text-xs mr-2">
+                             <i class="fas fa-edit"></i> Editar
+                         </button>
+                         <button class="delete-btn text-red-600 text-xs">
+                             <i class="fas fa-trash-alt"></i> Eliminar
+                         </button>
+                      </div>
+                 </div>
+              `;
+
+              // Edit mode HTML
+              const editModeHtml = `
+                 <div class="edit-mode">
+                     <label class="block text-sm font-medium mb-1">Título</label>
+                     <input type="text" class="edit-title" value="${engine.title}">
+                     <label class="block text-sm font-medium mb-1">Acción (URL)</label>
+                      <div class="flex items-center">
+                         <input type="text" class="edit-action w-full px-3 py-2 border border-gray-300 rounded-md" value="${engine.action || ''}">
+                         <button class="search-term-button" data-input-class="edit-action">{search_term}</button>
+                     </div>
+                     <label class="block text-sm font-medium mb-1">Categoría</label>
+                     <input type="text" class="edit-category" value="${engine.category}">
+                     <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
+                     <input type="text" class="edit-icon" value="${engine.icon || ''}">
+                     <div class="flex justify-center mt-2">
+                         <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
+                         <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
+                     </div>
+                 </div>
+              `;
+
+              engineCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`;
+
+              // Add event listener for the edit button
+              engineCard.querySelector(".edit-btn").addEventListener("click", function () {
+                  engineCard.classList.add("editing");
+                   // Show/hide search term button in inline edit
+                  const searchTermButton = engineCard.querySelector(".search-term-button");
+                  if (engine.type === "Buscador") {
+                      searchTermButton.classList.remove("hidden");
+                  } else {
+                      searchTermButton.classList.add("hidden");
+                  }
+              });
+
+               // Add event listener for the delete button
+               engineCard.querySelector(".delete-btn").addEventListener("click", function () {
+                 if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
+                   deleteItem(engine.id);
+                 }
+               });
+
+              // Add event listener for the save button in edit mode
+              engineCard.querySelector(".save-btn").addEventListener("click", function () {
+                  const updatedTitle = engineCard.querySelector(".edit-title").value.trim();
+                  const updatedAction = engineCard.querySelector(".edit-action").value.trim();
+                  const updatedCategory = engineCard.querySelector(".edit-category").value.trim();
+                  const updatedIcon = engineCard.querySelector(".edit-icon").value.trim();
+
+                  if (updatedTitle && updatedAction && updatedCategory) {
+                     updateItem(engine.id, {
+                       title: updatedTitle,
+                       action: updatedAction,
+                       type: engine.type, // Type doesn't change with inline edit
+                       category: updatedCategory,
+                       icon: updatedIcon
+                     });
+                     engineCard.classList.remove("editing"); // Exit edit mode
+                  } else {
+                     showToast("Por favor, completa todos los campos.");
+                  }
+              });
+
+               // Add event listener for the cancel button in edit mode
+               engineCard.querySelector(".cancel-btn").addEventListener("click", function () {
+                 engineCard.classList.remove("editing"); // Exit edit mode
+                  // Revert input values (optional)
+               });
+
+               // Add event listener to the search term button in inline edit
+               const searchTermButton = engineCard.querySelector(".search-term-button");
+               if (searchTermButton) {
+                   searchTermButton.addEventListener("click", function() {
+                       const inputClass = this.dataset.inputClass;
+                       const inputElement = engineCard.querySelector(`.${inputClass}`);
+                       if (inputElement) {
+                           inputElement.value += "{search_term}";
+                       }
+                   });
+               }
+
+
+              categoryContainer.appendChild(engineCard);
+          });
+
+           // Add "Agregar nuevo" card
+           // Only add 'Add New' card if there are items of this type or the category is empty
+           const itemsInCategory = allEngines.filter(item => item.category === category);
+           if (itemsInCategory.length > 0 || category === 'Sin Categoría' || allEngines.length === 0) { // Add card if category has items, is 'Sin Categoría', or if there are no engines at all
+               const addCard = document.createElement("div");
+               addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
+               addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
+               addCard.addEventListener("click", function () {
+                 document.getElementById("editPanel").classList.remove("hidden");
+                 document.getElementById("newType").value = "Buscador"; // <-- This line sets the type
+                 document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
+                  updateLivePreview(); // Update preview for new item
+                  toggleSearchTermButton(); // Ensure search term button is visible if type is Buscador
+               });
+               categoryContainer.appendChild(addCard);
+           }
+
+
+          container.appendChild(categoryDiv);
       });
-      renderEnginesByCategory(searchEnginesData, container);
        console.log("Buscadores renderizados."); // Log exit
     }
 
-    // Modified filterSearchEngines to use searchTerm from the new input
-    function filterSearchEngines(category, engines, searchTerm) {
-      console.log(`Filtrando Buscadores por categoría "${category}" y término "${searchTerm}"`); // Log filter criteria
-      const container = document.getElementById("searchEnginesContainer");
-      container.innerHTML = "";
-      let filteredEngines = engines;
-      if (category) {
-        filteredEngines = engines.filter((engine) => engine.category === category);
-      }
-       if (searchTerm) {
-           filteredEngines = filteredEngines.filter(item =>
-               item.title.toLowerCase().includes(searchTerm) ||
-               item.action.toLowerCase().includes(searchTerm) ||
-               item.category.toLowerCase().includes(searchTerm)
-           );
-       }
 
-       console.log("Buscadores filtrados:", filteredEngines); // Log filtered results
-
-       // Show/hide "No items found" message
-       const noItemsMessage = document.getElementById("noBuscadoresFound");
-       if (filteredEngines.length === 0) {
-           noItemsMessage.classList.remove("hidden");
-       } else {
-           noItemsMessage.classList.add("hidden");
-       }
-
-      renderEnginesByCategory(filteredEngines, container);
-    }
-
-    function renderEnginesByCategory(engines, container) {
-        console.log("Renderizando motores de búsqueda por categoría:", engines); // Log entry
-        const categorizedEngines = {};
-        engines.forEach((engine) => {
-            if (!categorizedEngines[engine.category]) categorizedEngines[engine.category] = [];
-            categorizedEngines[engine.category].push(engine);
-        });
-
-        // Sort categories alphabetically
-        const sortedCategories = Object.keys(categorizedEngines).sort();
-
-        container.innerHTML = ""; // Clear existing content
-
-        sortedCategories.forEach((category) => {
-            const categoryDiv = document.createElement("div");
-            categoryDiv.className = "mb-8 col-span-full"; // Make category title span full width
-            categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 category-engines"></div>`;
-            const categoryContainer = categoryDiv.querySelector(".category-engines");
-
-            // Sort engines within each category by title
-            categorizedEngines[category].sort((a, b) => a.title.localeCompare(b.title));
-
-            categorizedEngines[category].forEach((engine) => {
-                const engineCard = document.createElement("div");
-                engineCard.className = "tooltip-container relative card bg-white p-4 rounded-lg text-center";
-                 engineCard.setAttribute("data-id", engine.id); // Add data-id attribute
-                 engineCard.setAttribute("data-type", engine.type); // Add data-type attribute
-                 addDragAndDropListeners(engineCard); // Add DnD listeners
-
-                const iconHtml = getIconHtml(engine, false);
-
-                // Display mode HTML
-                const displayModeHtml = `
-                   <div class="display-mode card-content">
-                       <a href="${engine.action.replace("{search_term}", "")}" target="_blank" class="engine-link block">
-                           ${iconHtml}
-                           <div class="mt-2 font-medium text-sm">${engine.title}</div>
-                       </a>
-                       <button class="edit-btn text-blue-600 mt-2 text-xs">
-                           <i class="fas fa-edit"></i>
-                       </button>
-                       <button class="delete-btn text-red-600 mt-2 ml-2 text-xs">
-                           <i class="fas fa-trash-alt"></i>
-                       </button>
-                   </div>
-                `;
-
-                // Edit mode HTML
-                const editModeHtml = `
-                   <div class="edit-mode">
-                       <label class="block text-sm font-medium mb-1">Título</label>
-                       <input type="text" class="edit-title" value="${engine.title}">
-                       <label class="block text-sm font-medium mb-1">Acción (URL)</label>
-                        <div class="flex items-center">
-                           <input type="text" class="edit-action w-full px-3 py-2 border border-gray-300 rounded-md" value="${engine.action}">
-                           <button class="search-term-button" data-input-class="edit-action">{search_term}</button>
-                       </div>
-                       <label class="block text-sm font-medium mb-1">Categoría</label>
-                       <input type="text" class="edit-category" value="${engine.category}">
-                       <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
-                       <input type="text" class="edit-icon" value="${engine.icon || ''}">
-                       <div class="flex justify-center mt-2">
-                           <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
-                           <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
-                       </div>
-                   </div>
-                `;
-
-                engineCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`;
-
-                // Add event listener for the edit button
-                engineCard.querySelector(".edit-btn").addEventListener("click", function () {
-                    engineCard.classList.add("editing");
-                     // Show/hide search term button in inline edit
-                    const searchTermButton = engineCard.querySelector(".search-term-button");
-                    if (engine.type === "Buscador") {
-                        searchTermButton.classList.remove("hidden");
-                    } else {
-                        searchTermButton.classList.add("hidden");
-                    }
-                });
-
-                 // Add event listener for the delete button
-                 engineCard.querySelector(".delete-btn").addEventListener("click", function () {
-                   if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
-                     deleteItem(engine.id);
-                   }
-                 });
-
-                // Add event listener for the save button in edit mode
-                engineCard.querySelector(".save-btn").addEventListener("click", function () {
-                    const updatedTitle = engineCard.querySelector(".edit-title").value.trim();
-                    const updatedAction = engineCard.querySelector(".edit-action").value.trim();
-                    const updatedCategory = engineCard.querySelector(".edit-category").value.trim();
-                    const updatedIcon = engineCard.querySelector(".edit-icon").value.trim();
-
-                    if (updatedTitle && updatedAction && updatedCategory) {
-                       updateItem(engine.id, {
-                         title: updatedTitle,
-                         action: updatedAction,
-                         type: engine.type, // Type doesn't change with inline edit
-                         category: updatedCategory,
-                         icon: updatedIcon
-                       });
-                       engineCard.classList.remove("editing"); // Exit edit mode
-                    } else {
-                       showToast("Por favor, completa todos los campos.");
-                    }
-                });
-
-                 // Add event listener for the cancel button in edit mode
-                 engineCard.querySelector(".cancel-btn").addEventListener("click", function () {
-                   engineCard.classList.remove("editing"); // Exit edit mode
-                    // Revert input values (optional)
-                 });
-
-                 // Add event listener to the search term button in inline edit
-                 const searchTermButton = engineCard.querySelector(".search-term-button");
-                 if (searchTermButton) {
-                     searchTermButton.addEventListener("click", function() {
-                         const inputClass = this.dataset.inputClass;
-                         const inputElement = engineCard.querySelector(`.${inputClass}`);
-                         if (inputElement) {
-                             inputElement.value += "{search_term}";
-                         }
-                     });
-                 }
+    // Combined filter function now handles all types
+    // filterSearchEngines is no longer needed as a separate filter function, but renderSearchEngines still is.
+    // The filtering logic is moved into the centralized filterItems function.
 
 
-                categoryContainer.appendChild(engineCard);
-            });
-
-             // Add "Agregar nuevo" card
-             if (category === "" || categorizedEngines[category]) {
-                 const addCard = document.createElement("div");
-                 addCard.className = "card bg-gray-100 p-4 rounded-lg flex items-center justify-center cursor-pointer";
-                 addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
-                 addCard.addEventListener("click", function () {
-                   document.getElementById("editPanel").classList.remove("hidden");
-                   document.getElementById("newType").value = "Buscador"; // <-- This line sets the type
-                   document.getElementById("newCategory").value = category; // Pre-fill with the current category
-                    updateLivePreview(); // Update preview for new item
-                    toggleSearchTermButton(); // Ensure search term button is visible if type is Buscador
-                 });
-                 categoryContainer.appendChild(addCard);
-             }
-
-
-            container.appendChild(categoryDiv);
-        });
-         console.log("Motores de búsqueda renderizados."); // Log exit
-    }
-
-
-    function populateSearchEngineDropdown(currentData) {
-       console.log("Poblando dropdown de buscadores..."); // Log entry
-      const searchEnginesData = currentData.filter((item) => item.type === "Buscador");
-      const dropdown = document.getElementById("searchEngineDropdown");
-      dropdown.innerHTML = "";
-      searchEnginesData.forEach((engine) => {
-        const item = document.createElement("div");
-        item.className = "dropdown-item cursor-pointer hover:bg-gray-100";
-        item.innerHTML = `${getIconHtml(engine, false)} <span>${engine.title}</span>`;
-        item.addEventListener("click", function () {
-          document.getElementById("selectedEngine").textContent = engine.title;
-          document.getElementById("searchEngineDropdown").classList.add("hidden");
-        });
-        dropdown.appendChild(item);
-      });
-       console.log("Dropdown de buscadores poblado."); // Log exit
-    }
-
-
-    function renderLinks(currentData) {
-      console.log("Renderizando Links..."); // Log entry
-      const linksData = currentData.filter((item) => item.type === "Link");
+    function renderLinks(links) { // Receives filtered data
+      console.log("Renderizando Links:", links.length, "items"); // Log entry
       const container = document.getElementById("linksContainer");
       container.innerHTML = "";
-      const categories = [...new Set(linksData.map((item) => item.category))];
+      const allLinks = data.filter(item => item.type === 'Link');
+      const categories = [...new Set(allLinks.map((item) => item.category))]; // Use all links for filter buttons
       const filterContainer = document.getElementById("linkFilterButtons");
-      filterContainer.innerHTML = `<button class="filter-btn active px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
-      categories.forEach((category) => {
-        filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
-      });
-      document.querySelectorAll("#linkFilterButtons .filter-btn").forEach((btn) => {
-        btn.addEventListener("click", function () {
-          document.querySelectorAll("#linkFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
-          this.classList.add("active");
-          const category = this.getAttribute("data-category");
-           // Use the separate card search input for filtering
-          filterLinks(category, linksData, document.getElementById("linkCardSearchInput").value.toLowerCase());
-        });
-      });
-      renderLinksByCategory(linksData, container);
-       console.log("Links renderizados."); // Log exit
-    }
 
-    function renderLinksByCategory(links, container) {
-      console.log("Renderizando Links por categoría:", links); // Log entry
+      // Render filter buttons only if data is not empty
+       if (allLinks.length > 0) {
+           filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
+           categories.forEach((category) => {
+             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
+           });
+            // Re-attach event listeners to filter buttons after re-rendering them
+            document.querySelectorAll("#linkFilterButtons .filter-btn").forEach((btn) => {
+                btn.addEventListener("click", function () {
+                    document.querySelectorAll("#linkFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
+                    this.classList.add("active");
+                    const category = this.getAttribute("data-category");
+                     // Call the centralized filter function
+                    filterItems('Link', category, document.getElementById("linkCardSearchInput").value.toLowerCase());
+                });
+            });
+             // Ensure the currently active filter button remains active after re-render
+            const activeFilterBtn = document.querySelector("#linkFilterButtons .filter-btn.active");
+            if (activeFilterBtn) {
+                 const currentCategory = activeFilterBtn.getAttribute("data-category");
+                 document.querySelector(`#linkFilterButtons .filter-btn[data-category="${currentCategory}"]`)?.classList.add('active');
+            } else {
+                 // Default to 'Todos' if no filter is active
+                 document.querySelector("#linkFilterButtons .filter-btn.filter-all")?.classList.add('active');
+            }
+       } else {
+         filterContainer.innerHTML = ''; // Clear filter buttons if no data
+       }
+
+
       const categorizedLinks = {};
-      links.forEach((link) => {
-        if (!categorizedLinks[link.category]) categorizedLinks[link.category] = [];
-        categorizedLinks[link.category].push(link);
+      links.forEach((link) => { // Use the filtered list for rendering
+         const category = link.category || 'Sin Categoría'; // Handle items without category
+        if (!categorizedLinks[category]) categorizedLinks[category] = [];
+        categorizedLinks[category].push(link);
       });
-      container.innerHTML = "";
+      //container.innerHTML = ""; // Clear existing content - already done at the start of the function
        // Sort categories alphabetically
       const sortedCategories = Object.keys(categorizedLinks).sort();
 
       sortedCategories.forEach((category) => {
         const categoryDiv = document.createElement("div");
-        categoryDiv.className = "mb-8";
+        categoryDiv.className = "mb-8 col-span-full"; // Span full width for links
         categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 category-links"></div>`;
         const categoryContainer = categoryDiv.querySelector(".category-links");
@@ -1343,16 +1586,17 @@
           // Display mode HTML
           const displayModeHtml = `
             <div class="display-mode card-content">
-              <a href="${link.action}" target="_blank" class="link-btn block text-center">
-                ${iconHtml}
+              <a href="${link.action || '#'}" target="_blank" class="link-btn block text-center" ${link.action ? '' : 'onclick="return false;"'} style="pointer-events: auto;"> ${iconHtml}
                 <div class="mt-2 font-medium text-sm">${link.title}</div>
               </a>
-              <button class="edit-btn text-blue-600 mt-2 text-xs">
-                <i class="fas fa-edit"></i>
-              </button>
-              <button class="delete-btn text-red-600 mt-2 ml-2 text-xs">
-                 <i class="fas fa-trash-alt"></i> Eliminar
-              </button>
+               <div class="mt-2">
+                 <button class="edit-btn text-blue-600 text-xs mr-2">
+                   <i class="fas fa-edit"></i> Editar
+                 </button>
+                 <button class="delete-btn text-red-600 text-xs">
+                   <i class="fas fa-trash-alt"></i> Eliminar
+                 </button>
+               </div>
             </div>
           `;
 
@@ -1362,7 +1606,7 @@
               <label class="block text-sm font-medium mb-1">Título</label>
               <input type="text" class="edit-title" value="${link.title}">
               <label class="block text-sm font-medium mb-1">Acción (URL)</label>
-              <input type="text" class="edit-action" value="${link.action}">
+              <input type="text" class="edit-action" value="${link.action || ''}">
                <label class="block text-sm font-medium mb-1">Categoría</label>
               <input type="text" class="edit-category" value="${link.category}">
               <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
@@ -1419,77 +1663,72 @@
         });
 
         // Tarjeta para agregar nuevo enlace en esta categoría
-        const addCard = document.createElement("div");
-        addCard.className = "card bg-gray-100 p-4 rounded-lg flex items-center justify-center cursor-pointer";
-        addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
-        addCard.addEventListener("click", function () {
-          document.getElementById("editPanel").classList.remove("hidden");
-           // Optionally pre-fill the category field
-          document.getElementById("newType").value = "Link"; // <-- This line sets the type
-          document.getElementById("newCategory").value = category;
-           updateLivePreview(); // Update preview for new item
-            toggleSearchTermButton(); // Ensure search term button is hidden for Link type
-        });
-        categoryContainer.appendChild(addCard);
+         // Only add 'Add New' card if there are items of this type or the category is empty
+        const itemsInCategory = allLinks.filter(item => item.category === category);
+        if (itemsInCategory.length > 0 || category === 'Sin Categoría' || allLinks.length === 0) {
+             const addCard = document.createElement("div");
+             addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
+             addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
+             addCard.addEventListener("click", function () {
+               document.getElementById("editPanel").classList.remove("hidden");
+                // Optionally pre-fill the category field
+               document.getElementById("newType").value = "Link"; // <-- This line sets the type
+               document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category;
+                updateLivePreview(); // Update preview for new item
+                 toggleSearchTermButton(); // Ensure search term button is hidden for Link type
+             });
+             categoryContainer.appendChild(addCard);
+         }
         container.appendChild(categoryDiv);
       });
        console.log("Links renderizados."); // Log exit
     }
 
-    // Modified filterLinks to use searchTerm from the new input
-    function filterLinks(category, links, searchTerm) {
-       console.log(`Filtrando Links por categoría "${category}" y término "${searchTerm}"`); // Log filter criteria
-      const container = document.getElementById("linksContainer");
-      container.innerHTML = "";
-      let filteredLinks = links;
-      if (category) {
-        filteredLinks = links.filter((link) => link.category === category);
-      }
-       if (searchTerm) {
-           filteredLinks = filteredLinks.filter(item =>
-               item.title.toLowerCase().includes(searchTerm) ||
-               item.action.toLowerCase().includes(searchTerm) ||
-               item.category.toLowerCase().includes(searchTerm)
-           );
-       }
-       console.log("Links filtrados:", filteredLinks); // Log filtered results
+    // filterLinks is now integrated into filterItems
 
-       // Show/hide "No items found" message
-       const noItemsMessage = document.getElementById("noLinksFound");
-       if (filteredLinks.length === 0) {
-           noItemsMessage.classList.remove("hidden");
-       } else {
-           noItemsMessage.classList.add("hidden");
-       }
-
-       renderLinksByCategory(filteredLinks, container);
-    }
-
-    function renderPrompts(currentData) {
-      console.log("Renderizando Prompts..."); // Log entry
-      const promptsData = currentData.filter((item) => item.type === "Promp");
+    function renderPrompts(prompts) { // Receives filtered data
+      console.log("Renderizando Prompts:", prompts.length, "items"); // Log entry
       const container = document.getElementById("promptsContainer");
       container.innerHTML = "";
-      const categories = [...new Set(promptsData.map((item) => item.category))];
+      const allPrompts = data.filter(item => item.type === 'Promp');
+      const categories = [...new Set(allPrompts.map((item) => item.category))]; // Use all prompts for filter buttons
       const filterContainer = document.getElementById("promptFilterButtons");
-      filterContainer.innerHTML = `<button class="filter-btn active px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
-      categories.forEach((category) => {
-        filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
-      });
-      document.querySelectorAll("#promptFilterButtons .filter-btn").forEach((btn) => {
-        btn.addEventListener("click", function () {
-          document.querySelectorAll("#promptFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
-          this.classList.add("active");
-          const category = this.getAttribute("data-category");
-           // Use the separate card search input for filtering
-          filterPrompts(category, promptsData, document.getElementById("promptCardSearchInput").value.toLowerCase());
-        });
-      });
+
+       // Render filter buttons only if data is not empty
+       if (allPrompts.length > 0) {
+           filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
+           categories.forEach((category) => {
+             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
+           });
+            // Re-attach event listeners to filter buttons after re-rendering them
+            document.querySelectorAll("#promptFilterButtons .filter-btn").forEach((btn) => {
+                btn.addEventListener("click", function () {
+                    document.querySelectorAll("#promptFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
+                    this.classList.add("active");
+                    const category = this.getAttribute("data-category");
+                     // Call the centralized filter function
+                    filterItems('Promp', category, document.getElementById("promptCardSearchInput").value.toLowerCase());
+                });
+            });
+             // Ensure the currently active filter button remains active after re-render
+            const activeFilterBtn = document.querySelector("#promptFilterButtons .filter-btn.active");
+            if (activeFilterBtn) {
+                 const currentCategory = activeFilterBtn.getAttribute("data-category");
+                 document.querySelector(`#promptFilterButtons .filter-btn[data-category="${currentCategory}"]`)?.classList.add('active');
+            } else {
+                 // Default to 'Todos' if no filter is active
+                 document.querySelector("#promptFilterButtons .filter-btn.filter-all")?.classList.add('active');
+            }
+       } else {
+         filterContainer.innerHTML = ''; // Clear filter buttons if no data
+       }
+
 
       const categorizedPrompts = {};
-      promptsData.forEach((prompt) => {
-        if (!categorizedPrompts[prompt.category]) categorizedPrompts[prompt.category] = [];
-        categorizedPrompts[prompt.category].push(prompt);
+      prompts.forEach((prompt) => { // Use the filtered list for rendering
+         const category = prompt.category || 'Sin Categoría'; // Handle items without category
+        if (!categorizedPrompts[category]) categorizedPrompts[category] = [];
+        categorizedPrompts[category].push(prompt);
       });
 
        // Sort categories alphabetically
@@ -1498,7 +1737,7 @@
 
       sortedCategories.forEach((category) => {
           const categoryDiv = document.createElement("div");
-          categoryDiv.className = "mb-8 col-span-1 md:col-span-2 lg:col-span-3";
+          categoryDiv.className = "mb-8 col-span-full"; // Span full width for prompts grid
           categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 category-prompts"></div>`;
           const categoryContainer = categoryDiv.querySelector(".category-prompts");
@@ -1525,18 +1764,20 @@
                   </div>
                   <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">${prompt.category}</span>
                 </div>
-                <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 prompt-content">
-                  ${prompt.action.replace(/\n/g, "<br>")}
+                <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 prompt-content no-scrollbar">
+                  ${prompt.action ? prompt.action.replace(/\n/g, "<br>") : ''}
                 </div>
                 <button class="copy-prompt-btn mt-3 w-full bg-purple-100 hover:bg-purple-200 text-purple-800 py-2 rounded-md text-sm font-medium">
                   <i class="far fa-copy mr-1"></i> Copiar al portapapeles
                 </button>
-                <button class="edit-btn text-blue-600 mt-2 text-xs">
-                  <i class="fas fa-edit"></i> Editar
-                </button>
-                 <button class="delete-btn text-red-600 mt-2 ml-2 text-xs">
-                   <i class="fas fa-trash-alt"></i> Eliminar
-                </button>
+                 <div class="mt-2">
+                   <button class="edit-btn text-blue-600 text-xs mr-2">
+                     <i class="fas fa-edit"></i> Editar
+                   </button>
+                   <button class="delete-btn text-red-600 text-xs">
+                     <i class="fas fa-trash-alt"></i> Eliminar
+                   </button>
+                 </div>
               </div>
             `;
 
@@ -1546,7 +1787,7 @@
                 <label class="block text-sm font-medium mb-1">Título</label>
                 <input type="text" class="edit-title" value="${prompt.title}">
                 <label class="block text-sm font-medium mb-1">Acción (Prompt)</label>
-                <textarea class="edit-action w-full h-32">${prompt.action}</textarea>
+                <textarea class="edit-action w-full h-32">${prompt.action || ''}</textarea>
                 <label class="block text-sm font-medium mb-1">Categoría</label>
                 <input type="text" class="edit-category" value="${prompt.category}">
                 <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
@@ -1563,6 +1804,9 @@
             promptCard.querySelector(".copy-prompt-btn").addEventListener("click", function () {
               navigator.clipboard.writeText(prompt.action).then(() => {
                 showToast("Prompt copiado al portapapeles");
+              }).catch(err => {
+                 console.error("Error al copiar prompt:", err);
+                 showToast("Error al copiar prompt.");
               });
             });
 
@@ -1612,75 +1856,72 @@
           });
 
           // Tarjeta para agregar nuevo prompt en esta categoría
-          const addCard = document.createElement("div");
-          addCard.className = "card bg-gray-100 p-4 rounded-lg flex items-center justify-center cursor-pointer";
-          addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
-          addCard.addEventListener("click", function () {
-            document.getElementById("editPanel").classList.remove("hidden");
-             // Optionally pre-fill the category field
-            document.getElementById("newType").value = "Promp"; // <-- This line sets the type
-            document.getElementById("newCategory").value = category;
-             updateLivePreview(); // Update preview for new item
-              toggleSearchTermButton(); // Ensure search term button is hidden for Prompt type
-          });
-          categoryContainer.appendChild(addCard);
+           // Only add 'Add New' card if there are items of this type or the category is empty
+          const itemsInCategory = allPrompts.filter(item => item.category === category);
+          if (itemsInCategory.length > 0 || category === 'Sin Categoría' || allPrompts.length === 0) {
+               const addCard = document.createElement("div");
+               addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
+               addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
+               addCard.addEventListener("click", function () {
+                 document.getElementById("editPanel").classList.remove("hidden");
+                  // Optionally pre-fill the category field
+                 document.getElementById("newType").value = "Promp"; // <-- This line sets the type
+                 document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category;
+                  updateLivePreview(); // Update preview for new item
+                   toggleSearchTermButton(); // Ensure search term button is hidden for Prompt type
+               });
+               categoryContainer.appendChild(addCard);
+           }
           container.appendChild(categoryDiv);
       });
        console.log("Prompts renderizados."); // Log exit
     }
 
+    // filterPrompts is now integrated into filterItems
 
-    // Modified filterPrompts to use searchTerm from the new input
-    function filterPrompts(category, prompts, searchTerm) {
-       console.log(`Filtrando Prompts por categoría "${category}" y término "${searchTerm}"`); // Log filter criteria
-       // This function now just calls renderPrompts with filtered data
-       const filteredPrompts = prompts.filter(item => {
-           const matchesCategory = category === "" || item.category === category;
-           const matchesSearch = searchTerm === "" ||
-                                 item.title.toLowerCase().includes(searchTerm) ||
-                                 item.action.toLowerCase().includes(searchTerm) ||
-                                 item.category.toLowerCase().includes(searchTerm);
-           return matchesCategory && matchesSearch;
-       });
-
-        console.log("Prompts filtrados:", filteredPrompts); // Log filtered results
-
-        // Show/hide "No items found" message
-       const noItemsMessage = document.getElementById("noPromptsFound");
-       if (filteredPrompts.length === 0) {
-           noItemsMessage.classList.remove("hidden");
-       } else {
-           noItemsMessage.classList.add("hidden");
-       }
-
-       renderPrompts(filteredPrompts); // Pass the filtered data to render
-    }
-
-    function renderNotes(currentData) {
-        console.log("Renderizando Notas..."); // Log entry
-        const notesData = currentData.filter((item) => item.type === "Nota");
+    function renderNotes(notes) { // Receives filtered data
+        console.log("Renderizando Notas:", notes.length, "items"); // Log entry
         const container = document.getElementById("notesContainer");
         container.innerHTML = "";
-        const categories = [...new Set(notesData.map((item) => item.category))];
+        const allNotes = data.filter(item => item.type === 'Nota');
+        const categories = [...new Set(allNotes.map((item) => item.category))]; // Use all notes for filter buttons
         const filterContainer = document.getElementById("noteFilterButtons");
-        filterContainer.innerHTML = `<button class="filter-btn active px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
-        categories.forEach((category) => {
-            filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
-        });
-        document.querySelectorAll("#noteFilterButtons .filter-btn").forEach((btn) => {
-            btn.addEventListener("click", function () {
-                document.querySelectorAll("#noteFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
-                this.classList.add("active");
-                const category = this.getAttribute("data-category");
-                 // Use the separate card search input for filtering
-                filterNotes(category, notesData, document.getElementById("noteCardSearchInput").value.toLowerCase());
+
+         // Render filter buttons only if data is not empty
+        if (allNotes.length > 0) {
+            filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
+            categories.forEach((category) => {
+                filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
             });
-        });
+             // Re-attach event listeners to filter buttons after re-rendering them
+             document.querySelectorAll("#noteFilterButtons .filter-btn").forEach((btn) => {
+                 btn.addEventListener("click", function () {
+                     document.querySelectorAll("#noteFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
+                     this.classList.add("active");
+                     const category = this.getAttribute("data-category");
+                      // Call the centralized filter function
+                     filterItems('Nota', category, document.getElementById("noteCardSearchInput").value.toLowerCase());
+                 });
+             });
+              // Ensure the currently active filter button remains active after re-render
+             const activeFilterBtn = document.querySelector("#noteFilterButtons .filter-btn.active");
+             if (activeFilterBtn) {
+                  const currentCategory = activeFilterBtn.getAttribute("data-category");
+                  document.querySelector(`#noteFilterButtons .filter-btn[data-category="${currentCategory}"]`)?.classList.add('active');
+             } else {
+                  // Default to 'Todos' if no filter is active
+                  document.querySelector("#noteFilterButtons .filter-btn.filter-all")?.classList.add('active');
+             }
+        } else {
+           filterContainer.innerHTML = ''; // Clear filter buttons if no data
+        }
+
 
         const categorizedNotes = {};
-        notesData.forEach((note) => {
-          if (!categorizedNotes[note.category]) categorizedNotes[note.category] = [];
-          categorizedNotes[note.category].push(note);
+        notes.forEach((note) => { // Use the filtered list for rendering
+          const category = note.category || 'Sin Categoría'; // Handle items without category
+          if (!categorizedNotes[category]) categorizedNotes[category] = [];
+          categorizedNotes[category].push(note);
         });
 
          // Sort categories alphabetically
@@ -1688,7 +1929,7 @@
 
         sortedCategories.forEach((category) => {
             const categoryDiv = document.createElement("div");
-            categoryDiv.className = "mb-8 col-span-1 md:col-span-2 lg:col-span-3";
+            categoryDiv.className = "mb-8 col-span-full"; // Span full width for notes grid
             categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 category-notes"></div>`;
             const categoryContainer = categoryDiv.querySelector(".category-notes");
@@ -1714,15 +1955,17 @@
                       </div>
                        <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">${note.category}</span>
                     </div>
-                    <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 note-content">
-                      ${note.action.replace(/\n/g, "<br>")}
+                    <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 note-content no-scrollbar">
+                      ${note.action ? note.action.replace(/\n/g, "<br>") : ''}
                     </div>
-                    <button class="edit-btn text-blue-600 mt-2 text-xs">
-                      <i class="fas fa-edit"></i> Editar
-                    </button>
-                     <button class="delete-btn text-red-600 mt-2 ml-2 text-xs">
-                       <i class="fas fa-trash-alt"></i> Eliminar
-                    </button>
+                     <div class="mt-2">
+                       <button class="edit-btn text-blue-600 text-xs mr-2">
+                         <i class="fas fa-edit"></i> Editar
+                       </button>
+                       <button class="delete-btn text-red-600 text-xs">
+                         <i class="fas fa-trash-alt"></i> Eliminar
+                       </button>
+                     </div>
                   </div>
                 `;
 
@@ -1731,7 +1974,7 @@
                      <label class="block text-sm font-medium mb-1">Título</label>
                      <input type="text" class="edit-title" value="${note.title}">
                      <label class="block text-sm font-medium mb-1">Contenido</label>
-                     <textarea class="edit-action w-full h-32">${note.action}</textarea>
+                     <textarea class="edit-action w-full h-32">${note.action || ''}</textarea>
                      <label class="block text-sm font-medium mb-1">Categoría</label>
                      <input type="text" class="edit-category" value="${note.category}">
                      <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
@@ -1786,18 +2029,20 @@
             });
 
              // Add "Agregar nuevo" card
-             if (category === "" || categorizedNotes[category]) {
-                 const addCard = document.createElement("div");
-                 addCard.className = "card bg-gray-100 p-4 rounded-lg flex items-center justify-center cursor-pointer";
-                 addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
-                 addCard.addEventListener("click", function () {
-                   document.getElementById("editPanel").classList.remove("hidden");
-                   document.getElementById("newType").value = "Nota"; // <-- This line sets the type
-                   document.getElementById("newCategory").value = category; // Pre-fill with the current category
-                    updateLivePreview(); // Update preview for new item
-                     toggleSearchTermButton(); // Ensure search term button is hidden for Note type
-                 });
-                 categoryContainer.appendChild(addCard);
+             // Only add 'Add New' card if there are items of this type or the category is empty
+            const itemsInCategory = allNotes.filter(item => item.category === category);
+            if (itemsInCategory.length > 0 || category === 'Sin Categoría' || allNotes.length === 0) {
+                  const addCard = document.createElement("div");
+                  addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
+                  addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
+                  addCard.addEventListener("click", function () {
+                    document.getElementById("editPanel").classList.remove("hidden");
+                    document.getElementById("newType").value = "Nota"; // <-- This line sets the type
+                    document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
+                     updateLivePreview(); // Update preview for new item
+                      toggleSearchTermButton(); // Ensure search term button is hidden for Note type
+                  });
+                  categoryContainer.appendChild(addCard);
              }
 
             container.appendChild(categoryDiv);
@@ -1805,55 +2050,51 @@
          console.log("Notas renderizadas."); // Log exit
     }
 
-    // Modified filterNotes to use searchTerm from the new input
-    function filterNotes(category, notes, searchTerm) {
-       console.log(`Filtrando Notas por categoría "${category}" y término "${searchTerm}"`); // Log filter criteria
-       const filteredNotes = notes.filter(item => {
-           const matchesCategory = category === "" || item.category === category;
-           const matchesSearch = searchTerm === "" ||
-                                 item.title.toLowerCase().includes(searchTerm) ||
-                                 item.action.toLowerCase().includes(searchTerm) ||
-                                 item.category.toLowerCase().includes(searchTerm);
-           return matchesCategory && matchesSearch;
-       });
-       console.log("Notas filtradas:", filteredNotes); // Log filtered results
+    // filterNotes is now integrated into filterItems
 
-       // Show/hide "No items found" message
-       const noItemsMessage = document.getElementById("noNotesFound");
-       if (filteredNotes.length === 0) {
-           noItemsMessage.classList.remove("hidden");
-       } else {
-           noItemsMessage.classList.add("hidden");
-       }
-
-       renderNotes(filteredNotes); // Pass the filtered data to render
-    }
-
-     function renderTasks(currentData) {
-         console.log("Renderizando Tareas..."); // Log entry
-         const tasksData = currentData.filter((item) => item.type === "Tarea");
+     function renderTasks(tasks) { // Receives filtered data
+         console.log("Renderizando Tareas:", tasks.length, "items"); // Log entry
          const container = document.getElementById("tasksContainer");
          container.innerHTML = "";
-         const categories = [...new Set(tasksData.map((item) => item.category))];
+         const allTasks = data.filter(item => item.type === 'Tarea');
+         const categories = [...new Set(allTasks.map((item) => item.category))]; // Use all tasks for filter buttons
          const filterContainer = document.getElementById("taskFilterButtons");
-         filterContainer.innerHTML = `<button class="filter-btn active px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
-         categories.forEach((category) => {
-             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
-         });
-         document.querySelectorAll("#taskFilterButtons .filter-btn").forEach((btn) => {
-             btn.addEventListener("click", function () {
-                 document.querySelectorAll("#taskFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
-                 this.classList.add("active");
-                 const category = this.getAttribute("data-category");
-                  // Use the separate card search input for filtering
-                 filterTasks(category, tasksData, document.getElementById("taskCardSearchInput").value.toLowerCase());
+
+          // Render filter buttons only if data is not empty
+         if (allTasks.length > 0) {
+             filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
+             categories.forEach((category) => {
+                 filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
              });
-         });
+              // Re-attach event listeners to filter buttons after re-rendering them
+              document.querySelectorAll("#taskFilterButtons .filter-btn").forEach((btn) => {
+                  btn.addEventListener("click", function () {
+                      document.querySelectorAll("#taskFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
+                      this.classList.add("active");
+                      const category = this.getAttribute("data-category");
+                       // Call the centralized filter function
+                      filterItems('Tarea', category, document.getElementById("taskCardSearchInput").value.toLowerCase());
+                  });
+              });
+               // Ensure the currently active filter button remains active after re-render
+              const activeFilterBtn = document.querySelector("#taskFilterButtons .filter-btn.active");
+              if (activeFilterBtn) {
+                   const currentCategory = activeFilterBtn.getAttribute("data-category");
+                   document.querySelector(`#taskFilterButtons .filter-btn[data-category="${currentCategory}"]`)?.classList.add('active');
+              } else {
+                   // Default to 'Todos' if no filter is active
+                   document.querySelector("#taskFilterButtons .filter-btn.filter-all")?.classList.add('active');
+              }
+         } else {
+            filterContainer.innerHTML = ''; // Clear filter buttons if no data
+         }
+
 
          const categorizedTasks = {};
-         tasksData.forEach((task) => {
-           if (!categorizedTasks[task.category]) categorizedTasks[task.category] = [];
-           categorizedTasks[task.category].push(task);
+         tasks.forEach((task) => { // Use the filtered list for rendering
+           const category = task.category || 'Sin Categoría'; // Handle items without category
+           if (!categorizedTasks[category]) categorizedTasks[category] = [];
+           categorizedTasks[category].push(task);
          });
 
           // Sort categories alphabetically
@@ -1861,7 +2102,7 @@
 
          sortedCategories.forEach((category) => {
              const categoryDiv = document.createElement("div");
-             categoryDiv.className = "mb-8 col-span-1 md:col-span-2 lg:col-span-3";
+             categoryDiv.className = "mb-8 col-span-full"; // Span full width for tasks grid
              categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 category-tasks"></div>`;
              const categoryContainer = categoryDiv.querySelector(".category-tasks");
@@ -1894,20 +2135,21 @@
                    <div class="display-mode card-content">
                      <div class="flex items-center justify-between">
                        <div class="flex items-center">
-                         <input type="checkbox" class="task-checkbox mr-2" ${task.completed ? 'checked' : ''}>
-                         <h4 class="text-lg font-medium">${task.title}</h4>
+                         <input type="checkbox" class="task-checkbox mr-2" ${task.completed ? 'checked' : ''} style="pointer-events: auto;"> <h4 class="text-lg font-medium">${task.title}</h4>
                        </div>
                         <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">${task.category}</span>
                      </div>
-                     <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 task-content">
+                     <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 task-content no-scrollbar">
                        ${taskListHtml}
                      </div>
-                     <button class="edit-btn text-blue-600 mt-2 text-xs">
-                       <i class="fas fa-edit"></i> Editar
-                     </button>
-                      <button class="delete-btn text-red-600 mt-2 ml-2 text-xs">
-                        <i class="fas fa-trash-alt"></i> Eliminar
-                     </button>
+                      <div class="mt-2">
+                        <button class="edit-btn text-blue-600 text-xs mr-2">
+                          <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="delete-btn text-red-600 text-xs">
+                          <i class="fas fa-trash-alt"></i> Eliminar
+                        </button>
+                      </div>
                    </div>
                  `;
 
@@ -1916,7 +2158,7 @@
                       <label class="block text-sm font-medium mb-1">Título</label>
                       <input type="text" class="edit-title" value="${task.title}">
                       <label class="block text-sm font-medium mb-1">Descripción (una línea por item de lista - usa [ ] o [x] al inicio)</label>
-                      <textarea class="edit-action w-full h-32">${task.action}</textarea>
+                      <textarea class="edit-action w-full h-32">${task.action || ''}</textarea>
                       <label class="block text-sm font-medium mb-1">Categoría</label>
                       <input type="text" class="edit-category" value="${task.category}">
                       <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
@@ -1942,6 +2184,8 @@
                  });
 
                   // Add event listeners for the individual list item checkboxes
+                  // Note: Changes to these are NOT saved in the current data structure (action is a single string).
+                  // They are visual-only for now. To save this, the 'action' would need to be structured data (e.g., array of objects with text and completed status).
                   taskCard.querySelectorAll(".task-list-checkbox").forEach(checkbox => {
                       checkbox.addEventListener("change", function() {
                           const listItem = this.closest("li");
@@ -1950,9 +2194,10 @@
                           } else {
                               listItem.classList.remove("completed");
                           }
-                          // Note: This change to individual list items is NOT saved
-                          // in the current data structure (action is a single string).
-                          // It's a visual-only change for now.
+                           // Optional: Visually update the main task checkbox if all sub-tasks are checked
+                           // const allChecked = Array.from(taskCard.querySelectorAll(".task-list-checkbox")).every(cb => cb.checked);
+                           // taskCard.querySelector(".task-checkbox").checked = allChecked;
+                           // updateItem(taskCard.dataset.id, { completed: allChecked }); // This would save the main status based on sub-tasks
                       });
                   });
 
@@ -2001,18 +2246,20 @@
              });
 
               // Add "Agregar nuevo" card
-              if (category === "" || categorizedTasks[category]) {
-                  const addCard = document.createElement("div");
-                  addCard.className = "card bg-gray-100 p-4 rounded-lg flex items-center justify-center cursor-pointer";
-                  addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
-                  addCard.addEventListener("click", function () {
-                    document.getElementById("editPanel").classList.remove("hidden");
-                    document.getElementById("newType").value = "Tarea"; // <-- This line sets the type
-                    document.getElementById("newCategory").value = category; // Pre-fill with the current category
-                     updateLivePreview(); // Update preview for new item
-                      toggleSearchTermButton(); // Ensure search term button is hidden for Task type
-                  });
-                  categoryContainer.appendChild(addCard);
+              // Only add 'Add New' card if there are items of this type or the category is empty
+             const itemsInCategory = allTasks.filter(item => item.category === category);
+             if (itemsInCategory.length > 0 || category === 'Sin Categoría' || allTasks.length === 0) {
+                   const addCard = document.createElement("div");
+                   addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
+                   addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
+                   addCard.addEventListener("click", function () {
+                     document.getElementById("editPanel").classList.remove("hidden");
+                     document.getElementById("newType").value = "Tarea"; // <-- This line sets the type
+                     document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
+                      updateLivePreview(); // Update preview for new item
+                       toggleSearchTermButton(); // Ensure search term button is hidden for Task type
+                   });
+                   categoryContainer.appendChild(addCard);
               }
 
              container.appendChild(categoryDiv);
@@ -2020,42 +2267,27 @@
           console.log("Tareas renderizadas."); // Log exit
      }
 
-     // Modified filterTasks to use searchTerm from the new input
-     function filterTasks(category, tasks, searchTerm) {
-       console.log(`Filtrando Tareas por categoría "${category}" y término "${searchTerm}"`); // Log filter criteria
-       const filteredTasks = tasks.filter(item => {
-           const matchesCategory = category === "" || item.category === category;
-           const matchesSearch = searchTerm === "" ||
-                                 item.title.toLowerCase().includes(searchTerm) ||
-                                 item.action.toLowerCase().includes(searchTerm) ||
-                                 item.category.toLowerCase().includes(searchTerm);
-           return matchesCategory && matchesSearch;
-       });
-       console.log("Tareas filtradas:", filteredTasks); // Log filtered results
-
-       // Show/hide "No items found" message
-       const noItemsMessage = document.getElementById("noTasksFound");
-       if (filteredTasks.length === 0) {
-           noItemsMessage.classList.remove("hidden");
-       } else {
-           noItemsMessage.classList.add("hidden");
-       }
-
-       renderTasks(filteredTasks); // Pass the filtered data to render
-     }
+     // filterTasks is now integrated into filterItems
 
 
     function populateEditTable(currentData) {
       console.log("Poblando tabla de edición..."); // Log entry
       const tableBody = document.getElementById("itemsTableBody");
       tableBody.innerHTML = "";
-      currentData.forEach((item, index) => {
+       // Sort data by type for better organization in the edit panel table
+       const sortedData = [...currentData].sort((a, b) => {
+           const typeOrder = ['Buscador', 'Link', 'Promp', 'Nota', 'Tarea'];
+           return typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) || (a.title || '').localeCompare(b.title || ''); // Handle potential null/undefined titles
+       });
+
+
+      sortedData.forEach((item, index) => {
         const row = document.createElement("tr");
         row.className = index % 2 === 0 ? "bg-white" : "bg-gray-50";
 
-        let actionInputHtml = `<input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.action}">`;
+        let actionInputHtml = `<input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.action || ''}">`;
         if (item.type === 'Promp' || item.type === 'Nota' || item.type === 'Tarea') {
-             actionInputHtml = `<textarea class="border border-gray-300 rounded px-2 py-1 w-full h-20">${item.action}</textarea>`;
+             actionInputHtml = `<textarea class="border border-gray-300 rounded px-2 py-1 w-full h-20">${item.action || ''}</textarea>`;
         }
 
         let completedCheckboxHtml = '';
@@ -2065,7 +2297,7 @@
 
 
         row.innerHTML = `
-          <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.title}"></td>
+          <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.title || ''}"></td>
           <td class="px-6 py-4">${actionInputHtml}${completedCheckboxHtml}</td>
           <td class="px-6 py-4 whitespace-nowrap">
             <select class="border border-gray-300 rounded px-2 py-1 w-full">
@@ -2076,7 +2308,7 @@
               <option value="Tarea" ${item.type === "Tarea" ? "selected" : ""}>Tarea</option>
             </select>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.category}"></td>
+          <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.category || ''}"></td>
           <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.icon || ""}"></td>
           <td class="px-6 py-4 whitespace-nowrap">
             <button class="update-item-btn text-blue-600 hover:text-blue-800 mr-3" data-id="${item.id}"><i class="fas fa-save"></i></button>
@@ -2086,17 +2318,27 @@
         // Update event listener for table save button
         row.querySelector(".update-item-btn").addEventListener("click", function () {
           const itemId = this.getAttribute("data-id");
-          const inputs = row.querySelectorAll("input, textarea, select");
+          // Select inputs relative to the row
+          const inputs = row.querySelectorAll("input[type='text'], textarea, select");
           const updatedItem = {
             id: itemId,
             title: inputs[0].value,
-            action: inputs[1].value,
-            type: inputs[2].value,
+            action: inputs[1].value, // This gets value from input or textarea
+            type: inputs[2].value, // The select element
             category: inputs[3].value,
             icon: inputs[4].value
           };
            if (updatedItem.type === 'Tarea') {
-               updatedItem.completed = row.querySelector(".edit-completed").checked;
+                // Assuming the completed checkbox is always the last input in the row if type is Tarea
+               const completedCheckbox = row.querySelector(".edit-completed");
+               if (completedCheckbox) {
+                  updatedItem.completed = completedCheckbox.checked;
+               } else {
+                   // If checkbox is missing, maybe default to false or current state
+                   console.warn("Completed checkbox not found for Tarea item.");
+                   const existingItem = data.find(item => item.id == itemId);
+                   updatedItem.completed = existingItem ? existingItem.completed : false;
+               }
            }
           updateItem(itemId, updatedItem);
         });
@@ -2118,6 +2360,7 @@
        const itemIndex = data.findIndex(item => item.id == itemId);
        if (itemIndex > -1) {
          // Preserve existing properties like 'completed' for tasks if not explicitly updated
+         // Use spread operator carefully to ensure updatedItem properties overwrite existing ones
          data[itemIndex] = { ...data[itemIndex], ...updatedItem };
          saveData(data);
          initializeUI(data); // Re-render all sections
@@ -2135,8 +2378,8 @@
       data = data.filter(item => item.id != itemId);
       if (data.length < initialLength) {
         saveData(data);
-        populateEditTable(data); // Update table separately as it's not fully re-rendered by initializeUI
-        initializeUI(data); // Re-render all sections
+        // populateEditTable(data); // Re-populating initializeUI covers this
+        initializeUI(data); // Re-render all sections and re-populate the table within it
         showToast("Elemento eliminado correctamente");
       } else {
            console.warn(`Elemento con ID ${itemId} no encontrado para eliminar.`); // Log warning
@@ -2171,16 +2414,18 @@
                      // Optional: Add validation for imported data structure
                      if (confirm("¿Estás seguro de que deseas reemplazar tus datos actuales con los datos importados?")) {
                           // Ensure imported items have IDs, add if missing
-                          data = importedData.map(item => ({ ...item, id: item.id || Date.now() + Math.random() }));
-                           // Ensure imported tasks have completed status
-                           data = data.map(item => {
+                          data = importedData.map(item => {
+                              if (item.id === undefined || item.id === null) {
+                                  item.id = Date.now() + Math.floor(Math.random() * 1000); // Generate a simple ID if missing
+                              }
+                              // Ensure imported tasks have completed status if missing
                                if (item.type === 'Tarea' && item.completed === undefined) {
-                                   return { ...item, completed: false };
+                                   item.completed = false;
                                }
                                return item;
                            });
                           saveData(data); // Save imported data to localStorage
-                          initializeUI(data);
+                          initializeUI(data); // Re-render UI and re-populate edit table
                           showToast("Datos importados correctamente.");
                            console.log("Datos importados y UI actualizada."); // Log import complete
                      } else {
@@ -2202,7 +2447,7 @@
 
 
     function saveData(currentData) {
-      console.log("Guardando datos en localStorage:", currentData); // Log save
+      console.log("Guardando datos en localStorage:", currentData.length, "items"); // Log save
       localStorage.setItem("centroAccesosData", JSON.stringify(currentData));
        console.log("Datos guardados."); // Log save complete
     }
