@@ -657,8 +657,8 @@
       let html = `<div class="card bg-white p-4 rounded-lg mb-2" title="Vista previa en tiempo real">
                     <div class="display-mode card-content">
                       <div class="flex items-center">
-                        ${getIconHtml(tempItem, type==="Promp")}
-                        <h4 class="text-lg font-medium ml-2">${title}</h4>
+                        <span class="math-inline">\{getIconHtml\(tempItem, type\=\=\="Promp"\)\}
+<h4 class\="text\-lg font\-medium ml\-2"\></span>{title}</h4>
                       </div>
                       ${contentHtml}
                       <div class="mt-2 text-xs text-gray-500">Etiqueta: ${category}</div>
@@ -862,11 +862,11 @@
                          // in the array after removal is the same as its original index.
                          insertionIndex = originalTargetIndex;
                      }
-                     console.log(`Calculated insertion index based on data indices: originalDragged=${originalDraggedIndex}, originalTarget=${originalTargetIndex}, insertion=${insertionIndex}`);
+                     console.log(`Calculated insertion index based on data indices: originalDragged=<span class="math-inline">\{originalDraggedIndex\}, originalTarget\=</span>{originalTargetIndex}, insertion=${insertionIndex}`);
                 }
 
             } else {
-                showToast(`No se puede mover un elemento de "${draggedCardType}" a la sección de "${targetCardType}".`);
+                showToast(`No se puede mover un elemento de "<span class="math-inline">\{draggedCardType\}" a la sección de "</span>{targetCardType}".`);
                  console.log("Drop entre tipos de sección no permitido.");
                 return false; // Prevent drop if types don't match
             }
@@ -887,7 +887,7 @@
                  insertionIndex = data.length; // Append to the end of the data array
                  console.log(`Dropped in container of type ${containerType}. Appending to end.`);
              } else {
-                 showToast(`No se puede mover un elemento de "${draggedType}" a la sección de "${containerType}".`);
+                 showToast(`No se puede mover un elemento de "<span class="math-inline">\{draggedType\}" a la sección de "</span>{containerType}".`);
                   console.log("Drop entre tipos de sección no permitido en contenedor.");
                  return false; // Prevent drop if types don't match the container
              }
@@ -1151,7 +1151,7 @@
 
      // Centralized filter function
      function filterItems(itemType, category, searchTerm) {
-         console.log(`Filtrando ${itemType}s por categoría "${category}" y término "${searchTerm}"`);
+         console.log(`Filtrando <span class="math-inline">\{itemType\}s por categoría "</span>{category}" y término "${searchTerm}"`);
 
          // Filter data based on type, category, and search term
          const filteredItems = data.filter(item => item.type === itemType && // Match the exact singular type
@@ -1356,7 +1356,7 @@
       if (allEngines.length > 0) {
            filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
            sortedAllCategories.forEach((category) => {
-             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
+             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="<span class="math-inline">\{category\}"\></span>{category}</button>`;
            });
             // Re-attach event listeners to filter buttons after re-rendering them
             document.querySelectorAll("#searchFilterButtons .filter-btn").forEach((btn) => {
@@ -1387,7 +1387,7 @@
       const categorizedEngines = {};
       engines.forEach((engine) => { // Use the filtered list for rendering
           const category = engine.category || 'Sin Categoría'; // Handle items without category
-          if (!categorizedEngines[category]) categorizedEngorias[category] = [];
+          if (!categorizedEngines[category]) categorizedEngines[category] = [];
           categorizedEngines[category].push(engine);
       });
 
@@ -1418,8 +1418,8 @@
               // Display mode HTML
               const displayModeHtml = `
                  <div class="display-mode card-content">
-                     <a href="${engine.action ? engine.action.replace("{search_term}", "") : '#'}" target="_blank" class="engine-link block" ${engine.action ? '' : 'onclick="return false;"'} style="pointer-events: auto;"> ${iconHtml}
-                         <div class="mt-2 font-medium text-sm">${engine.title}</div>
+                     <a href="${engine.action ? engine.action.replace("{search_term}", "") : '#'}" target="_blank" class="engine-link block" ${engine.action ? '' : 'onclick="return false;"'} style="pointer-events: auto;"> <span class="math-inline">\{iconHtml\}
+<div class\="mt\-2 font\-medium text\-sm"\></span>{engine.title}</div>
                      </a>
                       <div class="mt-2">
                          <button class="edit-btn text-blue-600 text-xs mr-2">
@@ -1436,16 +1436,16 @@
               const editModeHtml = `
                  <div class="edit-mode">
                      <label class="block text-sm font-medium mb-1">Título</label>
-                     <input type="text" class="edit-title" value="${engine.title}">
-                     <label class="block text-sm font-medium mb-1">Acción (URL)</label>
-                      <div class="flex items-center">
-                         <input type="text" class="edit-action w-full px-3 py-2 border border-gray-300 rounded-md" value="${engine.action || ''}">
+                     <input type="text" class="edit-title" value="<span class="math-inline">\{engine\.title\}"\>
+<label class\="block text\-sm font\-medium mb\-1"\>Acción \(URL\)</label\>
+<div class\="flex items\-center"\>
+<input type\="text" class\="edit\-action w\-full px\-3 py\-2 border border\-gray\-300 rounded\-md" value\="</span>{engine.action || ''}">
                          <button class="search-term-button" data-input-class="edit-action">{search_term}</button>
                      </div>
                      <label class="block text-sm font-medium mb-1">Categoría</label>
-                     <input type="text" class="edit-category" value="${engine.category}">
-                     <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
-                     <input type="text" class="edit-icon" value="${engine.icon || ''}">
+                     <input type="text" class="edit-category" value="<span class="math-inline">\{engine\.category\}"\>
+<label class\="block text\-sm font\-medium mb\-1"\>Icono \(Clase FontAwesome\)</label\>
+<input type\="text" class\="edit\-icon" value\="</span>{engine.icon || ''}">
                      <div class="flex justify-center mt-2">
                          <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
                          <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
@@ -1557,7 +1557,7 @@
       sortedEngines.forEach((engine) => {
         const item = document.createElement("div");
         item.className = "dropdown-item cursor-pointer hover:bg-gray-100";
-        item.innerHTML = `${getIconHtml(engine, false)} <span>${engine.title}</span>`;
+        item.innerHTML = `<span class="math-inline">\{getIconHtml\(engine, false\)\} <span\></span>{engine.title}</span>`;
         item.addEventListener("click", function () {
           document.getElementById("selectedEngine").textContent = engine.title;
           document.getElementById("searchEngineDropdown").classList.add("hidden");
@@ -1582,7 +1582,7 @@
        if (allLinks.length > 0) {
            filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
            sortedAllCategories.forEach((category) => {
-             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
+             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="<span class="math-inline">\{category\}"\></span>{category}</button>`;
            });
             // Re-attach event listeners to filter buttons after re-rendering them
             document.querySelectorAll("#linkFilterButtons .filter-btn").forEach((btn) => {
@@ -1639,8 +1639,8 @@
           // Display mode HTML
           const displayModeHtml = `
             <div class="display-mode card-content">
-              <a href="${link.action || '#'}" target="_blank" class="link-btn block text-center" ${link.action ? '' : 'onclick="return false;"'} style="pointer-events: auto;"> ${iconHtml}
-                <div class="mt-2 font-medium text-sm">${link.title}</div>
+              <a href="${link.action || '#'}" target="_blank" class="link-btn block text-center" ${link.action ? '' : 'onclick="return false;"'} style="pointer-events: auto;"> <span class="math-inline">\{iconHtml\}
+<div class\="mt\-2 font\-medium text\-sm"\></span>{link.title}</div>
               </a>
                <div class="mt-2">
                  <button class="edit-btn text-blue-600 text-xs mr-2">
@@ -1657,13 +1657,13 @@
           const editModeHtml = `
             <div class="edit-mode text-center">
               <label class="block text-sm font-medium mb-1">Título</label>
-              <input type="text" class="edit-title" value="${link.title}">
-              <label class="block text-sm font-medium mb-1">Acción (URL)</label>
-              <input type="text" class="edit-action" value="${link.action || ''}">
+              <input type="text" class="edit-title" value="<span class="math-inline">\{link\.title\}"\>
+<label class\="block text\-sm font\-medium mb\-1"\>Acción \(URL\)</label\>
+<input type\="text" class\="edit\-action" value\="</span>{link.action || ''}">
                <label class="block text-sm font-medium mb-1">Categoría</label>
-              <input type="text" class="edit-category" value="${link.category}">
-              <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
-              <input type="text" class="edit-icon" value="${link.icon || ''}">
+              <input type="text" class="edit-category" value="<span class="math-inline">\{link\.category\}"\>
+<label class\="block text\-sm font\-medium mb\-1"\>Icono \(Clase FontAwesome\)</label\>
+<input type\="text" class\="edit\-icon" value\="</span>{link.icon || ''}">
               <div class="flex justify-center mt-2">
                 <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
                 <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
@@ -1755,7 +1755,7 @@
        if (allPrompts.length > 0) {
            filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
            sortedAllCategories.forEach((category) => {
-             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
+             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="<span class="math-inline">\{category\}"\></span>{category}</button>`;
            });
             // Re-attach event listeners to filter buttons after re-rendering them
             document.querySelectorAll("#promptFilterButtons .filter-btn").forEach((btn) => {
@@ -1816,8 +1816,8 @@
               <div class="display-mode card-content">
                 <div class="flex items-center justify-between">
                   <div class="flex items-center">
-                    ${iconHtml}
-                    <h4 class="text-lg font-medium ml-2">${prompt.title}</h4>
+                    <span class="math-inline">\{iconHtml\}
+<h4 class\="text\-lg font\-medium ml\-2"\></span>{prompt.title}</h4>
                   </div>
                   <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">${prompt.category}</span>
                 </div>
@@ -1842,13 +1842,13 @@
             const editModeHtml = `
               <div class="edit-mode">
                 <label class="block text-sm font-medium mb-1">Título</label>
-                <input type="text" class="edit-title" value="${prompt.title}">
-                <label class="block text-sm font-medium mb-1">Acción (Prompt)</label>
-                <textarea class="edit-action w-full h-32">${prompt.action || ''}</textarea>
+                <input type="text" class="edit-title" value="<span class="math-inline">\{prompt\.title\}"\>
+<label class\="block text\-sm font\-medium mb\-1"\>Acción \(Prompt\)</label\>
+<textarea class\="edit\-action w\-full h\-32"\></span>{prompt.action || ''}</textarea>
                 <label class="block text-sm font-medium mb-1">Categoría</label>
-                <input type="text" class="edit-category" value="${prompt.category}">
-                <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
-                <input type="text" class="edit-icon" value="${prompt.icon || ''}">
+                <input type="text" class="edit-category" value="<span class="math-inline">\{prompt\.category\}"\>
+<label class\="block text\-sm font\-medium mb\-1"\>Icono \(Clase FontAwesome\)</label\>
+<input type\="text" class\="edit\-icon" value\="</span>{prompt.icon || ''}">
                 <div class="flex justify-end mt-2">
                   <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
                   <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
@@ -1952,7 +1952,7 @@
         if (allNotes.length > 0) {
             filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
             sortedAllCategories.forEach((category) => {
-                filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
+                filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="<span class="math-inline">\{category\}"\></span>{category}</button>`;
             });
              // Re-attach event listeners to filter buttons after re-rendering them
              document.querySelectorAll("#noteFilterButtons .filter-btn").forEach((btn) => {
@@ -2011,8 +2011,8 @@
                   <div class="display-mode card-content">
                     <div class="flex items-center justify-between">
                       <div class="flex items-center">
-                        ${iconHtml}
-                        <h4 class="text-lg font-medium ml-2">${note.title}</h4>
+                        <span class="math-inline">\{iconHtml\}
+<h4 class\="text\-lg font\-medium ml\-2"\></span>{note.title}</h4>
                       </div>
                        <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">${note.category}</span>
                     </div>
@@ -2033,13 +2033,13 @@
                  const editModeHtml = `
                    <div class="edit-mode">
                      <label class="block text-sm font-medium mb-1">Título</label>
-                     <input type="text" class="edit-title" value="${note.title}">
-                     <label class="block text-sm font-medium mb-1">Contenido</label>
-                     <textarea class="edit-action w-full h-32">${note.action || ''}</textarea>
+                     <input type="text" class="edit-title" value="<span class="math-inline">\{note\.title\}"\>
+<label class\="block text\-sm font\-medium mb\-1"\>Contenido</label\>
+<textarea class\="edit\-action w\-full h\-32"\></span>{note.action || ''}</textarea>
                      <label class="block text-sm font-medium mb-1">Categoría</label>
-                     <input type="text" class="edit-category" value="${note.category}">
-                     <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
-                     <input type="text" class="edit-icon" value="${note.icon || ''}">
+                     <input type="text" class="edit-category" value="<span class="math-inline">\{note\.category\}"\>
+<label class\="block text\-sm font\-medium mb\-1"\>Icono \(Clase FontAwesome\)</label\>
+<input type\="text" class\="edit\-icon" value\="</span>{note.icon || ''}">
                      <div class="flex justify-end mt-2">
                        <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
                        <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
@@ -2053,529 +2053,4 @@
                     noteCard.classList.add("editing");
                      // Hide search term button for Note type
                     const searchTermButton = noteCard.querySelector(".search-term-button");
-                    if (searchTermButton) searchTermButton.classList.add("hidden");
-                });
-
-                noteCard.querySelector(".delete-btn").addEventListener("click", function () {
-                    if (confirm("¿Estás seguro de que deseas eliminar esta nota?")) {
-                        deleteItem(note.id);
-                    }
-                });
-
-                noteCard.querySelector(".save-btn").addEventListener("click", function () {
-                    const updatedTitle = noteCard.querySelector(".edit-title").value.trim();
-                    const updatedAction = noteCard.querySelector(".edit-action").value.trim();
-                    const updatedCategory = noteCard.querySelector(".edit-category").value.trim();
-                    const updatedIcon = noteCard.querySelector(".edit-icon").value.trim();
-
-                    if (updatedTitle && updatedAction && updatedCategory) {
-                       updateItem(note.id, {
-                         title: updatedTitle,
-                         action: updatedAction,
-                         type: note.type,
-                         category: updatedCategory,
-                         icon: updatedIcon
-                       });
-                       noteCard.classList.remove("editing");
-                    } else {
-                       showToast("Por favor, completa todos los campos.");
-                    }
-                });
-
-                noteCard.querySelector(".cancel-btn").addEventListener("click", function () {
-                    noteCard.classList.remove("editing");
-                });
-
-                categoryContainer.appendChild(noteCard);
-            });
-
-             // Add "Agregar nuevo" card
-             // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
-            const hasAnyNote = data.some(item => item.type === 'Nota');
-            if (hasAnyNote || notes.length === 0) {
-             const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
-             if (categoryExistsInAll) {
-                   const addCard = document.createElement("div");
-                   addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
-                   addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
-                   addCard.addEventListener("click", function () {
-                     document.getElementById("editPanel").classList.remove("hidden");
-                     document.getElementById("newType").value = "Nota"; // <-- This line sets the type
-                     document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
-                      updateLivePreview(); // Update preview for new item
-                      toggleSearchTermButton(); // Ensure search term button is hidden for Note type
-                   });
-                   categoryContainer.appendChild(addCard);
-             }
-            }
-
-            container.appendChild(categoryDiv);
-        });
-         console.log("Notas renderizadas."); // Log exit
-    }
-
-
-     function renderTasks(tasks) { // Receives filtered data
-         console.log("Renderizando Tareas:", tasks.length, "items"); // Log entry
-         const container = document.getElementById("tasksContainer");
-         container.innerHTML = "";
-         const allTasks = data.filter(item => item.type === 'Tarea');
-         // Use all tasks for filter buttons, then sort categories
-         const allCategories = [...new Set(allTasks.map((item) => item.category))];
-         const sortedAllCategories = allCategories.sort();
-         const filterContainer = document.getElementById("taskFilterButtons");
-
-          // Render filter buttons only if data is not empty
-         if (allTasks.length > 0) {
-             filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
-             sortedAllCategories.forEach((category) => {
-                 filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
-             });
-              // Re-attach event listeners to filter buttons after re-rendering them
-              document.querySelectorAll("#taskFilterButtons .filter-btn").forEach((btn) => {
-                  btn.addEventListener("click", function () {
-                      document.querySelectorAll("#taskFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
-                      this.classList.add("active");
-                      const category = this.getAttribute("data-category");
-                       // Call the centralized filter function
-                      filterItems('Tarea', category, document.getElementById("taskCardSearchInput").value.toLowerCase());
-                  });
-              });
-               // Ensure the currently active filter button remains active after re-render
-              const activeFilterBtn = document.querySelector("#taskFilterButtons .filter-btn.active");
-              if (activeFilterBtn) {
-                   const currentCategory = activeFilterBtn.getAttribute("data-category");
-                   document.querySelector(`#taskFilterButtons .filter-btn[data-category="${currentCategory}"]`)?.classList.add('active');
-              } else {
-                   // Default to 'Todos' if no filter is active
-                   document.querySelector("#taskFilterButtons .filter-btn.filter-all")?.classList.add('active');
-              }
-         } else {
-            filterContainer.innerHTML = ''; // Clear filter buttons if no data
-         }
-
-
-         const categorizedTasks = {};
-         tasks.forEach((task) => { // Use the filtered list for rendering
-           const category = task.category || 'Sin Categoría'; // Handle items without category
-           if (!categorizedTasks[category]) categorizedTasks[category] = [];
-           categorizedTasks[category].push(task);
-         });
-
-          // Sort categories alphabetically
-         const sortedCategories = Object.keys(categorizedTasks).sort();
-
-         sortedCategories.forEach((category) => {
-             const categoryDiv = document.createElement("div");
-             categoryDiv.className = "mb-8 col-span-full"; // Span full width for tasks grid
-             categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
-               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 category-tasks"></div>`;
-             const categoryContainer = categoryDiv.querySelector(".category-tasks");
-
-              // Sort tasks within each category by title
-              categorizedTasks[category].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-
-             categorizedTasks[category].forEach((task) => {
-                 const taskCard = document.createElement("div");
-                 taskCard.className = `card bg-white p-4 rounded-lg tooltip-container task-card ${task.completed ? 'completed' : ''}`;
-                 taskCard.setAttribute("data-id", task.id);
-                 taskCard.setAttribute("data-type", task.type);
-                 taskCard.setAttribute("data-category", task.category);
-                 addDragAndDropListeners(taskCard);
-                 const iconHtml = getIconHtml(task, false);
-
-                 // Split action into lines and format as a list with interactive checkboxes
-                 const taskLines = task.action.split('\n').filter(line => line.trim() !== '');
-                 let taskListHtml = '<ul class="task-list">';
-                 taskLines.forEach((line, index) => {
-                     // Check if the line starts with "[x]" or "[ ]" to determine initial checked state
-                     const isChecked = line.trim().startsWith('[x]');
-                     const cleanedLine = line.replace(/^\[[x ]\]\s*/, '').trim(); // Remove "[x] " or "[ ] "
-                     taskListHtml += `<li><input type="checkbox" class="task-list-checkbox" data-item-index="${index}" ${isChecked ? 'checked' : ''}> ${cleanedLine}</li>`;
-                 });
-                 taskListHtml += '</ul>';
-
-
-                 const displayModeHtml = `
-                   <div class="display-mode card-content">
-                     <div class="flex items-center justify-between">
-                       <div class="flex items-center">
-                         <input type="checkbox" class="task-checkbox mr-2" ${task.completed ? 'checked' : ''} style="pointer-events: auto;"> <h4 class="text-lg font-medium">${task.title}</h4>
-                       </div>
-                        <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">${task.category}</span>
-                     </div>
-                     <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 task-content no-scrollbar">
-                       ${taskListHtml}
-                     </div>
-                      <div class="mt-2">
-                        <button class="edit-btn text-blue-600 text-xs mr-2">
-                          <i class="fas fa-edit"></i> Editar
-                        </button>
-                        <button class="delete-btn text-red-600 text-xs">
-                          <i class="fas fa-trash-alt"></i> Eliminar
-                        </button>
-                      </div>
-                   </div>
-                 `;
-
-                  const editModeHtml = `
-                    <div class="edit-mode">
-                      <label class="block text-sm font-medium mb-1">Título</label>
-                      <input type="text" class="edit-title" value="${task.title}">
-                      <label class="block text-sm font-medium mb-1">Descripción (una línea por item de lista - usa [ ] o [x] al inicio)</label>
-                      <textarea class="edit-action w-full h-32">${task.action || ''}</textarea>
-                      <label class="block text-sm font-medium mb-1">Categoría</label>
-                      <input type="text" class="edit-category" value="${task.category}">
-                      <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
-                      <input type="text" class="edit-icon" value="${task.icon || ''}">
-                       <div class="flex items-center mt-2">
-                           <input type="checkbox" class="edit-completed mr-2" ${task.completed ? 'checked' : ''}>
-                           <label class="text-sm font-medium">Completada (Marca la tarea completa)</label>
-                       </div>
-                      <div class="flex justify-end mt-2">
-                        <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
-                        <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
-                      </div>
-                    </div>
-                  `;
-
-                 taskCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`;
-
-                 // Add event listener for the main task checkbox (marks the whole task complete)
-                 taskCard.querySelector(".task-checkbox").addEventListener("change", function () {
-                     const itemId = taskCard.dataset.id;
-                     const isCompleted = this.checked;
-                     updateItem(itemId, { completed: isCompleted }); // Update item and save
-                 });
-
-                  // Add event listeners for the individual list item checkboxes
-                  // Note: Changes to these are NOT saved in the current data structure (action is a single string).
-                  // They are visual-only for now. To save this, the 'action' would need to be structured data (e.g., array of objects with text and completed status).
-                  taskCard.querySelectorAll(".task-list-checkbox").forEach(checkbox => {
-                      checkbox.addEventListener("change", function() {
-                          const listItem = this.closest("li");
-                          if (this.checked) {
-                              listItem.classList.add("completed");
-                          } else {
-                              listItem.classList.remove("completed");
-                          }
-                           // Optional: Visually update the main task checkbox if all sub-tasks are checked
-                           // const allChecked = Array.from(taskCard.querySelectorAll(".task-list-checkbox")).every(cb => cb.checked);
-                           // taskCard.querySelector(".task-checkbox").checked = allChecked;
-                           // updateItem(taskCard.dataset.id, { completed: allChecked }); // This would save the main status based on sub-tasks
-                      });
-                  });
-
-
-                 taskCard.querySelector(".edit-btn").addEventListener("click", function () {
-                     taskCard.classList.add("editing");
-                      // Hide search term button for Task type
-                     const searchTermButton = taskCard.querySelector(".search-term-button");
-                     if (searchTermButton) searchTermButton.classList.add("hidden");
-                 });
-
-                 taskCard.querySelector(".delete-btn").addEventListener("click", function () {
-                     if (confirm("¿Estás seguro de que deseas eliminar esta tarea?")) {
-                         deleteItem(task.id);
-                     }
-                 });
-
-                 taskCard.querySelector(".save-btn").addEventListener("click", function () {
-                     const updatedTitle = taskCard.querySelector(".edit-title").value.trim();
-                     const updatedAction = taskCard.querySelector(".edit-action").value.trim(); // Get the text from the textarea
-                     const updatedCategory = taskCard.querySelector(".edit-category").value.trim();
-                     const updatedIcon = taskCard.querySelector(".edit-icon").value.trim();
-                     const updatedCompleted = taskCard.querySelector(".edit-completed").checked;
-
-
-                     if (updatedTitle && updatedAction && updatedCategory) {
-                        updateItem(task.id, {
-                          title: updatedTitle,
-                          action: updatedAction, // Save the raw text from the textarea
-                          type: task.type,
-                          category: updatedCategory,
-                          icon: updatedIcon,
-                          completed: updatedCompleted
-                        });
-                        taskCard.classList.remove("editing");
-                     } else {
-                        showToast("Por favor, completa todos los campos.");
-                     }
-                 });
-
-                 taskCard.querySelector(".cancel-btn").addEventListener("click", function () {
-                     taskCard.classList.remove("editing");
-                 });
-
-                 categoryContainer.appendChild(taskCard);
-             });
-
-              // Add "Agregar nuevo" card
-              // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
-             const hasAnyTask = data.some(item => item.type === 'Tarea');
-             if (hasAnyTask || tasks.length === 0) {
-                 const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
-                 if (categoryExistsInAll) {
-                   const addCard = document.createElement("div");
-                   addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
-                   addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
-                   addCard.addEventListener("click", function () {
-                     document.getElementById("editPanel").classList.remove("hidden");
-                     document.getElementById("newType").value = "Tarea"; // <-- This line sets the type
-                     document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
-                      updateLivePreview(); // Update preview for new item
-                       toggleSearchTermButton(); // Ensure search term button is hidden for Task type
-                   });
-                   categoryContainer.appendChild(addCard);
-                 }
-             }
-
-             container.appendChild(categoryDiv);
-         });
-          console.log("Tareas renderizadas."); // Log exit
-     }
-
-
-    function populateEditTable(currentData) {
-      console.log("Poblando tabla de edición..."); // Log entry
-      const tableBody = document.getElementById("itemsTableBody");
-      tableBody.innerHTML = "";
-       // Sort data by type for better organization in the edit panel table
-       const sortedData = [...currentData].sort((a, b) => {
-           const typeOrder = ['Buscador', 'Link', 'Promp', 'Nota', 'Tarea'];
-           return typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) || (a.title || '').localeCompare(b.title || '')); // Handle potential null/undefined titles
-       });
-
-
-      sortedData.forEach((item, index) => {
-        const row = document.createElement("tr");
-        row.className = index % 2 === 0 ? "bg-white" : "bg-gray-50";
-
-        let actionInputHtml = `<input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.action || ''}">`;
-        if (item.type === 'Promp' || item.type === 'Nota' || item.type === 'Tarea') {
-             actionInputHtml = `<textarea class="border border-gray-300 rounded px-2 py-1 w-full h-20">${item.action || ''}</textarea>`;
-        }
-
-        let completedCheckboxHtml = '';
-        if (item.type === 'Tarea') {
-            completedCheckboxHtml = `<div class="flex items-center mt-1"><input type="checkbox" class="edit-completed mr-2" ${item.completed ? 'checked' : ''}> <label class="text-sm font-medium">Completada</label></div>`;
-        }
-
-
-        row.innerHTML = `
-          <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.title || ''}"></td>
-          <td class="px-6 py-4">${actionInputHtml}${completedCheckboxHtml}</td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <select class="border border-gray-300 rounded px-2 py-1 w-full">
-              <option value="Buscador" ${item.type === "Buscador" ? "selected" : ""}>Buscador</option>
-              <option value="Link" ${item.type === "Link" ? "selected" : ""}>Link</option>
-              <option value="Promp" ${item.type === "Promp" ? "selected" : ""}>Prompt</option>
-              <option value="Nota" ${item.type === "Nota" ? "selected" : ""}>Nota</option>
-              <option value="Tarea" ${item.type === "Tarea" ? "selected" : ""}>Tarea</option>
-            </select>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.category || ''}"></td>
-          <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.icon || ""}"></td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <button class="update-item-btn text-blue-600 hover:text-blue-800 mr-3" data-id="${item.id}"><i class="fas fa-save"></i></button>
-            <button class="delete-item-btn text-red-600 hover:text-red-800" data-id="${item.id}"><i class="fas fa-trash-alt"></i></button>
-          </td>
-        `;
-        // Update event listener for table save button
-        row.querySelector(".update-item-btn").addEventListener("click", function () {
-          const itemId = this.getAttribute("data-id");
-          // Select inputs relative to the row
-          const inputs = row.querySelectorAll("input[type='text'], textarea, select");
-          const updatedItem = {
-            id: itemId,
-            title: inputs[0].value,
-            action: inputs[1].value, // This gets value from input or textarea
-            type: inputs[2].value, // The select element
-            category: inputs[3].value,
-            icon: inputs[4].value
-          };
-           if (updatedItem.type === 'Tarea') {
-                // Assuming the completed checkbox is always the last input in the row if type is Tarea
-               const completedCheckbox = row.querySelector(".edit-completed");
-               if (completedCheckbox) {
-                  updatedItem.completed = completedCheckbox.checked;
-               } else {
-                   // If checkbox is missing, maybe default to false or current state
-                   console.warn("Completed checkbox not found for Tarea item.");
-                   const existingItem = data.find(item => item.id == itemId);
-                   updatedItem.completed = existingItem ? existingItem.completed : false;
-               }
-           }
-          updateItem(itemId, updatedItem);
-        });
-        // Update event listener for table delete button
-        row.querySelector(".delete-item-btn").addEventListener("click", function () {
-          const itemId = this.getAttribute("data-id");
-          if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
-             deleteItem(itemId);
-          }
-        });
-        tableBody.appendChild(row);
-      });
-       console.log("Tabla de edición poblada."); // Log exit
-    }
-
-
-    // --- Funciones de Importación/Exportación ---
-
-
-    // Function to export data to JSON file
-    function exportData() {
-        console.log("Exportando datos..."); // Log export
-        const jsonData = JSON.stringify(data, null, 2); // Use null, 2 for pretty printing
-        const blob = new Blob([jsonData], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "centro_accesos_data.json";
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        showToast("Datos exportados correctamente.");
-         console.log("Datos exportados."); // Log export complete
-    }
-
-    // Function to import data from JSON file
-    function importData(file) {
-        console.log("Importando datos..."); // Log import
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            try {
-                const importedData = JSON.parse(event.target.result);
-                if (Array.isArray(importedData)) {
-                     // Optional: Add validation for imported data structure
-                     if (confirm("¿Estás seguro de que deseas reemplazar tus datos actuales con los datos importados?")) {
-                          // Ensure imported items have IDs, add if missing
-                          data = importedData.map(item => {
-                              if (item.id === undefined || item.id === null) {
-                                  item.id = Date.now().toString() + Math.floor(Math.random() * 1000000).toString(); // Generate a more unique ID
-                              }
-                              // Ensure imported tasks have completed status if missing
-                               if (item.type === 'Tarea' && item.completed === undefined) {
-                                   item.completed = false;
-                               }
-                               return item;
-                           });
-                          saveData(data); // Save imported data to localStorage
-                          initializeUI(data); // Re-render UI and re-populate edit table
-                          showToast("Datos importados correctamente.");
-                           console.log("Datos importados y UI actualizada."); // Log import complete
-                     } else {
-                        console.log("Importación cancelada por el usuario."); // Log cancellation
-                     }
-                } else {
-                    showToast("El archivo JSON no tiene el formato esperado (debe ser un array).");
-                    console.error("Error de formato de archivo JSON importado."); // Log error
-                }
-            } catch (e) {
-                showToast("Error al leer o analizar el archivo JSON.");
-                console.error("Import error:", e); // Log error details
-            }
-        };
-        reader.readAsText(file);
-         // Reset the file input value to allow importing the same file again
-         document.getElementById("importDataInput").value = '';
-    }
-
-
-    // --- Inicialización ---
-
-    // Búsqueda inteligente: se utiliza un datalist para sugerir términos
-    let searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
-    function updateSearchSuggestions() {
-      const dataList = document.getElementById("searchSuggestions");
-      dataList.innerHTML = "";
-      searchHistory.forEach(term => {
-        const option = document.createElement("option");
-        option.value = term;
-        dataList.appendChild(option);
-      });
-    }
-
-
-    document.addEventListener("DOMContentLoaded", function () {
-        console.log("DOM completamente cargado. Intentando cargar datos desde localStorage.");
-
-         // Apply dark mode preference immediately on DOMContentLoaded
-         const darkModePreference = localStorage.getItem("darkMode");
-         const toggleDarkModeBtn = document.getElementById("toggleDarkMode");
-         const modeIcon = toggleDarkModeBtn.querySelector("i");
-         const modeText = toggleDarkModeBtn.querySelector(".mode-text");
-
-        if (darkModePreference === "enabled") {
-            document.body.classList.add("dark");
-            modeIcon.classList.remove("fa-moon");
-            modeIcon.classList.add("fa-sun");
-            modeText.textContent = "Modo Claro";
-        } else {
-            modeIcon.classList.remove("fa-sun");
-            modeIcon.classList.add("fa-moon");
-            modeText.textContent = "Modo Oscuro";
-        }
-
-        // Intenta cargar desde localStorage primero
-        const savedData = localStorage.getItem("centroAccesosData");
-        if (savedData) {
-            try {
-                data = JSON.parse(savedData);
-                console.log("Datos cargados desde localStorage:", data);
-                 // Ensure items have an ID if loading old data, and tasks have a completed status
-                data = data.map(item => {
-                     if (item.id === undefined || item.id === null) {
-                         item.id = Date.now().toString() + Math.floor(Math.random() * 1000000).toString(); // Generate a simple ID if missing
-                     }
-                    if (item.type === 'Tarea' && item.completed === undefined) {
-                        return { ...item, completed: false };
-                    }
-                    return item;
-                });
-                initializeUI(data);
-                setupNavigation();
-                setupEventListeners();
-                updateSearchSuggestions(); // Update search suggestions on load
-                console.log("Inicialización completa con datos de localStorage.");
-            } catch (e) {
-                console.error("Error al parsear datos de localStorage:", e);
-                showToast("Error al cargar datos guardados. Se iniciará con datos vacíos.");
-                 // Initialize with empty UI if localStorage fails
-                 data = [];
-                 initializeUI(data);
-                 setupNavigation();
-                 setupEventListeners();
-                 updateSearchSuggestions(); // Update search suggestions even with empty data
-                 console.log("Inicialización completa con datos vacíos debido a error de localStorage.");
-            }
-        } else {
-            console.log("No se encontraron datos en localStorage. Intentando cargar desde data.json...");
-            // If no data in localStorage, try loading from data.json (original source)
-            loadDataFromJson(); // loadDataFromJson calls initializeUI, setupNavigation, setupEventListeners, and updateSearchSuggestions
-             console.log("Iniciando carga desde data.json...");
-
-        }
-
-        // Ensure toggleDarkModeBtn listener is added after button exists
-        toggleDarkModeBtn.addEventListener("click", function() {
-          document.body.classList.toggle("dark");
-          if (document.body.classList.contains("dark")) {
-              localStorage.setItem("darkMode", "enabled");
-              modeIcon.classList.remove("fa-moon");
-              modeIcon.classList.add("fa-sun");
-              modeText.textContent = "Modo Claro";
-          } else {
-              localStorage.setItem("darkMode", "disabled");
-              modeIcon.classList.remove("fa-sun");
-              modeIcon.classList.add("fa-moon");
-              modeText.textContent = "Modo Oscuro";
-          }
-        });
-    });
-
-  </script>
-</body>
-</html>
+                    if (searchTermButton) searchTerm
