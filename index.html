@@ -515,7 +515,7 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Icono</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                <th class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody id="itemsTableBody" class="bg-white divide-y divide-gray-200"></tbody>
@@ -1387,7 +1387,7 @@
       const categorizedEngines = {};
       engines.forEach((engine) => { // Use the filtered list for rendering
           const category = engine.category || 'Sin Categoría'; // Handle items without category
-          if (!categorizedEngines[category]) categorizedEngines[category] = [];
+          if (!categorizedEngines[category]) categorizedEngorias[category] = [];
           categorizedEngines[category].push(engine);
       });
 
@@ -2343,7 +2343,7 @@
        // Sort data by type for better organization in the edit panel table
        const sortedData = [...currentData].sort((a, b) => {
            const typeOrder = ['Buscador', 'Link', 'Promp', 'Nota', 'Tarea'];
-           return typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) || (a.title || '').localeCompare(b.title || ''); // Handle potential null/undefined titles
+           return typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) || (a.title || '').localeCompare(b.title || '')); // Handle potential null/undefined titles
        });
 
 
