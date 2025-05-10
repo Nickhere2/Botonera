@@ -503,7 +503,7 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Categoría</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Icono</th>
-                <th class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
             <tbody id="itemsTableBody" class="bg-white divide-y divide-gray-200"></tbody>
@@ -524,13 +524,53 @@
   </div>
 
   <script>
-    // Datos de la aplicación (se cargarán desde localStorage)
-    let data = []; // Ahora 'data' es el array global
+    // Modo oscuro: alterna la clase "dark" en el body y guarda la preferencia en localStorage
+    const toggleDarkModeBtn = document.getElementById("toggleDarkMode");
+    const modeIcon = toggleDarkModeBtn.querySelector("i");
+    const modeText = toggleDarkModeBtn.querySelector(".mode-text");
 
-    // Variables globales para Drag & Drop
-    let draggedCard = null;
+    // Cargar preferencia de modo oscuro desde localStorage
+    const savedDarkMode = localStorage.getItem("darkMode");
+    if (savedDarkMode === "enabled") {
+      document.body.classList.add("dark");
+      modeIcon.classList.remove("fa-moon");
+      modeIcon.classList.add("fa-sun");
+      modeText.textContent = "Modo Claro";
+    } else {
+      document.body.classList.remove("dark");
+      modeIcon.classList.remove("fa-sun");
+      modeIcon.classList.add("fa-moon");
+      modeText.textContent = "Modo Oscuro";
+    }
 
-    // --- Funciones Auxiliares ---
+    toggleDarkModeBtn.addEventListener("click", function() {
+      document.body.classList.toggle("dark");
+      if (document.body.classList.contains("dark")) {
+          localStorage.setItem("darkMode", "enabled");
+          modeIcon.classList.remove("fa-moon");
+          modeIcon.classList.add("fa-sun");
+          modeText.textContent = "Modo Claro";
+      } else {
+          localStorage.setItem("darkMode", "disabled");
+          modeIcon.classList.remove("fa-sun");
+          modeIcon.classList.add("fa-moon");
+          modeText.textContent = "Modo Oscuro";
+      }
+    });
+
+
+    // Búsqueda inteligente: se utiliza un datalist para sugerir términos
+    let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+    function updateSearchSuggestions() {
+      const dataList = document.getElementById("searchSuggestions");
+      dataList.innerHTML = "";
+      searchHistory.forEach(term => {
+        const option = document.createElement("option");
+        option.value = term;
+        dataList.appendChild(option);
+      });
+    }
+    updateSearchSuggestions();
 
     // Función auxiliar para obtener el HTML del icono con el color adecuado
     function getIconHtml(item, isPrompt = false) {
@@ -539,184 +579,35 @@
          if (item.type === 'Tarea') return `<i class="fas fa-tasks text-teal-500 text-xl"></i>`;
         return `<i class="${isPrompt ? "fas fa-comment" : "fas fa-search"} ${isPrompt ? "text-purple-600" : "text-blue-600"} text-xl"></i>`;
       }
-      let colorClass = "";
-      const iconStr = item.icon;
-      if (iconStr.includes("fa-google")) colorClass = "icon-google";
-      else if (iconStr.includes("fa-youtube")) colorClass = "icon-youtube";
-      else if (iconStr.includes("fab fa-facebook")) colorClass = "icon-facebook"; // Corrected class name
-      else if (iconStr.includes("fab fa-twitter")) colorClass = "icon-twitter"; // Corrected class name
-      else if (iconStr.includes("fab fa-instagram")) colorClass = "icon-instagram"; // Corrected class name
-      else if (iconStr.includes("fab fa-linkedin")) colorClass = "icon-linkedin"; // Corrected class name
-      else if (iconStr.includes("fab fa-whatsapp")) colorClass = "icon-whatsapp"; // Corrected class name
-      else if (iconStr.includes("fab fa-spotify")) colorClass = "icon-spotify"; // Corrected class name
-      else if (iconStr.includes("fab fa-microsoft")) colorClass = "icon-microsoft"; // Corrected class name
-      else if (iconStr.includes("fab fa-imdb")) colorClass = "icon-imdb"; // Corrected class name
-      else if (iconStr.includes("fa-map-marker-alt")) colorClass = "text-red-500";
-      else if (iconStr.includes("fa-book") && !iconStr.includes("fa-book-open")) colorClass = "text-green-600";
-      else if (iconStr.includes("fa-book-open")) colorClass = "text-purple-500";
-      else if (iconStr.includes("fa-images")) colorClass = "text-pink-500";
-      else if (iconStr.includes("fa-music")) colorClass = "text-purple-500";
-      else if (iconStr.includes("fa-film")) colorClass = "text-blue-500";
-      else if (iconStr.includes("fa-video")) colorClass = "text-red-500";
-      else if (iconStr.includes("fa-envelope")) colorClass = "text-orange-500";
-      else if (iconStr.includes("fa-palette")) colorClass = "text-pink-500";
-      else if (iconStr.includes("fa-cloud-sun")) colorClass = "text-yellow-500";
-      else if (iconStr.includes("fa-calendar-day")) colorClass = "text-blue-500";
-      else if (iconStr.includes("fa-calendar-alt")) colorClass = "text-blue-500";
-      else if (iconStr.includes("fa-futbol")) colorClass = "text-green-500";
-      else if (iconStr.includes("fa-laptop-code")) colorClass = "text-gray-700";
-      else if (iconStr.includes("fa-brain")) colorClass = "text-purple-500";
-      else if (iconStr.includes("fas fa-search")) colorClass = "text-blue-500"; // Adjusted from original code
-      else if (iconStr.includes("fa-paint-brush")) colorClass = "text-pink-500";
-      else if (iconStr.includes("fa-comment-dots")) colorClass = "text-blue-500";
-      else if (iconStr.includes("fas fa-comment")) colorClass = "text-blue-600"; // Adjusted from original code
-      else if (iconStr.includes("fas fa-robot")) colorClass = "text-green-500"; // Adjusted from original code
-      else if (iconStr.includes("fas fa-sparkles")) colorClass = "text-yellow-400";
-      else if (iconStr.includes("fas fa-moon")) colorClass = "text-gray-500";
-      else if (iconStr.includes("fas fa-child")) colorClass = "text-pink-500";
-      else if (iconStr.includes("fas fa-list")) colorClass = "text-blue-500";
-      else if (iconStr.includes("fas fa-puzzle-piece")) colorClass = "text-yellow-500";
-      else if (iconStr.includes("fas fa-edit")) colorClass = "text-green-600";
-      else if (iconStr.includes("fas fa-thumbs-up")) colorClass = "text-blue-500";
-      else if (iconStr.includes("fas fa-user-tie")) colorClass = "text-gray-700";
-      else if (iconStr.includes("fab fa-python")) colorClass = "text-blue-800";
-      else if (iconStr.includes("fas fa-code")) colorClass = "text-gray-800";
-      else if (iconStr.includes("fas fa-magic")) colorClass = "text-purple-500";
-      else if (iconStr.includes("fas fa-infinity")) colorClass = "text-blue-500";
-      else if (iconStr.includes("fab fa-pinterest")) colorClass = "text-red-600";
-      else if (iconStr.includes("fab fa-wikipedia-w")) colorClass = "text-gray-700";
-      else if (iconStr.includes("fas fa-shopping-cart")) colorClass = "text-blue-600";
-      else if (iconStr.includes("fas fa-laptop")) colorClass = "text-gray-700";
-      else if (iconStr.includes("fas fa-sticky-note")) colorClass = "text-yellow-500";
-      else if (iconStr.includes("fas fa-tasks")) colorClass = "text-teal-500";
-       else if (iconStr.includes("fas fa-lightbulb")) colorClass = "text-yellow-400"; // Color para la bombilla
+      // Intenta usar la clase FontAwesome directamente
+      let iconClass = item.icon;
+      // Puedes añadir lógica aquí para mapear clases a colores específicos si no están en el CSS
+      // Por ahora, confiamos en que las clases FontAwesome y Tailwind CSS hagan su trabajo
+      let colorClass = ""; // Tailwind classes like text-blue-500 will handle color if applied
 
+      // Algunas clases de color predefinidas para FontAwesome si no usas Tailwind colors en el CSS
+      if (iconClass.includes("fa-google")) colorClass = "text-blue-600"; // Example color class
+      // ... add more mappings if needed
 
-      if (!colorClass) {
-        colorClass = isPrompt ? "text-purple-600" : (item.type === 'Nota' ? "text-yellow-500" : (item.type === 'Tarea' ? "text-teal-500" : "text-blue-600"));
-      }
-      return `<i class="${item.icon} ${colorClass} text-xl"></i>`;
+      // Retorna el elemento <i> con la clase FontAwesome y la clase de color (si aplica)
+      return `<i class="${iconClass} ${colorClass} text-xl"></i>`;
     }
 
-    // Show/hide search term button based on selected type in Add New Item
-    function toggleSearchTermButton() {
-        const newType = document.getElementById("newType").value;
-        const searchTermButton = document.querySelector("#editPanel .search-term-button");
-        if (searchTermButton) { // Check if button exists
-            if (newType === "Buscador") {
-                searchTermButton.classList.remove("hidden");
-            } else {
-                searchTermButton.classList.add("hidden");
-            }
-        }
-    }
+    // Datos de la aplicación (se cargarán desde localStorage o data.json)
+    let data = [];
 
-    // Actualización en vivo de la vista previa al agregar un nuevo elemento
-    function updateLivePreview() {
-      const title = document.getElementById("newTitle").value.trim() || "Título";
-      const action = document.getElementById("newAction").value.trim() || "Acción";
-      const type = document.getElementById("newType").value;
-      const category = document.getElementById("newCategory").value.trim() || "Categoría";
-      const icon = document.getElementById("newIcon").value.trim() || "";
-      const previewContainer = document.getElementById("livePreview");
-      // Assign a temporary ID for preview purposes
-      const tempItem = { title, action, type, category, icon, id: 'preview' };
-      let contentHtml = '';
-      if (type === 'Promp') {
-         contentHtml = `<div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 prompt-content no-scrollbar">${action.replace(/\n/g, "<br>").substring(0, 100) + (action.length > 100 ? '...' : '')}</div>`;
-      } else if (type === 'Nota') {
-         contentHtml = `<div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 note-content no-scrollbar">${action.replace(/\n/g, "<br>").substring(0, 100) + (action.length > 100 ? '...' : '')}</div>`;
-      } else if (type === 'Tarea') {
-          // Display task action as a simple list in preview
-          const taskLines = action.split('\n').filter(line => line.trim() !== '');
-          let taskListHtml = '<ul class="task-list mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 no-scrollbar">';
-          taskLines.forEach(line => {
-              // Check if the line starts with "[x]" or "[ ]" to determine initial checked state
-              const isChecked = line.trim().startsWith('[x]');
-              const cleanedLine = line.replace(/^\[[x ]\]\s*/, '').trim(); // Remove "[x] " or "[ ] "
-              taskListHtml += `<li><input type="checkbox" disabled ${isChecked ? 'checked' : ''}> ${cleanedLine}</li>`;
-          });
-          taskListHtml += '</ul>';
-          contentHtml = taskListHtml;
-      } else { // Buscador or Link
-         contentHtml = `<p class="text-sm text-gray-600 mt-2">${action.substring(0, 100) + (action.length > 100 ? '...' : '')}</p>`;
-      }
+    // Variables globales para Drag & Drop
+    let draggedCard = null;
 
-
-      let html = `<div class="card bg-white p-4 rounded-lg mb-2" title="Vista previa en tiempo real">
-                    <div class="display-mode card-content">
-                      <div class="flex items-center">
-                        ${getIconHtml(tempItem, type==="Promp")}
-                        <h4 class="text-lg font-medium ml-2">${title}</h4>
-                      </div>
-                      ${contentHtml}
-                      <div class="mt-2 text-xs text-gray-500">Etiqueta: ${category}</div>
-                       <button class="edit-btn text-blue-600 mt-2 text-xs" style="pointer-events: none;">
-                        <i class="fas fa-edit"></i> Editar (previsualización)
-                      </button>
-                    </div>
-                    </div>`; // Removed tooltip
-      previewContainer.innerHTML = html;
-    }
-
-    function showToast(message) {
-      console.log("Mostrando toast:", message); // Log toast message
-      const toast = document.getElementById("toast");
-      toast.textContent = message;
-      toast.classList.remove("hidden");
-      setTimeout(() => { toast.classList.add("hidden"); }, 3000);
-    }
-
-    function saveData(currentData) {
-      console.log("Guardando datos en localStorage:", currentData.length, "items"); // Log save
-      localStorage.setItem("centroAccesosData", JSON.stringify(currentData));
-       console.log("Datos guardados."); // Log save complete
-    }
-
-    // Function to update an item in the data array and re-render
-    function updateItem(itemId, updatedItem) {
-       console.log(`Actualizando elemento con ID ${itemId}:`, updatedItem); // Log update
-       const itemIndex = data.findIndex(item => item.id == itemId);
-       if (itemIndex > -1) {
-         // Preserve existing properties like 'completed' for tasks if not explicitly updated
-         // Use spread operator carefully to ensure updatedItem properties overwrite existing ones
-         data[itemIndex] = { ...data[itemIndex], ...updatedItem };
-         saveData(data);
-         initializeUI(data); // Re-render all sections
-         // populateEditTable(data); // Called within initializeUI
-         showToast("Elemento actualizado correctamente");
-       } else {
-           console.warn(`Elemento con ID ${itemId} no encontrado para actualizar.`); // Log warning
-       }
-    }
-
-    // Function to delete an item from the data array and re-render
-    function deleteItem(itemId) {
-      console.log(`Eliminando elemento con ID ${itemId}`); // Log deletion
-      const initialLength = data.length;
-      data = data.filter(item => item.id != itemId);
-      if (data.length < initialLength) {
-        saveData(data);
-        // populateEditTable(data); // Re-populating initializeUI covers this
-        initializeUI(data); // Re-render all sections and re-populate the table within it
-        showToast("Elemento eliminado correctamente");
-      } else {
-           console.warn(`Elemento con ID ${itemId} no encontrado para eliminar.`); // Log warning
-      }
-    }
-
-
-    // --- Funciones de Drag & Drop ---
-
+    // Funciones de Drag & Drop (no necesitan cambios, operan sobre el array 'data')
     function handleDragStart(e) {
       console.log('Drag Start:', this.dataset.id); // Log drag start
       draggedCard = this;
       e.dataTransfer.effectAllowed = "move";
-      // Set data with ID and type
       e.dataTransfer.setData("text/plain", JSON.stringify({ id: this.dataset.id, type: this.dataset.type }));
        setTimeout(() => {
            draggedCard.classList.add('dragging');
-       }, 0); // Add 'dragging' class after a short delay
+       }, 0);
     }
 
     function handleDragOver(e) {
@@ -724,13 +615,10 @@
       e.dataTransfer.dropEffect = "move";
       const targetCard = e.target.closest(".card:not(.editing)");
       // console.log('Drag Over:', { target: e.target, targetCardId: targetCard?.dataset.id }); // Log drag over (can be noisy)
-
-      // Remove drag-over class from all cards first
-      document.querySelectorAll('.card').forEach(card => card.classList.remove('drag-over'));
-
-      // Add visual feedback for valid drop target (another card of the same type)
+      // Add visual feedback for drop target
+      document.querySelectorAll('.card').forEach(card => card.classList.remove('drag-over')); // Remove from all first
       if (targetCard && targetCard !== draggedCard && targetCard.dataset.type === draggedCard.dataset.type) {
-         targetCard.classList.add('drag-over');
+         targetCard.classList.add('drag-over'); // Add to valid target
       }
       return false;
     }
@@ -818,107 +706,193 @@
        console.log('Added drag listeners to card:', card.dataset.id); // Log listener addition
     }
 
+    // Actualización en vivo de la vista previa al agregar un nuevo elemento
+    function updateLivePreview() {
+      const title = document.getElementById("newTitle").value.trim() || "Título";
+      const action = document.getElementById("newAction").value.trim() || "Acción";
+      const type = document.getElementById("newType").value;
+      const category = document.getElementById("newCategory").value.trim() || "Categoría";
+      const icon = document.getElementById("newIcon").value.trim() || "";
+      const previewContainer = document.getElementById("livePreview");
+      const tempItem = { title, action, type, category, icon, id: 'preview' };
+      let contentHtml = '';
+      if (type === 'Promp') {
+         contentHtml = `<div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 prompt-content">${action.replace(/\n/g, "<br>").substring(0, 100) + '...'}</div>`;
+      } else if (type === 'Nota') {
+         contentHtml = `<div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 note-content">${action.replace(/\n/g, "<br>").substring(0, 100) + '...'}</div>`;
+      } else if (type === 'Tarea') {
+          const taskLines = action.split('\n').filter(line => line.trim() !== '');
+          let taskListHtml = '<ul class="task-list mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700">';
+          taskLines.forEach(line => {
+              taskListHtml += `<li><input type="checkbox" disabled> ${line}</li>`;
+          });
+          taskListHtml += '</ul>';
+          contentHtml = taskListHtml;
+      } else {
+         contentHtml = `<p class="text-sm text-gray-600 mt-2">${action}</p>`;
+      }
 
-    // --- Funciones de Carga y Renderizado ---
+
+      let html = `<div class="card bg-white p-4 rounded-lg mb-2" title="Vista previa en tiempo real">
+                    <div class="display-mode card-content">
+                      <div class="flex items-center">
+                        ${getIconHtml(tempItem, type==="Promp")}
+                        <h4 class="text-lg font-medium ml-2">${title}</h4>
+                      </div>
+                      ${contentHtml}
+                      <div class="mt-2 text-xs text-gray-500">Etiqueta: ${category}</div>
+                       <button class="edit-btn text-blue-600 mt-2 text-xs">
+                        <i class="fas fa-edit"></i> Editar
+                      </button>
+                    </div>
+                    <div class="tooltip">Vista previa en tiempo real</div>
+                  </div>`;
+      previewContainer.innerHTML = html;
+    }
+
+    // Actualizar vista previa cuando hay cambios
+    document.getElementById("newTitle").addEventListener("input", updateLivePreview);
+    document.getElementById("newAction").addEventListener("input", updateLivePreview);
+    document.getElementById("newType").addEventListener("change", function() {
+         updateLivePreview();
+         toggleSearchTermButton();
+    });
+    document.getElementById("newCategory").addEventListener("input", updateLivePreview);
+    document.getElementById("newIcon").addEventListener("input", updateLivePreview);
+    updateLivePreview();
+
+    // Show/hide search term button based on selected type in Add New Item
+    function toggleSearchTermButton() {
+        const newType = document.getElementById("newType").value;
+        const searchTermButton = document.querySelector("#editPanel .search-term-button");
+        if (searchTermButton) { // Check if button exists
+            if (newType === "Buscador") {
+                searchTermButton.classList.remove("hidden");
+            } else {
+                searchTermButton.classList.add("hidden");
+            }
+        }
+    }
+     toggleSearchTermButton();
+
+     // Add event listener to the search term button in Add New Item
+     const newActionSearchTermButton = document.querySelector("#editPanel .search-term-button[data-input-id='newAction']");
+     if (newActionSearchTermButton) {
+         newActionSearchTermButton.addEventListener("click", function() {
+             const inputId = this.dataset.inputId;
+             const inputElement = document.getElementById(inputId);
+             if (inputElement) {
+                 inputElement.value += "{search_term}";
+                 updateLivePreview();
+             }
+         });
+     }
 
 
-     // New function to specifically load from data.json
-     async function loadDataFromJson() {
-         try {
-             const response = await fetch('data.json');
-             if (!response.ok) {
-                  console.warn(`No se pudo cargar data.json. Status: ${response.status}. Iniciando con datos vacíos.`);
-                  data = [];
-             } else {
-                 const jsonData = await response.json();
-                 console.log("Datos cargados desde data.json:", jsonData);
-                 // Ensure loaded data is an array and items have IDs, and tasks have completed status
-                 data = Array.isArray(jsonData) ? jsonData.map(item => {
-                     if (item.id === undefined || item.id === null) {
-                         item.id = Date.now().toString() + Math.floor(Math.random() * 1000000).toString(); // Generate a more unique ID
-                     }
+    // Funciones principales
+    // data is declared globally at the top
+
+    document.addEventListener("DOMContentLoaded", function () {
+        console.log("DOM completamente cargado.");
+        loadData(); // Cargar datos al iniciar
+        setupNavigation();
+        setupEventListeners();
+        console.log("Inicialización completa.");
+    });
+
+    // --- Funciones para interactuar con localStorage y Fetch ---
+
+    async function loadData() {
+        console.log("Cargando datos...");
+        const savedData = localStorage.getItem("centroAccesosData");
+        if (savedData) {
+            try {
+                data = JSON.parse(savedData);
+                console.log("Datos cargados desde localStorage:", data);
+                 // Ensure tasks have a completed status if loading old data
+                data = data.map(item => {
+                    if (item.type === 'Tarea' && item.completed === undefined) {
+                        return { ...item, completed: false };
+                    }
+                    return item;
+                });
+            } catch (e) {
+                console.error("Error al parsear datos de localStorage:", e);
+                data = []; // Si hay un error, inicializar vacío
+            }
+        } else {
+            // Si no hay datos en localStorage, intentar cargar desde data.json
+            console.log("No hay datos en localStorage. Intentando cargar desde data.json");
+            try {
+                const response = await fetch('data.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                data = await response.json();
+                console.log("Datos cargados desde data.json:", data);
+                 // Ensure tasks have a completed status if loading from data.json
+                 data = data.map(item => {
                      if (item.type === 'Tarea' && item.completed === undefined) {
                          return { ...item, completed: false };
                      }
                      return item;
-                 }) : [];
-                 saveData(data); // Save loaded data to localStorage for future use
-             }
-         } catch (error) {
-             console.error("Error al cargar o procesar data.json:", error);
-             data = []; // In case of any error, initialize with empty data
-         }
-          initializeUI(data); // Render UI with loaded data
-          setupNavigation();
-          setupEventListeners();
-          console.log("Carga desde data.json completada.");
-     }
+                 });
+                // Guardar los datos iniciales de data.json en localStorage
+                saveData(data);
+            } catch (e) {
+                console.error("Error al cargar data.json:", e);
+                showToast("Error al cargar datos iniciales desde data.json.");
+                data = []; // Si falla la carga, inicializar vacío
+            }
+        }
+        initializeUI(data);
+    }
+
+    function saveData(currentData) {
+        console.log("Guardando datos en localStorage:", currentData);
+        localStorage.setItem("centroAccesosData", JSON.stringify(currentData));
+        console.log("Datos guardados.");
+    }
+
+    function openUrlInBrowser(url) {
+        console.log("Abriendo URL en navegador:", url);
+        window.open(url, '_blank'); // Abre en una nueva pestaña/ventana
+    }
+
+
+    // --- Funciones de UI y Event Listeners ---
 
     function initializeUI(currentData) {
-      console.log("Entrando a initializeUI con datos:", currentData); // Log entry
-      if (!currentData || !Array.isArray(currentData) || currentData.length === 0) { // Added Array.isArray check
-          console.log("No hay datos o los datos son inválidos para mostrar.");
-          // Hide all sections
-           document.querySelectorAll(".section").forEach(section => section.classList.add("hidden"));
-
-          // Optionally display a message in each container if data is empty
+      console.log("Entrando a initializeUI con datos:", currentData);
+      if (!currentData || currentData.length === 0) {
+          console.log("No hay datos para mostrar.");
+          // Clear all containers and filter buttons
           document.getElementById("searchEnginesContainer").innerHTML = '<div class="text-center text-gray-600 mt-8 col-span-full">No hay buscadores disponibles.</div>';
           document.getElementById("linksContainer").innerHTML = '<div class="text-center text-gray-600 mt-8 col-span-full">No hay links disponibles.</div>';
           document.getElementById("promptsContainer").innerHTML = '<div class="text-center text-gray-600 mt-8 col-span-full">No hay prompts disponibles.</div>';
           document.getElementById("notesContainer").innerHTML = '<div class="text-center text-gray-600 mt-8 col-span-full">No hay notas disponibles.</div>';
           document.getElementById("tasksContainer").innerHTML = '<div class="text-center text-gray-600 mt-8 col-span-full">No hay tareas disponibles.</div>';
 
-          // Clear filter buttons if no data
           document.getElementById("searchFilterButtons").innerHTML = '';
           document.getElementById("linkFilterButtons").innerHTML = '';
           document.getElementById("promptFilterButtons").innerHTML = '';
           document.getElementById("noteFilterButtons").innerHTML = '';
           document.getElementById("taskFilterButtons").innerHTML = '';
 
-           // Hide "No items found" messages initially - these will be shown by filterItems if needed
-           document.getElementById("noBuscadoresFound").classList.add("hidden");
-           document.getElementById("noLinksFound").classList.add("hidden");
-           document.getElementById("noPromptsFound").classList.add("hidden");
-           document.getElementById("noNotesFound").classList.add("hidden");
-           document.getElementById("noTasksFound").classList.add("hidden");
-
-           // Show the first section's container to make it visible even if empty
-           document.getElementById("section-buscadores").classList.remove("hidden");
-            // Ensure navigation buttons are reset
-            document.querySelectorAll(".nav-btn").forEach(btn => btn.classList.remove("active"));
-            document.getElementById("nav-buscadores").classList.add("active");
+           document.getElementById("noBuscadoresFound").classList.remove("hidden"); // Show "No items found" message
+           document.getElementById("noLinksFound").classList.remove("hidden");
+           document.getElementById("noPromptsFound").classList.remove("hidden");
+           document.getElementById("noNotesFound").classList.remove("hidden");
+           document.getElementById("noTasksFound").classList.remove("hidden");
 
 
-          populateSearchEngineDropdown([]); // Populate dropdown with empty array
-          populateEditTable([]); // Populate edit table with empty array
-          console.log("initializeUI completado (sin datos)."); // Log exit
-          return; // Exit if no data
+          populateSearchEngineDropdown([]);
+          populateEditTable([]);
+          console.log("initializeUI completado (sin datos).");
+          return;
       }
 
-       // Ensure all sections are hidden before showing the active one
-       document.querySelectorAll(".section").forEach(section => section.classList.add("hidden"));
-       // Show the currently active section (default to buscadores if none active)
-       const activeNavButton = document.querySelector(".nav-btn.active");
-       const activeSectionId = activeNavButton ? activeNavButton.id.replace("nav-", "section-") : "section-buscadores";
-       document.getElementById(activeSectionId).classList.remove("hidden");
-
-
-      console.log("Llamando a renderSearchEngines..."); // Log before call
-      renderSearchEngines(currentData.filter(item => item.type === 'Buscador'));
-      console.log("Llamando a populateSearchEngineDropdown..."); // Log before call
-      populateSearchEngineDropdown(currentData.filter(item => item.type === 'Buscador'));
-      console.log("Llamando a renderLinks..."); // Log before call
-      renderLinks(currentData.filter(item => item.type === 'Link'));
-      console.log("Llamando a renderPrompts..."); // Log before call
-      renderPrompts(currentData.filter(item => item.type === 'Promp'));
-      console.log("Llamando a renderNotes..."); // Log before call
-      renderNotes(currentData.filter(item => item.type === 'Nota')); // Render Notes
-      console.log("Llamando a renderTasks..."); // Log before call
-      renderTasks(currentData.filter(item => item.type === 'Tarea')); // Render Tasks
-      console.log("Llamando a populateEditTable..."); // Log before call
-      populateEditTable(currentData);
-
-       // Hide "No items found" messages initially - these will be shown by filterItems if needed
+      // Hide "No items found" messages initially
        document.getElementById("noBuscadoresFound").classList.add("hidden");
        document.getElementById("noLinksFound").classList.add("hidden");
        document.getElementById("noPromptsFound").classList.add("hidden");
@@ -926,29 +900,27 @@
        document.getElementById("noTasksFound").classList.add("hidden");
 
 
-       console.log("initializeUI completado (con datos)."); // Log exit
+      console.log("Llamando a renderSearchEngines...");
+      renderSearchEngines(currentData);
+      console.log("Llamando a populateSearchEngineDropdown...");
+      populateSearchEngineDropdown(currentData);
+      console.log("Llamando a renderLinks...");
+      renderLinks(currentData);
+      console.log("Llamando a renderPrompts...");
+      renderPrompts(currentData);
+      console.log("Llamando a renderNotes...");
+      renderNotes(currentData);
+      console.log("Llamando a renderTasks...");
+      renderTasks(currentData);
+      console.log("Llamando a populateEditTable...");
+      populateEditTable(currentData);
 
-        // Re-apply current filters after UI is initialized with data
-        const currentlyActiveNavButton = document.querySelector(".nav-btn.active");
-        if (currentlyActiveNavButton) {
-            const sectionId = currentlyActiveNavButton.id.replace("nav-", "section-");
-            const sectionSearchInputId = sectionId.replace('section-', '') + 'CardSearchInput';
-            const searchTerm = document.getElementById(sectionSearchInputId)?.value.toLowerCase() || "";
-            const sectionFilterButtonsId = sectionId.replace('section-', '') + 'FilterButtons';
-            const activeFilterBtn = document.querySelector(`#${sectionFilterButtonsId} .filter-btn.active`);
-            const category = activeFilterBtn ? activeFilterBtn.getAttribute("data-category") : "";
-             const singularItemType = getSingularItemType(sectionId.replace('section-', ''));
-             if (singularItemType) {
-                filterItems(singularItemType, category, searchTerm);
-             }
-        } else {
-            // If no nav button was active (shouldn't happen with default active class), filter the first section
-             filterItems('Buscador', '', '');
-        }
+
+       console.log("initializeUI completado (con datos).");
     }
 
     function setupNavigation() {
-      console.log("Configurando navegación..."); // Log entry
+      console.log("Configurando navegación...");
       const navButtons = document.querySelectorAll(".nav-btn");
       const sections = document.querySelectorAll(".section");
       navButtons.forEach((btn) => {
@@ -959,143 +931,52 @@
           const sectionId = this.id.replace("nav-", "section-");
           document.getElementById(sectionId).classList.remove("hidden");
 
-           // Trigger filter for the newly active section to apply any existing search term
+           // Re-apply current filters/search when switching sections
            const activeSectionId = document.querySelector('.section:not(.hidden)').id;
-           // Find the correct search input for the active section
-           const sectionSearchInputId = activeSectionId.replace('section-', '') + 'CardSearchInput';
-           const searchTerm = document.getElementById(sectionSearchInputId)?.value.toLowerCase() || "";
-
-           // Find the active filter button for the active section
-           const sectionFilterButtonsId = activeSectionId.replace('section-', '') + 'FilterButtons';
-           const activeFilterBtn = document.querySelector(`#${sectionFilterButtonsId} .filter-btn.active`);
-           const category = activeFilterBtn ? activeFilterBtn.getAttribute("data-category") : "";
-
-           const sectionType = activeSectionId.replace('section-', ''); // e.g., 'buscadores', 'links'
-
-           // Call a function to find the correct singular type from the plural section ID
-           const singularItemType = getSingularItemType(sectionType);
-
-
-           // Use a single filter function call with the correct type
-           if (singularItemType) {
-               filterItems(singularItemType, category, searchTerm);
-           } else {
-              console.error("No se pudo determinar el tipo de elemento para la sección:", sectionType);
+           if (activeSectionId === 'section-buscadores') {
+               filterSearchEngines(document.querySelector("#searchFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Buscador'), document.getElementById("searchCardSearchInput").value.toLowerCase());
+           } else if (activeSectionId === 'section-links') {
+               filterLinks(document.querySelector("#linkFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Link'), document.getElementById("linkCardSearchInput").value.toLowerCase());
+           } else if (activeSectionId === 'section-prompts') {
+               filterPrompts(document.querySelector("#promptFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Promp'), document.getElementById("promptCardSearchInput").value.toLowerCase());
+           } else if (activeSectionId === 'section-notes') {
+               filterNotes(document.querySelector("#noteFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Nota'), document.getElementById("noteCardSearchInput").value.toLowerCase());
+           } else if (activeSectionId === 'section-tasks') {
+               filterTasks(document.querySelector("#taskFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Tarea'), document.getElementById("taskCardSearchInput").value.toLowerCase());
            }
         });
       });
-       console.log("Navegación configurada."); // Log exit
+       console.log("Navegación configurada.");
     }
 
-     // Helper function to get singular item type from plural section ID
-     function getSingularItemType(sectionType) {
-         if (sectionType === 'buscadores') return 'Buscador';
-         if (sectionType === 'links') return 'Link';
-         if (sectionType === 'prompts') return 'Promp';
-         if (sectionType === 'notes') return 'Nota';
-         if (sectionType === 'tasks') return 'Tarea';
-         return null; // Unknown type
-     }
-
-
-     // Centralized filter function
-     function filterItems(itemType, category, searchTerm) {
-         console.log(`Filtrando ${itemType}s por categoría "${category}" y término "${searchTerm}"`);
-
-         // Filter data based on type, category, and search term
-         const filteredItems = data.filter(item => item.type === itemType && // Match the exact singular type
-             (category === "" || item.category === category) && // Filter by category
-             (searchTerm === "" || // Filter by search term
-                 (item.title && item.title.toLowerCase().includes(searchTerm)) ||
-                 (item.action && item.action.toLowerCase().includes(searchTerm)) ||
-                 (item.category && item.category.toLowerCase().includes(searchTerm))
-             )
-         );
-
-         console.log(`${itemType}s filtrados:`, filteredItems.length, "items");
-
-         // Update the correct container and "no items found" message based on itemType
-         const containerId = itemType === 'Buscador' ? 'searchEnginesContainer' :
-                             itemType === 'Link' ? 'linksContainer' :
-                             itemType === 'Promp' ? 'promptsContainer' :
-                             itemType === 'Nota' ? 'notesContainer' :
-                             itemType === 'Tarea' ? 'tasksContainer' : null;
-
-         const noItemsMessageId = itemType === 'Buscador' ? 'noBuscadoresFound' :
-                                  itemType === 'Link' ? 'noLinksFound' :
-                                  itemType === 'Promp' ? 'noPromptsFound' :
-                                  itemType === 'Nota' ? 'noNotesFound' :
-                                  itemType === 'Tarea' ? 'noTasksFound' : null;
-
-         if (containerId && noItemsMessageId) {
-             if (filteredItems.length === 0) {
-                 document.getElementById(noItemsMessageId).classList.remove("hidden");
-             } else {
-                 document.getElementById(noItemsMessageId).classList.add("hidden");
-             }
-
-             // Call the specific render function for the type
-             if (itemType === 'Buscador') renderSearchEngines(filteredItems);
-             else if (itemType === 'Link') renderLinks(filteredItems);
-             else if (itemType === 'Promp') renderPrompts(filteredItems);
-             else if (itemType === 'Nota') renderNotes(filteredItems);
-             else if (itemType === 'Tarea') renderTasks(filteredItems);
-         } else {
-             console.error("Tipo de elemento desconocido:", itemType);
-         }
-     }
-
-
-    function setupEventListeners() { // data is now a global variable
-      console.log("Configurando listeners de eventos..."); // Log entry
-
-      // Add event listener to the search term button in Add New Item
-     document.querySelector("#editPanel .search-term-button").addEventListener("click", function() {
-         const inputId = this.dataset.inputId;
-         const inputElement = document.getElementById(inputId);
-         if (inputElement) {
-             inputElement.value += "{search_term}";
-             updateLivePreview(); // Update preview after inserting
-         }
-     });
-
-
-      // Search input listeners for card filtering
-      document.getElementById("searchCardSearchInput").addEventListener("input", function() { filterItems('Buscador', document.querySelector("#searchFilterButtons .filter-btn.active")?.getAttribute("data-category"), this.value.toLowerCase()); });
-      document.getElementById("linkCardSearchInput").addEventListener("input", function() { filterItems('Link', document.querySelector("#linkFilterButtons .filter-btn.active")?.getAttribute("data-category"), this.value.toLowerCase()); });
-      document.getElementById("promptCardSearchInput").addEventListener("input", function() { filterItems('Promp', document.querySelector("#promptFilterButtons .filter-btn.active")?.getAttribute("data-category"), this.value.toLowerCase()); });
-       document.getElementById("noteCardSearchInput").addEventListener("input", function() { filterItems('Nota', document.querySelector("#noteFilterButtons .filter-btn.active")?.getAttribute("data-category"), this.value.toLowerCase()); });
-       document.getElementById("taskCardSearchInput").addEventListener("input", function() { filterItems('Tarea', document.querySelector("#taskFilterButtons .filter-btn.active")?.getAttribute("data-category"), this.value.toLowerCase()); });
+    function setupEventListeners() {
+      console.log("Configurando listeners de eventos...");
+      // Card search input listeners
+      document.getElementById("searchCardSearchInput").addEventListener("input", function() { filterSearchEngines(document.querySelector("#searchFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Buscador'), this.value.toLowerCase()); });
+      document.getElementById("linkCardSearchInput").addEventListener("input", function() { filterLinks(document.querySelector("#linkFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Link'), this.value.toLowerCase()); });
+      document.getElementById("promptCardSearchInput").addEventListener("input", function() { filterPrompts(document.querySelector("#promptFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Promp'), this.value.toLowerCase()); });
+       document.getElementById("noteCardSearchInput").addEventListener("input", function() { filterNotes(document.querySelector("#noteFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Nota'), this.value.toLowerCase()); });
+       document.getElementById("taskCardSearchInput").addEventListener("input", function() { filterTasks(document.querySelector("#taskFilterButtons .filter-btn.active")?.getAttribute("data-category"), data.filter(item => item.type === 'Tarea'), this.value.toLowerCase()); });
 
 
       // Main search button (only for web search)
       document.getElementById("searchButton").addEventListener("click", function () {
         const searchTerm = document.getElementById("searchInput").value.trim();
         if (searchTerm) {
-          // Guardar en sugerencias
-          if(!searchHistory.includes(searchTerm)){
+          // Agregar término al historial si no está ya
+          if (!searchHistory.includes(searchTerm)) {
             searchHistory.push(searchTerm);
             localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
             updateSearchSuggestions();
           }
-          const selectedEngine = document.getElementById("selectedEngine").textContent;
+          const selectedEngineTitle = document.getElementById("selectedEngine").textContent;
           const engine = data.find(
-            (item) => item.title === selectedEngine && item.type === "Buscador"
+            (item) => item.title === selectedEngineTitle && item.type === "Buscador"
           );
           if (engine) {
-            const url = engine.action ? engine.action.replace("{search_term}", encodeURIComponent(searchTerm)) : null;
-            if (url) {
-               window.open(url, "_blank");
-            } else {
-               console.warn(`Acción de búsqueda no definida para "${selectedEngine}".`);
-               showToast(`Acción de búsqueda no definida para "${selectedEngine}".`);
-            }
-          } else {
-               console.warn(`Motor de búsqueda "${selectedEngine}" no encontrado.`);
-               showToast(`Motor de búsqueda "${selectedEngine}" no encontrado.`);
+            const url = engine.action.replace("{search_term}", encodeURIComponent(searchTerm));
+            openUrlInBrowser(url); // <-- Abre en el navegador
           }
-        } else {
-             showToast("Por favor, ingresa un término de búsqueda.");
         }
       });
 
@@ -1113,7 +994,6 @@
       document.addEventListener("click", function (e) {
         const dropdown = document.getElementById("searchEngineDropdown");
         const toggle = document.getElementById("dropdownToggle");
-        // Check if the click target is inside the dropdown or the toggle button
         if (!dropdown.contains(e.target) && !toggle.contains(e.target)) {
           dropdown.classList.add("hidden");
         }
@@ -1122,16 +1002,7 @@
       // Open edit panel with the new main button
       document.getElementById("mainEditButton").addEventListener("click", function () {
         document.getElementById("editPanel").classList.remove("hidden");
-         // Populate the edit table when opening the panel
-         populateEditTable(data);
-          // Ensure new item form is reset and preview updated
-          document.getElementById("newTitle").value = "";
-          document.getElementById("newAction").value = "";
-          document.getElementById("newType").value = "Buscador"; // Default type
-          document.getElementById("newCategory").value = "";
-          document.getElementById("newIcon").value = "";
-          updateLivePreview();
-          toggleSearchTermButton(); // Ensure search term button visibility is correct for default type
+         populateEditTable(data); // Re-populate table every time panel opens
       });
 
       // Close edit panel
@@ -1147,28 +1018,33 @@
         const icon = document.getElementById("newIcon").value.trim();
 
         if (title && action && category) {
-          const newItem = { title, action, type, category, icon, id: Date.now().toString() + Math.random() }; // Generate ID
+          // Generate a unique ID for the new item
+          const newItem = { title, action, type, category, icon, id: Date.now() + Math.random() };
            if (type === 'Tarea') {
-               newItem.completed = false; // Add completed status for tasks
+               newItem.completed = false; // Add completed status for new tasks
            }
           data.push(newItem);
-          saveData(data);
-          // populateEditTable(data); // populateEditTable is called within initializeUI
-          initializeUI(data); // Re-render all sections
+          saveData(data); // <-- Guardar en localStorage
+          populateEditTable(data); // Update the table in the edit panel
+          // Reset fields and update preview
+          document.getElementById("newTitle").value = "";
+          document.getElementById("newAction").value = "";
+          document.getElementById("newCategory").value = "";
+          document.getElementById("newIcon").value = "";
+          updateLivePreview();
+          initializeUI(data); // Re-render all sections to include the new item
           showToast("Elemento agregado correctamente");
-           // Close panel after adding? Or keep open? Keeping open for now.
-           // document.getElementById("editPanel").classList.add("hidden");
         } else {
             showToast("Por favor, completa Título, Acción y Categoría.");
         }
       });
 
-      // Export Data Button
+      // Export Data Button (funciona igual, crea un blob descargable en el navegador)
       document.getElementById("exportDataButton").addEventListener("click", function() {
           exportData();
       });
 
-      // Import Data Button
+      // Import Data Button (funciona igual, lee un archivo local)
       document.getElementById("importDataButton").addEventListener("click", function() {
           document.getElementById("importDataInput").click(); // Trigger the file input click
       });
@@ -1177,328 +1053,298 @@
       document.getElementById("importDataInput").addEventListener("change", function(event) {
           const file = event.target.files[0];
           if (file) {
-              importData(file);
+              importData(file); // Importar y luego guardar usando localStorage
           }
       });
 
-       // No need for saveChangesButton if using inline edit buttons in table
-       // document.getElementById("saveChangesButton")?.addEventListener("click", function () { ... });
-
-       console.log("Listeners de eventos configurados."); // Log exit
+       console.log("Listeners de eventos configurados.");
     }
 
-
-    // --- Funciones de Renderizado Específicas ---
-
-
-    function renderSearchEngines(engines) { // Receives filtered data
-      console.log("Renderizando Buscadores:", engines.length, "items"); // Log entry
+    function renderSearchEngines(currentData) {
+      console.log("Renderizando Buscadores...");
+      const searchEnginesData = currentData.filter((item) => item.type === "Buscador");
       const container = document.getElementById("searchEnginesContainer");
       container.innerHTML = "";
-      const allEngines = data.filter(item => item.type === 'Buscador');
-      // Use all engines for filter buttons, then sort categories
-      const allCategories = [...new Set(allEngines.map((item) => item.category))];
-      const sortedAllCategories = allCategories.sort(); // Sort all categories alphabetically
+      const categories = [...new Set(searchEnginesData.map((item) => item.category))];
       const filterContainer = document.getElementById("searchFilterButtons");
-
-      // Render filter buttons only if data is not empty
-      if (allEngines.length > 0) {
-           filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
-           sortedAllCategories.forEach((category) => {
-             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
-           });
-            // Re-attach event listeners to filter buttons after re-rendering them
-            document.querySelectorAll("#searchFilterButtons .filter-btn").forEach((btn) => {
-                btn.addEventListener("click", function () {
-                    document.querySelectorAll("#searchFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
-                    this.classList.add("active");
-                    const category = this.getAttribute("data-category");
-                     // Call the centralized filter function
-                    filterItems('Buscador', category, document.getElementById("searchCardSearchInput").value.toLowerCase());
-                });
-            });
-            // Ensure the currently active filter button remains active after re-render
-            const activeFilterBtn = document.querySelector("#searchFilterButtons .filter-btn.active");
-            if (activeFilterBtn) {
-                 const currentCategory = activeFilterBtn.getAttribute("data-category");
-                 document.querySelector(`#searchFilterButtons .filter-btn[data-category="${currentCategory}"]`)?.classList.add('active');
-            } else {
-                 // Default to 'Todos' if no filter is active
-                 document.querySelector("#searchFilterButtons .filter-btn.filter-all")?.classList.add('active');
-            }
-
-
-      } else {
-         filterContainer.innerHTML = ''; // Clear filter buttons if no data
-      }
-
-
-      const categorizedEngines = {};
-      engines.forEach((engine) => { // Use the filtered list for rendering
-          const category = engine.category || 'Sin Categoría'; // Handle items without category
-          if (!categorizedEngines[category]) categorizedEngines[category] = [];
-          categorizedEngines[category].push(engine);
+      filterContainer.innerHTML = `<button class="filter-btn active px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
+      categories.forEach((category) => {
+        filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
       });
+      document.querySelectorAll("#searchFilterButtons .filter-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          document.querySelectorAll("#searchFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
+          this.classList.add("active");
+          const category = this.getAttribute("data-category");
+          filterSearchEngines(category, searchEnginesData, document.getElementById("searchCardSearchInput").value.toLowerCase());
+        });
+      });
+      renderEnginesByCategory(searchEnginesData, container);
+       console.log("Buscadores renderizados.");
+    }
 
-      // Sort the categories that actually have items after filtering
-      const categoriesWithItems = Object.keys(categorizedEngines).sort();
+    function filterSearchEngines(category, engines, searchTerm) {
+      console.log(`Filtrando Buscadores por categoría "${category}" y término "${searchTerm}"`);
+      const container = document.getElementById("searchEnginesContainer");
+      container.innerHTML = "";
+      let filteredEngines = engines;
+      if (category) {
+        filteredEngines = engines.filter((engine) => engine.category === category);
+      }
+       if (searchTerm) {
+           filteredEngines = filteredEngines.filter(item =>
+               item.title.toLowerCase().includes(searchTerm) ||
+               item.action.toLowerCase().includes(searchTerm) ||
+               item.category.toLowerCase().includes(searchTerm)
+           );
+       }
 
-      //container.innerHTML = ""; // Clear existing content - already done at the start of the function
+       console.log("Buscadores filtrados:", filteredEngines);
 
-      categoriesWithItems.forEach((category) => {
-          const categoryDiv = document.createElement("div");
-          categoryDiv.className = "mb-8 col-span-full"; // Make category title span full width
-          categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 category-engines"></div>`;
-          const categoryContainer = categoryDiv.querySelector(".category-engines");
+       const noItemsMessage = document.getElementById("noBuscadoresFound");
+       if (filteredEngines.length === 0) {
+           noItemsMessage.classList.remove("hidden");
+       } else {
+           noItemsMessage.classList.add("hidden");
+       }
 
-          // Sort engines within each category by title
-          categorizedEngines[category].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      renderEnginesByCategory(filteredEngines, container);
+    }
 
-          categorizedEngines[category].forEach((engine) => {
-              const engineCard = document.createElement("div");
-              engineCard.className = "tooltip-container relative card bg-white p-4 rounded-lg text-center";
-               engineCard.setAttribute("data-id", engine.id); // Add data-id attribute
-               engineCard.setAttribute("data-type", engine.type); // Add data-type attribute
-               addDragAndDropListeners(engineCard); // Add DnD listeners
+    function renderEnginesByCategory(engines, container) {
+        console.log("Renderizando motores de búsqueda por categoría:", engines);
+        const categorizedEngines = {};
+        engines.forEach((engine) => {
+            if (!categorizedEngines[engine.category]) categorizedEngines[engine.category] = [];
+            categorizedEngines[engine.category].push(engine);
+        });
 
-              const iconHtml = getIconHtml(engine, false);
+        const sortedCategories = Object.keys(categorizedEngines).sort();
 
-              // Display mode HTML
-              const displayModeHtml = `
-                 <div class="display-mode card-content">
-                     <a href="${engine.action ? engine.action.replace("{search_term}", "") : '#'}" target="_blank" class="engine-link block" ${engine.action ? '' : 'onclick="return false;"'} style="pointer-events: auto;"> ${iconHtml}
-                         <div class="mt-2 font-medium text-sm">${engine.title}</div>
-                     </a>
-                      <div class="mt-2">
-                         <button class="edit-btn text-blue-600 text-xs mr-2">
-                             <i class="fas fa-edit"></i> Editar
-                         </button>
-                         <button class="delete-btn text-red-600 text-xs">
-                             <i class="fas fa-trash-alt"></i> Eliminar
-                         </button>
-                      </div>
-                 </div>
-              `;
+        container.innerHTML = "";
 
-              // Edit mode HTML
-              const editModeHtml = `
-                 <div class="edit-mode">
-                     <label class="block text-sm font-medium mb-1">Título</label>
-                     <input type="text" class="edit-title" value="${engine.title}">
-                     <label class="block text-sm font-medium mb-1">Acción (URL)</label>
-                      <div class="flex items-center">
-                         <input type="text" class="edit-action w-full px-3 py-2 border border-gray-300 rounded-md" value="${engine.action || ''}">
-                         <button class="search-term-button" data-input-class="edit-action">{search_term}</button>
-                     </div>
-                     <label class="block text-sm font-medium mb-1">Categoría</label>
-                     <input type="text" class="edit-category" value="${engine.category}">
-                     <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
-                     <input type="text" class="edit-icon" value="${engine.icon || ''}">
-                     <div class="flex justify-center mt-2">
-                         <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
-                         <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
-                     </div>
-                 </div>
-              `;
+        sortedCategories.forEach((category) => {
+            const categoryDiv = document.createElement("div");
+            categoryDiv.className = "mb-8 col-span-full";
+            categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 category-engines"></div>`;
+            const categoryContainer = categoryDiv.querySelector(".category-engines");
 
-              engineCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`; // Added tooltip
+            categorizedEngines[category].sort((a, b) => a.title.localeCompare(b.title));
 
-              // Add event listener for the edit button
-              engineCard.querySelector(".edit-btn").addEventListener("click", function () {
-                  engineCard.classList.add("editing");
-                   // Show/hide search term button in inline edit
-                  const searchTermButton = engineCard.querySelector(".search-term-button");
-                  if (engine.type === "Buscador") {
-                      searchTermButton.classList.remove("hidden");
-                  } else {
-                      searchTermButton.classList.add("hidden");
-                  }
-              });
+            categorizedEngines[category].forEach((engine) => {
+                const engineCard = document.createElement("div");
+                engineCard.className = "tooltip-container relative card bg-white p-4 rounded-lg text-center";
+                 engineCard.setAttribute("data-id", engine.id);
+                 engineCard.setAttribute("data-type", engine.type);
+                 addDragAndDropListeners(engineCard);
 
-               // Add event listener for the delete button
-               engineCard.querySelector(".delete-btn").addEventListener("click", function () {
-                 if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
-                   deleteItem(engine.id);
-                 }
-               });
+                const iconHtml = getIconHtml(engine, false);
 
-              // Add event listener for the save button in edit mode
-              engineCard.querySelector(".save-btn").addEventListener("click", function () {
-                  const updatedTitle = engineCard.querySelector(".edit-title").value.trim();
-                  const updatedAction = engineCard.querySelector(".edit-action").value.trim();
-                  const updatedCategory = engineCard.querySelector(".edit-category").value.trim();
-                  const updatedIcon = engineCard.querySelector(".edit-icon").value.trim();
+                // Display mode HTML
+                const displayModeHtml = `
+                   <div class="display-mode card-content">
+                       <a href="#" class="engine-link block" data-url="${engine.action.replace("{search_term}", "")}"> ${iconHtml}
+                           <div class="mt-2 font-medium text-sm">${engine.title}</div>
+                       </a>
+                       <button class="edit-btn text-blue-600 mt-2 text-xs">
+                           <i class="fas fa-edit"></i>
+                       </button>
+                       <button class="delete-btn text-red-600 mt-2 ml-2 text-xs">
+                           <i class="fas fa-trash-alt"></i>
+                       </button>
+                   </div>
+                `;
 
-                  if (updatedTitle && updatedAction && updatedCategory) {
-                     updateItem(engine.id, {
-                       title: updatedTitle,
-                       action: updatedAction,
-                       type: engine.type, // Type doesn't change with inline edit
-                       category: updatedCategory,
-                       icon: updatedIcon
+                // Edit mode HTML
+                const editModeHtml = `
+                   <div class="edit-mode">
+                       <label class="block text-sm font-medium mb-1">Título</label>
+                       <input type="text" class="edit-title" value="${engine.title}">
+                       <label class="block text-sm font-medium mb-1">Acción (URL)</label>
+                        <div class="flex items-center">
+                           <input type="text" class="edit-action w-full px-3 py-2 border border-gray-300 rounded-md" value="${engine.action}">
+                           <button class="search-term-button" data-input-class="edit-action">{search_term}</button>
+                       </div>
+                       <label class="block text-sm font-medium mb-1">Categoría</label>
+                       <input type="text" class="edit-category" value="${engine.category}">
+                       <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
+                       <input type="text" class="edit-icon" value="${engine.icon || ''}">
+                       <div class="flex justify-center mt-2">
+                           <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
+                           <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
+                       </div>
+                   </div>
+                `;
+
+                engineCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`;
+
+                engineCard.querySelector(".edit-btn").addEventListener("click", function () {
+                    engineCard.classList.add("editing");
+                    const searchTermButton = engineCard.querySelector(".search-term-button");
+                    if (searchTermButton) { // Check if button exists
+                        if (engine.type === "Buscador") { // Only show for Buscador type
+                            searchTermButton.classList.remove("hidden");
+                        } else {
+                            searchTermButton.classList.add("hidden");
+                        }
+                    }
+                });
+
+                 engineCard.querySelector(".delete-btn").addEventListener("click", function () {
+                   if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
+                     deleteItem(engine.id); // <-- Llama a deleteItem que usa saveData
+                   }
+                 });
+
+                engineCard.querySelector(".save-btn").addEventListener("click", function () {
+                    const updatedTitle = engineCard.querySelector(".edit-title").value.trim();
+                    const updatedAction = engineCard.querySelector(".edit-action").value.trim();
+                    const updatedCategory = engineCard.querySelector(".edit-category").value.trim();
+                    const updatedIcon = engineCard.querySelector(".edit-icon").value.trim();
+
+                    if (updatedTitle && updatedAction && updatedCategory) {
+                       updateItem(engine.id, { // <-- Llama a updateItem que usa saveData
+                         title: updatedTitle,
+                         action: updatedAction,
+                         type: engine.type,
+                         category: updatedCategory,
+                         icon: updatedIcon
+                       });
+                       engineCard.classList.remove("editing");
+                    } else {
+                       showToast("Por favor, completa todos los campos.");
+                    }
+                });
+
+                 engineCard.querySelector(".cancel-btn").addEventListener("click", function () {
+                   engineCard.classList.remove("editing");
+                 });
+
+                 const searchTermButton = engineCard.querySelector(".search-term-button");
+                 if (searchTermButton) { // Check if button exists
+                     searchTermButton.addEventListener("click", function() {
+                         const inputClass = this.dataset.inputClass;
+                         const inputElement = engineCard.querySelector(`.${inputClass}`);
+                         if (inputElement) {
+                             inputElement.value += "{search_term}";
+                         }
                      });
-                     engineCard.classList.remove("editing"); // Exit edit mode
-                  } else {
-                     showToast("Por favor, completa todos los campos.");
-                  }
-              });
+                 }
 
-               // Add event listener for the cancel button in edit mode
-               engineCard.querySelector(".cancel-btn").addEventListener("click", function () {
-                 engineCard.classList.remove("editing"); // Exit edit mode
-                  // Revert input values (optional)
-               });
+                categoryContainer.appendChild(engineCard);
+            });
 
-               // Add event listener to the search term button in inline edit
-               const searchTermButton = engineCard.querySelector(".search-term-button");
-               if (searchTermButton) {
-                   searchTermButton.addEventListener("click", function() {
-                       const inputClass = this.dataset.inputClass;
-                       const inputElement = engineCard.querySelector(`.${inputClass}`);
-                       if (inputElement) {
-                           inputElement.value += "{search_term}";
-                       }
-                   });
-               }
-
-
-              categoryContainer.appendChild(engineCard);
-          });
-
-           // Add "Agregar nuevo" card
-           // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
-           const hasAnyEngine = data.some(item => item.type === 'Buscador');
-           if (hasAnyEngine || engines.length === 0) { // Add card if there are *any* engines OR the current filtered list is empty (allowing adding to empty results)
-           // Also check if the category being rendered exists in the list of categories from all engines, or if it's the 'Sin Categoría' special case.
-           // This prevents adding "Sin Categoría" cards in categories that don't exist in the full data.
-             const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
-
-             if (categoryExistsInAll) {
+             if (category === "" || categorizedEngines[category]) {
                  const addCard = document.createElement("div");
-                 addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
-                 addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
+                 addCard.className = "card bg-gray-100 p-4 rounded-lg flex items-center justify-center cursor-pointer";
+                 addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
                  addCard.addEventListener("click", function () {
                    document.getElementById("editPanel").classList.remove("hidden");
-                   document.getElementById("newType").value = "Buscador"; // <-- This line sets the type
-                   document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
-                    updateLivePreview(); // Update preview for new item
-                    toggleSearchTermButton(); // Ensure search term button is visible if type is Buscador
+                   document.getElementById("newType").value = "Buscador";
+                   document.getElementById("newCategory").value = category; // Pre-fill with the current category
+                    updateLivePreview();
+                    toggleSearchTermButton(); // Ensure search term button is visible for Buscador type
                  });
                  categoryContainer.appendChild(addCard);
              }
-           }
 
-
-          container.appendChild(categoryDiv);
-      });
-       console.log("Buscadores renderizados."); // Log exit
+            container.appendChild(categoryDiv);
+        });
+       // Modificamos los listeners para usar window.open
+       container.querySelectorAll('.engine-link').forEach(link => {
+           link.addEventListener('click', function(event) {
+               event.preventDefault(); // Prevenir el comportamiento por defecto del enlace
+               const url = this.dataset.url; // Obtener la URL del data attribute
+               openUrlInBrowser(url); // <-- Abre en el navegador
+           });
+       });
+       console.log("Buscadores renderizados.");
     }
 
 
-    function populateSearchEngineDropdown(engines) { // Receives filtered data
-       console.log("Poblando dropdown de buscadores..."); // Log entry
+    function populateSearchEngineDropdown(currentData) {
+       console.log("Poblando dropdown de buscadores...");
+      const searchEnginesData = currentData.filter((item) => item.type === "Buscador");
       const dropdown = document.getElementById("searchEngineDropdown");
       dropdown.innerHTML = "";
-       // Sort engines alphabetically by title for the dropdown
-       const sortedEngines = [...engines].sort((a, b) => (a.title || '').localeCompare(b.title || '')); // Handle potential null/undefined titles
-
-      sortedEngines.forEach((engine) => {
+      searchEnginesData.forEach((engine) => {
         const item = document.createElement("div");
         item.className = "dropdown-item cursor-pointer hover:bg-gray-100";
-        item.innerHTML = `${getIconHtml(engine, false)} <span>${engine.title}</span>`;
+        const iconHtml = getIconHtml(engine, false);
+        item.innerHTML = `${iconHtml}<span class="ml-2">${engine.title}</span>`;
         item.addEventListener("click", function () {
           document.getElementById("selectedEngine").textContent = engine.title;
-          document.getElementById("searchEngineDropdown").classList.add("hidden");
+          dropdown.classList.add("hidden");
         });
         dropdown.appendChild(item);
       });
-       console.log("Dropdown de buscadores poblado."); // Log exit
+       console.log("Dropdown de buscadores poblado.");
     }
 
 
-    function renderLinks(links) { // Receives filtered data
-      console.log("Renderizando Links:", links.length, "items"); // Log entry
+    function renderLinks(currentData) {
+      console.log("Renderizando Links...");
+      const linksData = currentData.filter((item) => item.type === "Link");
       const container = document.getElementById("linksContainer");
       container.innerHTML = "";
-      const allLinks = data.filter(item => item.type === 'Link');
-      // Use all links for filter buttons, then sort categories
-      const allCategories = [...new Set(allLinks.map((item) => item.category))];
-      const sortedAllCategories = allCategories.sort();
+      const categories = [...new Set(linksData.map((item) => item.category))];
       const filterContainer = document.getElementById("linkFilterButtons");
-
-      // Render filter buttons only if data is not empty
-       if (allLinks.length > 0) {
-           filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
-           sortedAllCategories.forEach((category) => {
-             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
-           });
-            // Re-attach event listeners to filter buttons after re-rendering them
-            document.querySelectorAll("#linkFilterButtons .filter-btn").forEach((btn) => {
-                btn.addEventListener("click", function () {
-                    document.querySelectorAll("#linkFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
-                    this.classList.add("active");
-                    const category = this.getAttribute("data-category");
-                     // Call the centralized filter function
-                    filterItems('Link', category, document.getElementById("linkCardSearchInput").value.toLowerCase());
-                });
-            });
-             // Ensure the currently active filter button remains active after re-render
-            const activeFilterBtn = document.querySelector("#linkFilterButtons .filter-btn.active");
-            if (activeFilterBtn) {
-                 const currentCategory = activeFilterBtn.getAttribute("data-category");
-                 document.querySelector(`#linkFilterButtons .filter-btn[data-category="${currentCategory}"]`)?.classList.add('active');
-            } else {
-                 // Default to 'Todos' if no filter is active
-                 document.querySelector("#linkFilterButtons .filter-btn.filter-all")?.classList.add('active');
-            }
-       } else {
-         filterContainer.innerHTML = ''; // Clear filter buttons if no data
-       }
-
-
-      const categorizedLinks = {};
-      links.forEach((link) => { // Use the filtered list for rendering
-         const category = link.category || 'Sin Categoría'; // Handle items without category
-        if (!categorizedLinks[category]) categorizedLinks[category] = [];
-        categorizedLinks[category].push(link);
+      filterContainer.innerHTML = `<button class="filter-btn active px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
+      categories.forEach((category) => {
+        filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
       });
-      //container.innerHTML = ""; // Clear existing content - already done at the start of the function
-       // Sort categories alphabetically
+      document.querySelectorAll("#linkFilterButtons .filter-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          document.querySelectorAll("#linkFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
+          this.classList.add("active");
+          const category = this.getAttribute("data-category");
+          filterLinks(category, linksData, document.getElementById("linkCardSearchInput").value.toLowerCase());
+        });
+      });
+      renderLinksByCategory(linksData, container);
+       console.log("Links renderizados.");
+    }
+
+    function renderLinksByCategory(links, container) {
+      console.log("Renderizando Links por categoría:", links);
+      const categorizedLinks = {};
+      links.forEach((link) => {
+        if (!categorizedLinks[link.category]) categorizedLinks[link.category] = [];
+        categorizedLinks[link.category].push(link);
+      });
+      container.innerHTML = "";
       const sortedCategories = Object.keys(categorizedLinks).sort();
 
       sortedCategories.forEach((category) => {
         const categoryDiv = document.createElement("div");
-        categoryDiv.className = "mb-8 col-span-full"; // Span full width for links
+        categoryDiv.className = "mb-8";
         categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
             <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 category-links"></div>`;
         const categoryContainer = categoryDiv.querySelector(".category-links");
 
-         // Sort links within each category by title
-         categorizedLinks[category].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+         categorizedLinks[category].sort((a, b) => a.title.localeCompare(b.title));
 
         categorizedLinks[category].forEach((link) => {
           const linkCard = document.createElement("div");
           linkCard.className = "tooltip-container relative card bg-white p-4 rounded-lg";
-          linkCard.setAttribute("data-id", link.id); // Add data-id attribute
-           linkCard.setAttribute("data-type", link.type); // Add data-type attribute
-          addDragAndDropListeners(linkCard); // Add DnD listeners
+          linkCard.setAttribute("data-id", link.id);
+           linkCard.setAttribute("data-type", link.type);
+          addDragAndDropListeners(linkCard);
           const iconHtml = getIconHtml(link, false);
 
           // Display mode HTML
           const displayModeHtml = `
             <div class="display-mode card-content">
-              <a href="${link.action || '#'}" target="_blank" class="link-btn block text-center" ${link.action ? '' : 'onclick="return false;"'} style="pointer-events: auto;"> ${iconHtml}
+              <a href="#" class="link-btn block text-center" data-url="${link.action}"> ${iconHtml}
                 <div class="mt-2 font-medium text-sm">${link.title}</div>
               </a>
-               <div class="mt-2">
-                 <button class="edit-btn text-blue-600 text-xs mr-2">
-                   <i class="fas fa-edit"></i> Editar
-                 </button>
-                 <button class="delete-btn text-red-600 text-xs">
-                   <i class="fas fa-trash-alt"></i> Eliminar
-                 </button>
-               </div>
+              <button class="edit-btn text-blue-600 mt-2 text-xs">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="delete-btn text-red-600 mt-2 ml-2 text-xs">
+                 <i class="fas fa-trash-alt"></i> Eliminar
+              </button>
             </div>
           `;
 
@@ -1508,7 +1354,7 @@
               <label class="block text-sm font-medium mb-1">Título</label>
               <input type="text" class="edit-title" value="${link.title}">
               <label class="block text-sm font-medium mb-1">Acción (URL)</label>
-              <input type="text" class="edit-action" value="${link.action || ''}">
+              <input type="text" class="edit-action" value="${link.action}">
                <label class="block text-sm font-medium mb-1">Categoría</label>
               <input type="text" class="edit-category" value="${link.category}">
               <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
@@ -1520,21 +1366,18 @@
             </div>
           `;
 
-          linkCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`; // Added tooltip
+          linkCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`;
 
-          // Add event listener for the edit button
           linkCard.querySelector(".edit-btn").addEventListener("click", function () {
             linkCard.classList.add("editing");
           });
 
-           // Add event listener for the delete button
            linkCard.querySelector(".delete-btn").addEventListener("click", function () {
              if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
-               deleteItem(link.id);
+               deleteItem(link.id); // <-- Llama a deleteItem que usa saveData
              }
            });
 
-          // Add event listener for the save button in edit mode
           linkCard.querySelector(".save-btn").addEventListener("click", function () {
             const updatedTitle = linkCard.querySelector(".edit-title").value.trim();
             const updatedAction = linkCard.querySelector(".edit-action").value.trim();
@@ -1542,7 +1385,7 @@
             const updatedIcon = linkCard.querySelector(".edit-icon").value.trim();
 
              if (updatedTitle && updatedAction && updatedCategory) {
-                updateItem(link.id, {
+                updateItem(link.id, { // <-- Llama a updateItem que usa saveData
                   title: updatedTitle,
                   action: updatedAction,
                   type: link.type, // Type doesn't change with inline edit
@@ -1555,7 +1398,6 @@
              }
           });
 
-          // Add event listener for the cancel button in edit mode
           linkCard.querySelector(".cancel-btn").addEventListener("click", function () {
             linkCard.classList.remove("editing"); // Exit edit mode
              // Revert input values (optional)
@@ -1565,99 +1407,103 @@
         });
 
         // Tarjeta para agregar nuevo enlace en esta categoría
-         // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
-        const hasAnyLink = data.some(item => item.type === 'Link');
-        if (hasAnyLink || links.length === 0) {
-             const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
-             if (categoryExistsInAll) {
-                 const addCard = document.createElement("div");
-                 addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
-                 addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
-                 addCard.addEventListener("click", function () {
-                   document.getElementById("editPanel").classList.remove("hidden");
-                    // Optionally pre-fill the category field
-                   document.getElementById("newType").value = "Link"; // <-- This line sets the type
-                   document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category;
-                    updateLivePreview(); // Update preview for new item
-                     toggleSearchTermButton(); // Ensure search term button is hidden for Link type
-                 });
-                 categoryContainer.appendChild(addCard);
-             }
-         }
+        const addCard = document.createElement("div");
+        addCard.className = "card bg-gray-100 p-4 rounded-lg flex items-center justify-center cursor-pointer";
+        addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
+        addCard.addEventListener("click", function () {
+          document.getElementById("editPanel").classList.remove("hidden");
+           // Optionally pre-fill the category field
+          document.getElementById("newType").value = "Link";
+          document.getElementById("newCategory").value = category;
+           updateLivePreview(); // Update preview for new item
+            toggleSearchTermButton(); // Ensure search term button is hidden for Link type
+        });
+        categoryContainer.appendChild(addCard);
         container.appendChild(categoryDiv);
       });
-       console.log("Links renderizados."); // Log exit
+       // Modificamos los listeners para usar window.open
+       container.querySelectorAll('.link-btn').forEach(linkBtn => {
+           linkBtn.addEventListener('click', function(event) {
+               event.preventDefault(); // Prevenir el comportamiento por defecto del enlace
+               const url = this.dataset.url; // Obtener la URL del data attribute
+               openUrlInBrowser(url); // <-- Abre en el navegador
+           });
+       });
+       console.log("Links renderizados.");
     }
 
-
-    function renderPrompts(prompts) { // Receives filtered data
-      console.log("Renderizando Prompts:", prompts.length, "items"); // Log entry
-      const container = document.getElementById("promptsContainer");
+    function filterLinks(category, links, searchTerm) {
+       console.log(`Filtrando Links por categoría "${category}" y término "${searchTerm}"`);
+      const container = document.getElementById("linksContainer");
       container.innerHTML = "";
-      const allPrompts = data.filter(item => item.type === 'Promp');
-      // Use all prompts for filter buttons, then sort categories
-      const allCategories = [...new Set(allPrompts.map((item) => item.category))];
-      const sortedAllCategories = allCategories.sort();
-      const filterContainer = document.getElementById("promptFilterButtons");
+      let filteredLinks = links;
+      if (category) {
+        filteredLinks = links.filter((link) => link.category === category);
+      }
+       if (searchTerm) {
+           filteredLinks = filteredLinks.filter(item =>
+               item.title.toLowerCase().includes(searchTerm) ||
+               item.action.toLowerCase().includes(searchTerm) ||
+               item.category.toLowerCase().includes(searchTerm)
+           );
+       }
+       console.log("Links filtrados:", filteredLinks);
 
-       // Render filter buttons only if data is not empty
-       if (allPrompts.length > 0) {
-           filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
-           sortedAllCategories.forEach((category) => {
-             filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
-           });
-            // Re-attach event listeners to filter buttons after re-rendering them
-            document.querySelectorAll("#promptFilterButtons .filter-btn").forEach((btn) => {
-                btn.addEventListener("click", function () {
-                    document.querySelectorAll("#promptFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
-                    this.classList.add("active");
-                    const category = this.getAttribute("data-category");
-                     // Call the centralized filter function
-                    filterItems('Promp', category, document.getElementById("promptCardSearchInput").value.toLowerCase());
-                });
-            });
-             // Ensure the currently active filter button remains active after re-render
-            const activeFilterBtn = document.querySelector("#promptFilterButtons .filter-btn.active");
-            if (activeFilterBtn) {
-                 const currentCategory = activeFilterBtn.getAttribute("data-category");
-                 document.querySelector(`#promptFilterButtons .filter-btn[data-category="${currentCategory}"]`)?.classList.add('active');
-            } else {
-                 // Default to 'Todos' if no filter is active
-                 document.querySelector("#promptFilterButtons .filter-btn.filter-all")?.classList.add('active');
-            }
+       const noItemsMessage = document.getElementById("noLinksFound");
+       if (filteredLinks.length === 0) {
+           noItemsMessage.classList.remove("hidden");
        } else {
-         filterContainer.innerHTML = ''; // Clear filter buttons if no data
+           noItemsMessage.classList.add("hidden");
        }
 
+       renderLinksByCategory(filteredLinks, container);
+    }
 
-      const categorizedPrompts = {};
-      prompts.forEach((prompt) => { // Use the filtered list for rendering
-         const category = prompt.category || 'Sin Categoría'; // Handle items without category
-        if (!categorizedPrompts[category]) categorizedPrompts[category] = [];
-        categorizedPrompts[category].push(prompt);
+    function renderPrompts(currentData) {
+      console.log("Renderizando Prompts...");
+      const promptsData = currentData.filter((item) => item.type === "Promp");
+      const container = document.getElementById("promptsContainer");
+      container.innerHTML = "";
+      const categories = [...new Set(promptsData.map((item) => item.category))];
+      const filterContainer = document.getElementById("promptFilterButtons");
+      filterContainer.innerHTML = `<button class="filter-btn active px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`; // Add data-category="" for "Todos"
+      categories.forEach((category) => {
+        filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
+      });
+      document.querySelectorAll("#promptFilterButtons .filter-btn").forEach((btn) => {
+        btn.addEventListener("click", function () {
+          document.querySelectorAll("#promptFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
+          this.classList.add("active");
+          const category = this.getAttribute("data-category");
+           filterPrompts(category, promptsData, document.getElementById("promptCardSearchInput").value.toLowerCase());
+        });
       });
 
-       // Sort categories alphabetically
+      const categorizedPrompts = {};
+      promptsData.forEach((prompt) => {
+        if (!categorizedPrompts[prompt.category]) categorizedPrompts[prompt.category] = [];
+        categorizedPrompts[prompt.category].push(prompt);
+      });
+
        const sortedCategories = Object.keys(categorizedPrompts).sort();
 
 
       sortedCategories.forEach((category) => {
           const categoryDiv = document.createElement("div");
-          categoryDiv.className = "mb-8 col-span-full"; // Span full width for prompts grid
+          categoryDiv.className = "mb-8 col-span-1 md:col-span-2 lg:col-span-3";
           categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 category-prompts"></div>`;
           const categoryContainer = categoryDiv.querySelector(".category-prompts");
 
-           // Sort prompts within each category by title
-           categorizedPrompts[category].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+           categorizedPrompts[category].sort((a, b) => a.title.localeCompare(b.title));
 
           categorizedPrompts[category].forEach((prompt) => {
             const promptCard = document.createElement("div");
             promptCard.className = "card bg-white p-4 rounded-lg tooltip-container prompt-card";
-            promptCard.setAttribute("data-id", prompt.id); // Add data-id attribute
-            promptCard.setAttribute("data-type", prompt.type); // Add data-type attribute
+            promptCard.setAttribute("data-id", prompt.id);
+            promptCard.setAttribute("data-type", prompt.type);
             promptCard.setAttribute("data-category", prompt.category);
-            addDragAndDropListeners(promptCard); // Add DnD listeners
+            addDragAndDropListeners(promptCard);
             const iconHtml = getIconHtml(prompt, true);
 
             // Display mode HTML
@@ -1670,20 +1516,18 @@
                   </div>
                   <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">${prompt.category}</span>
                 </div>
-                <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 prompt-content no-scrollbar">
-                  ${prompt.action ? prompt.action.replace(/\n/g, "<br>") : ''}
+                <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 prompt-content">
+                  ${prompt.action.replace(/\n/g, "<br>")}
                 </div>
                 <button class="copy-prompt-btn mt-3 w-full bg-purple-100 hover:bg-purple-200 text-purple-800 py-2 rounded-md text-sm font-medium">
                   <i class="far fa-copy mr-1"></i> Copiar al portapapeles
                 </button>
-                 <div class="mt-2">
-                   <button class="edit-btn text-blue-600 text-xs mr-2">
-                     <i class="fas fa-edit"></i> Editar
-                   </button>
-                   <button class="delete-btn text-red-600 text-xs">
-                     <i class="fas fa-trash-alt"></i> Eliminar
-                   </button>
-                 </div>
+                <button class="edit-btn text-blue-600 mt-2 text-xs">
+                  <i class="fas fa-edit"></i> Editar
+                </button>
+                 <button class="delete-btn text-red-600 mt-2 ml-2 text-xs">
+                   <i class="fas fa-trash-alt"></i> Eliminar
+                </button>
               </div>
             `;
 
@@ -1693,7 +1537,7 @@
                 <label class="block text-sm font-medium mb-1">Título</label>
                 <input type="text" class="edit-title" value="${prompt.title}">
                 <label class="block text-sm font-medium mb-1">Acción (Prompt)</label>
-                <textarea class="edit-action w-full h-32">${prompt.action || ''}</textarea>
+                <textarea class="edit-action w-full h-32">${prompt.action}</textarea>
                 <label class="block text-sm font-medium mb-1">Categoría</label>
                 <input type="text" class="edit-category" value="${prompt.category}">
                 <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
@@ -1705,14 +1549,11 @@
               </div>
             `;
 
-            promptCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`; // Added tooltip
+            promptCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`;
 
             promptCard.querySelector(".copy-prompt-btn").addEventListener("click", function () {
               navigator.clipboard.writeText(prompt.action).then(() => {
                 showToast("Prompt copiado al portapapeles");
-              }).catch(err => {
-                 console.error("Error al copiar prompt:", err);
-                 showToast("Error al copiar prompt.");
               });
             });
 
@@ -1727,7 +1568,7 @@
             // Add event listener for the delete button
             promptCard.querySelector(".delete-btn").addEventListener("click", function () {
               if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
-                deleteItem(prompt.id);
+                deleteItem(prompt.id); // <-- Llama a deleteItem que usa saveData
               }
             });
 
@@ -1739,14 +1580,14 @@
               const updatedIcon = promptCard.querySelector(".edit-icon").value.trim();
 
               if (updatedTitle && updatedAction && updatedCategory) {
-                updateItem(prompt.id, {
+                updateItem(prompt.id, { // <-- Llama a updateItem que usa saveData
                   title: updatedTitle,
                   action: updatedAction,
-                  type: prompt.type, // Type doesn't change with inline edit
+                  type: prompt.type,
                   category: updatedCategory,
                   icon: updatedIcon
                 });
-                promptCard.classList.remove("editing"); // Exit edit mode
+                promptCard.classList.remove("editing");
               } else {
                  showToast("Por favor, completa todos los campos.");
               }
@@ -1754,465 +1595,579 @@
 
             // Add event listener for the cancel button in edit mode
             promptCard.querySelector(".cancel-btn").addEventListener("click", function () {
-              promptCard.classList.remove("editing"); // Exit edit mode
-              // Revert input values (optional)
+              promptCard.classList.remove("editing");
             });
 
             categoryContainer.appendChild(promptCard);
           });
 
-          // Tarjeta para agregar nuevo prompt en esta categoría
-           // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
-          const hasAnyPrompt = data.some(item => item.type === 'Promp');
-          if (hasAnyPrompt || prompts.length === 0) {
-             const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
-             if (categoryExistsInAll) {
-                 const addCard = document.createElement("div");
-                 addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
-                 addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
-                 addCard.addEventListener("click", function () {
-                   document.getElementById("editPanel").classList.remove("hidden");
-                    // Optionally pre-fill the category field
-                   document.getElementById("newType").value = "Promp"; // <-- This line sets the type
-                   document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category;
-                    updateLivePreview(); // Update preview for new item
-                    toggleSearchTermButton(); // Ensure search term button is hidden for Prompt type
-                 });
-                 categoryContainer.appendChild(addCard);
-             }
-           }
-          container.appendChild(categoryDiv);
-      });
-       console.log("Prompts renderizados."); // Log exit
-    }
-
-
-    function renderNotes(notes) { // Receives filtered data
-        console.log("Renderizando Notas:", notes.length, "items"); // Log entry
-        const container = document.getElementById("notesContainer");
-        container.innerHTML = "";
-        const allNotes = data.filter(item => item.type === 'Nota');
-        // Use all notes for filter buttons, then sort categories
-        const allCategories = [...new Set(allNotes.map((item) => item.category))];
-        const sortedAllCategories = allCategories.sort();
-        const filterContainer = document.getElementById("noteFilterButtons");
-
-         // Render filter buttons only if data is not empty
-        if (allNotes.length > 0) {
-            filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
-            sortedAllCategories.forEach((category) => {
-                filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
-            });
-             // Re-attach event listeners to filter buttons after re-rendering them
-             document.querySelectorAll("#noteFilterButtons .filter-btn").forEach((btn) => {
-                 btn.addEventListener("click", function () {
-                     document.querySelectorAll("#noteFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
-                     this.classList.add("active");
-                     const category = this.getAttribute("data-category");
-                      // Call the centralized filter function
-                     filterItems('Nota', category, document.getElementById("noteCardSearchInput").value.toLowerCase());
-                 });
-             });
-              // Ensure the currently active filter button remains active after re-render
-             const activeFilterBtn = document.querySelector("#noteFilterButtons .filter-btn.active");
-             if (activeFilterBtn) {
-                  const currentCategory = activeFilterBtn.getAttribute("data-category");
-                  document.querySelector(`#noteFilterButtons .filter-btn[data-category="${currentCategory}"]`)?.classList.add('active');
-             } else {
-                  // Default to 'Todos' if no filter is active
-                  document.querySelector("#noteFilterButtons .filter-btn.filter-all")?.classList.add('active');
-             }
-        } else {
-           filterContainer.innerHTML = ''; // Clear filter buttons if no data
-        }
-
-
-        const categorizedNotes = {};
-        notes.forEach((note) => { // Use the filtered list for rendering
-          const category = note.category || 'Sin Categoría'; // Handle items without category
-          if (!categorizedNotes[category]) categorizedNotes[category] = [];
-          categorizedNotes[category].push(note);
-        });
-
-         // Sort categories alphabetically
-        const sortedCategories = Object.keys(categorizedNotes).sort();
-
-        sortedCategories.forEach((category) => {
-            const categoryDiv = document.createElement("div");
-            categoryDiv.className = "mb-8 col-span-full"; // Span full width for notes grid
-            categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 category-notes"></div>`;
-            const categoryContainer = categoryDiv.querySelector(".category-notes");
-
-             // Sort notes within each category by title
-             categorizedNotes[category].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-
-            categorizedNotes[category].forEach((note) => {
-                const noteCard = document.createElement("div");
-                noteCard.className = "card bg-white p-4 rounded-lg tooltip-container note-card";
-                noteCard.setAttribute("data-id", note.id);
-                 noteCard.setAttribute("data-type", note.type);
-                noteCard.setAttribute("data-category", note.category);
-                addDragAndDropListeners(noteCard); // Add DnD listeners
-                const iconHtml = getIconHtml(note, false);
-
-                const displayModeHtml = `
-                  <div class="display-mode card-content">
-                    <div class="flex items-center justify-between">
-                      <div class="flex items-center">
-                        ${iconHtml}
-                        <h4 class="text-lg font-medium ml-2">${note.title}</h4>
-                      </div>
-                       <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">${note.category}</span>
-                    </div>
-                    <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 note-content no-scrollbar">
-                      ${note.action ? note.action.replace(/\n/g, "<br>") : ''}
-                    </div>
-                     <div class="mt-2">
-                       <button class="edit-btn text-blue-600 text-xs mr-2">
-                         <i class="fas fa-edit"></i> Editar
-                       </button>
-                       <button class="delete-btn text-red-600 text-xs">
-                         <i class="fas fa-trash-alt"></i> Eliminar
-                       </button>
-                     </div>
-                  </div>
-                `;
-
-                 const editModeHtml = `
-                   <div class="edit-mode">
-                     <label class="block text-sm font-medium mb-1">Título</label>
-                     <input type="text" class="edit-title" value="${note.title}">
-                     <label class="block text-sm font-medium mb-1">Contenido</label>
-                     <textarea class="edit-action w-full h-32">${note.action || ''}</textarea>
-                     <label class="block text-sm font-medium mb-1">Categoría</label>
-                     <input type="text" class="edit-category" value="${note.category}">
-                     <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
-                     <input type="text" class="edit-icon" value="${note.icon || ''}">
-                     <div class="flex justify-end mt-2">
-                       <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
-                       <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
-                     </div>
-                   </div>
-                 `;
-
-                noteCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`; // Added tooltip
-
-                noteCard.querySelector(".edit-btn").addEventListener("click", function () {
-                    noteCard.classList.add("editing");
-                     // Hide search term button for Note type
-                    const searchTermButton = noteCard.querySelector(".search-term-button");
-                    if (searchTermButton) searchTermButton.classList.add("hidden");
-                });
-
-                noteCard.querySelector(".delete-btn").addEventListener("click", function () {
-                    if (confirm("¿Estás seguro de que deseas eliminar esta nota?")) {
-                        deleteItem(note.id);
-                    }
-                });
-
-                noteCard.querySelector(".save-btn").addEventListener("click", function () {
-                    const updatedTitle = noteCard.querySelector(".edit-title").value.trim();
-                    const updatedAction = noteCard.querySelector(".edit-action").value.trim();
-                    const updatedCategory = noteCard.querySelector(".edit-category").value.trim();
-                    const updatedIcon = noteCard.querySelector(".edit-icon").value.trim();
-
-                    if (updatedTitle && updatedAction && updatedCategory) {
-                       updateItem(note.id, {
-                         title: updatedTitle,
-                         action: updatedAction,
-                         type: note.type,
-                         category: updatedCategory,
-                         icon: updatedIcon
-                       });
-                       noteCard.classList.remove("editing");
-                    } else {
-                       showToast("Por favor, completa todos los campos.");
-                    }
-                });
-
-                noteCard.querySelector(".cancel-btn").addEventListener("click", function () {
-                    noteCard.classList.remove("editing");
-                });
-
-                categoryContainer.appendChild(noteCard);
-            });
-
-             // Add "Agregar nuevo" card
-             // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
-            const hasAnyNote = data.some(item => item.type === 'Nota');
-            if (hasAnyNote || notes.length === 0) {
-             const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
-             if (categoryExistsInAll) {
-                   const addCard = document.createElement("div");
-                   addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
-                   addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
-                   addCard.addEventListener("click", function () {
-                     document.getElementById("editPanel").classList.remove("hidden");
-                     document.getElementById("newType").value = "Nota"; // <-- This line sets the type
-                     document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
-                      updateLivePreview(); // Update preview for new item
-                      toggleSearchTermButton(); // Ensure search term button is hidden for Note type
-                   });
-                   categoryContainer.appendChild(addCard);
-             }
-            }
-
-            container.appendChild(categoryDiv);
-        });
-         console.log("Notas renderizadas."); // Log exit
-    }
-
-
-     function renderTasks(tasks) { // Receives filtered data
-         console.log("Renderizando Tareas:", tasks.length, "items"); // Log entry
-         const container = document.getElementById("tasksContainer");
-         container.innerHTML = "";
-         const allTasks = data.filter(item => item.type === 'Tarea');
-         // Use all tasks for filter buttons, then sort categories
-         const allCategories = [...new Set(allTasks.map((item) => item.category))];
-         const sortedAllCategories = allCategories.sort();
-         const filterContainer = document.getElementById("taskFilterButtons");
-
-          // Render filter buttons only if data is not empty
-         if (allTasks.length > 0) {
-             filterContainer.innerHTML = `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
-             sortedAllCategories.forEach((category) => {
-                 filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
-             });
-              // Re-attach event listeners to filter buttons after re-rendering them
-              document.querySelectorAll("#taskFilterButtons .filter-btn").forEach((btn) => {
-                  btn.addEventListener("click", function () {
-                      document.querySelectorAll("#taskFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
-                      this.classList.add("active");
-                      const category = this.getAttribute("data-category");
-                       // Call the centralized filter function
-                      filterItems('Tarea', category, document.getElementById("taskCardSearchInput").value.toLowerCase());
-                  });
+          // Add "Agregar nuevo" card only if not filtering by category or if the category is present in the filtered list
+          if (category === "" || categorizedPrompts[category]) {
+              const addCard = document.createElement("div");
+              addCard.className = "card bg-gray-100 p-4 rounded-lg flex items-center justify-center cursor-pointer";
+              addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
+              addCard.addEventListener("click", function () {
+                document.getElementById("editPanel").classList.remove("hidden");
+                document.getElementById("newType").value = "Promp";
+                document.getElementById("newCategory").value = category; // Pre-fill with the current category
+                 updateLivePreview(); // Update preview for new item
+                 toggleSearchTermButton(); // Ensure search term button is hidden for Prompt type
               });
-               // Ensure the currently active filter button remains active after re-render
-              const activeFilterBtn = document.querySelector("#taskFilterButtons .filter-btn.active");
-              if (activeFilterBtn) {
-                   const currentCategory = activeFilterBtn.getAttribute("data-category");
-                   document.querySelector(`#taskFilterButtons .filter-btn[data-category="${currentCategory}"]`)?.classList.add('active');
-              } else {
-                   // Default to 'Todos' if no filter is active
-                   document.querySelector("#taskFilterButtons .filter-btn.filter-all")?.classList.add('active');
-              }
-         } else {
-            filterContainer.innerHTML = ''; // Clear filter buttons if no data
-         }
+              categoryContainer.appendChild(addCard);
+          }
+
+         container.appendChild(categoryDiv);
+      });
+       console.log("Prompts renderizados.");
+    }
 
 
-         const categorizedTasks = {};
-         tasks.forEach((task) => { // Use the filtered list for rendering
-           const category = task.category || 'Sin Categoría'; // Handle items without category
-           if (!categorizedTasks[category]) categorizedTasks[category] = [];
-           categorizedTasks[category].push(task);
-         });
+    function filterPrompts(category, prompts, searchTerm) {
+       console.log(`Filtrando Prompts por categoría "${category}" y término "${searchTerm}"`);
+       const promptsContainer = document.getElementById("promptsContainer");
+       promptsContainer.innerHTML = ""; // Clear current prompts
 
-          // Sort categories alphabetically
-         const sortedCategories = Object.keys(categorizedTasks).sort();
+       let filteredPrompts = prompts;
+       if (category) {
+         filteredPrompts = filteredPrompts.filter((prompt) => prompt.category === category);
+       }
+       if (searchTerm) {
+           filteredPrompts = filteredPrompts.filter(item =>
+               item.title.toLowerCase().includes(searchTerm) ||
+               item.action.toLowerCase().includes(searchTerm) ||
+               item.category.toLowerCase().includes(searchTerm)
+           );
+       }
 
-         sortedCategories.forEach((category) => {
-             const categoryDiv = document.createElement("div");
-             categoryDiv.className = "mb-8 col-span-full"; // Span full width for tasks grid
-             categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
-               <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 category-tasks"></div>`;
-             const categoryContainer = categoryDiv.querySelector(".category-tasks");
+        console.log("Prompts filtrados:", filteredPrompts);
 
-              // Sort tasks within each category by title
-              categorizedTasks[category].sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+        const categorizedPrompts = {};
+        filteredPrompts.forEach((prompt) => {
+          if (!categorizedPrompts[prompt.category]) categorizedPrompts[prompt.category] = [];
+          categorizedPrompts[prompt.category].push(prompt);
+        });
 
-             categorizedTasks[category].forEach((task) => {
-                 const taskCard = document.createElement("div");
-                 taskCard.className = `card bg-white p-4 rounded-lg tooltip-container task-card ${task.completed ? 'completed' : ''}`;
-                 taskCard.setAttribute("data-id", task.id);
-                 taskCard.setAttribute("data-type", task.type);
-                 taskCard.setAttribute("data-category", task.category);
-                 addDragAndDropListeners(taskCard); // Add DnD listeners
-                 const iconHtml = getIconHtml(task, false);
-
-                 // Split action into lines and format as a list with interactive checkboxes
-                 const taskLines = task.action.split('\n').filter(line => line.trim() !== '');
-                 let taskListHtml = '<ul class="task-list">';
-                 taskLines.forEach((line, index) => {
-                     // Check if the line starts with "[x]" or "[ ]" to determine initial checked state
-                     const isChecked = line.trim().startsWith('[x]');
-                     const cleanedLine = line.replace(/^\[[x ]\]\s*/, '').trim(); // Remove "[x] " or "[ ] "
-                     taskListHtml += `<li><input type="checkbox" class="task-list-checkbox" data-item-index="${index}" ${isChecked ? 'checked' : ''}> ${cleanedLine}</li>`;
-                 });
-                 taskListHtml += '</ul>';
+        const sortedCategories = Object.keys(categorizedPrompts).sort();
 
 
-                 const displayModeHtml = `
-                   <div class="display-mode card-content">
-                     <div class="flex items-center justify-between">
-                       <div class="flex items-center">
-                         <input type="checkbox" class="task-checkbox mr-2" ${task.completed ? 'checked' : ''} style="pointer-events: auto;"> <h4 class="text-lg font-medium">${task.title}</h4>
-                       </div>
-                        <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">${task.category}</span>
-                     </div>
-                     <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 task-content no-scrollbar">
-                       ${taskListHtml}
-                     </div>
-                      <div class="mt-2">
-                        <button class="edit-btn text-blue-600 text-xs mr-2">
-                          <i class="fas fa-edit"></i> Editar
-                        </button>
-                        <button class="delete-btn text-red-600 text-xs">
-                          <i class="fas fa-trash-alt"></i> Eliminar
-                        </button>
-                      </div>
+       sortedCategories.forEach((categoryName) => {
+           const categoryDiv = document.createElement("div");
+           categoryDiv.className = "mb-8 col-span-1 md:col-span-2 lg:col-span-3";
+            // Use categoryName from the filtered/categorized list
+           categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${categoryName}</h3>
+             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 category-prompts"></div>`;
+           const categoryContainer = categoryDiv.querySelector(".category-prompts");
+
+            categorizedPrompts[categoryName].sort((a, b) => a.title.localeCompare(b.title));
+
+           categorizedPrompts[categoryName].forEach((prompt) => {
+              const promptCard = document.createElement("div");
+             promptCard.className = "card bg-white p-4 rounded-lg tooltip-container prompt-card";
+             promptCard.setAttribute("data-id", prompt.id);
+             promptCard.setAttribute("data-type", prompt.type);
+             promptCard.setAttribute("data-category", prompt.category);
+             addDragAndDropListeners(promptCard);
+             const iconHtml = getIconHtml(prompt, true);
+
+             const displayModeHtml = `
+               <div class="display-mode card-content">
+                 <div class="flex items-center justify-between">
+                   <div class="flex items-center">
+                     ${iconHtml}
+                     <h4 class="text-lg font-medium ml-2">${prompt.title}</h4>
                    </div>
-                 `;
+                   <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full">${prompt.category}</span>
+                 </div>
+                 <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 prompt-content">
+                   ${prompt.action.replace(/\n/g, "<br>")}
+                 </div>
+                 <button class="copy-prompt-btn mt-3 w-full bg-purple-100 hover:bg-purple-200 text-purple-800 py-2 rounded-md text-sm font-medium">
+                   <i class="far fa-copy mr-1"></i> Copiar al portapapeles
+                 </button>
+                 <button class="edit-btn text-blue-600 mt-2 text-xs">
+                   <i class="fas fa-edit"></i> Editar
+                 </button>
+                  <button class="delete-btn text-red-600 mt-2 ml-2 text-xs">
+                    <i class="fas fa-trash-alt"></i> Eliminar
+                 </button>
+               </div>
+             `;
 
-                  const editModeHtml = `
-                    <div class="edit-mode">
-                      <label class="block text-sm font-medium mb-1">Título</label>
-                      <input type="text" class="edit-title" value="${task.title}">
-                      <label class="block text-sm font-medium mb-1">Descripción (una línea por item de lista - usa [ ] o [x] al inicio)</label>
-                      <textarea class="edit-action w-full h-32">${task.action || ''}</textarea>
-                      <label class="block text-sm font-medium mb-1">Categoría</label>
-                      <input type="text" class="edit-category" value="${task.category}">
+             const editModeHtml = `
+               <div class="edit-mode">
+                 <label class="block text-sm font-medium mb-1">Título</label>
+                 <input type="text" class="edit-title" value="${prompt.title}">
+                 <label class="block text-sm font-medium mb-1">Acción (Prompt)</label>
+                 <textarea class="edit-action w-full h-32">${prompt.action}</textarea>
+                 <label class="block text-sm font-medium mb-1">Categoría</label>
+                 <input type="text" class="edit-category" value="${prompt.category}">
+                 <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
+                 <input type="text" class="edit-icon" value="${prompt.icon || ''}">
+                 <div class="flex justify-end mt-2">
+                   <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
+                   <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
+                 </div>
+               </div>
+             `;
+
+             promptCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`;
+
+             promptCard.querySelector(".copy-prompt-btn").addEventListener("click", function () {
+               navigator.clipboard.writeText(prompt.action).then(() => {
+                 showToast("Prompt copiado al portapapeles");
+               });
+             });
+
+             promptCard.querySelector(".edit-btn").addEventListener("click", function () {
+               promptCard.classList.add("editing");
+                // Hide search term button for Prompt type
+                const searchTermButton = promptCard.querySelector(".search-term-button");
+                if (searchTermButton) searchTermButton.classList.add("hidden");
+             });
+
+             promptCard.querySelector(".delete-btn").addEventListener("click", function () {
+               if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
+                 deleteItem(prompt.id); // <-- Llama a deleteItem que usa saveData
+               }
+             });
+
+             promptCard.querySelector(".save-btn").addEventListener("click", function () {
+               const updatedTitle = promptCard.querySelector(".edit-title").value.trim();
+               const updatedAction = promptCard.querySelector(".edit-action").value.trim();
+               const updatedCategory = promptCard.querySelector(".edit-category").value.trim();
+               const updatedIcon = promptCard.querySelector(".edit-icon").value.trim();
+
+               if (updatedTitle && updatedAction && updatedCategory) {
+                 updateItem(prompt.id, { // <-- Llama a updateItem que usa saveData
+                   title: updatedTitle,
+                   action: updatedAction,
+                   type: prompt.type,
+                   category: updatedCategory,
+                   icon: updatedIcon
+                 });
+                 promptCard.classList.remove("editing");
+               } else {
+                  showToast("Por favor, completa todos los campos.");
+               }
+             });
+
+             promptCard.querySelector(".cancel-btn").addEventListener("click", function () {
+               promptCard.classList.remove("editing");
+             });
+
+             categoryContainer.appendChild(promptCard);
+           });
+
+           // Add "Agregar nuevo" card only if not filtering by category or if the category is present in the filtered list
+           if (category === "" || categorizedPrompts[categoryName]) {
+               const addCard = document.createElement("div");
+               addCard.className = "card bg-gray-100 p-4 rounded-lg flex items-center justify-center cursor-pointer";
+               addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
+               addCard.addEventListener("click", function () {
+                 document.getElementById("editPanel").classList.remove("hidden");
+                 document.getElementById("newType").value = "Promp";
+                 document.getElementById("newCategory").value = categoryName; // Pre-fill with the current category
+                  updateLivePreview(); // Update preview for new item
+                  toggleSearchTermButton(); // Ensure search term button is hidden for Prompt type
+               });
+               categoryContainer.appendChild(addCard);
+           }
+
+          promptsContainer.appendChild(categoryDiv);
+        });
+      }
+
+      function filterPrompts(category, prompts, searchTerm) {
+         // This function now just calls renderPrompts with filtered data
+         renderPrompts(prompts.filter(item => {
+             const matchesCategory = category === "" || item.category === category;
+             const matchesSearch = searchTerm === "" ||
+                                   item.title.toLowerCase().includes(searchTerm) ||
+                                   item.action.toLowerCase().includes(searchTerm) ||
+                                   item.category.toLowerCase().includes(searchTerm);
+             return matchesCategory && matchesSearch;
+         }));
+      }
+
+      function renderNotes(currentData) {
+          console.log("Renderizando Notas...");
+          const notesData = currentData.filter((item) => item.type === "Nota");
+          const container = document.getElementById("notesContainer");
+          container.innerHTML = "";
+          const categories = [...new Set(notesData.map((item) => item.category))];
+          const filterContainer = document.getElementById("noteFilterButtons");
+          filterContainer.innerHTML = `<button class="filter-btn active px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
+          categories.forEach((category) => {
+              filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
+          });
+          document.querySelectorAll("#noteFilterButtons .filter-btn").forEach((btn) => {
+              btn.addEventListener("click", function () {
+                  document.querySelectorAll("#noteFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
+                  this.classList.add("active");
+                  const category = this.getAttribute("data-category");
+                   filterNotes(category, notesData, document.getElementById("noteCardSearchInput").value.toLowerCase());
+              });
+          });
+
+          const categorizedNotes = {};
+          notesData.forEach((note) => {
+            if (!categorizedNotes[note.category]) categorizedNotes[note.category] = [];
+            categorizedNotes[note.category].push(note);
+          });
+
+           const sortedCategories = Object.keys(categorizedNotes).sort();
+
+          sortedCategories.forEach((category) => {
+              const categoryDiv = document.createElement("div");
+              categoryDiv.className = "mb-8 col-span-1 md:col-span-2 lg:col-span-3";
+              categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 category-notes"></div>`;
+              const categoryContainer = categoryDiv.querySelector(".category-notes");
+
+               categorizedNotes[category].sort((a, b) => a.title.localeCompare(b.title));
+
+              categorizedNotes[category].forEach((note) => {
+                  const noteCard = document.createElement("div");
+                  noteCard.className = "card bg-white p-4 rounded-lg tooltip-container note-card";
+                  noteCard.setAttribute("data-id", note.id);
+                   noteCard.setAttribute("data-type", note.type);
+                  noteCard.setAttribute("data-category", note.category);
+                  addDragAndDropListeners(noteCard);
+                  const iconHtml = getIconHtml(note, false);
+
+                  const displayModeHtml = `
+                    <div class="display-mode card-content">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                          ${iconHtml}
+                          <h4 class="text-lg font-medium ml-2">${note.title}</h4>
+                        </div>
+                         <span class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">${note.category}</span>
+                      </div>
+                      <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 note-content">
+                        ${note.action.replace(/\n/g, "<br>")}
+                      </div>
+                      <button class="edit-btn text-blue-600 mt-2 text-xs">
+                        <i class="fas fa-edit"></i> Editar
+                      </button>
+                       <button class="delete-btn text-red-600 mt-2 ml-2 text-xs">
+                         <i class="fas fa-trash-alt"></i> Eliminar
+                      </button>
+                    </div>
+                  `;
+
+                   const editModeHtml = `
+                     <div class="edit-mode">
+                       <label class="block text-sm font-medium mb-1">Título</label>
+                       <input type="text" class="edit-title" value="${note.title}">
+                       <label class="block text-sm font-medium mb-1">Contenido</label>
+                       <textarea class="edit-action w-full h-32">${note.action}</textarea>
+                       <label class="block text-sm font-medium mb-1">Categoría</label>
+                      <input type="text" class="edit-category" value="${note.category}">
                       <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
-                      <input type="text" class="edit-icon" value="${task.icon || ''}">
-                       <div class="flex items-center mt-2">
-                           <input type="checkbox" class="edit-completed mr-2" ${task.completed ? 'checked' : ''}>
-                           <label class="text-sm font-medium">Completada (Marca la tarea completa)</label>
-                       </div>
+                      <input type="text" class="edit-icon" value="${note.icon || ''}">
                       <div class="flex justify-end mt-2">
                         <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
-                         <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
+                        <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
                       </div>
                     </div>
                   `;
 
-                 taskCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`; // Added tooltip
+                 noteCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`;
 
-                 // Add event listener for the main task checkbox (marks the whole task complete)
-                 taskCard.querySelector(".task-checkbox").addEventListener("change", function () {
-                     const itemId = taskCard.dataset.id;
-                     const isCompleted = this.checked;
-                     updateItem(itemId, { completed: isCompleted }); // Update item and save
-                 });
-
-                  // Add event listeners for the individual list item checkboxes
-                  // Note: Changes to these are NOT saved in the current data structure (action is a single string).
-                  // They are visual-only for now. To save this, the 'action' would need to be structured data (e.g., array of objects with text and completed status).
-                  taskCard.querySelectorAll(".task-list-checkbox").forEach(checkbox => {
-                      checkbox.addEventListener("change", function() {
-                          const listItem = this.closest("li");
-                          if (this.checked) {
-                              listItem.classList.add("completed");
-                          } else {
-                              listItem.classList.remove("completed");
-                          }
-                           // Optional: Visually update the main task checkbox if all sub-tasks are checked
-                           // const allChecked = Array.from(taskCard.querySelectorAll(".task-list-checkbox")).every(cb => cb.checked);
-                           // taskCard.querySelector(".task-checkbox").checked = allChecked;
-                           // updateItem(taskCard.dataset.id, { completed: allChecked }); // This would save the main status based on sub-tasks
-                      });
-                  });
-
-
-                 taskCard.querySelector(".edit-btn").addEventListener("click", function () {
-                     taskCard.classList.add("editing");
-                      // Hide search term button for Task type
-                     const searchTermButton = taskCard.querySelector(".search-term-button");
+                 noteCard.querySelector(".edit-btn").addEventListener("click", function () {
+                     noteCard.classList.add("editing");
+                      // Hide search term button for Note type
+                     const searchTermButton = noteCard.querySelector(".search-term-button");
                      if (searchTermButton) searchTermButton.classList.add("hidden");
                  });
 
-                 taskCard.querySelector(".delete-btn").addEventListener("click", function () {
-                     if (confirm("¿Estás seguro de que deseas eliminar esta tarea?")) {
-                         deleteItem(task.id);
+                 noteCard.querySelector(".delete-btn").addEventListener("click", function () {
+                     if (confirm("¿Estás seguro de que deseas eliminar esta nota?")) {
+                         deleteItem(note.id); // <-- Llama a deleteItem que usa saveData
                      }
                  });
 
-                 taskCard.querySelector(".save-btn").addEventListener("click", function () {
-                     const updatedTitle = taskCard.querySelector(".edit-title").value.trim();
-                     const updatedAction = taskCard.querySelector(".edit-action").value.trim(); // Get the text from the textarea
-                     const updatedCategory = taskCard.querySelector(".edit-category").value.trim();
-                     const updatedIcon = taskCard.querySelector(".edit-icon").value.trim();
-                     const updatedCompleted = taskCard.querySelector(".edit-completed").checked;
-
+                 noteCard.querySelector(".save-btn").addEventListener("click", function () {
+                     const updatedTitle = noteCard.querySelector(".edit-title").value.trim();
+                     const updatedAction = noteCard.querySelector(".edit-action").value.trim();
+                     const updatedCategory = noteCard.querySelector(".edit-category").value.trim();
+                     const updatedIcon = noteCard.querySelector(".edit-icon").value.trim();
 
                      if (updatedTitle && updatedAction && updatedCategory) {
-                        updateItem(task.id, {
+                        updateItem(note.id, { // <-- Llama a updateItem que usa saveData
                           title: updatedTitle,
-                          action: updatedAction, // Save the raw text from the textarea
-                          type: task.type,
+                          action: updatedAction,
+                          type: note.type,
                           category: updatedCategory,
-                          icon: updatedIcon,
-                          completed: updatedCompleted
+                          icon: updatedIcon
                         });
-                        taskCard.classList.remove("editing");
+                        noteCard.classList.remove("editing");
                      } else {
                         showToast("Por favor, completa todos los campos.");
                      }
                  });
 
-                 taskCard.querySelector(".cancel-btn").addEventListener("click", function () {
-                     taskCard.classList.remove("editing");
+                 noteCard.querySelector(".cancel-btn").addEventListener("click", function () {
+                     noteCard.classList.remove("editing");
                  });
 
-                 categoryContainer.appendChild(taskCard);
+                 categoryContainer.appendChild(noteCard);
              });
 
               // Add "Agregar nuevo" card
-              // Only add 'Add New' card if there are items of this type or the category is empty or no items are currently displayed due to filter
-             const hasAnyTask = data.some(item => item.type === 'Tarea');
-             if (hasAnyTask || tasks.length === 0) {
-                 const categoryExistsInAll = allCategories.includes(category) || category === 'Sin Categoría';
-                 if (categoryExistsInAll) {
+              if (category === "" || categorizedNotes[category]) {
+                  const addCard = document.createElement("div");
+                  addCard.className = "card bg-gray-100 p-4 rounded-lg flex items-center justify-center cursor-pointer";
+                  addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
+                  addCard.addEventListener("click", function () {
+                    document.getElementById("editPanel").classList.remove("hidden");
+                    document.getElementById("newType").value = "Nota";
+                    document.getElementById("newCategory").value = category; // Pre-fill with the current category
+                     updateLivePreview(); // Update preview for new item
+                      toggleSearchTermButton(); // Ensure search term button is hidden for Note type
+                  });
+                  categoryContainer.appendChild(addCard);
+              }
+
+             container.appendChild(categoryDiv);
+         });
+          console.log("Notas renderizadas.");
+      }
+
+      function filterNotes(category, notes, searchTerm) {
+        console.log(`Filtrando Notas por categoría "${category}" y término "${searchTerm}"`);
+        renderNotes(notes.filter(item => {
+            const matchesCategory = category === "" || item.category === category;
+            const matchesSearch = searchTerm === "" ||
+                                  item.title.toLowerCase().includes(searchTerm) ||
+                                  item.action.toLowerCase().includes(searchTerm) ||
+                                  item.category.toLowerCase().includes(searchTerm);
+            return matchesCategory && matchesSearch;
+        }));
+      }
+
+      function renderTasks(currentData) {
+          console.log("Renderizando Tareas...");
+          const tasksData = currentData.filter((item) => item.type === "Tarea");
+          const container = document.getElementById("tasksContainer");
+          container.innerHTML = "";
+          const categories = [...new Set(tasksData.map((item) => item.category))];
+          const filterContainer = document.getElementById("taskFilterButtons");
+          filterContainer.innerHTML = `<button class="filter-btn active px-3 py-1 bg-gray-200 rounded-md text-sm filter-all" data-category="">Todos</button>`;
+          categories.forEach((category) => {
+              filterContainer.innerHTML += `<button class="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm" data-category="${category}">${category}</button>`;
+          });
+          document.querySelectorAll("#taskFilterButtons .filter-btn").forEach((btn) => {
+              btn.addEventListener("click", function () {
+                  document.querySelectorAll("#taskFilterButtons .filter-btn").forEach((b) => b.classList.remove("active"));
+                  this.classList.add("active");
+                  const category = this.getAttribute("data-category");
+                  filterTasks(category, tasksData, document.getElementById("taskCardSearchInput").value.toLowerCase());
+              });
+          });
+
+          const categorizedTasks = {};
+          tasksData.forEach((task) => {
+            if (!categorizedTasks[task.category]) categorizedTasks[task.category] = [];
+            categorizedTasks[task.category].push(task);
+          });
+
+          const sortedCategories = Object.keys(categorizedTasks).sort();
+
+          sortedCategories.forEach((category) => {
+              const categoryDiv = document.createElement("div");
+              categoryDiv.className = "mb-8 col-span-1 md:col-span-2 lg:col-span-3";
+              categoryDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${category}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 category-tasks"></div>`;
+              const categoryContainer = categoryDiv.querySelector(".category-tasks");
+
+               categorizedTasks[category].sort((a, b) => a.title.localeCompare(b.title));
+
+              categorizedTasks[category].forEach((task) => {
+                  const taskCard = document.createElement("div");
+                  taskCard.className = `card bg-white p-4 rounded-lg tooltip-container task-card ${task.completed ? 'completed' : ''}`;
+                  taskCard.setAttribute("data-id", task.id);
+                  taskCard.setAttribute("data-type", task.type);
+                  taskCard.setAttribute("data-category", task.category);
+                  addDragAndDropListeners(taskCard);
+                  const iconHtml = getIconHtml(task, false);
+
+                  // Split action into lines and format as a list with interactive checkboxes
+                  const taskLines = task.action.split('\n').filter(line => line.trim() !== '');
+                  let taskListHtml = '<ul class="task-list">';
+                  taskLines.forEach((line, index) => {
+                      // Check if the line starts with "[x]" or "[ ]" to determine initial checked state
+                      const isChecked = line.trim().startsWith('[x]');
+                      const cleanedLine = line.replace(/^\[[x ]\]\s*/, '').trim(); // Remove "[x] " or "[ ] "
+                      taskListHtml += `<li><input type="checkbox" class="task-list-checkbox" data-item-index="${index}" ${isChecked ? 'checked' : ''}> ${cleanedLine}</li>`;
+                  });
+                  taskListHtml += '</ul>';
+
+
+                  const displayModeHtml = `
+                    <div class="display-mode card-content">
+                      <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                          <input type="checkbox" class="task-checkbox mr-2" data-id="${task.id}" ${task.completed ? 'checked' : ''}> <h4 class="text-lg font-medium">${task.title}</h4>
+                        </div>
+                         <span class="bg-teal-100 text-teal-800 text-xs px-2 py-1 rounded-full">${task.category}</span>
+                      </div>
+                      <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-gray-700 task-content">
+                        ${taskListHtml}
+                      </div>
+                      <button class="edit-btn text-blue-600 mt-2 text-xs">
+                        <i class="fas fa-edit"></i> Editar
+                      </button>
+                       <button class="delete-btn text-red-600 mt-2 ml-2 text-xs">
+                         <i class="fas fa-trash-alt"></i> Eliminar
+                      </button>
+                    </div>
+                  `;
+
+                   const editModeHtml = `
+                     <div class="edit-mode">
+                       <label class="block text-sm font-medium mb-1">Título</label>
+                       <input type="text" class="edit-title" value="${task.title}">
+                       <label class="block text-sm font-medium mb-1">Descripción (una línea por item de lista - usa [ ] o [x] al inicio)</label>
+                       <textarea class="edit-action w-full h-32">${task.action}</textarea>
+                       <label class="block text-sm font-medium mb-1">Categoría</label>
+                       <input type="text" class="edit-category" value="${task.category}">
+                       <label class="block text-sm font-medium mb-1">Icono (Clase FontAwesome)</label>
+                       <input type="text" class="edit-icon" value="${task.icon || ''}">
+                        <div class="flex items-center mt-2">
+                            <input type="checkbox" class="edit-completed mr-2" ${task.completed ? 'checked' : ''}>
+                            <label class="text-sm font-medium">Completada (Marca la tarea completa)</label>
+                        </div>
+                       <div class="flex justify-end mt-2">
+                         <button class="save-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-xs mr-2"><i class="fas fa-save"></i> Guardar</button>
+                         <button class="cancel-btn bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded-md text-xs"><i class="fas fa-times"></i> Cancelar</button>
+                       </div>
+                     </div>
+                   `;
+
+                  taskCard.innerHTML = displayModeHtml + editModeHtml + `<div class="tooltip">Arrastra para reordenar</div>`;
+
+                  // Add event listener for the main task checkbox (marks the whole task complete)
+                  taskCard.querySelector(".task-checkbox").addEventListener("change", function () {
+                      const itemId = this.dataset.id; // Get ID from checkbox data-id
+                      const isCompleted = this.checked;
+                      updateItem(itemId, { completed: isCompleted }); // Update item and save
+                  });
+
+                   // Add event listeners for the individual list item checkboxes
+                   taskCard.querySelectorAll(".task-list-checkbox").forEach(checkbox => {
+                       checkbox.addEventListener("change", function() {
+                           const listItem = this.closest("li");
+                           if (this.checked) {
+                               listItem.classList.add("completed");
+                           } else {
+                               listItem.classList.remove("completed");
+                           }
+                           // Note: This change to individual list items is NOT saved
+                           // in the current data structure (action is a single string).
+                           // It's a visual-only change for now.
+                       });
+                   });
+
+
+                  taskCard.querySelector(".edit-btn").addEventListener("click", function () {
+                      taskCard.classList.add("editing");
+                       // Hide search term button for Task type
+                      const searchTermButton = taskCard.querySelector(".search-term-button");
+                      if (searchTermButton) searchTermButton.classList.add("hidden");
+                  });
+
+                  taskCard.querySelector(".delete-btn").addEventListener("click", function () {
+                      if (confirm("¿Estás seguro de que deseas eliminar esta tarea?")) {
+                          deleteItem(task.id); // <-- Llama a deleteItem que usa saveData
+                      }
+                  });
+
+                  taskCard.querySelector(".save-btn").addEventListener("click", function () {
+                      const updatedTitle = taskCard.querySelector(".edit-title").value.trim();
+                      const updatedAction = taskCard.querySelector(".edit-action").value.trim(); // Get the text from the textarea
+                      const updatedCategory = taskCard.querySelector(".edit-category").value.trim();
+                      const updatedIcon = taskCard.querySelector(".edit-icon").value.trim();
+                      const updatedCompleted = taskCard.querySelector(".edit-completed").checked;
+
+
+                      if (updatedTitle && updatedAction && updatedCategory) {
+                         updateItem(task.id, { // <-- Llama a updateItem que usa saveData
+                           title: updatedTitle,
+                           action: updatedAction, // Save the raw text from the textarea
+                           type: task.type,
+                           category: updatedCategory,
+                           icon: updatedIcon,
+                           completed: updatedCompleted
+                         });
+                         taskCard.classList.remove("editing");
+                      } else {
+                         showToast("Por favor, completa todos los campos.");
+                      }
+                  });
+
+                  taskCard.querySelector(".cancel-btn").addEventListener("click", function () {
+                      taskCard.classList.remove("editing");
+                  });
+
+                  categoryContainer.appendChild(taskCard);
+              });
+
+               // Add "Agregar nuevo" card
+               if (category === "" || categorizedTasks[category]) {
                    const addCard = document.createElement("div");
-                   addCard.className = "card bg-gray-100 p-4 rounded-lg flex flex-col items-center justify-center cursor-pointer";
-                   addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600 mb-2"></i><span class="text-sm text-green-600 text-center">Agregar nuevo</span>`;
+                   addCard.className = "card bg-gray-100 p-4 rounded-lg flex items-center justify-center cursor-pointer";
+                   addCard.innerHTML = `<i class="fas fa-plus text-3xl text-green-600"></i><br><span class="text-sm text-green-600">Agregar nuevo</span>`;
                    addCard.addEventListener("click", function () {
                      document.getElementById("editPanel").classList.remove("hidden");
-                     document.getElementById("newType").value = "Tarea"; // <-- This line sets the type
-                     document.getElementById("newCategory").value = category === 'Sin Categoría' ? '' : category; // Pre-fill with the current category
+                     document.getElementById("newType").value = "Tarea";
+                     document.getElementById("newCategory").value = category; // Pre-fill with the current category
                       updateLivePreview(); // Update preview for new item
                        toggleSearchTermButton(); // Ensure search term button is hidden for Task type
                    });
                    categoryContainer.appendChild(addCard);
-                 }
-             }
+               }
 
-             container.appendChild(categoryDiv);
-         });
-          console.log("Tareas renderizadas."); // Log exit
-     }
+              container.appendChild(categoryDiv);
+          });
+           console.log("Tareas renderizadas.");
+      }
+
+      function filterTasks(category, tasks, searchTerm) {
+        console.log(`Filtrando Tareas por categoría "${category}" y término "${searchTerm}"`);
+        renderTasks(tasks.filter(item => {
+            const matchesCategory = category === "" || item.category === category;
+            const matchesSearch = searchTerm === "" ||
+                                  item.title.toLowerCase().includes(searchTerm) ||
+                                  item.action.toLowerCase().includes(searchTerm) ||
+                                  item.category.toLowerCase().includes(searchTerm);
+            return matchesCategory && matchesSearch;
+        }));
+      }
 
 
     function populateEditTable(currentData) {
-      console.log("Poblando tabla de edición..."); // Log entry
+      console.log("Poblando tabla de edición...");
       const tableBody = document.getElementById("itemsTableBody");
       tableBody.innerHTML = "";
-       // Sort data by type for better organization in the edit panel table
-       const sortedData = [...currentData].sort((a, b) => {
-           const typeOrder = ['Buscador', 'Link', 'Promp', 'Nota', 'Tarea'];
-           return typeOrder.indexOf(a.type) - typeOrder.indexOf(b.type) || (a.title || '').localeCompare(b.title || '')); // Handle potential null/undefined titles
-       });
-
-
-      sortedData.forEach((item, index) => {
+      currentData.forEach((item, index) => {
         const row = document.createElement("tr");
         row.className = index % 2 === 0 ? "bg-white" : "bg-gray-50";
 
-        let actionInputHtml = `<input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.action || ''}">`;
+        let actionInputHtml = `<input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.action}">`;
         if (item.type === 'Promp' || item.type === 'Nota' || item.type === 'Tarea') {
-             actionInputHtml = `<textarea class="border border-gray-300 rounded px-2 py-1 w-full h-20">${item.action || ''}</textarea>`;
+             actionInputHtml = `<textarea class="border border-gray-300 rounded px-2 py-1 w-full h-20">${item.action}</textarea>`;
         }
 
         let completedCheckboxHtml = '';
         if (item.type === 'Tarea') {
-            completedCheckboxHtml = `<div class="flex items-center mt-1"><input type="checkbox" class="edit-completed mr-2" ${item.completed ? 'checked' : ''}> <label class="text-sm font-medium">Completada</label></div>`;
+            completedCheckboxHtml = `<div class="flex items-center mt-1"><input type="checkbox" class="edit-completed mr-2" ${item.completed ? 'checked' : ''}><label class="text-sm font-medium">Completada</label></div>`;
         }
 
 
         row.innerHTML = `
-          <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.title || ''}"></td>
+          <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.title}"></td>
           <td class="px-6 py-4">${actionInputHtml}${completedCheckboxHtml}</td>
           <td class="px-6 py-4 whitespace-nowrap">
             <select class="border border-gray-300 rounded px-2 py-1 w-full">
@@ -2223,7 +2178,7 @@
               <option value="Tarea" ${item.type === "Tarea" ? "selected" : ""}>Tarea</option>
             </select>
           </td>
-          <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.category || ''}"></td>
+          <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.category}"></td>
           <td class="px-6 py-4 whitespace-nowrap"><input type="text" class="border border-gray-300 rounded px-2 py-1 w-full" value="${item.icon || ""}"></td>
           <td class="px-6 py-4 whitespace-nowrap">
             <button class="update-item-btn text-blue-600 hover:text-blue-800 mr-3" data-id="${item.id}"><i class="fas fa-save"></i></button>
@@ -2233,49 +2188,68 @@
         // Update event listener for table save button
         row.querySelector(".update-item-btn").addEventListener("click", function () {
           const itemId = this.getAttribute("data-id");
-          // Select inputs relative to the row
-          const inputs = row.querySelectorAll("input[type='text'], textarea, select");
+          const inputs = row.querySelectorAll("input, textarea, select");
           const updatedItem = {
             id: itemId,
             title: inputs[0].value,
-            action: inputs[1].value, // This gets value from input or textarea
-            type: inputs[2].value, // The select element
+            action: inputs[1].value,
+            type: inputs[2].value,
             category: inputs[3].value,
             icon: inputs[4].value
           };
            if (updatedItem.type === 'Tarea') {
-                // Assuming the completed checkbox is always the last input in the row if type is Tarea
-               const completedCheckbox = row.querySelector(".edit-completed");
-               if (completedCheckbox) {
-                  updatedItem.completed = completedCheckbox.checked;
-               } else {
-                   // If checkbox is missing, maybe default to false or current state
-                   console.warn("Completed checkbox not found for Tarea item.");
-                   const existingItem = data.find(item => item.id == itemId);
-                   updatedItem.completed = existingItem ? existingItem.completed : false;
-               }
+               updatedItem.completed = row.querySelector(".edit-completed").checked;
            }
-          updateItem(itemId, updatedItem);
+          updateItem(itemId, updatedItem); // <-- Llama a updateItem que usa saveData
         });
         // Update event listener for table delete button
         row.querySelector(".delete-item-btn").addEventListener("click", function () {
           const itemId = this.getAttribute("data-id");
           if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
-             deleteItem(itemId);
+             deleteItem(itemId); // <-- Llama a deleteItem que usa saveData
           }
         });
         tableBody.appendChild(row);
       });
-       console.log("Tabla de edición poblada."); // Log exit
+       console.log("Tabla de edición poblada.");
     }
 
+    // Function to update an item in the data array and re-render
+    function updateItem(itemId, updatedItem) {
+       console.log(`Actualizando elemento con ID ${itemId}:`, updatedItem);
+       // Ensure itemId is treated as a string for comparison with data-id attributes
+       const itemIndex = data.findIndex(item => String(item.id) === String(itemId));
+       if (itemIndex > -1) {
+         // Preserve existing properties like 'completed' for tasks if not explicitly updated
+         data[itemIndex] = { ...data[itemIndex], ...updatedItem };
+         saveData(data); // <-- Guardar en localStorage
+         initializeUI(data); // Re-render all sections
+         populateEditTable(data); // Also re-populate table to reflect changes
+         showToast("Elemento actualizado correctamente");
+       } else {
+           console.warn(`Elemento con ID ${itemId} no encontrado para actualizar.`);
+       }
+    }
 
-    // --- Funciones de Importación/Exportación ---
+    // Function to delete an item from the data array and re-render
+    function deleteItem(itemId) {
+      console.log(`Eliminando elemento con ID ${itemId}`);
+      const initialLength = data.length;
+      // Ensure itemId is treated as a string for comparison
+      data = data.filter(item => String(item.id) !== String(itemId));
+      if (data.length < initialLength) {
+        saveData(data); // <-- Guardar en localStorage
+        populateEditTable(data); // Update table separately as it's not fully re-rendered by initializeUI
+        initializeUI(data); // Re-render all sections
+        showToast("Elemento eliminado correctamente");
+      } else {
+           console.warn(`Elemento con ID ${itemId} no encontrado para eliminar.`);
+      }
+    }
 
-
-    // Function to export data to JSON file
+    // Function to export data to JSON file (funciona igual, crea un blob descargable en el navegador)
     function exportData() {
-        console.log("Exportando datos..."); // Log export
+        console.log("Exportando datos...");
         const jsonData = JSON.stringify(data, null, 2); // Use null, 2 for pretty printing
         const blob = new Blob([jsonData], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -2287,12 +2261,12 @@
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
         showToast("Datos exportados correctamente.");
-         console.log("Datos exportados."); // Log export complete
+         console.log("Datos exportados.");
     }
 
-    // Function to import data from JSON file
+    // Function to import data from JSON file (funciona igual, lee un archivo local)
     function importData(file) {
-        console.log("Importando datos..."); // Log import
+        console.log("Importando datos...");
         const reader = new FileReader();
         reader.onload = function(event) {
             try {
@@ -2300,31 +2274,28 @@
                 if (Array.isArray(importedData)) {
                      // Optional: Add validation for imported data structure
                      if (confirm("¿Estás seguro de que deseas reemplazar tus datos actuales con los datos importados?")) {
-                          // Ensure imported items have IDs if loading old data, and tasks have a completed status
-                          data = importedData.map(item => {
-                              if (item.id === undefined || item.id === null) {
-                                  item.id = Date.now().toString() + Math.floor(Math.random() * 1000000).toString(); // Generate a more unique ID
-                              }
-                              // Ensure imported tasks have completed status if missing
-                               if (item.type === 'Tarea' && item.completed === undefined) {
-                                   item.completed = false;
-                               }
-                               return item;
-                           });
-                          saveData(data); // Save imported data to localStorage
-                          initializeUI(data); // Re-render UI and re-populate edit table
+                          // Ensure imported items have IDs, add if missing
+                          // Ensure IDs are numbers for consistency if needed, or handle consistently as strings
+                          data = importedData.map(item => ({
+                              ...item,
+                              id: item.id || Date.now() + Math.random(), // Keep existing ID or generate new
+                              // Ensure tasks have completed status
+                              completed: item.type === 'Tarea' ? (item.completed ?? false) : item.completed // Ensure boolean for tasks
+                          }));
+                          saveData(data); // <-- Guardar en localStorage
+                          initializeUI(data);
                           showToast("Datos importados correctamente.");
-                           console.log("Datos importados y UI actualizada."); // Log import complete
+                           console.log("Datos importados y UI actualizada.");
                      } else {
-                        console.log("Importación cancelada por el usuario."); // Log cancellation
+                        console.log("Importación cancelada por el usuario.");
                      }
                 } else {
                     showToast("El archivo JSON no tiene el formato esperado (debe ser un array).");
-                    console.error("Error de formato de archivo JSON importado."); // Log error
+                    console.error("Error de formato de archivo JSON importado.");
                 }
             } catch (e) {
                 showToast("Error al leer o analizar el archivo JSON.");
-                console.error("Import error:", e); // Log error details
+                console.error("Import error:", e);
             }
         };
         reader.readAsText(file);
@@ -2333,98 +2304,16 @@
     }
 
 
-    // --- Inicialización ---
+    // Función saveData ahora interactúa con localStorage
+    // function saveData(currentData) { ... } // Definida arriba
 
-    // Búsqueda inteligente: se utiliza un datalist para sugerir términos
-    let searchHistory = JSON.parse(localStorage.getItem("searchHistory")) || [];
-    function updateSearchSuggestions() {
-      const dataList = document.getElementById("searchSuggestions");
-      dataList.innerHTML = "";
-      searchHistory.forEach(term => {
-        const option = document.createElement("option");
-        option.value = term;
-        dataList.appendChild(option);
-      });
+    function showToast(message) {
+      console.log("Mostrando toast:", message);
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.remove("hidden");
+      setTimeout(() => { toast.classList.add("hidden"); }, 3000);
     }
-
-
-    document.addEventListener("DOMContentLoaded", function () {
-        console.log("DOM completamente cargado. Intentando cargar datos desde localStorage.");
-
-         // Apply dark mode preference immediately on DOMContentLoaded
-         const darkModePreference = localStorage.getItem("darkMode");
-         const toggleDarkModeBtn = document.getElementById("toggleDarkMode");
-         const modeIcon = toggleDarkModeBtn.querySelector("i");
-         const modeText = toggleDarkModeBtn.querySelector(".mode-text");
-
-        if (darkModePreference === "enabled") {
-            document.body.classList.add("dark");
-            modeIcon.classList.remove("fa-moon");
-            modeIcon.classList.add("fa-sun");
-            modeText.textContent = "Modo Claro";
-        } else {
-            modeIcon.classList.remove("fa-sun");
-            modeIcon.classList.add("fa-moon");
-            modeText.textContent = "Modo Oscuro";
-        }
-
-        // Intenta cargar desde localStorage primero
-        const savedData = localStorage.getItem("centroAccesosData");
-        if (savedData) {
-            try {
-                data = JSON.parse(savedData);
-                console.log("Datos cargados desde localStorage:", data);
-                 // Ensure items have an ID if loading old data, and tasks have a completed status
-                data = data.map(item => {
-                     if (item.id === undefined || item.id === null) {
-                         item.id = Date.now().toString() + Math.floor(Math.random() * 1000000).toString(); // Generate a simple ID if missing
-                     }
-                    if (item.type === 'Tarea' && item.completed === undefined) {
-                        return { ...item, completed: false };
-                    }
-                    return item;
-                });
-                initializeUI(data);
-                setupNavigation();
-                setupEventListeners();
-                updateSearchSuggestions(); // Update search suggestions on load
-                console.log("Inicialización completa con datos de localStorage.");
-            } catch (e) {
-                console.error("Error al parsear datos de localStorage:", e);
-                showToast("Error al cargar datos guardados. Se iniciará con datos vacíos.");
-                 // Initialize with empty UI if localStorage fails
-                 data = [];
-                 initializeUI(data);
-                 setupNavigation();
-                 setupEventListeners();
-                 updateSearchSuggestions(); // Update search suggestions even with empty data
-                 console.log("Inicialización completa con datos vacíos debido a error de localStorage.");
-            }
-        } else {
-            console.log("No se encontraron datos en localStorage. Intentando cargar desde data.json...");
-            // If no data in localStorage, try loading from data.json (original source)
-            loadDataFromJson(); // loadDataFromJson calls initializeUI, setupNavigation, setupEventListeners, and updateSearchSuggestions
-             console.log("Iniciando carga desde data.json...");
-
-        }
-
-        // Ensure toggleDarkModeBtn listener is added after button exists
-        toggleDarkModeBtn.addEventListener("click", function() {
-          document.body.classList.toggle("dark");
-          if (document.body.classList.contains("dark")) {
-              localStorage.setItem("darkMode", "enabled");
-              modeIcon.classList.remove("fa-moon");
-              modeIcon.classList.add("fa-sun");
-              modeText.textContent = "Modo Claro";
-          } else {
-              localStorage.setItem("darkMode", "disabled");
-              modeIcon.classList.remove("fa-sun");
-              modeIcon.classList.add("fa-moon");
-              modeText.textContent = "Modo Oscuro";
-          }
-        });
-    });
-
   </script>
 </body>
 </html>
