@@ -24,7 +24,7 @@
     body.dark .filter-btn{background-color:#3a3a3a;color:#ddd}
     body.dark .filter-btn.active{background-color:var(--theme-color);color:#fff}
     body.dark #editPanel,body.dark .modal-content{background-color:rgba(30,30,30,.97);backdrop-filter:blur(4px)}
-    body.dark #searchModal,body.dark #tagSearchModal, body.dark #noteModal{background-color:rgba(0,0,0,.7)}
+    body.dark #searchModal,body.dark #tagSearchModal, body.dark #noteModal, body.dark #taskModal{background-color:rgba(0,0,0,.7)}
     body.dark .sticky-header{background-color:rgba(18,18,18,0.85);backdrop-filter:blur(10px);border-bottom-color:rgba(255,255,255,0.1)}
     body.dark .category-title{color:#e5e7eb}
     body.dark .nav-btn{color:#9ca3af}
@@ -54,11 +54,12 @@
     /* --- TARJETAS ESPECIALES: NOTAS Y TAREAS --- */
     .note-card{background-color:#fffbe0;font-family:'Kalam',cursive;cursor:pointer}
     body.dark .note-card{background-color:#4a462a}
+    .note-card-content{height:150px;overflow:hidden;position:relative;-webkit-mask-image:linear-gradient(to bottom,black 80%,transparent 100%)}
     .task-list{list-style:none;padding:0;margin-top:0.5rem;text-align:left}.task-item{display:flex;align-items:center;padding:0.25rem 0;border-bottom:1px solid #eee}body.dark .task-item{border-color:#333}.task-item.done .task-text{text-decoration:line-through;color:#9ca3af}
     .status-dot{width:12px;height:12px;border-radius:50%;margin-right:8px;cursor:pointer;border:2px solid transparent;transition:all .2s}.status-todo{background-color:#d1d5db}.status-inprogress{background-color:#f59e0b}.status-done{background-color:#10b981}
 
     /* --- PANELES Y BOTONES --- */
-    #editPanel, #noteModal{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;overflow-y:auto;transition:opacity .3s}
+    #editPanel, #noteModal, #taskModal{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;overflow-y:auto;transition:opacity .3s}
     .prompt-content,.note-content,.task-content{max-height:150px;overflow-y:auto;font-size:.8rem;white-space:pre-wrap;word-wrap:break-word}
     #mainEditButton,#openGlobalSearch,#openTagSearch,#themeBtn{position:fixed;right:1rem;border:none;color:#fff;border-radius:9999px;cursor:pointer;transition:background-color .3s;z-index:1100;width:40px;height:40px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 6px rgba(0,0,0,.1)}
     #themeBtn{top:1rem;background-color:#3b82f6}
@@ -78,12 +79,14 @@
     .main-action-btn-focus:focus{ring-color:var(--theme-color) !important;}
     .icon-themed{color:var(--theme-color) !important;}
     
-    /* --- EDITOR DE NOTAS --- */
+    /* --- EDITOR DE NOTAS Y TAREAS --- */
     .editor-toolbar { background-color: #f3f4f6; padding: 8px; border-bottom: 1px solid #ddd; }
     body.dark .editor-toolbar { background-color: #2a2a2a; border-color: #444; }
     .editor-toolbar button { margin-right: 8px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; }
     body.dark .editor-toolbar button { border-color: #555; }
     #noteModalContent { min-height: 250px; padding: 1rem; }
+    #taskModalEditableList .task-item { border-bottom: none; }
+    #taskModalEditableList input[type="text"] { flex-grow: 1; background: transparent; }
   </style>
 </head>
 <body class="min-h-screen">
@@ -131,6 +134,7 @@
     <div id="searchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="globalSearchInput" placeholder="Busca en todos tus botones, notas y prompts..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="globalSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeGlobalSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
     <div id="tagSearchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="tagSearchInput" placeholder="Busca por etiqueta..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="tagSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeTagSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
     <div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all modal-content flex flex-col"><div class="p-4 border-b"><h2 id="noteModalTitle" class="text-2xl font-bold"></h2></div><div class="editor-toolbar"><button onclick="formatDoc('bold')"><i class="fas fa-bold"></i></button><button onclick="formatDoc('italic')"><i class="fas fa-italic"></i></button><button onclick="formatDoc('underline')"><i class="fas fa-underline"></i></button><button onclick="formatDoc('insertUnorderedList')"><i class="fas fa-list-ul"></i></button></div><div id="noteModalContent" class="p-4 flex-grow overflow-y-auto" contenteditable="true"></div><div class="mt-4 flex justify-end gap-2 p-4 border-t"><input type="hidden" id="noteModalId"><button id="closeNoteModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveNoteModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar</button></div></div></div>
+    <div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all modal-content flex flex-col"><div class="p-4 border-b"><h2 id="taskModalTitle" class="text-2xl font-bold"></h2></div><div id="taskModalEditableList" class="p-4 flex-grow overflow-y-auto"></div><div class="p-4 border-t"><button id="addNewTaskItem" class="text-sm text-gray-500 hover:text-black">+ Añadir ítem</button></div><div class="mt-4 flex justify-end gap-2 p-4 border-t"><input type="hidden" id="taskModalId"><button id="closeTaskModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveTaskModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar Tarea</button></div></div></div>
   </div>
 
 <script>
@@ -166,10 +170,7 @@ async function loadData() {
             if (item.type === 'Tarea' && typeof item.action === 'string') {
                 return { ...item, action: item.action.split('\n').filter(Boolean).map(line => ({ text: line, status: 'todo' })) };
             }
-            if (item.type === 'Nota' && (item.action.startsWith('<') || item.action.includes('<div>'))) {
-                 // Ya es HTML, no hacer nada
-            } else if (item.type === 'Nota') {
-                 // Convertir texto plano a un simple div
+            if (item.type === 'Nota' && (!item.action.startsWith('<') && !item.action.includes('<div>'))) {
                  item.action = `<div>${item.action.replace(/\n/g, '<br>')}</div>`;
             }
             return item;
@@ -249,6 +250,9 @@ function setupEventListeners() {
     document.getElementById('categorySelect').addEventListener('change', handleCategoryChange);
     document.getElementById('closeNoteModal').addEventListener('click', () => document.getElementById('noteModal').classList.add('hidden'));
     document.getElementById('saveNoteModal').addEventListener('click', saveNoteFromModal);
+    document.getElementById('closeTaskModal').addEventListener('click', () => document.getElementById('taskModal').classList.add('hidden'));
+    document.getElementById('saveTaskModal').addEventListener('click', saveTaskFromModal);
+    document.getElementById('addNewTaskItem').addEventListener('click', () => addNewTaskItemToModal());
 }
 
 function setupGlobalSearch() {
@@ -393,7 +397,7 @@ function renderSection(type, containerId, filterId, searchId, notFoundId) {
             container.appendChild(catDiv);
         });
 
-        notFound.classList.toggle('hidden', filteredItems.length > 0);
+        notFound.classList.toggle('hidden', filteredItems.length === 0);
     };
 
     ['Todos', ...categories].forEach(cat => {
@@ -426,7 +430,7 @@ function createCard(item) {
     const iconHtml = getIconHtml(item);
 
     if (item.type === 'Nota') {
-        contentHtml = `<div onclick="openNoteModal('${item.id}')" class="cursor-pointer h-full flex flex-col"><h4 class="text-lg font-bold mb-2">${item.title}</h4><div class="text-sm flex-grow">${item.action}</div></div>`;
+        contentHtml = `<div onclick="openNoteModal('${item.id}')" class="cursor-pointer h-full flex flex-col"><h4 class="text-lg font-bold mb-2">${item.title}</h4><div class="text-sm flex-grow note-card-content">${item.action}</div></div>`;
     } else if (item.type === 'Tarea') {
         const tasksHtml = item.action.map((task, index) => `
             <li class="task-item ${task.status === 'done' ? 'done' : ''}">
@@ -554,6 +558,14 @@ function handleCategoryChange(event) {
 }
 
 function openEditPanel(itemId = null, prefillType = null, prefillCategory = null) {
+    if (itemId) {
+        const item = data.find(i => String(i.id) === itemId);
+        if (item) {
+            if (item.type === 'Nota') return openNoteModal(itemId);
+            if (item.type === 'Tarea') return openTaskModal(itemId);
+        }
+    }
+
     const form = document.getElementById("editForm");
     const panel = document.getElementById("editPanel");
     const title = document.getElementById("editPanelTitle");
@@ -561,6 +573,7 @@ function openEditPanel(itemId = null, prefillType = null, prefillCategory = null
     document.getElementById("editItemId").value = "";
     title.textContent = "Agregar Nuevo Elemento";
     document.getElementById("saveItemButton").innerHTML = '<i class="fas fa-plus mr-2"></i>Agregar elemento';
+    
     if (itemId) {
         const item = data.find(i => String(i.id) === itemId);
         if (item) {
@@ -568,11 +581,7 @@ function openEditPanel(itemId = null, prefillType = null, prefillCategory = null
             document.getElementById("saveItemButton").innerHTML = '<i class="fas fa-save mr-2"></i>Guardar Cambios';
             document.getElementById("editItemId").value = item.id;
             document.getElementById("newTitle").value = item.title;
-            if (item.type === 'Tarea') {
-                document.getElementById("newAction").value = item.action.map(t => t.text).join('\n');
-            } else {
-                document.getElementById("newAction").value = item.action;
-            }
+            document.getElementById("newAction").value = item.action;
             document.getElementById("newType").value = item.type;
             populateCategorySuggestions(item.category);
             document.getElementById("newTags").value = item.tags ? item.tags.join(", ") : "";
@@ -580,7 +589,7 @@ function openEditPanel(itemId = null, prefillType = null, prefillCategory = null
         }
     } else {
         populateCategorySuggestions(prefillCategory);
-        if(prefillType) document.getElementById("newType").value = prefillType;
+        if (prefillType) document.getElementById("newType").value = prefillType;
     }
     populateTagSuggestions();
     panel.classList.remove("hidden");
@@ -600,6 +609,8 @@ function handleSaveItem(event) {
     let action;
     if (type === 'Tarea') {
         action = document.getElementById("newAction").value.split('\n').filter(Boolean).map(line => ({ text: line, status: 'todo' }));
+    } else if (type === 'Nota') {
+        action = `<div>${document.getElementById("newAction").value.replace(/\n/g, '<br>')}</div>`;
     } else {
         action = document.getElementById("newAction").value.trim();
     }
@@ -612,7 +623,7 @@ function handleSaveItem(event) {
         icon: document.getElementById("newIcon").value.trim(),
         tags: tags
     };
-    if (!newItemData.title || !newItemData.action || !newItemData.category) return showToast("Por favor, completa Título, Acción y Categoría.");
+    if (!newItemData.title || !newItemData.category) return showToast("Por favor, completa Título y Categoría.");
     if (id) {
         const index = data.findIndex(i => String(i.id) === id);
         if (index !== -1) {
@@ -696,6 +707,59 @@ function saveNoteFromModal() {
 
 function formatDoc(command, value = null) {
     document.execCommand(command, false, value);
+}
+
+function openTaskModal(itemId) {
+    const item = data.find(i => String(i.id) === itemId);
+    if (!item) return;
+    document.getElementById('taskModalTitle').textContent = item.title;
+    document.getElementById('taskModalId').value = item.id;
+    const listContainer = document.getElementById('taskModalEditableList');
+    listContainer.innerHTML = '';
+    item.action.forEach(task => addNewTaskItemToModal(task));
+    document.getElementById('taskModal').classList.remove('hidden');
+}
+
+function addNewTaskItemToModal(task = { text: '', status: 'todo' }) {
+    const listContainer = document.getElementById('taskModalEditableList');
+    const li = document.createElement('li');
+    li.className = 'flex items-center gap-2 mb-2';
+    li.innerHTML = `
+        <span class="status-dot status-${task.status}" data-status="${task.status}"></span>
+        <input type="text" class="w-full border-b p-1" value="${task.text}">
+        <button class="text-red-500"><i class="fas fa-trash"></i></button>
+    `;
+    li.querySelector('.status-dot').addEventListener('click', function() {
+        const statuses = ['todo', 'inprogress', 'done'];
+        let currentStatus = this.dataset.status;
+        let currentIndex = statuses.indexOf(currentStatus);
+        let nextStatus = statuses[(currentIndex + 1) % statuses.length];
+        this.className = `status-dot status-${nextStatus}`;
+        this.dataset.status = nextStatus;
+    });
+    li.querySelector('button').addEventListener('click', () => li.remove());
+    listContainer.appendChild(li);
+}
+
+function saveTaskFromModal() {
+    const id = document.getElementById('taskModalId').value;
+    const index = data.findIndex(i => String(i.id) === id);
+    if (index === -1) return;
+    
+    const newTasks = [];
+    document.querySelectorAll('#taskModalEditableList li').forEach(li => {
+        const text = li.querySelector('input').value.trim();
+        const status = li.querySelector('.status-dot').dataset.status || 'todo';
+        if (text) {
+            newTasks.push({ text, status });
+        }
+    });
+    
+    data[index].action = newTasks;
+    saveData();
+    renderAllSections();
+    document.getElementById('taskModal').classList.add('hidden');
+    showToast('Tarea guardada.');
 }
 
 function cycleTaskStatus(itemId, taskIndex) {
