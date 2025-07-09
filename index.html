@@ -6,28 +6,81 @@
   <title>Centro de Accesos</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* Estilos generales y de modo oscuro */
-    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f0f2f5;color:#333;transition:background-color .3s,color .3s}body.dark{background-color:#121212;color:#ddd}body.dark .card,body.dark .bg-white{background-color:#1e1e1e;color:#ddd;border-color:rgba(255,255,255,0.1)}body.dark input,body.dark select,body.dark textarea{background-color:#2a2a2a;color:#ddd;border-color:#444}body.dark .filter-btn{background-color:#3a3a3a;color:#ddd}body.dark .filter-btn.active{background-color:#3b82f6;color:#fff}body.dark #editPanel,body.dark .modal-content{background-color:rgba(30,30,30,.97);backdrop-filter:blur(4px)}body.dark #searchModal,body.dark #tagSearchModal{background-color:rgba(0,0,0,.7)}body.dark .sticky-header{background-color:rgba(18,18,18,0.8);backdrop-filter:blur(10px);border-bottom-color:rgba(255,255,255,0.1)}
-    /* Nueva cabecera fija */
-    .sticky-header{position:sticky;top:0;z-index:999;background-color:rgba(240,242,245,0.8);backdrop-filter:blur(10px);border-bottom:1px solid #ddd;padding-top:0.5rem;padding-bottom:0.5rem}
-    /* Ajuste para que el contenido no quede debajo de la cabecera */
+    /* --- TEMAS DE COLORES --- */
+    :root { --theme-color: #0d9488; --theme-color-hover: #0f766e; }
+    body.theme-blue { --theme-color: #2563eb; --theme-color-hover: #1d4ed8; }
+    body.theme-indigo { --theme-color: #4f46e5; --theme-color-hover: #4338ca; }
+    body.theme-rose { --theme-color: #e11d48; --theme-color-hover: #be123c; }
+
+    /* --- ESTILOS GENERALES Y MODO OSCURO --- */
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f0f2f5;color:#333;transition:background-color .3s,color .3s}
+    body.dark{background-color:#121212;color:#ddd}
+    body.dark .card,body.dark .bg-white{background-color:#1e1e1e;color:#ddd;border-color:rgba(255,255,255,0.1)}
+    body.dark input,body.dark select,body.dark textarea{background-color:#2a2a2a;color:#ddd;border-color:#444}
+    body.dark .filter-btn{background-color:#3a3a3a;color:#ddd}
+    body.dark .filter-btn.active{background-color:var(--theme-color);color:#fff}
+    body.dark #editPanel,body.dark .modal-content{background-color:rgba(30,30,30,.97);backdrop-filter:blur(4px)}
+    body.dark #searchModal,body.dark #tagSearchModal, body.dark #noteModal{background-color:rgba(0,0,0,.7)}
+    body.dark .sticky-header{background-color:rgba(18,18,18,0.85);backdrop-filter:blur(10px);border-bottom-color:rgba(255,255,255,0.1)}
+    body.dark .category-title{color:#e5e7eb}
+    body.dark .nav-btn{color:#9ca3af}
+    body.dark .nav-btn.active{color:var(--theme-color)}
+    body.dark .nav-btn:not(.active):hover{background-color:#2a2a2a}
+    
+    /* --- CABECERA FIJA Y NAVEGACIÓN --- */
+    .sticky-header{position:sticky;top:0;z-index:999;background-color:rgba(240,242,245,0.85);backdrop-filter:blur(10px);border-bottom:1px solid #ddd;padding-top:0.5rem;padding-bottom:0.5rem}
     main{padding-top:1rem}
-    /* Estilos de navegación y tarjetas */
-    .nav-btn{transition:all .3s ease;position:relative;overflow:hidden}.nav-btn:after{content:'';position:absolute;bottom:0;left:0;width:100%;height:.15rem;background-color:#3b82f6;transform:scaleX(0);transition:transform .3s ease}.nav-btn.active:after{transform:scaleX(1)}.nav-btn:hover{transform:translateY(-3px)}.search-container{max-width:800px;margin:0 auto}.card{transition:all .3s ease;box-shadow:0 4px 6px rgba(0,0,0,.05);border-radius:12px;position:relative;display:flex;flex-direction:column;border:1px solid #e5e7eb}.card:hover{transform:translateY(-5px);box-shadow:0 10px 15px rgba(0,0,0,.07)}.category-title{position:relative;overflow:hidden;padding-bottom:10px}.category-title:after{content:'';position:absolute;bottom:0;left:0;width:100%;height:2px;background:linear-gradient(to right,#3b82f6,transparent)}
-    /* Paneles y contenido */
+    .nav-btn{transition:all .2s ease;position:relative;color:#4b5563;font-weight:600;padding:0.5rem 0.75rem;border-radius:8px}
+    .nav-btn.active{color:var(--theme-color)}
+    .nav-btn:not(.active):hover{transform:translateY(-2px);background-color:#fff}
+    .nav-btn:after{content:'';position:absolute;bottom:-4px;left:0;width:100%;height:2px;background-color:var(--theme-color);transform:scaleX(0);transition:transform .2s ease}
+    .nav-btn.active:after{transform:scaleX(1)}
+    
+    /* --- FILTROS Y TARJETAS --- */
+    .filter-btn{transition:all .2s ease;border-radius:9999px;padding:0.25rem 1rem;font-size:0.875rem;font-weight:500;border:1px solid transparent}
+    .filter-btn.active{background-color:var(--theme-color);color:white;border-color:var(--theme-color)}
+    .filter-btn:not(.active):hover{background-color:#d1d5db}
+    .search-container{max-width:800px;margin:0 auto}
+    .card{transition:all .3s ease;box-shadow:0 4px 6px rgba(0,0,0,.05);border-radius:12px;position:relative;display:flex;flex-direction:column;border:1px solid #e5e7eb}
+    .card:hover{transform:translateY(-5px);box-shadow:0 10px 15px rgba(0,0,0,.07)}
+    .category-title-container{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid #e5e7eb;padding-bottom:0.5rem}
+    body.dark .category-title-container{border-color:rgba(255,255,255,0.1)}
+    .category-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;color:#1f2937}
+    
+    /* --- TARJETAS ESPECIALES: NOTAS Y TAREAS --- */
+    .note-card{background-color:#fffbe0;font-family:'Kalam',cursive;cursor:pointer}
+    body.dark .note-card{background-color:#4a462a}
+    .task-list{list-style:none;padding:0;margin-top:0.5rem;text-align:left}.task-item{display:flex;align-items:center;padding:0.25rem 0;border-bottom:1px solid #eee}body.dark .task-item{border-color:#333}.task-item.done .task-text{text-decoration:line-through;color:#9ca3af}
+    .status-dot{width:12px;height:12px;border-radius:50%;margin-right:8px;cursor:pointer;border:2px solid transparent;transition:all .2s}.status-todo{background-color:#d1d5db}.status-inprogress{background-color:#f59e0b}.status-done{background-color:#10b981}
+
+    /* --- PANELES Y BOTONES --- */
     #editPanel{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(255,255,255,.95);z-index:1000;overflow-y:auto;transition:opacity .3s}.prompt-content,.note-content,.task-content{max-height:150px;overflow-y:auto;font-size:.8rem;white-space:pre-wrap;word-wrap:break-word}
-    /* Botones flotantes */
-    #toggleDarkMode,#mainEditButton,#openGlobalSearch,#openTagSearch{position:fixed;right:1rem;border:none;color:#fff;border-radius:9999px;cursor:pointer;transition:background-color .3s;z-index:1100;width:40px;height:40px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 6px rgba(0,0,0,.1)}#toggleDarkMode{top:1rem;background-color:#3b82f6}#mainEditButton{top:4.5rem;background-color:#6b7280}#openGlobalSearch{top:8rem;background-color:#10B981}#openTagSearch{top:11.5rem;background-color:#8B5CF6}#toggleDarkMode:hover{background-color:#2563eb}#mainEditButton:hover{background-color:#4b5563}#openGlobalSearch:hover{background-color:#059669}#openTagSearch:hover{background-color:#7C3AED}
-    /* Estilos para etiquetas (tags) */
-    .tag-container{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}.tag{background-color:#e5e7eb;color:#4b5563;padding:2px 8px;border-radius:9999px;font-size:0.75rem;font-weight:500}body.dark .tag{background-color:#374151;color:#d1d5db}
-    /* Botones de acción en tarjetas */
-    .card-actions{position:absolute;bottom:8px;right:8px;display:flex;gap:8px;opacity:0;transition:opacity .2s ease-in-out}.card:hover .card-actions{opacity:1}.card-actions button{background-color:rgba(255,255,255,0.7);border:1px solid #ddd;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer}body.dark .card-actions button{background-color:rgba(40,40,40,0.8);border-color:#555}
+    #mainEditButton,#openGlobalSearch,#openTagSearch,#themeBtn{position:fixed;right:1rem;border:none;color:#fff;border-radius:9999px;cursor:pointer;transition:background-color .3s;z-index:1100;width:40px;height:40px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 6px rgba(0,0,0,.1)}
+    #themeBtn{top:1rem;background-color:#3b82f6}
+    #mainEditButton{top:4.5rem;background-color:#6b7280}
+    #openGlobalSearch{top:8rem;background-color:#10B981}
+    #openTagSearch{top:11.5rem;background-color:#8B5CF6}
+    .tag-container{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+    .tag{background-color:#e5e7eb;color:#4b5563;padding:2px 8px;border-radius:9999px;font-size:0.75rem;font-weight:500}
+    body.dark .tag{background-color:#374151;color:#d1d5db}
+    .card-actions{position:absolute;bottom:8px;right:8px;display:flex;gap:8px;opacity:0;transition:opacity .2s ease-in-out}.card:hover .card-actions{opacity:1}.card-actions button{background-color:rgba(255,255,255,0.7);border:1px solid #ddd;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer}
+    body.dark .card-actions button{background-color:rgba(40,40,40,0.8);border-color:#555}
+    .preview-tooltip{visibility:hidden;opacity:0;position:absolute;z-index:100;bottom:105%;left:50%;transform:translateX(-50%);transition:opacity .2s,visibility .2s;padding:5px;background:white;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,0.2);width:320px;pointer-events:none}
+    .card:hover .preview-tooltip{visibility:visible;opacity:1}
+    .preview-tooltip img{width:100%;border-radius:4px;background-color:#eee}
+    .main-action-btn{background-color:var(--theme-color) !important;}
+    .main-action-btn:hover{background-color:var(--theme-color-hover) !important;}
+    .main-action-btn-focus:focus{ring-color:var(--theme-color) !important;}
+    .icon-themed{color:var(--theme-color) !important;}
   </style>
 </head>
 <body class="min-h-screen">
   <!-- BOTONES FLOTANTES -->
-  <button id="toggleDarkMode" title="Cambiar Modo"><i class="fas fa-moon"></i></button>
+  <button id="themeBtn" title="Cambiar Tema y Modo"><i class="fas fa-fill-drip"></i></button>
   <button id="mainEditButton" title="Añadir Contenido"><i class="fas fa-plus"></i></button>
   <button id="openGlobalSearch" title="Búsqueda Global"><i class="fas fa-search"></i></button>
   <button id="openTagSearch" title="Buscar por Etiqueta"><i class="fas fa-tags"></i></button>
@@ -36,15 +89,15 @@
   <header class="sticky-header">
     <div class="container mx-auto px-4">
       <!-- NAVEGACIÓN PRINCIPAL -->
-      <nav class="flex justify-center flex-wrap gap-2 sm:space-x-4 mb-4">
-        <button id="nav-buscadores" class="nav-btn active flex items-center justify-center bg-white py-2 px-4 sm:py-3 sm:px-6 rounded-lg shadow-md text-base sm:text-lg font-semibold"><i class="fas fa-search mr-2"></i>Buscadores</button>
-        <button id="nav-links" class="nav-btn flex items-center justify-center bg-white py-2 px-4 sm:py-3 sm:px-6 rounded-lg shadow-md text-base sm:text-lg font-semibold"><i class="fas fa-link mr-2"></i>Links</button>
-        <button id="nav-prompts" class="nav-btn flex items-center justify-center bg-white py-2 px-4 sm:py-3 sm:px-6 rounded-lg shadow-md text-base sm:text-lg font-semibold"><i class="fas fa-brain mr-2"></i>Prompts</button>
-        <button id="nav-notes" class="nav-btn flex items-center justify-center bg-white py-2 px-4 sm:py-3 sm:px-6 rounded-lg shadow-md text-base sm:text-lg font-semibold"><i class="fas fa-sticky-note mr-2"></i>Notas</button>
-        <button id="nav-tasks" class="nav-btn flex items-center justify-center bg-white py-2 px-4 sm:py-3 sm:px-6 rounded-lg shadow-md text-base sm:text-lg font-semibold"><i class="fas fa-tasks mr-2"></i>Tareas</button>
+      <nav class="flex justify-center flex-wrap gap-4 sm:gap-8 mb-4">
+        <button id="nav-buscadores" class="nav-btn active"><i class="fas fa-search mr-2"></i>Buscadores</button>
+        <button id="nav-links" class="nav-btn"><i class="fas fa-link mr-2"></i>Links</button>
+        <button id="nav-prompts" class="nav-btn"><i class="fas fa-brain mr-2"></i>Prompts</button>
+        <button id="nav-notes" class="nav-btn"><i class="fas fa-sticky-note mr-2"></i>Notas</button>
+        <button id="nav-tasks" class="nav-btn"><i class="fas fa-tasks mr-2"></i>Tareas</button>
       </nav>
       <!-- BARRA DE BÚSQUEDA PRINCIPAL -->
-      <div id="main-search-bar" class="search-container"><div class="relative"><div class="flex"><input type="text" id="searchInput" list="searchSuggestions" placeholder="Ingresa tu búsqueda aquí..." class="w-full px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg"><datalist id="searchSuggestions"></datalist><div class="relative"><button id="dropdownToggle" class="bg-blue-600 text-white px-4 py-3 rounded-r-lg flex items-center"><span id="selectedEngine">Google</span><i class="fas fa-chevron-down ml-2"></i></button><div id="searchEngineDropdown" class="hidden absolute right-0 top-full mt-1 w-64 bg-white rounded-md shadow-lg z-10"></div></div></div><button id="searchButton" class="mt-3 bg-blue-600 hover:bg-blue-700 text-white w-full py-3 rounded-lg flex items-center justify-center text-lg font-medium"><i class="fas fa-search mr-2"></i>Buscar</button></div></div>
+      <div id="main-search-bar" class="search-container"><div class="relative"><div class="flex"><input type="text" id="searchInput" list="searchSuggestions" placeholder="Ingresa tu búsqueda aquí..." class="w-full px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 main-action-btn-focus text-lg"><datalist id="searchSuggestions"></datalist><div class="relative"><button id="dropdownToggle" class="main-action-btn text-white px-4 py-3 rounded-r-lg flex items-center"><span id="selectedEngine">Google</span><i class="fas fa-chevron-down ml-2"></i></button><div id="searchEngineDropdown" class="hidden absolute right-0 top-full mt-1 w-64 bg-white rounded-md shadow-lg z-10"></div></div></div><button id="searchButton" class="mt-3 main-action-btn text-white w-full py-3 rounded-lg flex items-center justify-center text-lg font-medium"><i class="fas fa-search mr-2"></i>Buscar</button></div></div>
     </div>
   </header>
 
@@ -52,16 +105,16 @@
     <!-- CONTENEDOR DE SECCIONES -->
     <main>
       <div id="section-buscadores" class="section">
-        <h2 class="text-2xl font-bold mb-4">Filtrar por categoría</h2><div id="searchFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="searchCardSearchInput" placeholder="Buscar en Buscadores..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-8 search-container"><div id="searchEnginesContainer" class="space-y-8"></div><div id="noBuscadoresFound" class="hidden text-center text-gray-500 mt-8">No se encontraron buscadores.</div>
+        <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="searchFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="searchCardSearchInput" placeholder="Buscar en Buscadores..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 main-action-btn-focus mb-8 search-container"><div id="searchEnginesContainer" class="space-y-8"></div><div id="noBuscadoresFound" class="hidden text-center text-gray-500 mt-8">No se encontraron buscadores.</div>
       </div>
-      <div id="section-links" class="section hidden"><h2 class="text-2xl font-bold mb-4">Filtrar por categoría</h2><div id="linkFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="linkCardSearchInput" placeholder="Buscar en Links..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-8 search-container"><div id="linksContainer" class="space-y-8"></div><div id="noLinksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron links.</div></div>
-      <div id="section-prompts" class="section hidden"><h2 class="text-2xl font-bold mb-4">Filtrar por categoría</h2><div id="promptFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="promptCardSearchInput" placeholder="Buscar en Prompts..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 mb-8 search-container"><div id="promptsContainer" class="space-y-8"></div><div id="noPromptsFound" class="hidden text-center text-gray-500 mt-8">No se encontraron prompts.</div></div>
-      <div id="section-notes" class="section hidden"><h2 class="text-2xl font-bold mb-4">Filtrar por categoría</h2><div id="noteFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="noteCardSearchInput" placeholder="Buscar en Notas..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-8 search-container"><div id="notesContainer" class="space-y-8"></div><div id="noNotesFound" class="hidden text-center text-gray-500 mt-8">No se encontraron notas.</div></div>
-      <div id="section-tasks" class="section hidden"><h2 class="text-2xl font-bold mb-4">Filtrar por categoría</h2><div id="taskFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="taskCardSearchInput" placeholder="Buscar en Tareas..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 mb-8 search-container"><div id="tasksContainer" class="space-y-8"></div><div id="noTasksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron tareas.</div></div>
+      <div id="section-links" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="linkFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="linkCardSearchInput" placeholder="Buscar en Links..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 main-action-btn-focus mb-8 search-container"><div id="linksContainer" class="space-y-8"></div><div id="noLinksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron links.</div></div>
+      <div id="section-prompts" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="promptFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="promptCardSearchInput" placeholder="Buscar en Prompts..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 mb-8 search-container"><div id="promptsContainer" class="space-y-8"></div><div id="noPromptsFound" class="hidden text-center text-gray-500 mt-8">No se encontraron prompts.</div></div>
+      <div id="section-notes" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="noteFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="noteCardSearchInput" placeholder="Buscar en Notas..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-8 search-container"><div id="notesContainer" class="space-y-8"></div><div id="noNotesFound" class="hidden text-center text-gray-500 mt-8">No se encontraron notas.</div></div>
+      <div id="section-tasks" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="taskFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="taskCardSearchInput" placeholder="Buscar en Tareas..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 mb-8 search-container"><div id="tasksContainer" class="space-y-8"></div><div id="noTasksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron tareas.</div></div>
     </main>
     
     <!-- PANEL DE EDICIÓN -->
-    <div id="editPanel" class="hidden"><div class="container mx-auto px-4 py-8"><div class="flex justify-between items-center mb-6"><h2 id="editPanelTitle" class="text-2xl font-bold">Agregar Nuevo Elemento</h2><button id="closeEditButton" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full"><i class="fas fa-times"></i></button></div><div class="bg-white rounded-lg shadow-md p-6 mb-6"><form id="editForm"><input type="hidden" id="editItemId"><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="block text-sm font-medium mb-1">Título</label><input type="text" id="newTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div><label class="block text-sm font-medium mb-1">Acción (URL, texto, etc.)</label><input type="text" id="newAction" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div><label class="block text-sm font-medium mb-1">Tipo</label><select id="newType" class="w-full px-3 py-2 border border-gray-300 rounded-md"><option value="Buscador">Buscador</option><option value="Link">Link</option><option value="Promp">Prompt</option><option value="Nota">Nota</option><option value="Tarea">Tarea</option></select></div><div><label class="block text-sm font-medium mb-1">Categoría</label><select id="categorySelect" class="w-full px-3 py-2 border border-gray-300 rounded-md"></select><input type="text" id="newCategoryInput" class="hidden w-full px-3 py-2 border border-gray-300 rounded-md mt-2" placeholder="Nombre de la nueva categoría"></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Etiquetas (separadas por comas)</label><input type="text" id="newTags" list="tag-suggestions" placeholder="Ej: trabajo, personal, urgente" class="w-full px-3 py-2 border border-gray-300 rounded-md"><datalist id="tag-suggestions"></datalist></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Icono (Opcional, clase Font Awesome)</label><input type="text" id="newIcon" placeholder="Ej: fas fa-rocket. Dejar en blanco para automático" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div></div><button id="saveItemButton" type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"><i class="fas fa-save mr-2"></i>Guardar</button></form></div></div></div>
+    <div id="editPanel" class="hidden"><div class="container mx-auto px-4 py-8"><div class="flex justify-between items-center mb-6"><h2 id="editPanelTitle" class="text-2xl font-bold">Agregar Nuevo Elemento</h2><button id="closeEditButton" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full"><i class="fas fa-times"></i></button></div><div class="bg-white rounded-lg shadow-md p-6 mb-6"><form id="editForm"><input type="hidden" id="editItemId"><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="block text-sm font-medium mb-1">Título</label><input type="text" id="newTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div><label class="block text-sm font-medium mb-1">Acción (URL, texto, etc.)</label><textarea id="newAction" class="w-full px-3 py-2 border border-gray-300 rounded-md" rows="3"></textarea></div><div><label class="block text-sm font-medium mb-1">Tipo</label><select id="newType" class="w-full px-3 py-2 border border-gray-300 rounded-md"><option value="Buscador">Buscador</option><option value="Link">Link</option><option value="Promp">Prompt</option><option value="Nota">Nota</option><option value="Tarea">Tarea</option></select></div><div><label class="block text-sm font-medium mb-1">Categoría</label><select id="categorySelect" class="w-full px-3 py-2 border border-gray-300 rounded-md"></select><input type="text" id="newCategoryInput" class="hidden w-full px-3 py-2 border border-gray-300 rounded-md mt-2" placeholder="Nombre de la nueva categoría"></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Etiquetas (separadas por comas)</label><input type="text" id="newTags" list="tag-suggestions" placeholder="Ej: trabajo, personal, urgente" class="w-full px-3 py-2 border border-gray-300 rounded-md"><datalist id="tag-suggestions"></datalist></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Icono (Opcional, clase Font Awesome)</label><input type="text" id="newIcon" placeholder="Ej: fas fa-rocket. Dejar en blanco para automático" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div></div><button id="saveItemButton" type="submit" class="main-action-btn text-white px-4 py-2 rounded-md"><i class="fas fa-save mr-2"></i>Guardar</button></form></div></div></div>
     
     <!-- TOAST (Notificación) -->
     <div id="toast" class="hidden fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-md shadow-lg"></div>
@@ -69,6 +122,7 @@
     <!-- MODALES -->
     <div id="searchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="globalSearchInput" placeholder="Busca en todos tus botones, notas y prompts..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="globalSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeGlobalSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
     <div id="tagSearchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="tagSearchInput" placeholder="Busca por etiqueta..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="tagSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeTagSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
+    <div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content p-6"><h2 id="noteModalTitle" class="text-2xl font-bold mb-4"></h2><textarea id="noteModalContent" class="w-full h-64 p-2 border rounded-md"></textarea><div class="mt-4 flex justify-end gap-2"><input type="hidden" id="noteModalId"><button id="closeNoteModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveNoteModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar</button></div></div></div>
   </div>
 
 <script>
@@ -76,6 +130,7 @@
 const FILENAME_IN_GIST = 'Botones.json';
 let data = [];
 let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+const THEMES = ['default', 'blue', 'indigo', 'rose'];
 
 // --- FUNCIONES DE CONEXIÓN CON GITHUB ---
 function getOrRequestInfo(key, promptMessage) {
@@ -96,7 +151,16 @@ async function loadData() {
         if (!response.ok) throw new Error(`Gist no encontrado o error de red: ${response.status}`);
         const gistData = await response.json();
         if (!gistData.files[FILENAME_IN_GIST]) throw new Error(`El archivo '${FILENAME_IN_GIST}' no existe en este Gist.`);
-        data = JSON.parse(gistData.files[FILENAME_IN_GIST].content);
+        let loadedData = JSON.parse(gistData.files[FILENAME_IN_GIST].content);
+        
+        // MIGRACIÓN DE DATOS ANTIGUOS
+        data = loadedData.map(item => {
+            if (item.type === 'Tarea' && typeof item.action === 'string') {
+                return { ...item, action: item.action.split('\n').map(line => ({ text: line, status: 'todo' })) };
+            }
+            return item;
+        });
+
         showToast("Datos cargados correctamente.");
     } catch (error) {
         console.error("Fallo al cargar datos:", error);
@@ -129,22 +193,38 @@ async function saveData() {
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
     setupEventListeners();
-    setupDarkMode();
+    setupUnifiedThemeButton();
     setupGlobalSearch();
     setupTagSearch();
 });
 
 // --- FUNCIONES DE CONFIGURACIÓN (SETUP) ---
-function setupDarkMode() {
-    const btn = document.getElementById("toggleDarkMode");
-    const icon = btn.querySelector("i");
-    const setMode = (isDark) => {
-        localStorage.setItem("darkMode", isDark ? "enabled" : "disabled");
-        document.body.classList.toggle("dark", isDark);
-        icon.className = isDark ? "fas fa-sun" : "fas fa-moon";
+function setupUnifiedThemeButton() {
+    const btn = document.getElementById('themeBtn');
+    const themeStates = THEMES.flatMap(theme => [`light-${theme}`, `dark-${theme}`]);
+    let currentStateIndex = themeStates.indexOf(localStorage.getItem('themeState') || 'light-default');
+
+    const applyThemeState = (state) => {
+        const [mode, theme] = state.split('-');
+        
+        // Aplicar modo oscuro
+        document.body.classList.toggle('dark', mode === 'dark');
+        
+        // Aplicar tema de color
+        THEMES.forEach(t => document.body.classList.remove(`theme-${t}`));
+        if (theme !== 'default') {
+            document.body.classList.add(`theme-${theme}`);
+        }
+        
+        localStorage.setItem('themeState', state);
     };
-    btn.addEventListener("click", () => setMode(!document.body.classList.contains("dark")));
-    setMode(localStorage.getItem("darkMode") === "enabled");
+
+    btn.addEventListener('click', () => {
+        currentStateIndex = (currentStateIndex + 1) % themeStates.length;
+        applyThemeState(themeStates[currentStateIndex]);
+    });
+
+    applyThemeState(themeStates[currentStateIndex]);
 }
 
 function setupEventListeners() {
@@ -160,6 +240,8 @@ function setupEventListeners() {
     document.querySelector("#closeEditButton").addEventListener("click", () => document.getElementById("editPanel").classList.add("hidden"));
     document.getElementById('editForm').addEventListener('submit', handleSaveItem);
     document.getElementById('categorySelect').addEventListener('change', handleCategoryChange);
+    document.getElementById('closeNoteModal').addEventListener('click', () => document.getElementById('noteModal').classList.add('hidden'));
+    document.getElementById('saveNoteModal').addEventListener('click', saveNoteFromModal);
 }
 
 function setupGlobalSearch() {
@@ -175,7 +257,7 @@ function setupGlobalSearch() {
         const searchTerm = e.target.value.toLowerCase();
         const results = data.filter(item =>
             item.title.toLowerCase().includes(searchTerm) ||
-            item.action.toLowerCase().includes(searchTerm) ||
+            (typeof item.action === 'string' && item.action.toLowerCase().includes(searchTerm)) ||
             item.category.toLowerCase().includes(searchTerm) ||
             (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
         );
@@ -276,7 +358,7 @@ function renderSection(type, containerId, filterId, searchId, notFoundId) {
         if (searchTerm) {
             filteredItems = filteredItems.filter(item => 
                 item.title.toLowerCase().includes(searchTerm) ||
-                item.action.toLowerCase().includes(searchTerm) ||
+                (typeof item.action === 'string' && item.action.toLowerCase().includes(searchTerm)) ||
                 item.category.toLowerCase().includes(searchTerm)
             );
         }
@@ -290,7 +372,8 @@ function renderSection(type, containerId, filterId, searchId, notFoundId) {
         Object.keys(categorized).sort().forEach(cat => {
             const catDiv = document.createElement('div');
             catDiv.className = "mb-8";
-            catDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${cat}</h3><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>`;
+            const gridLayout = (type === 'Nota' || type === 'Tarea') ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6';
+            catDiv.innerHTML = `<div class="category-title-container"><h2 class="category-title">${cat}</h2><button onclick="deleteCategory('${cat}')" class="text-gray-400 hover:text-red-500 p-1 rounded-full" title="Eliminar categoría '${cat}'"><i class="fas fa-trash-alt"></i></button></div><div class="grid ${gridLayout} gap-4"></div>`;
             const grid = catDiv.querySelector(".grid");
             categorized[cat].forEach(item => grid.appendChild(createCard(item)));
             container.appendChild(catDiv);
@@ -301,7 +384,7 @@ function renderSection(type, containerId, filterId, searchId, notFoundId) {
 
     ['Todos', ...categories].forEach(cat => {
         const btn = document.createElement('button');
-        btn.className = 'filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm';
+        btn.className = 'filter-btn';
         btn.textContent = cat;
         if (cat !== 'Todos') btn.dataset.category = cat;
         if (cat === 'Todos') btn.classList.add('active');
@@ -319,35 +402,51 @@ function renderSection(type, containerId, filterId, searchId, notFoundId) {
 
 function createCard(item) {
     const card = document.createElement("div");
-    card.className = "card bg-white p-4 rounded-lg text-center flex flex-col justify-between";
+    let cardClasses = "card bg-white p-4 rounded-lg text-center flex flex-col justify-between";
+    if (item.type === 'Nota') cardClasses += ' note-card';
+    card.className = cardClasses;
     card.title = item.title;
     card.dataset.id = item.id;
+    
     let contentHtml = "";
     const iconHtml = getIconHtml(item);
-    if (item.type === "Buscador" || item.type === "Link") {
+
+    if (item.type === 'Nota') {
+        contentHtml = `<div onclick="openNoteModal('${item.id}')" class="cursor-pointer h-full flex flex-col"><h4 class="text-lg font-bold mb-2">${item.title}</h4><p class="text-left text-sm flex-grow">${item.action.substring(0, 150)}...</p></div>`;
+    } else if (item.type === 'Tarea') {
+        const tasksHtml = item.action.map((task, index) => `
+            <li class="task-item ${task.status === 'done' ? 'done' : ''}">
+                <span class="status-dot status-${task.status}" onclick="cycleTaskStatus('${item.id}', ${index})"></span>
+                <span class="task-text">${task.text}</span>
+            </li>
+        `).join('');
+        contentHtml = `<div class="text-left"><h4 class="text-lg font-bold mb-2">${item.title}</h4><ul class="task-list">${tasksHtml}</ul></div>`;
+    } else if (item.type === "Buscador" || item.type === "Link") {
         contentHtml = `<a href="#" class="block h-full flex flex-col justify-center items-center" onclick="event.preventDefault(); handleCardClick('${item.id}')">${iconHtml}<div class="mt-2 font-medium text-sm">${item.title}</div></a>`;
     } else {
         contentHtml = `<div class="flex items-center text-left"><div class="flex-shrink-0 w-6 mr-2 flex items-center justify-center">${iconHtml}</div><h4 class="text-lg font-medium">${item.title}</h4></div><div class="mt-3 bg-gray-50 p-2 rounded text-sm text-left text-gray-700 prompt-content">${item.action.replace(/\n/g,"<br>")}</div>${item.type==="Promp"?`<button class="copy-btn mt-3 w-full bg-purple-100 hover:bg-purple-200 text-purple-800 py-1 rounded-md text-sm" onclick="copyToClipboard('${item.id}')">Copiar</button>`:""}`;
     }
+
     let tagsHtml = "";
     if (item.tags && item.tags.length > 0) {
         tagsHtml = `<div class="tag-container">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join("")}</div>`;
     }
     const actionsHtml = `<div class="card-actions"><button onclick="openEditPanel('${item.id}')" class="text-blue-600" title="Editar"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteItem('${item.id}')" class="text-red-600" title="Eliminar"><i class="fas fa-trash-alt"></i></button></div>`;
-    card.innerHTML = `<div>${contentHtml}</div>${tagsHtml}${actionsHtml}`;
+    const previewHtml = item.type === "Link" ? `<div class="preview-tooltip"><img src="https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=300" alt="Vista previa" loading="lazy"></div>` : "";
+    card.innerHTML = `<div>${contentHtml}</div>${tagsHtml}${actionsHtml}${previewHtml}`;
     return card;
 }
 
 function getIconHtml(item) {
-    if (item.icon) return `<i class="${item.icon} text-2xl mx-auto text-blue-500"></i>`;
+    if (item.icon) return `<i class="${item.icon} text-2xl mx-auto icon-themed"></i>`;
     if (item.type === "Link") try {
         const domain = new URL(item.action).hostname;
         return `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=32" class="w-6 h-6 mx-auto object-contain" alt="Favicon" onerror="this.onerror=null;this.src='https://placehold.co/32x32/transparent/transparent?text=L';">`;
     } catch (e) {
-        return '<i class="fas fa-link text-2xl mx-auto text-blue-500"></i>';
+        return '<i class="fas fa-link text-2xl mx-auto icon-themed"></i>';
     }
     const defaultIcons = { Buscador: "fas fa-search", Promp: "fas fa-brain", Nota: "fas fa-sticky-note", Tarea: "fas fa-tasks" };
-    return `<i class="${defaultIcons[item.type] || 'fas fa-question-circle'} text-2xl mx-auto text-blue-500"></i>`;
+    return `<i class="${defaultIcons[item.type] || 'fas fa-question-circle'} text-2xl mx-auto icon-themed"></i>`;
 }
 
 function handleCardClick(id) {
@@ -455,7 +554,12 @@ function openEditPanel(itemId = null) {
             document.getElementById("saveItemButton").innerHTML = '<i class="fas fa-save mr-2"></i>Guardar Cambios';
             document.getElementById("editItemId").value = item.id;
             document.getElementById("newTitle").value = item.title;
-            document.getElementById("newAction").value = item.action;
+            // Adaptar 'action' para el textarea
+            if (item.type === 'Tarea') {
+                document.getElementById("newAction").value = item.action.map(t => t.text).join('\n');
+            } else {
+                document.getElementById("newAction").value = item.action;
+            }
             document.getElementById("newType").value = item.type;
             populateCategorySuggestions(item.category);
             document.getElementById("newTags").value = item.tags ? item.tags.join(", ") : "";
@@ -477,10 +581,19 @@ function handleSaveItem(event) {
         category = document.getElementById("newCategoryInput").value.trim();
     }
     const tags = document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(tag => tag);
+    const type = document.getElementById("newType").value;
+    
+    let action;
+    if (type === 'Tarea') {
+        action = document.getElementById("newAction").value.split('\n').map(line => ({ text: line, status: 'todo' }));
+    } else {
+        action = document.getElementById("newAction").value.trim();
+    }
+
     const newItemData = {
         title: document.getElementById("newTitle").value.trim(),
-        action: document.getElementById("newAction").value.trim(),
-        type: document.getElementById("newType").value,
+        action: action,
+        type: type,
         category: category,
         icon: document.getElementById("newIcon").value.trim(),
         tags: tags
@@ -488,10 +601,18 @@ function handleSaveItem(event) {
     if (!newItemData.title || !newItemData.action || !newItemData.category) return showToast("Por favor, completa Título, Acción y Categoría.");
     if (id) {
         const index = data.findIndex(i => String(i.id) === id);
-        if (index !== -1) data[index] = { ...data[index], ...newItemData };
+        if (index !== -1) {
+            // Si es una tarea, preservamos el estado de las sub-tareas existentes
+            if (newItemData.type === 'Tarea' && Array.isArray(data[index].action)) {
+                newItemData.action = newItemData.action.map((newTask, i) => ({
+                    text: newTask.text,
+                    status: data[index].action[i]?.status || 'todo'
+                }));
+            }
+            data[index] = { ...data[index], ...newItemData };
+        }
     } else {
         newItemData.id = Date.now();
-        if (newItemData.type === "Tarea") newItemData.completed = false;
         data.push(newItemData);
     }
     saveData();
@@ -509,6 +630,53 @@ function deleteItem(id) {
             showToast("Elemento eliminado.");
         }
     }
+}
+
+function deleteCategory(categoryName) {
+    if (confirm(`¿Estás seguro? Las tarjetas de la categoría "${categoryName}" se moverán a "Sin clasificar".`)) {
+        data.forEach(item => {
+            if (item.category === categoryName) {
+                item.category = "Sin clasificar";
+            }
+        });
+        saveData();
+        renderAllSections();
+        showToast(`Categoría "${categoryName}" eliminada. Items movidos a "Sin clasificar".`);
+    }
+}
+
+function openNoteModal(itemId) {
+    const item = data.find(i => String(i.id) === itemId);
+    if (!item) return;
+    document.getElementById('noteModalTitle').textContent = item.title;
+    document.getElementById('noteModalContent').value = item.action;
+    document.getElementById('noteModalId').value = item.id;
+    document.getElementById('noteModal').classList.remove('hidden');
+}
+
+function saveNoteFromModal() {
+    const id = document.getElementById('noteModalId').value;
+    const content = document.getElementById('noteModalContent').value;
+    const index = data.findIndex(i => String(i.id) === id);
+    if (index !== -1) {
+        data[index].action = content;
+        saveData();
+        renderAllSections();
+        document.getElementById('noteModal').classList.add('hidden');
+        showToast('Nota guardada.');
+    }
+}
+
+function cycleTaskStatus(itemId, taskIndex) {
+    const itemIndex = data.findIndex(i => String(i.id) === itemId);
+    if (itemIndex === -1) return;
+    const task = data[itemIndex].action[taskIndex];
+    if (!task) return;
+    const statuses = ['todo', 'inprogress', 'done'];
+    const currentStatusIndex = statuses.indexOf(task.status);
+    task.status = statuses[(currentStatusIndex + 1) % statuses.length];
+    saveData();
+    renderAllSections();
 }
 
 function showToast(message) {
