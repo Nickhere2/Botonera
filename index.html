@@ -8,20 +8,25 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
   <style>
     /* Estilos generales y de modo oscuro */
-    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f0f2f5;color:#333;transition:background-color .3s,color .3s}body.dark{background-color:#181818;color:#ddd}body.dark .card,body.dark .bg-white{background-color:#282828;color:#ddd}body.dark input,body.dark select,body.dark textarea{background-color:#3a3a3a;color:#ddd;border-color:#555}body.dark .filter-btn{background-color:#3a3a3a;color:#ddd}body.dark .filter-btn.active{background-color:#3b82f6;color:#fff}body.dark #editPanel,body.dark #searchModal>div{background-color:rgba(30,30,30,.95)}body.dark #searchModal{background-color:rgba(0,0,0,.7)}
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f0f2f5;color:#333;transition:background-color .3s,color .3s}body.dark{background-color:#181818;color:#ddd}body.dark .card,body.dark .bg-white{background-color:#282828;color:#ddd}body.dark input,body.dark select,body.dark textarea{background-color:#3a3a3a;color:#ddd;border-color:#555}body.dark .filter-btn{background-color:#3a3a3a;color:#ddd}body.dark .filter-btn.active{background-color:#3b82f6;color:#fff}body.dark #editPanel,body.dark #searchModal>div,body.dark #tagSearchModal>div{background-color:rgba(30,30,30,.95)}body.dark #searchModal,body.dark #tagSearchModal{background-color:rgba(0,0,0,.7)}
     /* Estilos de navegación y tarjetas */
     .nav-btn{transition:all .3s ease;position:relative;overflow:hidden}.nav-btn:after{content:'';position:absolute;bottom:0;left:0;width:100%;height:.15rem;background-color:#3b82f6;transform:scaleX(0);transition:transform .3s ease}.nav-btn.active:after{transform:scaleX(1)}.nav-btn:hover{transform:translateY(-3px)}.search-container{max-width:800px;margin:0 auto}.card{transition:all .3s ease;box-shadow:0 4px 6px rgba(0,0,0,.1);border-radius:8px;position:relative;display:flex;flex-direction:column}.card:hover{transform:translateY(-5px);box-shadow:0 10px 15px rgba(0,0,0,.15)}.category-title{position:relative;overflow:hidden;padding-bottom:10px}.category-title:after{content:'';position:absolute;bottom:0;left:0;width:100%;height:2px;background:linear-gradient(to right,#3b82f6,transparent)}
     /* Paneles y contenido */
     #editPanel{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(255,255,255,.95);z-index:1000;overflow-y:auto;transition:opacity .3s}.prompt-content,.note-content,.task-content{max-height:150px;overflow-y:auto;font-size:.8rem;white-space:pre-wrap;word-wrap:break-word}
     /* Botones flotantes */
-    #toggleDarkMode,#mainEditButton,#openGlobalSearch{position:fixed;right:1rem;border:none;color:#fff;border-radius:9999px;cursor:pointer;transition:background-color .3s;z-index:1100;width:40px;height:40px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 6px rgba(0,0,0,.1)}#toggleDarkMode{top:1rem;background-color:#3b82f6}#mainEditButton{top:4.5rem;background-color:#6b7280}#openGlobalSearch{top:8rem;background-color:#10B981}#toggleDarkMode:hover{background-color:#2563eb}#mainEditButton:hover{background-color:#4b5563}#openGlobalSearch:hover{background-color:#059669}
+    #toggleDarkMode,#mainEditButton,#openGlobalSearch,#openTagSearch{position:fixed;right:1rem;border:none;color:#fff;border-radius:9999px;cursor:pointer;transition:background-color .3s;z-index:1100;width:40px;height:40px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 6px rgba(0,0,0,.1)}#toggleDarkMode{top:1rem;background-color:#3b82f6}#mainEditButton{top:4.5rem;background-color:#6b7280}#openGlobalSearch{top:8rem;background-color:#10B981}#openTagSearch{top:11.5rem;background-color:#8B5CF6}#toggleDarkMode:hover{background-color:#2563eb}#mainEditButton:hover{background-color:#4b5563}#openGlobalSearch:hover{background-color:#059669}#openTagSearch:hover{background-color:#7C3AED}
+    /* Estilos para etiquetas (tags) */
+    .tag-container{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}.tag{background-color:#e5e7eb;color:#4b5563;padding:2px 8px;border-radius:9999px;font-size:0.75rem;font-weight:500}body.dark .tag{background-color:#374151;color:#d1d5db}
+    /* Botones de acción en tarjetas */
+    .card-actions{position:absolute;bottom:8px;right:8px;display:flex;gap:8px;opacity:0;transition:opacity .2s ease-in-out}.card:hover .card-actions{opacity:1}.card-actions button{background-color:rgba(255,255,255,0.7);border:1px solid #ddd;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer}body.dark .card-actions button{background-color:rgba(40,40,40,0.8);border-color:#555}
   </style>
 </head>
 <body class="min-h-screen">
   <!-- BOTONES FLOTANTES -->
   <button id="toggleDarkMode" title="Cambiar Modo"><i class="fas fa-moon"></i></button>
-  <button id="mainEditButton" title="Añadir Contenido"><i class="fas fa-edit"></i></button>
+  <button id="mainEditButton" title="Añadir Contenido"><i class="fas fa-plus"></i></button>
   <button id="openGlobalSearch" title="Búsqueda Global"><i class="fas fa-search"></i></button>
+  <button id="openTagSearch" title="Buscar por Etiqueta"><i class="fas fa-tags"></i></button>
   
   <div class="container mx-auto px-4 py-8">
     <h1 class="text-4xl font-bold text-center text-blue-600 mb-8">Centro de Búsqueda y Accesos</h1>
@@ -48,13 +53,14 @@
     </main>
     
     <!-- PANEL DE EDICIÓN -->
-    <div id="editPanel" class="hidden"><div class="container mx-auto px-4 py-8"><div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold">Panel de Edición</h2><button id="closeEditButton" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full"><i class="fas fa-times"></i></button></div><div class="mb-6 p-4 bg-gray-100 rounded-lg"><p class="text-sm text-gray-600">Usa este panel para agregar nuevos elementos. Los cambios se guardarán automáticamente en la nube.</p></div><div class="bg-white rounded-lg shadow-md p-6 mb-6"><h3 class="text-xl font-semibold mb-4">Agregar nuevo elemento</h3><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="block text-sm font-medium mb-1">Título</label><input type="text" id="newTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div><label class="block text-sm font-medium mb-1">Acción (URL, texto, etc.)</label><input type="text" id="newAction" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div><label class="block text-sm font-medium mb-1">Tipo</label><select id="newType" class="w-full px-3 py-2 border border-gray-300 rounded-md"><option value="Buscador">Buscador</option><option value="Link">Link</option><option value="Promp">Prompt</option><option value="Nota">Nota</option><option value="Tarea">Tarea</option></select></div><div><label class="block text-sm font-medium mb-1">Categoría</label><select id="categorySelect" class="w-full px-3 py-2 border border-gray-300 rounded-md"></select><input type="text" id="newCategoryInput" class="hidden w-full px-3 py-2 border border-gray-300 rounded-md mt-2" placeholder="Nombre de la nueva categoría"></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Icono (Opcional, clase Font Awesome)</label><input type="text" id="newIcon" placeholder="Ej: fas fa-rocket. Dejar en blanco para automático" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div></div><button id="addItemButton" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"><i class="fas fa-plus mr-2"></i>Agregar elemento</button></div></div></div>
+    <div id="editPanel" class="hidden"><div class="container mx-auto px-4 py-8"><div class="flex justify-between items-center mb-6"><h2 id="editPanelTitle" class="text-2xl font-bold">Agregar Nuevo Elemento</h2><button id="closeEditButton" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full"><i class="fas fa-times"></i></button></div><div class="bg-white rounded-lg shadow-md p-6 mb-6"><form id="editForm"><input type="hidden" id="editItemId"><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="block text-sm font-medium mb-1">Título</label><input type="text" id="newTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div><label class="block text-sm font-medium mb-1">Acción (URL, texto, etc.)</label><input type="text" id="newAction" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div><label class="block text-sm font-medium mb-1">Tipo</label><select id="newType" class="w-full px-3 py-2 border border-gray-300 rounded-md"><option value="Buscador">Buscador</option><option value="Link">Link</option><option value="Promp">Prompt</option><option value="Nota">Nota</option><option value="Tarea">Tarea</option></select></div><div><label class="block text-sm font-medium mb-1">Categoría</label><select id="categorySelect" class="w-full px-3 py-2 border border-gray-300 rounded-md"></select><input type="text" id="newCategoryInput" class="hidden w-full px-3 py-2 border border-gray-300 rounded-md mt-2" placeholder="Nombre de la nueva categoría"></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Etiquetas (separadas por comas)</label><input type="text" id="newTags" placeholder="Ej: trabajo, personal, urgente" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Icono (Opcional, clase Font Awesome)</label><input type="text" id="newIcon" placeholder="Ej: fas fa-rocket. Dejar en blanco para automático" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div></div><button id="saveItemButton" type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"><i class="fas fa-save mr-2"></i>Guardar</button></form></div></div></div>
     
     <!-- TOAST (Notificación) -->
     <div id="toast" class="hidden fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-md shadow-lg"></div>
     
-    <!-- MODAL DE BÚSQUEDA GLOBAL -->
+    <!-- MODALES -->
     <div id="searchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all"><div class="p-4"><input type="text" id="globalSearchInput" placeholder="Busca en todos tus botones, notas y prompts..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="globalSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeGlobalSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
+    <div id="tagSearchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all"><div class="p-4"><input type="text" id="tagSearchInput" placeholder="Busca por etiqueta..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="tagSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeTagSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
   </div>
 
 <script>
@@ -117,6 +123,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setupEventListeners();
     setupDarkMode();
     setupGlobalSearch();
+    setupTagSearch();
 });
 
 // --- FUNCIONES DE CONFIGURACIÓN (SETUP) ---
@@ -133,330 +140,105 @@ function setupDarkMode() {
 }
 
 function setupEventListeners() {
-    // Navegación principal
     document.querySelector("#nav-buscadores").addEventListener("click", () => switchTab("buscadores"));
     document.querySelector("#nav-links").addEventListener("click", () => switchTab("links"));
     document.querySelector("#nav-prompts").addEventListener("click", () => switchTab("prompts"));
     document.querySelector("#nav-notes").addEventListener("click", () => switchTab("notes"));
     document.querySelector("#nav-tasks").addEventListener("click", () => switchTab("tasks"));
-    
-    // Búsqueda principal
     document.querySelector("#searchButton").addEventListener("click", performSearch);
     document.querySelector("#searchInput").addEventListener("keypress", e => { if (e.key === 'Enter') performSearch(); });
     document.querySelector("#dropdownToggle").addEventListener("click", () => document.getElementById("searchEngineDropdown").classList.toggle("hidden"));
-
-    // Panel de edición
-    document.querySelector("#mainEditButton").addEventListener("click", () => {
-        document.getElementById("editPanel").classList.remove("hidden");
-        populateCategorySuggestions();
-    });
+    document.querySelector("#mainEditButton").addEventListener("click", () => openEditPanel());
     document.querySelector("#closeEditButton").addEventListener("click", () => document.getElementById("editPanel").classList.add("hidden"));
-    document.querySelector("#addItemButton").addEventListener("click", addItem);
+    document.getElementById('editForm').addEventListener('submit', handleSaveItem);
     document.getElementById('categorySelect').addEventListener('change', handleCategoryChange);
 }
 
 function setupGlobalSearch() {
     const openBtn = document.getElementById('openGlobalSearch');
-    const closeBtn = document.getElementById('closeGlobalSearch');
     const modal = document.getElementById('searchModal');
     const searchInput = document.getElementById('globalSearchInput');
-    const resultsContainer = document.getElementById('globalSearchResults');
-
+    
     openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
-    closeBtn.addEventListener('click', () => modal.classList.add('hidden'));
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) modal.classList.add('hidden');
-    });
+    document.getElementById('closeGlobalSearch').addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
 
     searchInput.addEventListener('input', (e) => {
         const searchTerm = e.target.value.toLowerCase();
-        resultsContainer.innerHTML = ''; 
-
-        if (searchTerm.length < 2) {
-            resultsContainer.innerHTML = '<p class="text-gray-500">Escribe al menos 2 letras para buscar.</p>';
-            return;
-        }
-
         const results = data.filter(item =>
             item.title.toLowerCase().includes(searchTerm) ||
             item.action.toLowerCase().includes(searchTerm) ||
-            item.category.toLowerCase().includes(searchTerm)
+            item.category.toLowerCase().includes(searchTerm) ||
+            (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
         );
-
-        if (results.length === 0) {
-            resultsContainer.innerHTML = '<p class="text-gray-500">No se encontraron resultados.</p>';
-        } else {
-            results.forEach(item => {
-                const resultEl = document.createElement('div');
-                resultEl.className = "p-3 mb-2 border rounded-md hover:bg-gray-100 cursor-pointer flex items-center";
-                resultEl.innerHTML = `<div class="w-8 flex-shrink-0">${getIconHtml(item)}</div><div class="ml-3"><div class="font-bold">${item.title}</div><div class="text-xs text-gray-500">${item.type} / ${item.category}</div></div>`;
-                resultEl.addEventListener('click', () => {
-                    showToast(`Seleccionado: ${item.title}`);
-                    modal.classList.add('hidden');
-                    if (item.type === 'Link' || item.type === 'Buscador') {
-                        handleCardClick(String(item.id));
-                    } else {
-                        switchTab(item.type.toLowerCase().replace('p', 'ps'));
-                    }
-                });
-                resultsContainer.appendChild(resultEl);
-            });
-        }
+        renderSearchResults(results, document.getElementById('globalSearchResults'), searchTerm.length < 2);
     });
 }
 
+function setupTagSearch() {
+    const openBtn = document.getElementById('openTagSearch');
+    const modal = document.getElementById('tagSearchModal');
+    const searchInput = document.getElementById('tagSearchInput');
+
+    openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+    document.getElementById('closeTagSearch').addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
+
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const results = data.filter(item => 
+            item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+        );
+        renderSearchResults(results, document.getElementById('tagSearchResults'), searchTerm.length < 2);
+    });
+}
+
+function renderSearchResults(results, container, isTooShort) {
+    container.innerHTML = '';
+    if (isTooShort) {
+        container.innerHTML = '<p class="text-gray-500">Escribe al menos 2 letras para buscar.</p>';
+        return;
+    }
+    if (results.length === 0) {
+        container.innerHTML = '<p class="text-gray-500">No se encontraron resultados.</p>';
+    } else {
+        results.forEach(item => {
+            const resultEl = document.createElement('div');
+            resultEl.className = "p-3 mb-2 border rounded-md hover:bg-gray-100 cursor-pointer flex items-center";
+            resultEl.innerHTML = `<div class="w-8 flex-shrink-0">${getIconHtml(item)}</div><div class="ml-3"><div class="font-bold">${item.title}</div><div class="text-xs text-gray-500">${item.type} / ${item.category}</div></div>`;
+            resultEl.addEventListener('click', () => {
+                showToast(`Seleccionado: ${item.title}`);
+                document.getElementById('searchModal').classList.add('hidden');
+                document.getElementById('tagSearchModal').classList.add('hidden');
+                if (item.type === 'Link' || item.type === 'Buscador') {
+                    handleCardClick(String(item.id));
+                } else {
+                    switchTab(item.type.toLowerCase().replace('p', 'ps'));
+                }
+            });
+            container.appendChild(resultEl);
+        });
+    }
+}
 
 // --- LÓGICA DE LA INTERFAZ (UI) ---
-function switchTab(tabName) {
-    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-    document.querySelector(`#nav-${tabName}`).classList.add("active");
-    document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
-    document.querySelector(`#section-${tabName}`).classList.remove("hidden");
-}
-
-function initializeUI() {
-    if (!data) return;
-    renderAllSections();
-    populateSearchEngineDropdown();
-    updateSearchSuggestions();
-}
-
-function renderAllSections() {
-    renderSection("Buscador", "searchEnginesContainer", "searchFilterButtons", "searchCardSearchInput", "noBuscadoresFound");
-    renderSection("Link", "linksContainer", "linkFilterButtons", "linkCardSearchInput", "noLinksFound");
-    renderSection("Promp", "promptsContainer", "promptFilterButtons", "promptCardSearchInput", "noPromptsFound");
-    renderSection("Nota", "notesContainer", "noteFilterButtons", "noteCardSearchInput", "noNotesFound");
-    renderSection("Tarea", "tasksContainer", "taskFilterButtons", "taskCardSearchInput", "noTasksFound");
-}
-
-function renderSection(type, containerId, filterId, searchId, notFoundId) {
-    const container = document.getElementById(containerId);
-    const filterContainer = document.getElementById(filterId);
-    const searchInput = document.getElementById(searchId);
-    const notFound = document.getElementById(notFoundId);
-    
-    const items = data.filter(item => item.type === type);
-    const categories = [...new Set(items.map(item => item.category))].sort();
-
-    filterContainer.innerHTML = '';
-
-    const render = () => {
-        const category = filterContainer.querySelector('.active')?.dataset.category;
-        const searchTerm = searchInput.value.toLowerCase();
-        let filteredItems = items;
-
-        if (category) {
-            filteredItems = filteredItems.filter(item => item.category === category);
-        }
-        if (searchTerm) {
-            filteredItems = filteredItems.filter(item => 
-                item.title.toLowerCase().includes(searchTerm) ||
-                item.action.toLowerCase().includes(searchTerm) ||
-                item.category.toLowerCase().includes(searchTerm)
-            );
-        }
-
-        container.innerHTML = '';
-        const categorized = filteredItems.reduce((acc, item) => {
-            (acc[item.category] = acc[item.category] || []).push(item);
-            return acc;
-        }, {});
-
-        Object.keys(categorized).sort().forEach(cat => {
-            const catDiv = document.createElement('div');
-            catDiv.className = "mb-8";
-            catDiv.innerHTML = `<h3 class="category-title text-xl font-semibold mb-4">${cat}</h3><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>`;
-            const grid = catDiv.querySelector('.grid');
-            categorized[cat].forEach(item => grid.appendChild(createCard(item)));
-            container.appendChild(catDiv);
-        });
-
-        notFound.classList.toggle('hidden', filteredItems.length === 0);
-    };
-
-    ['Todos', ...categories].forEach(cat => {
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm';
-        btn.textContent = cat;
-        if (cat !== 'Todos') btn.dataset.category = cat;
-        if (cat === 'Todos') btn.classList.add('active');
-        btn.addEventListener('click', (e) => {
-            filterContainer.querySelector('.active')?.classList.remove('active');
-            e.target.classList.add('active');
-            render();
-        });
-        filterContainer.appendChild(btn);
-    });
-
-    searchInput.oninput = render;
-    render();
-}
-
-function createCard(item) {
-    const card = document.createElement('div');
-    card.className = "card bg-white p-4 rounded-lg text-center";
-    card.title = item.title;
-    let contentHtml = '';
-    const iconHtml = getIconHtml(item);
-
-    if (item.type === 'Buscador' || item.type === 'Link') {
-        contentHtml = `<a href="#" class="block h-full flex flex-col justify-center items-center" onclick="event.preventDefault(); handleCardClick('${item.id}')">${iconHtml}<div class="mt-2 font-medium text-sm">${item.title}</div></a>`;
-    } else {
-        contentHtml = `
-            <div class="flex items-center text-left">
-                <div class="flex-shrink-0 w-6 mr-2 flex items-center justify-center">${iconHtml}</div>
-                <h4 class="text-lg font-medium">${item.title}</h4>
-            </div>
-            <div class="mt-3 bg-gray-50 p-2 rounded text-sm text-left text-gray-700 prompt-content">${item.action.replace(/\n/g, "<br>")}</div>
-            ${item.type === 'Promp' ? `<button class="copy-btn mt-3 w-full bg-purple-100 hover:bg-purple-200 text-purple-800 py-1 rounded-md text-sm" onclick="copyToClipboard('${item.id}')">Copiar</button>` : ''}`;
-    }
-    card.innerHTML = contentHtml;
-    return card;
-}
-
-function getIconHtml(item) {
-    if (item.icon) {
-        return `<i class="${item.icon} text-2xl mx-auto text-blue-500"></i>`;
-    }
-    if (item.type === 'Link') {
-        try {
-            const domain = new URL(item.action).hostname;
-            return `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=32" class="w-6 h-6 mx-auto object-contain" alt="Favicon" onerror="this.onerror=null;this.src='https://placehold.co/32x32/transparent/transparent?text=L';">`;
-        } catch (e) {
-            return '<i class="fas fa-link text-2xl mx-auto text-blue-500"></i>';
-        }
-    }
-    const defaultIcons = {
-        'Buscador': 'fas fa-search',
-        'Promp': 'fas fa-brain',
-        'Nota': 'fas fa-sticky-note',
-        'Tarea': 'fas fa-tasks'
-    };
-    return `<i class="${defaultIcons[item.type] || 'fas fa-question-circle'} text-2xl mx-auto text-blue-500"></i>`;
-}
-
-function handleCardClick(id) {
-    const item = data.find(i => String(i.id) === id);
-    if (!item) return;
-    if (item.type === 'Link') {
-        window.open(item.action, '_blank');
-    } else if (item.type === 'Buscador') {
-        document.getElementById("selectedEngine").textContent = item.title;
-        showToast(`Motor seleccionado: ${item.title}`);
-    }
-}
-
-function copyToClipboard(id) {
-    const item = data.find(i => String(i.id) === id);
-    if (item) navigator.clipboard.writeText(item.action).then(() => showToast("Copiado al portapapeles"));
-}
-
-function performSearch() {
-    const searchTerm = document.getElementById("searchInput").value.trim();
-    if (!searchTerm) return;
-    if (!searchHistory.includes(searchTerm)) {
-        searchHistory.push(searchTerm);
-        localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
-        updateSearchSuggestions();
-    }
-    const engineTitle = document.getElementById("selectedEngine").textContent;
-    const engine = data.find(item => item.type === "Buscador" && item.title === engineTitle);
-    if (engine) {
-        window.open(engine.action.replace("{search_term}", encodeURIComponent(searchTerm)), '_blank');
-    }
-}
-
-function populateSearchEngineDropdown() {
-    const dropdown = document.getElementById("searchEngineDropdown");
-    dropdown.innerHTML = "";
-    data.filter(item => item.type === 'Buscador').forEach(engine => {
-        const itemEl = document.createElement("div");
-        itemEl.className = "p-2 hover:bg-gray-100 cursor-pointer flex items-center";
-        itemEl.innerHTML = `${getIconHtml(engine)}<span class="ml-2">${engine.title}</span>`;
-        itemEl.onclick = () => {
-            document.getElementById("selectedEngine").textContent = engine.title;
-            dropdown.classList.add("hidden");
-        };
-        dropdown.appendChild(itemEl);
-    });
-}
-
-function updateSearchSuggestions() {
-    document.getElementById("searchSuggestions").innerHTML = searchHistory.map(term => `<option value="${term}"></option>`).join('');
-}
-
-function populateCategorySuggestions() {
-    const categorySelect = document.getElementById('categorySelect');
-    document.getElementById('newCategoryInput').classList.add('hidden');
-    
-    const categories = [...new Set(data.map(item => item.category))].sort();
-    
-    categorySelect.innerHTML = '<option value="" disabled selected>-- Elige una categoría --</option>'; 
-    
-    categories.forEach(cat => {
-        if (cat) {
-            const option = document.createElement('option');
-            option.value = cat;
-            option.textContent = cat;
-            categorySelect.appendChild(option);
-        }
-    });
-    
-    const addNewOption = document.createElement('option');
-    addNewOption.value = '__add_new__';
-    addNewOption.textContent = '-- Añadir nueva categoría --';
-    categorySelect.appendChild(addNewOption);
-}
-
-function handleCategoryChange(event) {
-    const newCategoryInput = document.getElementById('newCategoryInput');
-    if (event.target.value === '__add_new__') {
-        newCategoryInput.classList.remove('hidden');
-        newCategoryInput.focus();
-    } else {
-        newCategoryInput.classList.add('hidden');
-    }
-}
-
-function addItem() {
-    const categorySelect = document.getElementById('categorySelect');
-    let category = categorySelect.value;
-    if (category === '__add_new__') {
-        category = document.getElementById('newCategoryInput').value.trim();
-    }
-
-    const newItem = {
-        id: Date.now(),
-        title: document.getElementById("newTitle").value.trim(),
-        action: document.getElementById("newAction").value.trim(),
-        type: document.getElementById("newType").value,
-        category: category,
-        icon: document.getElementById("newIcon").value.trim()
-    };
-
-    if (!newItem.title || !newItem.action || !newItem.category) {
-        return showToast("Por favor, completa Título, Acción y Categoría.");
-    }
-    if (newItem.type === 'Tarea') newItem.completed = false;
-    
-    data.push(newItem);
-    saveData();
-    renderAllSections();
-    
-    document.getElementById("newTitle").value = '';
-    document.getElementById("newAction").value = '';
-    document.getElementById("newCategoryInput").value = '';
-    document.getElementById("newIcon").value = '';
-    document.getElementById("editPanel").classList.add("hidden");
-}
-
-function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.remove("hidden");
-    setTimeout(() => toast.classList.add("hidden"), 3000);
-}
+function switchTab(tabName){document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active")),document.querySelector(`#nav-${tabName}`).classList.add("active"),document.querySelectorAll(".section").forEach(s=>s.classList.add("hidden")),document.querySelector(`#section-${tabName}`).classList.remove("hidden")}
+function initializeUI(){if(!data)return;renderAllSections(),populateSearchEngineDropdown(),updateSearchSuggestions()}
+function renderAllSections(){renderSection("Buscador","searchEnginesContainer","searchFilterButtons","searchCardSearchInput","noBuscadoresFound"),renderSection("Link","linksContainer","linkFilterButtons","linkCardSearchInput","noLinksFound"),renderSection("Promp","promptsContainer","promptFilterButtons","promptCardSearchInput","noPromptsFound"),renderSection("Nota","notesContainer","noteFilterButtons","noteCardSearchInput","noNotesFound"),renderSection("Tarea","tasksContainer","taskFilterButtons","taskCardSearchInput","noTasksFound")}
+function renderSection(type,containerId,filterId,searchId,notFoundId){const container=document.getElementById(containerId),filterContainer=document.getElementById(filterId),searchInput=document.getElementById(searchId),notFound=document.getElementById(notFoundId),items=data.filter(item=>item.type===type),categories=[...new Set(items.map(item=>item.category))].sort();filterContainer.innerHTML="";const render=()=>{const category=filterContainer.querySelector(".active")?.dataset.category,searchTerm=searchInput.value.toLowerCase();let filteredItems=items;category&&(filteredItems=filteredItems.filter(item=>item.category===category)),searchTerm&&(filteredItems=filteredItems.filter(item=>item.title.toLowerCase().includes(searchTerm)||item.action.toLowerCase().includes(searchTerm)||item.category.toLowerCase().includes(searchTerm))),container.innerHTML="";const categorized=filteredItems.reduce((acc,item)=>(acc[item.category]=acc[item.category]||[],acc[item.category].push(item),acc),{});Object.keys(categorized).sort().forEach(cat=>{const catDiv=document.createElement("div");catDiv.className="mb-8",catDiv.innerHTML=`<h3 class="category-title text-xl font-semibold mb-4">${cat}</h3><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>`;const grid=catDiv.querySelector(".grid");categorized[cat].forEach(item=>grid.appendChild(createCard(item))),container.appendChild(catDiv)}),notFound.classList.toggle("hidden",filteredItems.length===0)};["Todos",...categories].forEach(cat=>{const btn=document.createElement("button");btn.className="filter-btn px-3 py-1 bg-gray-200 rounded-md text-sm",btn.textContent=cat,cat!=="Todos"&&(btn.dataset.category=cat),"Todos"===cat&&btn.classList.add("active"),btn.addEventListener("click",e=>{filterContainer.querySelector(".active")?.classList.remove("active"),e.target.classList.add("active"),render()}),filterContainer.appendChild(btn)}),searchInput.oninput=render,render()}
+function createCard(item){const card=document.createElement("div");card.className="card bg-white p-4 rounded-lg text-center flex flex-col justify-between",card.title=item.title,card.dataset.id=item.id;let contentHtml="",iconHtml=getIconHtml(item);if(item.type==="Buscador"||item.type==="Link")contentHtml=`<a href="#" class="block h-full flex flex-col justify-center items-center" onclick="event.preventDefault(); handleCardClick('${item.id}')">${iconHtml}<div class="mt-2 font-medium text-sm">${item.title}</div></a>`;else contentHtml=`<div class="flex items-center text-left"><div class="flex-shrink-0 w-6 mr-2 flex items-center justify-center">${iconHtml}</div><h4 class="text-lg font-medium">${item.title}</h4></div><div class="mt-3 bg-gray-50 p-2 rounded text-sm text-left text-gray-700 prompt-content">${item.action.replace(/\n/g,"<br>")}</div>${item.type==="Promp"?`<button class="copy-btn mt-3 w-full bg-purple-100 hover:bg-purple-200 text-purple-800 py-1 rounded-md text-sm" onclick="copyToClipboard('${item.id}')">Copiar</button>`:""}`;let tagsHtml="";item.tags&&item.tags.length>0&&(tagsHtml=`<div class="tag-container">${item.tags.map(tag=>`<span class="tag">${tag}</span>`).join("")}</div>`);const actionsHtml=`<div class="card-actions"><button onclick="openEditPanel('${item.id}')" class="text-blue-600" title="Editar"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteItem('${item.id}')" class="text-red-600" title="Eliminar"><i class="fas fa-trash-alt"></i></button></div>`;return card.innerHTML=`<div>${contentHtml}</div>${tagsHtml}${actionsHtml}`,card}
+function getIconHtml(item){if(item.icon)return`<i class="${item.icon} text-2xl mx-auto text-blue-500"></i>`;if("Link"===item.type)try{const domain=new URL(item.action).hostname;return`<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=32" class="w-6 h-6 mx-auto object-contain" alt="Favicon" onerror="this.onerror=null;this.src='https://placehold.co/32x32/transparent/transparent?text=L';">`}catch(e){return'<i class="fas fa-link text-2xl mx-auto text-blue-500"></i>'}const defaultIcons={Buscador:"fas fa-search",Promp:"fas fa-brain",Nota:"fas fa-sticky-note",Tarea:"fas fa-tasks"};return`<i class="${defaultIcons[item.type]||"fas fa-question-circle"} text-2xl mx-auto text-blue-500"></i>`}
+function handleCardClick(id){const item=data.find(i=>String(i.id)===id);if(!item)return;"Link"===item.type?window.open(item.action,"_blank"):"Buscador"===item.type&&(document.getElementById("selectedEngine").textContent=item.title,showToast(`Motor seleccionado: ${item.title}`))}
+function copyToClipboard(id){const item=data.find(i=>String(i.id)===id);item&&navigator.clipboard.writeText(item.action).then(()=>showToast("Copiado al portapapeles"))}
+function performSearch(){const searchTerm=document.getElementById("searchInput").value.trim();if(!searchTerm)return;searchHistory.includes(searchTerm)||(searchHistory.push(searchTerm),localStorage.setItem("searchHistory",JSON.stringify(searchHistory)),updateSearchSuggestions());const engineTitle=document.getElementById("selectedEngine").textContent,engine=data.find(item=>"Buscador"===item.type&&item.title===engineTitle);engine&&window.open(engine.action.replace("{search_term}",encodeURIComponent(searchTerm)),"_blank")}
+function populateSearchEngineDropdown(){const dropdown=document.getElementById("searchEngineDropdown");dropdown.innerHTML="",data.filter(item=>"Buscador"===item.type).forEach(engine=>{const itemEl=document.createElement("div");itemEl.className="p-2 hover:bg-gray-100 cursor-pointer flex items-center",itemEl.innerHTML=`${getIconHtml(engine)}<span class="ml-2">${engine.title}</span>`,itemEl.onclick=()=>{document.getElementById("selectedEngine").textContent=engine.title,dropdown.classList.add("hidden")},dropdown.appendChild(itemEl)})}
+function updateSearchSuggestions(){document.getElementById("searchSuggestions").innerHTML=searchHistory.map(term=>`<option value="${term}"></option>`).join("")}
+function populateCategorySuggestions(selectedCategory=""){const categorySelect=document.getElementById("categorySelect");document.getElementById("newCategoryInput").classList.add("hidden");const categories=[...new Set(data.map(item=>item.category))].sort();categorySelect.innerHTML='<option value="" disabled>-- Elige una categoría --</option>',categories.forEach(cat=>{if(cat){const option=document.createElement("option");option.value=cat,option.textContent=cat,categorySelect.appendChild(option)}});const addNewOption=document.createElement("option");addNewOption.value="__add_new__",addNewOption.textContent="-- Añadir nueva categoría --",categorySelect.appendChild(addNewOption),categorySelect.value=selectedCategory||""}
+function handleCategoryChange(event){const newCategoryInput=document.getElementById("newCategoryInput");"__add_new__"===event.target.value?(newCategoryInput.classList.remove("hidden"),newCategoryInput.focus()):newCategoryInput.classList.add("hidden")}
+function openEditPanel(itemId=null){const form=document.getElementById("editForm"),panel=document.getElementById("editPanel"),title=document.getElementById("editPanelTitle");form.reset(),document.getElementById("editItemId").value="",title.textContent="Agregar Nuevo Elemento",document.getElementById("saveItemButton").innerHTML='<i class="fas fa-plus mr-2"></i>Agregar elemento';if(itemId){const item=data.find(i=>String(i.id)===itemId);if(item){title.textContent="Editar Elemento",document.getElementById("saveItemButton").innerHTML='<i class="fas fa-save mr-2"></i>Guardar Cambios',document.getElementById("editItemId").value=item.id,document.getElementById("newTitle").value=item.title,document.getElementById("newAction").value=item.action,document.getElementById("newType").value=item.type,populateCategorySuggestions(item.category),document.getElementById("newTags").value=item.tags?item.tags.join(", "):"",document.getElementById("newIcon").value=item.icon||""}}else{populateCategorySuggestions()}panel.classList.remove("hidden")}
+function handleSaveItem(event){event.preventDefault();const id=document.getElementById("editItemId").value,categorySelect=document.getElementById("categorySelect");let category=categorySelect.value;"__add_new__"===category&&(category=document.getElementById("newCategoryInput").value.trim());const tags=document.getElementById("newTags").value.split(",").map(tag=>tag.trim()).filter(tag=>tag);const newItemData={title:document.getElementById("newTitle").value.trim(),action:document.getElementById("newAction").value.trim(),type:document.getElementById("newType").value,category:category,icon:document.getElementById("newIcon").value.trim(),tags:tags};if(!newItemData.title||!newItemData.action||!newItemData.category)return showToast("Por favor, completa Título, Acción y Categoría.");if(id){const index=data.findIndex(i=>String(i.id)===id);index!==-1&&(data[index]={...data[index],...newItemData})}else{newItemData.id=Date.now(),"Tarea"===newItemData.type&&(newItemData.completed=!1),data.push(newItemData)}saveData(),renderAllSections(),document.getElementById("editPanel").classList.add("hidden")}
+function deleteItem(id){if(confirm("¿Estás seguro de que deseas eliminar este elemento?")){const index=data.findIndex(i=>String(i.id)===id);index!==-1&&(data.splice(index,1),saveData(),renderAllSections(),showToast("Elemento eliminado."))}}
+function showToast(message){const toast=document.getElementById("toast");toast.textContent=message,toast.classList.remove("hidden"),setTimeout(()=>toast.classList.add("hidden"),3e3)}
 </script>
 </body>
 </html>
