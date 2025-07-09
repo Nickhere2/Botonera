@@ -58,7 +58,8 @@
     .status-dot{width:12px;height:12px;border-radius:50%;margin-right:8px;cursor:pointer;border:2px solid transparent;transition:all .2s}.status-todo{background-color:#d1d5db}.status-inprogress{background-color:#f59e0b}.status-done{background-color:#10b981}
 
     /* --- PANELES Y BOTONES --- */
-    #editPanel{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(255,255,255,.95);z-index:1000;overflow-y:auto;transition:opacity .3s}.prompt-content,.note-content,.task-content{max-height:150px;overflow-y:auto;font-size:.8rem;white-space:pre-wrap;word-wrap:break-word}
+    #editPanel, #noteModal{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;overflow-y:auto;transition:opacity .3s}
+    .prompt-content,.note-content,.task-content{max-height:150px;overflow-y:auto;font-size:.8rem;white-space:pre-wrap;word-wrap:break-word}
     #mainEditButton,#openGlobalSearch,#openTagSearch,#themeBtn{position:fixed;right:1rem;border:none;color:#fff;border-radius:9999px;cursor:pointer;transition:background-color .3s;z-index:1100;width:40px;height:40px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 6px rgba(0,0,0,.1)}
     #themeBtn{top:1rem;background-color:#3b82f6}
     #mainEditButton{top:4.5rem;background-color:#6b7280}
@@ -76,6 +77,13 @@
     .main-action-btn:hover{background-color:var(--theme-color-hover) !important;}
     .main-action-btn-focus:focus{ring-color:var(--theme-color) !important;}
     .icon-themed{color:var(--theme-color) !important;}
+    
+    /* --- EDITOR DE NOTAS --- */
+    .editor-toolbar { background-color: #f3f4f6; padding: 8px; border-bottom: 1px solid #ddd; }
+    body.dark .editor-toolbar { background-color: #2a2a2a; border-color: #444; }
+    .editor-toolbar button { margin-right: 8px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; }
+    body.dark .editor-toolbar button { border-color: #555; }
+    #noteModalContent { min-height: 250px; padding: 1rem; }
   </style>
 </head>
 <body class="min-h-screen">
@@ -113,8 +121,8 @@
       <div id="section-tasks" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="taskFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="taskCardSearchInput" placeholder="Buscar en Tareas..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 mb-8 search-container"><div id="tasksContainer" class="space-y-8"></div><div id="noTasksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron tareas.</div></div>
     </main>
     
-    <!-- PANEL DE EDICIÓN -->
-    <div id="editPanel" class="hidden"><div class="container mx-auto px-4 py-8"><div class="flex justify-between items-center mb-6"><h2 id="editPanelTitle" class="text-2xl font-bold">Agregar Nuevo Elemento</h2><button id="closeEditButton" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full"><i class="fas fa-times"></i></button></div><div class="bg-white rounded-lg shadow-md p-6 mb-6"><form id="editForm"><input type="hidden" id="editItemId"><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="block text-sm font-medium mb-1">Título</label><input type="text" id="newTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div><label class="block text-sm font-medium mb-1">Acción (URL, texto, etc.)</label><textarea id="newAction" class="w-full px-3 py-2 border border-gray-300 rounded-md" rows="3"></textarea></div><div><label class="block text-sm font-medium mb-1">Tipo</label><select id="newType" class="w-full px-3 py-2 border border-gray-300 rounded-md"><option value="Buscador">Buscador</option><option value="Link">Link</option><option value="Promp">Prompt</option><option value="Nota">Nota</option><option value="Tarea">Tarea</option></select></div><div><label class="block text-sm font-medium mb-1">Categoría</label><select id="categorySelect" class="w-full px-3 py-2 border border-gray-300 rounded-md"></select><input type="text" id="newCategoryInput" class="hidden w-full px-3 py-2 border border-gray-300 rounded-md mt-2" placeholder="Nombre de la nueva categoría"></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Etiquetas (separadas por comas)</label><input type="text" id="newTags" list="tag-suggestions" placeholder="Ej: trabajo, personal, urgente" class="w-full px-3 py-2 border border-gray-300 rounded-md"><datalist id="tag-suggestions"></datalist></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Icono (Opcional, clase Font Awesome)</label><input type="text" id="newIcon" placeholder="Ej: fas fa-rocket. Dejar en blanco para automático" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div></div><button id="saveItemButton" type="submit" class="main-action-btn text-white px-4 py-2 rounded-md"><i class="fas fa-save mr-2"></i>Guardar</button></form></div></div></div>
+    <!-- PANEL DE EDICIÓN GENERAL -->
+    <div id="editPanel" class="hidden"><div class="container mx-auto px-4 py-8"><div class="flex justify-between items-center mb-6"><h2 id="editPanelTitle" class="text-2xl font-bold">Agregar Nuevo Elemento</h2><button id="closeEditButton" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full"><i class="fas fa-times"></i></button></div><div class="bg-white rounded-lg shadow-md p-6 mb-6"><form id="editForm"><input type="hidden" id="editItemId"><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="block text-sm font-medium mb-1">Título</label><input type="text" id="newTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div><label class="block text-sm font-medium mb-1">Acción (URL o Contenido)</label><textarea id="newAction" class="w-full px-3 py-2 border border-gray-300 rounded-md" rows="3"></textarea></div><div><label class="block text-sm font-medium mb-1">Tipo</label><select id="newType" class="w-full px-3 py-2 border border-gray-300 rounded-md"><option value="Buscador">Buscador</option><option value="Link">Link</option><option value="Promp">Prompt</option><option value="Nota">Nota</option><option value="Tarea">Tarea</option></select></div><div><label class="block text-sm font-medium mb-1">Categoría</label><select id="categorySelect" class="w-full px-3 py-2 border border-gray-300 rounded-md"></select><input type="text" id="newCategoryInput" class="hidden w-full px-3 py-2 border border-gray-300 rounded-md mt-2" placeholder="Nombre de la nueva categoría"></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Etiquetas (separadas por comas)</label><input type="text" id="newTags" list="tag-suggestions" placeholder="Ej: trabajo, personal, urgente" class="w-full px-3 py-2 border border-gray-300 rounded-md"><datalist id="tag-suggestions"></datalist></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Icono (Opcional, clase Font Awesome)</label><input type="text" id="newIcon" placeholder="Ej: fas fa-rocket. Dejar en blanco para automático" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div></div><button id="saveItemButton" type="submit" class="main-action-btn text-white px-4 py-2 rounded-md"><i class="fas fa-save mr-2"></i>Guardar</button></form></div></div></div>
     
     <!-- TOAST (Notificación) -->
     <div id="toast" class="hidden fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-md shadow-lg"></div>
@@ -122,7 +130,7 @@
     <!-- MODALES -->
     <div id="searchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="globalSearchInput" placeholder="Busca en todos tus botones, notas y prompts..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="globalSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeGlobalSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
     <div id="tagSearchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="tagSearchInput" placeholder="Busca por etiqueta..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="tagSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeTagSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
-    <div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content p-6"><h2 id="noteModalTitle" class="text-2xl font-bold mb-4"></h2><textarea id="noteModalContent" class="w-full h-64 p-2 border rounded-md"></textarea><div class="mt-4 flex justify-end gap-2"><input type="hidden" id="noteModalId"><button id="closeNoteModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveNoteModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar</button></div></div></div>
+    <div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all modal-content flex flex-col"><div class="p-4 border-b"><h2 id="noteModalTitle" class="text-2xl font-bold"></h2></div><div class="editor-toolbar"><button onclick="formatDoc('bold')"><i class="fas fa-bold"></i></button><button onclick="formatDoc('italic')"><i class="fas fa-italic"></i></button><button onclick="formatDoc('underline')"><i class="fas fa-underline"></i></button><button onclick="formatDoc('insertUnorderedList')"><i class="fas fa-list-ul"></i></button></div><div id="noteModalContent" class="p-4 flex-grow overflow-y-auto" contenteditable="true"></div><div class="mt-4 flex justify-end gap-2 p-4 border-t"><input type="hidden" id="noteModalId"><button id="closeNoteModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveNoteModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar</button></div></div></div>
   </div>
 
 <script>
@@ -156,7 +164,13 @@ async function loadData() {
         // MIGRACIÓN DE DATOS ANTIGUOS
         data = loadedData.map(item => {
             if (item.type === 'Tarea' && typeof item.action === 'string') {
-                return { ...item, action: item.action.split('\n').map(line => ({ text: line, status: 'todo' })) };
+                return { ...item, action: item.action.split('\n').filter(Boolean).map(line => ({ text: line, status: 'todo' })) };
+            }
+            if (item.type === 'Nota' && (item.action.startsWith('<') || item.action.includes('<div>'))) {
+                 // Ya es HTML, no hacer nada
+            } else if (item.type === 'Nota') {
+                 // Convertir texto plano a un simple div
+                 item.action = `<div>${item.action.replace(/\n/g, '<br>')}</div>`;
             }
             return item;
         });
@@ -206,16 +220,9 @@ function setupUnifiedThemeButton() {
 
     const applyThemeState = (state) => {
         const [mode, theme] = state.split('-');
-        
-        // Aplicar modo oscuro
         document.body.classList.toggle('dark', mode === 'dark');
-        
-        // Aplicar tema de color
         THEMES.forEach(t => document.body.classList.remove(`theme-${t}`));
-        if (theme !== 'default') {
-            document.body.classList.add(`theme-${theme}`);
-        }
-        
+        if (theme !== 'default') document.body.classList.add(`theme-${theme}`);
         localStorage.setItem('themeState', state);
     };
 
@@ -373,13 +380,20 @@ function renderSection(type, containerId, filterId, searchId, notFoundId) {
             const catDiv = document.createElement('div');
             catDiv.className = "mb-8";
             const gridLayout = (type === 'Nota' || type === 'Tarea') ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3' : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6';
-            catDiv.innerHTML = `<div class="category-title-container"><h2 class="category-title">${cat}</h2><button onclick="deleteCategory('${cat}')" class="text-gray-400 hover:text-red-500 p-1 rounded-full" title="Eliminar categoría '${cat}'"><i class="fas fa-trash-alt"></i></button></div><div class="grid ${gridLayout} gap-4"></div>`;
+            catDiv.innerHTML = `<div class="category-title-container"><h2 class="category-title">${cat}</h2><div><button onclick="editCategoryName('${cat}')" class="text-gray-400 hover:text-blue-500 p-1 rounded-full" title="Editar nombre de categoría"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteCategory('${cat}')" class="text-gray-400 hover:text-red-500 p-1 rounded-full ml-2" title="Eliminar categoría '${cat}'"><i class="fas fa-trash-alt"></i></button></div></div><div class="grid ${gridLayout} gap-4"></div>`;
             const grid = catDiv.querySelector(".grid");
             categorized[cat].forEach(item => grid.appendChild(createCard(item)));
+            if (['Nota', 'Tarea', 'Promp'].includes(type)) {
+                const addCard = document.createElement('div');
+                addCard.className = 'card bg-gray-100 dark:bg-gray-800 border-dashed border-2 flex items-center justify-center cursor-pointer min-h-[150px]';
+                addCard.innerHTML = '<i class="fas fa-plus text-4xl text-gray-400"></i>';
+                addCard.onclick = () => openEditPanel(null, type, cat);
+                grid.appendChild(addCard);
+            }
             container.appendChild(catDiv);
         });
 
-        notFound.classList.toggle('hidden', filteredItems.length === 0);
+        notFound.classList.toggle('hidden', filteredItems.length > 0);
     };
 
     ['Todos', ...categories].forEach(cat => {
@@ -402,7 +416,7 @@ function renderSection(type, containerId, filterId, searchId, notFoundId) {
 
 function createCard(item) {
     const card = document.createElement("div");
-    let cardClasses = "card bg-white p-4 rounded-lg text-center flex flex-col justify-between";
+    let cardClasses = "card bg-white p-4 rounded-lg text-left flex flex-col justify-between";
     if (item.type === 'Nota') cardClasses += ' note-card';
     card.className = cardClasses;
     card.title = item.title;
@@ -412,7 +426,7 @@ function createCard(item) {
     const iconHtml = getIconHtml(item);
 
     if (item.type === 'Nota') {
-        contentHtml = `<div onclick="openNoteModal('${item.id}')" class="cursor-pointer h-full flex flex-col"><h4 class="text-lg font-bold mb-2">${item.title}</h4><p class="text-left text-sm flex-grow">${item.action.substring(0, 150)}...</p></div>`;
+        contentHtml = `<div onclick="openNoteModal('${item.id}')" class="cursor-pointer h-full flex flex-col"><h4 class="text-lg font-bold mb-2">${item.title}</h4><div class="text-sm flex-grow">${item.action}</div></div>`;
     } else if (item.type === 'Tarea') {
         const tasksHtml = item.action.map((task, index) => `
             <li class="task-item ${task.status === 'done' ? 'done' : ''}">
@@ -420,9 +434,9 @@ function createCard(item) {
                 <span class="task-text">${task.text}</span>
             </li>
         `).join('');
-        contentHtml = `<div class="text-left"><h4 class="text-lg font-bold mb-2">${item.title}</h4><ul class="task-list">${tasksHtml}</ul></div>`;
+        contentHtml = `<div><h4 class="text-lg font-bold mb-2">${item.title}</h4><ul class="task-list">${tasksHtml}</ul></div>`;
     } else if (item.type === "Buscador" || item.type === "Link") {
-        contentHtml = `<a href="#" class="block h-full flex flex-col justify-center items-center" onclick="event.preventDefault(); handleCardClick('${item.id}')">${iconHtml}<div class="mt-2 font-medium text-sm">${item.title}</div></a>`;
+        contentHtml = `<a href="#" class="block h-full flex flex-col justify-center items-center text-center" onclick="event.preventDefault(); handleCardClick('${item.id}')">${iconHtml}<div class="mt-2 font-medium text-sm">${item.title}</div></a>`;
     } else {
         contentHtml = `<div class="flex items-center text-left"><div class="flex-shrink-0 w-6 mr-2 flex items-center justify-center">${iconHtml}</div><h4 class="text-lg font-medium">${item.title}</h4></div><div class="mt-3 bg-gray-50 p-2 rounded text-sm text-left text-gray-700 prompt-content">${item.action.replace(/\n/g,"<br>")}</div>${item.type==="Promp"?`<button class="copy-btn mt-3 w-full bg-purple-100 hover:bg-purple-200 text-purple-800 py-1 rounded-md text-sm" onclick="copyToClipboard('${item.id}')">Copiar</button>`:""}`;
     }
@@ -539,7 +553,7 @@ function handleCategoryChange(event) {
     }
 }
 
-function openEditPanel(itemId = null) {
+function openEditPanel(itemId = null, prefillType = null, prefillCategory = null) {
     const form = document.getElementById("editForm");
     const panel = document.getElementById("editPanel");
     const title = document.getElementById("editPanelTitle");
@@ -554,7 +568,6 @@ function openEditPanel(itemId = null) {
             document.getElementById("saveItemButton").innerHTML = '<i class="fas fa-save mr-2"></i>Guardar Cambios';
             document.getElementById("editItemId").value = item.id;
             document.getElementById("newTitle").value = item.title;
-            // Adaptar 'action' para el textarea
             if (item.type === 'Tarea') {
                 document.getElementById("newAction").value = item.action.map(t => t.text).join('\n');
             } else {
@@ -566,7 +579,8 @@ function openEditPanel(itemId = null) {
             document.getElementById("newIcon").value = item.icon || "";
         }
     } else {
-        populateCategorySuggestions();
+        populateCategorySuggestions(prefillCategory);
+        if(prefillType) document.getElementById("newType").value = prefillType;
     }
     populateTagSuggestions();
     panel.classList.remove("hidden");
@@ -585,7 +599,7 @@ function handleSaveItem(event) {
     
     let action;
     if (type === 'Tarea') {
-        action = document.getElementById("newAction").value.split('\n').map(line => ({ text: line, status: 'todo' }));
+        action = document.getElementById("newAction").value.split('\n').filter(Boolean).map(line => ({ text: line, status: 'todo' }));
     } else {
         action = document.getElementById("newAction").value.trim();
     }
@@ -602,7 +616,6 @@ function handleSaveItem(event) {
     if (id) {
         const index = data.findIndex(i => String(i.id) === id);
         if (index !== -1) {
-            // Si es una tarea, preservamos el estado de las sub-tareas existentes
             if (newItemData.type === 'Tarea' && Array.isArray(data[index].action)) {
                 newItemData.action = newItemData.action.map((newTask, i) => ({
                     text: newTask.text,
@@ -645,18 +658,32 @@ function deleteCategory(categoryName) {
     }
 }
 
+function editCategoryName(oldName) {
+    const newName = prompt(`Ingresa el nuevo nombre para la categoría "${oldName}":`, oldName);
+    if (newName && newName.trim() !== oldName) {
+        data.forEach(item => {
+            if (item.category === oldName) {
+                item.category = newName.trim();
+            }
+        });
+        saveData();
+        renderAllSections();
+        showToast(`Categoría renombrada a "${newName.trim()}".`);
+    }
+}
+
 function openNoteModal(itemId) {
     const item = data.find(i => String(i.id) === itemId);
     if (!item) return;
     document.getElementById('noteModalTitle').textContent = item.title;
-    document.getElementById('noteModalContent').value = item.action;
+    document.getElementById('noteModalContent').innerHTML = item.action;
     document.getElementById('noteModalId').value = item.id;
     document.getElementById('noteModal').classList.remove('hidden');
 }
 
 function saveNoteFromModal() {
     const id = document.getElementById('noteModalId').value;
-    const content = document.getElementById('noteModalContent').value;
+    const content = document.getElementById('noteModalContent').innerHTML;
     const index = data.findIndex(i => String(i.id) === id);
     if (index !== -1) {
         data[index].action = content;
@@ -665,6 +692,10 @@ function saveNoteFromModal() {
         document.getElementById('noteModal').classList.add('hidden');
         showToast('Nota guardada.');
     }
+}
+
+function formatDoc(command, value = null) {
+    document.execCommand(command, false, value);
 }
 
 function cycleTaskStatus(itemId, taskIndex) {
