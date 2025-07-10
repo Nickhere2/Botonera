@@ -104,6 +104,7 @@
   </style>
 </head>
 <body class="min-h-screen">
+  <!-- BOTONES FLOTANTES UNIFICADOS -->
   <div class="fab-container">
     <div class="fab-actions">
       <button id="themeSwitcherBtn" class="fab-action" title="Cambiar Tema"><i class="fas fa-palette"></i></button>
@@ -113,10 +114,13 @@
     <div class="fab-main"><i class="fas fa-plus"></i></div>
   </div>
 
+  <!-- PALETA DE TEMAS -->
   <div id="themePalette" class="hidden"></div>
   
+  <!-- CABECERA FIJA -->
   <header class="sticky-header">
     <div class="container mx-auto px-4">
+      <!-- NAVEGACIÓN PRINCIPAL -->
       <nav class="flex justify-center flex-wrap gap-4 sm:gap-8 mb-4">
         <button id="nav-buscadores" class="nav-btn active"><i class="fas fa-search mr-2"></i>Buscadores</button>
         <button id="nav-links" class="nav-btn"><i class="fas fa-link mr-2"></i>Links</button>
@@ -124,11 +128,13 @@
         <button id="nav-notes" class="nav-btn"><i class="fas fa-sticky-note mr-2"></i>Notas</button>
         <button id="nav-tasks" class="nav-btn"><i class="fas fa-tasks mr-2"></i>Tareas</button>
       </nav>
+      <!-- BARRA DE BÚSQUEDA PRINCIPAL -->
       <div id="main-search-bar" class="search-container"><div class="relative"><div class="flex"><input type="text" id="searchInput" list="searchSuggestions" placeholder="Ingresa tu búsqueda aquí..." class="w-full px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 main-action-btn-focus text-lg"><datalist id="searchSuggestions"></datalist><div class="relative"><button id="dropdownToggle" class="main-action-btn text-white px-4 py-3 rounded-r-lg flex items-center"><span id="selectedEngine">Google</span><i class="fas fa-chevron-down ml-2"></i></button><div id="searchEngineDropdown" class="hidden absolute right-0 top-full mt-1 w-64 bg-white rounded-md shadow-lg z-10"></div></div></div><button id="searchButton" class="mt-3 main-action-btn text-white w-full py-3 rounded-lg flex items-center justify-center text-lg font-medium"><i class="fas fa-search mr-2"></i>Buscar</button></div></div>
     </div>
   </header>
 
   <div class="container mx-auto px-4">
+    <!-- CONTENEDOR DE SECCIONES -->
     <main>
       <div id="section-buscadores" class="section">
         <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="searchFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="searchCardSearchInput" placeholder="Buscar en Buscadores..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 main-action-btn-focus mb-8 search-container"><div id="searchEnginesContainer" class="space-y-8"></div><div id="noBuscadoresFound" class="hidden text-center text-gray-500 mt-8">No se encontraron buscadores.</div>
@@ -139,10 +145,13 @@
       <div id="section-tasks" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="taskFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="taskCardSearchInput" placeholder="Buscar en Tareas..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 mb-8 search-container"><div id="tasksContainer" class="space-y-8"></div><div id="noTasksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron tareas.</div></div>
     </main>
     
+    <!-- PANEL DE EDICIÓN GENERAL -->
     <div id="editPanel" class="hidden"><div class="container mx-auto px-4 py-8"><div class="flex justify-between items-center mb-6"><h2 id="editPanelTitle" class="text-2xl font-bold">Agregar Nuevo Elemento</h2><button id="closeEditButton" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full"><i class="fas fa-times"></i></button></div><div class="bg-white rounded-lg shadow-md p-6 mb-6"><div class="flex gap-8"><div class="w-2/3"><form id="editForm"><input type="hidden" id="editItemId"><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="block text-sm font-medium mb-1">Título</label><input type="text" id="newTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div><label class="block text-sm font-medium mb-1">Acción (URL o Contenido)</label><textarea id="newAction" class="w-full px-3 py-2 border border-gray-300 rounded-md" rows="3"></textarea></div><div><label class="block text-sm font-medium mb-1">Tipo</label><select id="newType" class="w-full px-3 py-2 border border-gray-300 rounded-md"><option value="Buscador">Buscador</option><option value="Link">Link</option><option value="Promp">Prompt</option><option value="Nota">Nota</option><option value="Tarea">Tarea</option></select></div><div><label class="block text-sm font-medium mb-1">Categoría</label><select id="categorySelect" class="w-full px-3 py-2 border border-gray-300 rounded-md"></select><input type="text" id="newCategoryInput" class="hidden w-full px-3 py-2 border border-gray-300 rounded-md mt-2" placeholder="Nombre de la nueva categoría"></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Etiquetas (separadas por comas)</label><input type="text" id="newTags" list="tag-suggestions" placeholder="Ej: trabajo, personal, urgente" class="w-full px-3 py-2 border border-gray-300 rounded-md"><datalist id="tag-suggestions"></datalist></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Icono (Opcional, clase Font Awesome)</label><input type="text" id="newIcon" placeholder="Ej: fas fa-rocket. Dejar en blanco para automático" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div></div><button id="saveItemButton" type="submit" class="main-action-btn text-white px-4 py-2 rounded-md"><i class="fas fa-save mr-2"></i>Guardar</button></form></div><div class="w-1/3"><h4 class="text-sm font-bold mb-2 text-gray-600">Vista Previa</h4><div id="livePreviewContainer"></div></div></div></div></div>
     
+    <!-- TOAST (Notificación) -->
     <div id="toast" class="hidden fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-md shadow-lg"></div>
     
+    <!-- MODALES -->
     <div id="searchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="globalSearchInput" placeholder="Busca en todos tus botones, notas y prompts..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="globalSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeGlobalSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
     <div id="tagSearchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="tagSearchInput" placeholder="Busca por etiqueta..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="tagSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeTagSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
     <div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all modal-content flex flex-col"><div class="p-4 border-b"><h2 id="noteModalTitle" class="text-2xl font-bold"></h2></div><div class="editor-toolbar"><button onclick="formatDoc('bold')"><i class="fas fa-bold"></i></button><button onclick="formatDoc('italic')"><i class="fas fa-italic"></i></button><button onclick="formatDoc('underline')"><i class="fas fa-underline"></i></button><button onclick="formatDoc('insertUnorderedList')"><i class="fas fa-list-ul"></i></button></div><div id="noteModalContent" class="p-4 flex-grow overflow-y-auto" contenteditable="true"></div><div class="mt-4 flex justify-end gap-2 p-4 border-t"><input type="hidden" id="noteModalId"><button id="closeNoteModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveNoteModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar</button></div></div></div>
