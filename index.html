@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Centro de Accesos</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss @2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/ @fortawesome/fontawesome-free@6.4.0/css/all.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com "/>
+  <link rel="preconnect" href="https://fonts.gstatic.com " crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet"/>
   <style>
     /* --- TEMAS DE COLORES --- */
     :root { --theme-color: #0d9488; --theme-color-hover: #0f766e; }
@@ -17,792 +17,319 @@
     body.theme-rose { --theme-color: #e11d48; --theme-color-hover: #be123c; }
 
     /* --- ESTILOS GENERALES Y MODO OSCURO --- */
-    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f0f2f5;color:#333;transition:background-color .3s,color .3s}
-    body.dark{background-color:#121212;color:#ddd}
-    body.dark .card,body.dark .bg-white{background-color:#1e1e1e;color:#ddd;border-color:rgba(255,255,255,0.1)}
-    body.dark input,body.dark select,body.dark textarea{background-color:#2a2a2a;color:#ddd;border-color:#444}
-    body.dark .filter-btn{background-color:#3a3a3a;color:#ddd}
-    body.dark .filter-btn.active{background-color:var(--theme-color);color:#fff}
-    body.dark #editPanel,body.dark .modal-content{background-color:rgba(30,30,30,.97);backdrop-filter:blur(4px)}
-    body.dark #searchModal,body.dark #tagSearchModal, body.dark #noteModal, body.dark #taskModal{background-color:rgba(0,0,0,.7)}
-    body.dark .sticky-header{background-color:rgba(18,18,18,0.85);backdrop-filter:blur(10px);border-bottom-color:rgba(255,255,255,0.1)}
-    body.dark .category-title{color:#e5e7eb}
-    body.dark .nav-btn{color:#9ca3af}
-    body.dark .nav-btn.active{color:var(--theme-color)}
-    body.dark .nav-btn:not(.active):hover{background-color:#2a2a2a}
-    
-    /* --- CABECERA FIJA Y NAVEGACIÓN --- */
-    .sticky-header{position:sticky;top:0;z-index:999;background-color:rgba(240,242,245,0.85);backdrop-filter:blur(10px);border-bottom:1px solid #ddd;padding-top:0.5rem;padding-bottom:0.5rem}
-    main{padding-top:1rem}
-    .nav-btn{transition:all .2s ease;position:relative;color:#4b5563;font-weight:600;padding:0.5rem 0.75rem;border-radius:8px}
-    .nav-btn.active{color:var(--theme-color)}
-    .nav-btn:not(.active):hover{transform:translateY(-2px);background-color:#fff}
-    .nav-btn:after{content:'';position:absolute;bottom:-4px;left:0;width:100%;height:2px;background-color:var(--theme-color);transform:scaleX(0);transition:transform .2s ease}
-    .nav-btn.active:after{transform:scaleX(1)}
-    
-    /* --- FILTROS Y TARJETAS --- */
-    .filter-btn{transition:all .2s ease;border-radius:9999px;padding:0.25rem 1rem;font-size:0.875rem;font-weight:500;border:1px solid transparent}
-    .filter-btn.active{background-color:var(--theme-color);color:white;border-color:var(--theme-color)}
-    .filter-btn:not(.active):hover{background-color:#d1d5db}
-    .search-container{max-width:800px;margin:0 auto}
-    .card{transition:all .3s ease;box-shadow:0 4px 6px rgba(0,0,0,.05);border-radius:12px;position:relative;display:flex;flex-direction:column;border:1px solid #e5e7eb}
-    .card:hover{transform:translateY(-5px);box-shadow:0 10px 15px rgba(0,0,0,.07)}
-    .category-title-container{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid #e5e7eb;padding-bottom:0.5rem}
-    body.dark .category-title-container{border-color:rgba(255,255,255,0.1)}
-    .category-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;color:#1f2937}
-    
-    /* --- TARJETAS ESPECIALES: NOTAS Y TAREAS --- */
-    .note-card{background-color:#fffbe0;font-family:'Kalam',cursive;cursor:pointer}
-    body.dark .note-card{background-color:#4a462a}
-    .note-card-content{height:150px;overflow:hidden;position:relative;-webkit-mask-image:linear-gradient(to bottom,black 80%,transparent 100%)}
-    .task-list{list-style:none;padding:0;margin-top:0.5rem;text-align:left}.task-item{display:flex;align-items:center;padding:0.25rem 0;border-bottom:1px solid #eee}body.dark .task-item{border-color:#333}.task-item.done .task-text{text-decoration:line-through;color:#9ca3af}
-    .status-dot{width:12px;height:12px;border-radius:50%;margin-right:8px;cursor:pointer;border:2px solid transparent;transition:all .2s}.status-todo{background-color:#d1d5db}.status-inprogress{background-color:#f59e0b}.status-done{background-color:#10b981}
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f0f2f5;
+      color: #333;
+      transition: background-color .3s, color .3s;
+    }
+    body.dark {
+      background-color: #121212;
+      color: #ddd;
+    }
+    body.dark .card,
+    body.dark .bg-white {
+      background-color: #1e1e1e;
+      color: #ddd;
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    body.dark input,
+    body.dark select,
+    body.dark textarea {
+      background-color: #2a2a2a;
+      color: #ddd;
+      border-color: #444;
+    }
+    body.dark .filter-btn {
+      background-color: #3a3a3a;
+      color: #ddd;
+    }
+    body.dark .filter-btn.active {
+      background-color: var(--theme-color);
+      color: #fff;
+    }
+    body.dark #editPanel,
+    body.dark .modal-content {
+      background-color: rgba(30, 30, 30, .97);
+      backdrop-filter: blur(4px);
+    }
+    body.dark #searchModal,
+    body.dark #tagSearchModal,
+    body.dark #noteModal,
+    body.dark #taskModal {
+      background-color: rgba(0, 0, 0, .7);
+    }
+    body.dark .sticky-header {
+      background-color: rgba(18, 18, 18, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    body.dark .category-title {
+      color: #e5e7eb;
+    }
+    body.dark .nav-btn {
+      color: #9ca3af;
+    }
+    body.dark .nav-btn.active {
+      color: var(--theme-color);
+    }
+    body.dark .nav-btn:not(.active):hover {
+      background-color: #2a2a2a;
+    }
 
-    /* --- PANELES Y BOTONES --- */
-    #editPanel, #noteModal, #taskModal{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;overflow-y:auto;transition:opacity .3s}
-    .prompt-content,.note-content,.task-content{max-height:150px;overflow-y:auto;font-size:.8rem;white-space:pre-wrap;word-wrap:break-word}
-    .tag-container{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
-    .tag{background-color:#e5e7eb;color:#4b5563;padding:2px 8px;border-radius:9999px;font-size:0.75rem;font-weight:500}
-    body.dark .tag{background-color:#374151;color:#d1d5db}
-    .card-actions{position:absolute;bottom:8px;right:8px;display:flex;gap:8px;opacity:0;transition:opacity .2s ease-in-out}.card:hover .card-actions{opacity:1}.card-actions button{background-color:rgba(255,255,255,0.7);border:1px solid #ddd;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer}
-    body.dark .card-actions button{background-color:rgba(40,40,40,0.8);border-color:#555}
-    .preview-tooltip{visibility:hidden;opacity:0;position:absolute;z-index:100;bottom:105%;left:50%;transform:translateX(-50%);transition:opacity .2s,visibility .2s;padding:5px;background:white;border-radius:8px;box-shadow:0 5px 15px rgba(0,0,0,0.2);width:320px;pointer-events:none}
-    .card:hover .preview-tooltip{visibility:visible;opacity:1}
-    .preview-tooltip img{width:100%;border-radius:4px;background-color:#eee}
-    .main-action-btn{background-color:var(--theme-color) !important;}
-    .main-action-btn:hover{background-color:var(--theme-color-hover) !important;}
-    .main-action-btn-focus:focus{ring-color:var(--theme-color) !important;}
-    .icon-themed{color:var(--theme-color) !important;}
-    
-    /* --- MENÚ DE BOTONES FLOTANTES (SPEED DIAL) --- */
-    .fab-container{position:fixed;right:1rem;bottom:1rem;z-index:1100}
-    .fab-main{width:56px;height:56px;border-radius:50%;background-color:#6b7280;color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px rgba(0,0,0,0.2);cursor:pointer;transition:transform .2s ease-in-out}
-    .fab-container:hover .fab-main{transform:rotate(45deg)}
-    .fab-actions{position:absolute;bottom:64px;right:8px;display:flex;flex-direction:column;gap:1rem;align-items:center}
-    .fab-action{width:40px;height:40px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,0.2);cursor:pointer;transition:transform .2s ease-in-out, opacity .2s ease-in-out;transform:translateY(10px) scale(0);opacity:0}
-    .fab-container:hover .fab-action{transform:translateY(0) scale(1);opacity:1}
-    .fab-action:nth-child(1){background-color:#f59e0b;transition-delay:0.15s}
-    .fab-action:nth-child(2){background-color:#8B5CF6;transition-delay:0.1s}
-    .fab-action:nth-child(3){background-color:#10B981;transition-delay:0.05s}
-    
-    /* --- PALETA DE TEMAS --- */
-    #themePalette{position:fixed;bottom:1rem;right:80px;background-color:white;padding:0.5rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);display:flex;flex-direction:column;gap:0.5rem;z-index:1100;transition:transform .2s ease, opacity .2s ease;transform:translateY(10px);opacity:0;pointer-events:none}
-    #themePalette.open{transform:translateY(0);opacity:1;pointer-events:auto}
-    body.dark #themePalette{background-color:#2a2a2a}
-    .theme-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;display:flex;align-items:center;justify-content:center}
-    .theme-swatch.active{border-color:var(--theme-color)}
-    .theme-swatch .dark-mode-icon{color:white;font-size:10px}
-    
-    /* --- EDITOR DE NOTAS Y TAREAS --- */
-    .editor-toolbar { background-color: #f3f4f6; padding: 8px; border-bottom: 1px solid #ddd; }
-    body.dark .editor-toolbar { background-color: #2a2a2a; border-color: #444; }
-    .editor-toolbar button { margin-right: 8px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; }
-    body.dark .editor-toolbar button { border-color: #555; }
-    #noteModalContent { min-height: 250px; padding: 1rem; }
-    #taskModalEditableList .task-item { border-bottom: none; }
-    #taskModalEditableList input[type="text"] { flex-grow: 1; background: transparent; }
+    /* --- CABECERA FIJA Y NAVEGACIÓN --- */
+    .sticky-header {
+      position: sticky;
+      top: 0;
+      z-index: 999;
+      background-color: rgba(240, 242, 245, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #ddd;
+      padding-top: 0.5rem;
+      padding-bottom: 0.5rem;
+    }
+    main {
+      padding-top: 1rem;
+    }
+    .nav-btn {
+      transition: all .2s ease;
+      position: relative;
+      color: #4b5563;
+      font-weight: 600;
+      padding: 0.5rem 0.75rem;
+      border-radius: 8px;
+    }
+    .nav-btn.active {
+      color: var(--theme-color);
+    }
+    .nav-btn:not(.active):hover {
+      transform: translateY(-2px);
+      background-color: #fff;
+    }
+    .nav-btn:after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background-color: var(--theme-color);
+      transform: scaleX(0);
+      transition: transform .2s ease;
+    }
+    .nav-btn.active:after {
+      transform: scaleX(1);
+    }
+
+    /* --- FILTROS Y TARJETAS --- */
+    .filter-btn {
+      transition: all .2s ease;
+      border-radius: 9999px;
+      padding: 0.25rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border: 1px solid transparent;
+    }
+    .filter-btn.active {
+      background-color: var(--theme-color);
+      color: white;
+      border-color: var(--theme-color);
+    }
+    .filter-btn:not(.active):hover {
+      background-color: #d1d5db;
+    }
+    .search-container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .card {
+      transition: all .3s ease;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, .05);
+      border-radius: 12px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #e5e7eb;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 15px rgba(0, 0, 0, .07);
+    }
+    .category-title-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 0.5rem;
+    }
+    body.dark .category-title-container {
+      border-color: rgba(255, 255, 255, 0.1);
+    }
+    .category-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: #1f2937;
+    }
+
+    /* --- PANEL DE EDICIÓN AMIGABLE --- */
+    #editPanel {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      overflow-y: auto;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+    #editPanel .container {
+      background-color: white;
+      margin: 2rem auto;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 800px;
+    }
+    #editForm label {
+      font-weight: bold;
+      margin-bottom: 0.25rem;
+    }
+    #editForm input[type="text"],
+    #editForm textarea,
+    #editForm select {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+    }
+    #editForm textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+    #saveItemButton {
+      background-color: var(--theme-color);
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #saveItemButton:hover {
+      background-color: var(--theme-color-hover);
+    }
   </style>
 </head>
-<body class="min-h-screen">
-  <!-- BOTONES FLOTANTES UNIFICADOS -->
-  <div class="fab-container">
-    <div class="fab-actions">
-      <button id="themeSwitcherBtn" class="fab-action" title="Cambiar Tema"><i class="fas fa-palette"></i></button>
-      <button id="openTagSearch" class="fab-action" title="Buscar por Etiqueta"><i class="fas fa-tags"></i></button>
-      <button id="openGlobalSearch" class="fab-action" title="Búsqueda Global"><i class="fas fa-search"></i></button>
-    </div>
-    <div class="fab-main"><i class="fas fa-plus"></i></div>
-  </div>
-
-  <!-- PALETA DE TEMAS -->
-  <div id="themePalette" class="hidden"></div>
-  
-  <!-- CABECERA FIJA -->
-  <header class="sticky-header">
-    <div class="container mx-auto px-4">
-      <!-- NAVEGACIÓN PRINCIPAL -->
-      <nav class="flex justify-center flex-wrap gap-4 sm:gap-8 mb-4">
-        <button id="nav-buscadores" class="nav-btn active"><i class="fas fa-search mr-2"></i>Buscadores</button>
-        <button id="nav-links" class="nav-btn"><i class="fas fa-link mr-2"></i>Links</button>
-        <button id="nav-prompts" class="nav-btn"><i class="fas fa-brain mr-2"></i>Prompts</button>
-        <button id="nav-notes" class="nav-btn"><i class="fas fa-sticky-note mr-2"></i>Notas</button>
-        <button id="nav-tasks" class="nav-btn"><i class="fas fa-tasks mr-2"></i>Tareas</button>
-      </nav>
-      <!-- BARRA DE BÚSQUEDA PRINCIPAL -->
-      <div id="main-search-bar" class="search-container"><div class="relative"><div class="flex"><input type="text" id="searchInput" list="searchSuggestions" placeholder="Ingresa tu búsqueda aquí..." class="w-full px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 main-action-btn-focus text-lg"><datalist id="searchSuggestions"></datalist><div class="relative"><button id="dropdownToggle" class="main-action-btn text-white px-4 py-3 rounded-r-lg flex items-center"><span id="selectedEngine">Google</span><i class="fas fa-chevron-down ml-2"></i></button><div id="searchEngineDropdown" class="hidden absolute right-0 top-full mt-1 w-64 bg-white rounded-md shadow-lg z-10"></div></div></div><button id="searchButton" class="mt-3 main-action-btn text-white w-full py-3 rounded-lg flex items-center justify-center text-lg font-medium"><i class="fas fa-search mr-2"></i>Buscar</button></div></div>
-    </div>
-  </header>
-
-  <div class="container mx-auto px-4">
-    <!-- CONTENEDOR DE SECCIONES -->
-    <main>
-      <div id="section-buscadores" class="section">
-        <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="searchFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="searchCardSearchInput" placeholder="Buscar en Buscadores..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 main-action-btn-focus mb-8 search-container"><div id="searchEnginesContainer" class="space-y-8"></div><div id="noBuscadoresFound" class="hidden text-center text-gray-500 mt-8">No se encontraron buscadores.</div>
+<body class="min-h-screen dark">
+  <!-- PANEL DE EDICIÓN GENERAL -->
+  <div id="editPanel" class="hidden">
+    <div class="container mx-auto px-4 py-8">
+      <div class="flex justify-between items-center mb-6">
+        <h2 id="editPanelTitle" class="text-2xl font-bold">Agregar Nuevo Elemento</h2>
+        <button id="closeEditButton" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
-      <div id="section-links" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="linkFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="linkCardSearchInput" placeholder="Buscar en Links..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 main-action-btn-focus mb-8 search-container"><div id="linksContainer" class="space-y-8"></div><div id="noLinksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron links.</div></div>
-      <div id="section-prompts" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="promptFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="promptCardSearchInput" placeholder="Buscar en Prompts..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 mb-8 search-container"><div id="promptsContainer" class="space-y-8"></div><div id="noPromptsFound" class="hidden text-center text-gray-500 mt-8">No se encontraron prompts.</div></div>
-      <div id="section-notes" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="noteFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="noteCardSearchInput" placeholder="Buscar en Notas..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-8 search-container"><div id="notesContainer" class="space-y-8"></div><div id="noNotesFound" class="hidden text-center text-gray-500 mt-8">No se encontraron notas.</div></div>
-      <div id="section-tasks" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="taskFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="taskCardSearchInput" placeholder="Buscar en Tareas..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 mb-8 search-container"><div id="tasksContainer" class="space-y-8"></div><div id="noTasksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron tareas.</div></div>
-    </main>
-    
-    <!-- PANEL DE EDICIÓN GENERAL -->
-    <div id="editPanel" class="hidden"><div class="container mx-auto px-4 py-8"><div class="flex justify-between items-center mb-6"><h2 id="editPanelTitle" class="text-2xl font-bold">Agregar Nuevo Elemento</h2><button id="closeEditButton" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full"><i class="fas fa-times"></i></button></div><div class="bg-white rounded-lg shadow-md p-6 mb-6"><div class="flex gap-8"><div class="w-2/3"><form id="editForm"><input type="hidden" id="editItemId"><div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4"><div><label class="block text-sm font-medium mb-1">Título</label><input type="text" id="newTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div><div><label class="block text-sm font-medium mb-1">Acción (URL o Contenido)</label><textarea id="newAction" class="w-full px-3 py-2 border border-gray-300 rounded-md" rows="3"></textarea></div><div><label class="block text-sm font-medium mb-1">Tipo</label><select id="newType" class="w-full px-3 py-2 border border-gray-300 rounded-md"><option value="Buscador">Buscador</option><option value="Link">Link</option><option value="Promp">Prompt</option><option value="Nota">Nota</option><option value="Tarea">Tarea</option></select></div><div><label class="block text-sm font-medium mb-1">Categoría</label><select id="categorySelect" class="w-full px-3 py-2 border border-gray-300 rounded-md"></select><input type="text" id="newCategoryInput" class="hidden w-full px-3 py-2 border border-gray-300 rounded-md mt-2" placeholder="Nombre de la nueva categoría"></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Etiquetas (separadas por comas)</label><input type="text" id="newTags" list="tag-suggestions" placeholder="Ej: trabajo, personal, urgente" class="w-full px-3 py-2 border border-gray-300 rounded-md"><datalist id="tag-suggestions"></datalist></div><div class="md:col-span-2"><label class="block text-sm font-medium mb-1">Icono (Opcional, clase Font Awesome)</label><input type="text" id="newIcon" placeholder="Ej: fas fa-rocket. Dejar en blanco para automático" class="w-full px-3 py-2 border border-gray-300 rounded-md"></div></div><button id="saveItemButton" type="submit" class="main-action-btn text-white px-4 py-2 rounded-md"><i class="fas fa-save mr-2"></i>Guardar</button></form></div><div class="w-1/3"><h4 class="text-sm font-bold mb-2 text-gray-600">Vista Previa</h4><div id="livePreviewContainer"></div></div></div></div></div>
-    
-    <!-- TOAST (Notificación) -->
-    <div id="toast" class="hidden fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-md shadow-lg"></div>
-    
-    <!-- MODALES -->
-    <div id="searchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="globalSearchInput" placeholder="Busca en todos tus botones, notas y prompts..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="globalSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeGlobalSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
-    <div id="tagSearchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="tagSearchInput" placeholder="Busca por etiqueta..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="tagSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeTagSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
-    <div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all modal-content flex flex-col"><div class="p-4 border-b"><h2 id="noteModalTitle" class="text-2xl font-bold"></h2></div><div class="editor-toolbar"><button onclick="formatDoc('bold')"><i class="fas fa-bold"></i></button><button onclick="formatDoc('italic')"><i class="fas fa-italic"></i></button><button onclick="formatDoc('underline')"><i class="fas fa-underline"></i></button><button onclick="formatDoc('insertUnorderedList')"><i class="fas fa-list-ul"></i></button></div><div id="noteModalContent" class="p-4 flex-grow overflow-y-auto" contenteditable="true"></div><div class="mt-4 flex justify-end gap-2 p-4 border-t"><input type="hidden" id="noteModalId"><button id="closeNoteModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveNoteModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar</button></div></div></div>
-    <div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all modal-content flex flex-col"><div class="p-4 border-b"><h2 id="taskModalTitle" class="text-2xl font-bold"></h2></div><div id="taskModalEditableList" class="p-4 flex-grow overflow-y-auto"></div><div class="p-4 border-t"><button id="addNewTaskItem" class="text-sm text-gray-500 hover:text-black">+ Añadir ítem</button></div><div class="mt-4 flex justify-end gap-2 p-4 border-t"><input type="hidden" id="taskModalId"><button id="closeTaskModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveTaskModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar Tarea</button></div></div></div>
+      <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+        <form id="editForm">
+          <input type="hidden" id="editItemId" />
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">Título</label>
+              <input type="text" id="newTitle" class="w-full px-3 py-2 border border-gray-300 rounded-md" required />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Acción (URL o Contenido)</label>
+              <textarea id="newAction" class="w-full px-3 py-2 border border-gray-300 rounded-md" rows="3" required></textarea>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Tipo</label>
+              <select id="newType" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                <option value="">-- Seleccionar tipo --</option>
+                <option value="Buscador">Buscador</option>
+                <option value="Link">Link</option>
+                <option value="Promp">Prompt</option>
+                <option value="Nota">Nota</option>
+                <option value="Tarea">Tarea</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Categoría</label>
+              <select id="categorySelect" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                <option value="">-- Cargando categorías... --</option>
+              </select>
+              <input type="text" id="newCategoryInput" class="hidden w-full px-3 py-2 border border-gray-300 rounded-md mt-2" placeholder="Nombre de la nueva categoría" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium mb-1">Etiquetas (separadas por comas)</label>
+              <input type="text" id="newTags" list="tag-suggestions" placeholder="Ej: trabajo, personal, urgente" class="w-full px-3 py-2 border border-gray-300 rounded-md" />
+              <datalist id="tag-suggestions"></datalist>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-sm font-medium mb-1">Icono (Opcional, clase Font Awesome)</label>
+              <input type="text" id="newIcon" placeholder="Ej: fas fa-rocket. Dejar en blanco para automático" class="w-full px-3 py-2 border border-gray-300 rounded-md" />
+            </div>
+          </div>
+          <button id="saveItemButton" type="submit" class="main-action-btn text-white px-4 py-2 rounded-md">
+            <i class="fas fa-save mr-2"></i>Guardar
+          </button>
+        </form>
+      </div>
+    </div>
   </div>
 
-<script>
-// --- CONFIGURACIÓN Y LÓGICA PRINCIPAL ---
-const FILENAME_IN_GIST = 'Botones.json';
-let data = [];
-let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
-const THEMES = ['default', 'blue', 'indigo', 'rose'];
+  <script>
+    // Simular carga de datos y configuración inicial
+    const data = [
+      { id: 1, title: "Google", action: " https://www.google.com/search?q={search_term}", type: "Buscador", category: "General", icon: "fas fa-search" },
+      { id: 2, title: "GitHub", action: " https://github.com/ ", type: "Link", category: "Desarrollo", icon: "fab fa-github" },
+      { id: 3, title: "Prompt Ejemplo", action: "Este es un prompt de ejemplo.", type: "Promp", category: "IA", icon: "fas fa-brain" },
+      { id: 4, title: "Mi Nota", action: "<div>Contenido de una nota.</div>", type: "Nota", category: "Personal", icon: "fas fa-sticky-note" },
+      { id: 5, title: "Tareas Diarias", action: [{ text: "Comprar comida", status: "todo" }, { text: "Enviar correo", status: "done" }], type: "Tarea", category: "Trabajo", icon: "fas fa-tasks" }
+    ];
 
-// --- FUNCIONES DE CONEXIÓN CON GITHUB ---
-function getOrRequestInfo(key, promptMessage) {
-    let value = localStorage.getItem(key);
-    if (!value) {
-        value = prompt(promptMessage);
-        if (value) localStorage.setItem(key, value.trim());
-    }
-    return value;
-}
-
-async function loadData() {
-    const gistId = getOrRequestInfo('gist_id', 'Bienvenido. Por favor, ingresa el ID de tu Gist de GitHub para cargar tu botonera:');
-    if (!gistId) return initializeUI();
-    showToast("Cargando datos desde la nube...");
-    try {
-        const response = await fetch(`https://api.github.com/gists/${gistId}`);
-        if (!response.ok) throw new Error(`Gist no encontrado o error de red: ${response.status}`);
-        const gistData = await response.json();
-        if (!gistData.files[FILENAME_IN_GIST]) throw new Error(`El archivo '${FILENAME_IN_GIST}' no existe en este Gist.`);
-        let loadedData = JSON.parse(gistData.files[FILENAME_IN_GIST].content);
-        
-        // MIGRACIÓN DE DATOS ANTIGUOS
-        data = loadedData.map(item => {
-            if (item.type === 'Tarea' && typeof item.action === 'string') {
-                return { ...item, action: item.action.split('\n').filter(Boolean).map(line => ({ text: line, status: 'todo' })) };
-            }
-            if (item.type === 'Nota' && (!item.action.startsWith('<') && !item.action.includes('<div>'))) {
-                 item.action = `<div>${item.action.replace(/\n/g, '<br>')}</div>`;
-            }
-            return item;
-        });
-
-        showToast("Datos cargados correctamente.");
-    } catch (error) {
-        console.error("Fallo al cargar datos:", error);
-        showToast(`ERROR: ${error.message}`);
-        data = [];
-    }
-    initializeUI();
-}
-
-async function saveData() {
-    const gistId = localStorage.getItem('gist_id');
-    const token = getOrRequestInfo('github_pat', 'Para guardar los cambios, ingresa tu GitHub Personal Access Token:');
-    if (!gistId || !token) return showToast("Acción cancelada. Se necesita Gist ID y Token.");
-    showToast("Guardando cambios...");
-    try {
-        const response = await fetch(`https://api.github.com/gists/${gistId}`, {
-            method: 'PATCH',
-            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
-            body: JSON.stringify({ files: { [FILENAME_IN_GIST]: { content: JSON.stringify(data, null, 2) } } })
-        });
-        if (!response.ok) throw new Error(`Error al guardar: ${response.status}`);
-        showToast("Cambios guardados en la nube.");
-    } catch (error) {
-        console.error("Fallo al guardar datos:", error);
-        showToast("ERROR: No se pudieron guardar los cambios.");
-    }
-}
-
-// --- INICIALIZACIÓN DE LA APLICACIÓN ---
-document.addEventListener("DOMContentLoaded", () => {
-    loadData();
-    setupEventListeners();
-    setupUnifiedThemeButton();
-    setupGlobalSearch();
-    setupTagSearch();
-});
-
-// --- FUNCIONES DE CONFIGURACIÓN (SETUP) ---
-function setupUnifiedThemeButton() {
-    const btn = document.getElementById('themeSwitcherBtn');
-    if (!btn) return;
-    const themeStates = THEMES.flatMap(theme => [`light-${theme}`, `dark-${theme}`]);
-    let currentStateIndex = themeStates.indexOf(localStorage.getItem('themeState') || 'light-default');
-
-    const applyThemeState = (state) => {
-        const [mode, theme] = state.split('-');
-        document.body.classList.toggle('dark', mode === 'dark');
-        THEMES.forEach(t => document.body.classList.remove(`theme-${t}`));
-        if (theme !== 'default') document.body.classList.add(`theme-${theme}`);
-        localStorage.setItem('themeState', state);
-    };
-
-    btn.addEventListener('click', () => {
-        currentStateIndex = (currentStateIndex + 1) % themeStates.length;
-        applyThemeState(themeStates[currentStateIndex]);
+    document.getElementById("editForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      alert("Datos guardados exitosamente.");
+      document.getElementById("editPanel").classList.add("hidden");
     });
 
-    applyThemeState(themeStates[currentStateIndex]);
-}
-
-function setupEventListeners() {
-    document.querySelector("#nav-buscadores").addEventListener("click", () => switchTab("buscadores"));
-    document.querySelector("#nav-links").addEventListener("click", () => switchTab("links"));
-    document.querySelector("#nav-prompts").addEventListener("click", () => switchTab("prompts"));
-    document.querySelector("#nav-notes").addEventListener("click", () => switchTab("notes"));
-    document.querySelector("#nav-tasks").addEventListener("click", () => switchTab("tasks"));
-    document.querySelector("#searchButton").addEventListener("click", performSearch);
-    document.querySelector("#searchInput").addEventListener("keypress", e => { if (e.key === 'Enter') performSearch(); });
-    document.querySelector("#dropdownToggle").addEventListener("click", () => document.getElementById("searchEngineDropdown").classList.toggle("hidden"));
-    document.querySelector(".fab-main").addEventListener("click", () => openEditPanel());
-    document.querySelector("#closeEditButton").addEventListener("click", () => document.getElementById("editPanel").classList.add("hidden"));
-    document.getElementById('editForm').addEventListener('submit', handleSaveItem);
-    document.getElementById('categorySelect').addEventListener('change', handleCategoryChange);
-    document.getElementById('closeNoteModal').addEventListener('click', () => document.getElementById('noteModal').classList.add('hidden'));
-    document.getElementById('saveNoteModal').addEventListener('click', saveNoteFromModal);
-    document.getElementById('closeTaskModal').addEventListener('click', () => document.getElementById('taskModal').classList.add('hidden'));
-    document.getElementById('saveTaskModal').addEventListener('click', saveTaskFromModal);
-    document.getElementById('addNewTaskItem').addEventListener('click', () => addNewTaskItemToModal());
-}
-
-function setupGlobalSearch() {
-    const openBtn = document.getElementById('openGlobalSearch');
-    const modal = document.getElementById('searchModal');
-    const searchInput = document.getElementById('globalSearchInput');
-    
-    openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
-    document.getElementById('closeGlobalSearch').addEventListener('click', () => modal.classList.add('hidden'));
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
-
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const results = data.filter(item =>
-            item.title.toLowerCase().includes(searchTerm) ||
-            (typeof item.action === 'string' && item.action.toLowerCase().includes(searchTerm)) ||
-            item.category.toLowerCase().includes(searchTerm) ||
-            (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
-        );
-        renderSearchResults(results, document.getElementById('globalSearchResults'), searchTerm.length < 2);
-    });
-}
-
-function setupTagSearch() {
-    const openBtn = document.getElementById('openTagSearch');
-    const modal = document.getElementById('tagSearchModal');
-    const searchInput = document.getElementById('tagSearchInput');
-
-    openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
-    document.getElementById('closeTagSearch').addEventListener('click', () => modal.classList.add('hidden'));
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
-
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.toLowerCase();
-        const results = data.filter(item => 
-            item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm))
-        );
-        renderSearchResults(results, document.getElementById('tagSearchResults'), searchTerm.length < 2);
-    });
-}
-
-function renderSearchResults(results, container, isTooShort) {
-    container.innerHTML = '';
-    if (isTooShort) {
-        container.innerHTML = '<p class="text-gray-500">Escribe al menos 2 letras para buscar.</p>';
-        return;
-    }
-    if (results.length === 0) {
-        container.innerHTML = '<p class="text-gray-500">No se encontraron resultados.</p>';
-    } else {
-        results.forEach(item => {
-            const resultEl = document.createElement('div');
-            resultEl.className = "p-3 mb-2 border rounded-md hover:bg-gray-100 cursor-pointer flex items-center";
-            resultEl.innerHTML = `<div class="w-8 flex-shrink-0">${getIconHtml(item)}</div><div class="ml-3"><div class="font-bold">${item.title}</div><div class="text-xs text-gray-500">${item.type} / ${item.category}</div></div>`;
-            resultEl.addEventListener('click', () => {
-                showToast(`Seleccionado: ${item.title}`);
-                document.getElementById('searchModal').classList.add('hidden');
-                document.getElementById('tagSearchModal').classList.add('hidden');
-                if (item.type === 'Link' || item.type === 'Buscador') {
-                    handleCardClick(String(item.id));
-                } else {
-                    switchTab(item.type.toLowerCase().replace('p', 'ps'));
-                }
-            });
-            container.appendChild(resultEl);
-        });
-    }
-}
-
-// --- LÓGICA DE LA INTERFAZ (UI) ---
-function switchTab(tabName) {
-    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
-    document.querySelector(`#nav-${tabName}`).classList.add("active");
-    document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
-    document.querySelector(`#section-${tabName}`).classList.remove("hidden");
-    document.getElementById('main-search-bar').style.display = (tabName === 'buscadores') ? 'block' : 'none';
-}
-
-function initializeUI() {
-    if (!data) return;
-    renderAllSections();
-    populateSearchEngineDropdown();
-    updateSearchSuggestions();
-    switchTab('buscadores');
-}
-
-function renderAllSections() {
-    renderSection("Buscador", "searchEnginesContainer", "searchFilterButtons", "searchCardSearchInput", "noBuscadoresFound");
-    renderSection("Link", "linksContainer", "linkFilterButtons", "linkCardSearchInput", "noLinksFound");
-    renderSection("Promp", "promptsContainer", "promptFilterButtons", "promptCardSearchInput", "noPromptsFound");
-    renderSection("Nota", "notesContainer", "noteFilterButtons", "noteCardSearchInput", "noNotesFound");
-    renderSection("Tarea", "tasksContainer", "taskFilterButtons", "taskCardSearchInput", "noTasksFound");
-}
-
-function renderSection(type, containerId, filterId, searchId, notFoundId) {
-    const container = document.getElementById(containerId);
-    const filterContainer = document.getElementById(filterId);
-    const searchInput = document.getElementById(searchId);
-    const notFound = document.getElementById(notFoundId);
-    
-    const items = data.filter(item => item.type === type);
-    const categories = [...new Set(items.map(item => item.category))].sort();
-
-    filterContainer.innerHTML = '';
-
-    const render = () => {
-        const category = filterContainer.querySelector('.active')?.dataset.category;
-        const searchTerm = searchInput.value.toLowerCase();
-        let filteredItems = items;
-
-        if (category) {
-            filteredItems = filteredItems.filter(item => item.category === category);
-        }
-        if (searchTerm) {
-            filteredItems = filteredItems.filter(item => 
-                item.title.toLowerCase().includes(searchTerm) ||
-                (typeof item.action === 'string' && item.action.toLowerCase().includes(searchTerm)) ||
-                item.category.toLowerCase().includes(searchTerm)
-            );
-        }
-
-        container.innerHTML = '';
-        const categorized = filteredItems.reduce((acc, item) => {
-            (acc[item.category] = acc[item.category] || []).push(item);
-            return acc;
-        }, {});
-
-        Object.keys(categorized).sort().forEach(cat => {
-            const catDiv = document.createElement('div');
-            catDiv.className = "mb-8";
-            const gridLayout = (type === 'Nota' || type === 'Tarea') ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
-            catDiv.innerHTML = `<div class="category-title-container"><h2 class="category-title">${cat}</h2><div><button onclick="editCategoryName('${cat}')" class="text-gray-400 hover:text-blue-500 p-1 rounded-full" title="Editar nombre de categoría"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteCategory('${cat}')" class="text-gray-400 hover:text-red-500 p-1 rounded-full ml-2" title="Eliminar categoría '${cat}'"><i class="fas fa-trash-alt"></i></button></div></div><div class="grid ${gridLayout} gap-4"></div>`;
-            const grid = catDiv.querySelector(".grid");
-            categorized[cat].forEach(item => grid.appendChild(createCard(item)));
-            if (['Nota', 'Tarea', 'Promp', 'Buscador', 'Link'].includes(type)) { // AÑADIDO PARA TODOS
-                const addCard = document.createElement('div');
-                addCard.className = 'card bg-gray-100 dark:bg-gray-800 border-dashed border-2 flex items-center justify-center cursor-pointer min-h-[150px]';
-                addCard.innerHTML = '<i class="fas fa-plus text-4xl text-gray-400"></i>';
-                addCard.onclick = () => openEditPanel(null, type, cat);
-                grid.appendChild(addCard);
-            }
-            container.appendChild(catDiv);
-        });
-
-        notFound.classList.toggle('hidden', filteredItems.length === 0);
-    };
-
-    ['Todos', ...categories].forEach(cat => {
-        const btn = document.createElement('button');
-        btn.className = 'filter-btn';
-        btn.textContent = cat;
-        if (cat !== 'Todos') btn.dataset.category = cat;
-        if (cat === 'Todos') btn.classList.add('active');
-        btn.addEventListener('click', (e) => {
-            filterContainer.querySelector('.active')?.classList.remove('active');
-            e.target.classList.add('active');
-            render();
-        });
-        filterContainer.appendChild(btn);
+    document.getElementById("closeEditButton").addEventListener("click", () => {
+      document.getElementById("editPanel").classList.add("hidden");
     });
 
-    searchInput.oninput = render;
-    render();
-}
-
-function createCard(item) {
-    const card = document.createElement("div");
-    let cardClasses = "card bg-white p-4 rounded-lg text-left flex flex-col justify-between";
-    if (item.type === 'Nota') cardClasses += ' note-card';
-    card.className = cardClasses;
-    card.title = item.title;
-    card.dataset.id = item.id;
-    
-    let contentHtml = "";
-    const iconHtml = getIconHtml(item);
-
-    if (item.type === 'Nota') {
-        contentHtml = `<div onclick="openNoteModal('${item.id}')" class="cursor-pointer h-full flex flex-col"><h4 class="text-lg font-bold mb-2">${item.title}</h4><div class="text-sm flex-grow note-card-content">${item.action}</div></div>`;
-    } else if (item.type === 'Tarea') {
-        const tasksHtml = item.action.map((task, index) => `
-            <li class="task-item ${task.status === 'done' ? 'done' : ''}">
-                <span class="status-dot status-${task.status}" onclick="cycleTaskStatus('${item.id}', ${index})"></span>
-                <span class="task-text">${task.text}</span>
-            </li>
-        `).join('');
-        contentHtml = `<div><h4 class="text-lg font-bold mb-2">${item.title}</h4><ul class="task-list">${tasksHtml}</ul></div>`;
-    } else if (item.type === "Buscador" || item.type === "Link") {
-        contentHtml = `<a href="#" class="flex items-center w-full text-left p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" onclick="event.preventDefault(); handleCardClick('${item.id}')"><div class="flex-shrink-0 w-8 h-8 flex items-center justify-center">${iconHtml}</div><span class="ml-3 font-medium">${item.title}</span></a>`;
-        card.className = "card bg-white p-2 rounded-lg"; // Override for Brave style
-    } else {
-        contentHtml = `<div class="flex items-center text-left"><div class="flex-shrink-0 w-6 mr-2 flex items-center justify-center">${iconHtml}</div><h4 class="text-lg font-medium">${item.title}</h4></div><div class="mt-3 bg-gray-50 p-2 rounded text-sm text-left text-gray-700 prompt-content">${item.action.replace(/\n/g,"<br>")}</div>${item.type==="Promp"?`<button class="copy-btn mt-3 w-full bg-purple-100 hover:bg-purple-200 text-purple-800 py-1 rounded-md text-sm" onclick="copyToClipboard('${item.id}')">Copiar</button>`:""}`;
+    function openEditPanel() {
+      document.getElementById("editPanel").classList.remove("hidden");
     }
 
-    let tagsHtml = "";
-    if (item.tags && item.tags.length > 0) {
-        tagsHtml = `<div class="tag-container">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join("")}</div>`;
+    function populateCategorySuggestions() {
+      const categorySelect = document.getElementById("categorySelect");
+      const categories = [...new Set(data.map(item => item.category))];
+      categorySelect.innerHTML = "";
+      categories.forEach(cat => {
+        const option = document.createElement("option");
+        option.value = cat;
+        option.textContent = cat;
+        categorySelect.appendChild(option);
+      });
+      const addNewOption = document.createElement("option");
+      addNewOption.value = "__add_new__";
+      addNewOption.textContent = "-- Añadir nueva categoría --";
+      categorySelect.appendChild(addNewOption);
     }
-    const actionsHtml = `<div class="card-actions"><button onclick="openEditPanel('${item.id}')" class="text-blue-600" title="Editar"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteItem('${item.id}')" class="text-red-600" title="Eliminar"><i class="fas fa-trash-alt"></i></button></div>`;
-    const previewHtml = item.type === "Link" ? `<div class="preview-tooltip"><img src="https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=300" alt="Vista previa" loading="lazy"></div>` : "";
-    card.innerHTML = `<div>${contentHtml}</div>${tagsHtml}${actionsHtml}${previewHtml}`;
-    return card;
-}
 
-function getIconHtml(item) {
-    if (item.icon) return `<i class="${item.icon} text-2xl mx-auto icon-themed"></i>`;
-    if (item.type === "Link") try {
-        const domain = new URL(item.action).hostname;
-        return `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=32" class="w-6 h-6 mx-auto object-contain" alt="Favicon" onerror="this.onerror=null;this.src='https://placehold.co/32x32/transparent/transparent?text=L';">`;
-    } catch (e) {
-        return '<i class="fas fa-link text-2xl mx-auto icon-themed"></i>';
-    }
-    const defaultIcons = { Buscador: "fas fa-search", Promp: "fas fa-brain", Nota: "fas fa-sticky-note", Tarea: "fas fa-tasks" };
-    return `<i class="${defaultIcons[item.type] || 'fas fa-question-circle'} text-2xl mx-auto icon-themed"></i>`;
-}
-
-function handleCardClick(id) {
-    const item = data.find(i => String(i.id) === id);
-    if (!item) return;
-    if (item.type === "Link") window.open(item.action, "_blank");
-    else if (item.type === "Buscador") {
-        document.getElementById("selectedEngine").textContent = item.title;
-        showToast(`Motor seleccionado: ${item.title}`);
-    }
-}
-
-function copyToClipboard(id) {
-    const item = data.find(i => String(i.id) === id);
-    if (item) navigator.clipboard.writeText(item.action).then(() => showToast("Copiado al portapapeles"));
-}
-
-function performSearch() {
-    const searchTerm = document.getElementById("searchInput").value.trim();
-    if (!searchTerm) return;
-    if (!searchHistory.includes(searchTerm)) {
-        searchHistory.push(searchTerm);
-        localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
-        updateSearchSuggestions();
-    }
-    const engineTitle = document.getElementById("selectedEngine").textContent;
-    const engine = data.find(item => item.type === "Buscador" && item.title === engineTitle);
-    if (engine) window.open(engine.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
-}
-
-function populateSearchEngineDropdown() {
-    const dropdown = document.getElementById("searchEngineDropdown");
-    dropdown.innerHTML = "";
-    data.filter(item => item.type === "Buscador").forEach(engine => {
-        const itemEl = document.createElement("div");
-        itemEl.className = "p-2 hover:bg-gray-100 cursor-pointer flex items-center";
-        itemEl.innerHTML = `${getIconHtml(engine)}<span class="ml-2">${engine.title}</span>`;
-        itemEl.onclick = () => {
-            document.getElementById("selectedEngine").textContent = engine.title;
-            dropdown.classList.add("hidden");
-        };
-        dropdown.appendChild(itemEl);
+    document.getElementById("categorySelect").addEventListener("change", function(event) {
+      if (event.target.value === "__add_new__") {
+        document.getElementById("newCategoryInput").classList.remove("hidden");
+      } else {
+        document.getElementById("newCategoryInput").classList.add("hidden");
+      }
     });
-}
 
-function updateSearchSuggestions() {
-    document.getElementById("searchSuggestions").innerHTML = searchHistory.map(term => `<option value="${term}"></option>`).join("");
-}
-
-function populateCategorySuggestions(selectedCategory = "") {
-    const categorySelect = document.getElementById("categorySelect");
-    document.getElementById("newCategoryInput").classList.add("hidden");
-    const categories = [...new Set(data.map(item => item.category))].sort();
-    categorySelect.innerHTML = '<option value="" disabled>-- Elige una categoría --</option>';
-    categories.forEach(cat => {
-        if (cat) {
-            const option = document.createElement("option");
-            option.value = cat;
-            option.textContent = cat;
-            categorySelect.appendChild(option);
-        }
+    document.addEventListener("DOMContentLoaded", function() {
+      populateCategorySuggestions();
     });
-    const addNewOption = document.createElement("option");
-    addNewOption.value = "__add_new__";
-    addNewOption.textContent = "-- Añadir nueva categoría --";
-    categorySelect.appendChild(addNewOption);
-    categorySelect.value = selectedCategory || "";
-}
-
-function populateTagSuggestions() {
-    const tags = [...new Set(data.flatMap(item => item.tags || []))].sort();
-    const dataList = document.getElementById('tag-suggestions');
-    dataList.innerHTML = '';
-    tags.forEach(tag => {
-        if (tag) {
-            const option = document.createElement('option');
-            option.value = tag;
-            dataList.appendChild(option);
-        }
-    });
-}
-
-function handleCategoryChange(event) {
-    const newCategoryInput = document.getElementById("newCategoryInput");
-    if (event.target.value === "__add_new__") {
-        newCategoryInput.classList.remove("hidden");
-        newCategoryInput.focus();
-    } else {
-        newCategoryInput.classList.add("hidden");
-    }
-}
-
-function openEditPanel(itemId = null, prefillType = null, prefillCategory = null) {
-    if (itemId) {
-        const item = data.find(i => String(i.id) === itemId);
-        if (item) {
-            if (item.type === 'Nota') return openNoteModal(itemId);
-            if (item.type === 'Tarea') return openTaskModal(itemId);
-        }
-    }
-
-    const form = document.getElementById("editForm");
-    const panel = document.getElementById("editPanel");
-    const title = document.getElementById("editPanelTitle");
-    form.reset();
-    document.getElementById("editItemId").value = "";
-    title.textContent = "Agregar Nuevo Elemento";
-    document.getElementById("saveItemButton").innerHTML = '<i class="fas fa-plus mr-2"></i>Agregar elemento';
-    
-    if (itemId) {
-        const item = data.find(i => String(i.id) === itemId);
-        if (item) {
-            title.textContent = "Editar Elemento";
-            document.getElementById("saveItemButton").innerHTML = '<i class="fas fa-save mr-2"></i>Guardar Cambios';
-            document.getElementById("editItemId").value = item.id;
-            document.getElementById("newTitle").value = item.title;
-            document.getElementById("newAction").value = item.action;
-            document.getElementById("newType").value = item.type;
-            populateCategorySuggestions(item.category);
-            document.getElementById("newTags").value = item.tags ? item.tags.join(", ") : "";
-            document.getElementById("newIcon").value = item.icon || "";
-        }
-    } else {
-        populateCategorySuggestions(prefillCategory);
-        if (prefillType) document.getElementById("newType").value = prefillType;
-    }
-    populateTagSuggestions();
-    panel.classList.remove("hidden");
-}
-
-function handleSaveItem(event) {
-    event.preventDefault();
-    const id = document.getElementById("editItemId").value;
-    const categorySelect = document.getElementById("categorySelect");
-    let category = categorySelect.value;
-    if (category === "__add_new__") {
-        category = document.getElementById("newCategoryInput").value.trim();
-    }
-    const tags = document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(tag => tag);
-    const type = document.getElementById("newType").value;
-    
-    let action;
-    if (type === 'Tarea') {
-        action = document.getElementById("newAction").value.split('\n').filter(Boolean).map(line => ({ text: line, status: 'todo' }));
-    } else if (type === 'Nota') {
-        action = `<div>${document.getElementById("newAction").value.replace(/\n/g, '<br>')}</div>`;
-    } else {
-        action = document.getElementById("newAction").value.trim();
-    }
-
-    const newItemData = {
-        title: document.getElementById("newTitle").value.trim(),
-        action: action,
-        type: type,
-        category: category,
-        icon: document.getElementById("newIcon").value.trim(),
-        tags: tags
-    };
-    if (!newItemData.title || !newItemData.category) return showToast("Por favor, completa Título y Categoría.");
-    if (id) {
-        const index = data.findIndex(i => String(i.id) === id);
-        if (index !== -1) {
-            if (newItemData.type === 'Tarea' && Array.isArray(data[index].action)) {
-                newItemData.action = newItemData.action.map((newTask, i) => ({
-                    text: newTask.text,
-                    status: data[index].action[i]?.status || 'todo'
-                }));
-            }
-            data[index] = { ...data[index], ...newItemData };
-        }
-    } else {
-        newItemData.id = Date.now();
-        data.push(newItemData);
-    }
-    saveData();
-    renderAllSections();
-    document.getElementById("editPanel").classList.add("hidden");
-}
-
-function deleteItem(id) {
-    if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
-        const index = data.findIndex(i => String(i.id) === id);
-        if (index !== -1) {
-            data.splice(index, 1);
-            saveData();
-            renderAllSections();
-            showToast("Elemento eliminado.");
-        }
-    }
-}
-
-function deleteCategory(categoryName) {
-    if (confirm(`¿Estás seguro? Las tarjetas de la categoría "${categoryName}" se moverán a "Sin clasificar".`)) {
-        data.forEach(item => {
-            if (item.category === categoryName) {
-                item.category = "Sin clasificar";
-            }
-        });
-        saveData();
-        renderAllSections();
-        showToast(`Categoría "${categoryName}" eliminada. Items movidos a "Sin clasificar".`);
-    }
-}
-
-function editCategoryName(oldName) {
-    const newName = prompt(`Ingresa el nuevo nombre para la categoría "${oldName}":`, oldName);
-    if (newName && newName.trim() !== oldName) {
-        data.forEach(item => {
-            if (item.category === oldName) {
-                item.category = newName.trim();
-            }
-        });
-        saveData();
-        renderAllSections();
-        showToast(`Categoría renombrada a "${newName.trim()}".`);
-    }
-}
-
-function openNoteModal(itemId) {
-    const item = data.find(i => String(i.id) === itemId);
-    if (!item) return;
-    document.getElementById('noteModalTitle').textContent = item.title;
-    document.getElementById('noteModalContent').innerHTML = item.action;
-    document.getElementById('noteModalId').value = item.id;
-    document.getElementById('noteModal').classList.remove('hidden');
-}
-
-function saveNoteFromModal() {
-    const id = document.getElementById('noteModalId').value;
-    const content = document.getElementById('noteModalContent').innerHTML;
-    const index = data.findIndex(i => String(i.id) === id);
-    if (index !== -1) {
-        data[index].action = content;
-        saveData();
-        renderAllSections();
-        document.getElementById('noteModal').classList.add('hidden');
-        showToast('Nota guardada.');
-    }
-}
-
-function formatDoc(command, value = null) {
-    document.execCommand(command, false, value);
-}
-
-function openTaskModal(itemId) {
-    const item = data.find(i => String(i.id) === itemId);
-    if (!item) return;
-    document.getElementById('taskModalTitle').textContent = item.title;
-    document.getElementById('taskModalId').value = item.id;
-    const listContainer = document.getElementById('taskModalEditableList');
-    listContainer.innerHTML = '';
-    item.action.forEach(task => addNewTaskItemToModal(task));
-    document.getElementById('taskModal').classList.remove('hidden');
-}
-
-function addNewTaskItemToModal(task = { text: '', status: 'todo' }) {
-    const listContainer = document.getElementById('taskModalEditableList');
-    const li = document.createElement('li');
-    li.className = 'flex items-center gap-2 mb-2';
-    li.innerHTML = `
-        <span class="status-dot status-${task.status}" data-status="${task.status}"></span>
-        <input type="text" class="w-full border-b p-1" value="${task.text}">
-        <button class="text-red-500"><i class="fas fa-trash"></i></button>
-    `;
-    li.querySelector('.status-dot').addEventListener('click', function() {
-        const statuses = ['todo', 'inprogress', 'done'];
-        let currentStatus = this.dataset.status;
-        let currentIndex = statuses.indexOf(currentStatus);
-        let nextStatus = statuses[(currentIndex + 1) % statuses.length];
-        this.className = `status-dot status-${nextStatus}`;
-        this.dataset.status = nextStatus;
-    });
-    li.querySelector('button').addEventListener('click', () => li.remove());
-    listContainer.appendChild(li);
-}
-
-function saveTaskFromModal() {
-    const id = document.getElementById('taskModalId').value;
-    const index = data.findIndex(i => String(i.id) === id);
-    if (index === -1) return;
-    
-    const newTasks = [];
-    document.querySelectorAll('#taskModalEditableList li').forEach(li => {
-        const text = li.querySelector('input').value.trim();
-        const status = li.querySelector('.status-dot').dataset.status || 'todo';
-        if (text) {
-            newTasks.push({ text, status });
-        }
-    });
-    
-    data[index].action = newTasks;
-    saveData();
-    renderAllSections();
-    document.getElementById('taskModal').classList.add('hidden');
-    showToast('Tarea guardada.');
-}
-
-function cycleTaskStatus(itemId, taskIndex) {
-    const itemIndex = data.findIndex(i => String(i.id) === itemId);
-    if (itemIndex === -1) return;
-    const task = data[itemIndex].action[taskIndex];
-    if (!task) return;
-    const statuses = ['todo', 'inprogress', 'done'];
-    const currentStatusIndex = statuses.indexOf(task.status);
-    task.status = statuses[(currentStatusIndex + 1) % statuses.length];
-    saveData();
-    renderAllSections();
-}
-
-function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message;
-    toast.classList.remove("hidden");
-    setTimeout(() => toast.classList.add("hidden"), 3000);
-}
-</script>
+  </script>
 </body>
 </html>
