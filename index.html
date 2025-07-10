@@ -189,7 +189,6 @@
   </style>
 </head>
 <body class="min-h-screen theme-default">
-  <!-- BOTONES FLOTANTES UNIFICADOS -->
   <div class="fab-container">
     <div class="fab-actions">
       <button id="themeSwitcherBtn" class="fab-action" title="Cambiar Tema"><i class="fas fa-palette"></i></button>
@@ -199,13 +198,10 @@
     <div class="fab-main"><i class="fas fa-plus"></i></div>
   </div>
 
-  <!-- PALETA DE TEMAS -->
   <div id="themePalette" class="hidden"></div>
   
-  <!-- CABECERA FIJA -->
   <header class="sticky-header">
     <div class="container mx-auto px-4">
-      <!-- NAVEGACIÓN PRINCIPAL -->
       <nav class="flex justify-center flex-wrap gap-4 sm:gap-8 mb-4">
         <button id="nav-buscadores" class="nav-btn active"><i class="fas fa-search mr-2"></i>Buscadores</button>
         <button id="nav-links" class="nav-btn"><i class="fas fa-link mr-2"></i>Links</button>
@@ -213,13 +209,11 @@
         <button id="nav-notes" class="nav-btn"><i class="fas fa-sticky-note mr-2"></i>Notas</button>
         <button id="nav-tasks" class="nav-btn"><i class="fas fa-tasks mr-2"></i>Tareas</button>
       </nav>
-      <!-- BARRA DE BÚSQUEDA PRINCIPAL -->
       <div id="main-search-bar" class="search-container"><div class="relative"><div class="flex"><input type="text" id="searchInput" list="searchSuggestions" placeholder="Ingresa tu búsqueda aquí..." class="w-full px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 main-action-btn-focus text-lg"><datalist id="searchSuggestions"></datalist><div class="relative"><button id="dropdownToggle" class="main-action-btn text-white px-4 py-3 rounded-r-lg flex items-center"><span id="selectedEngine">Google</span><i class="fas fa-chevron-down ml-2"></i></button><div id="searchEngineDropdown" class="hidden absolute right-0 top-full mt-1 w-64 bg-white rounded-md shadow-lg z-10"></div></div></div><button id="searchButton" class="mt-3 main-action-btn text-white w-full py-3 rounded-lg flex items-center justify-center text-lg font-medium"><i class="fas fa-search mr-2"></i>Buscar</button></div></div>
     </div>
   </header>
 
   <div class="container mx-auto px-4">
-    <!-- CONTENEDOR DE SECCIONES -->
     <main>
       <div id="section-buscadores" class="section">
         <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="searchFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="searchCardSearchInput" placeholder="Buscar en Buscadores..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 main-action-btn-focus mb-8 search-container"><div id="searchEnginesContainer" class="space-y-8"></div><div id="noBuscadoresFound" class="hidden text-center text-gray-500 mt-8">No se encontraron buscadores.</div>
@@ -230,7 +224,6 @@
       <div id="section-tasks" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="taskFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="taskCardSearchInput" placeholder="Buscar en Tareas..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 mb-8 search-container"><div id="tasksContainer" class="space-y-8"></div><div id="noTasksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron tareas.</div></div>
     </main>
     
-    <!-- PANEL DE EDICIÓN GENERAL MEJORADO -->
     <div id="editPanel" class="hidden">
       <div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-6">
@@ -242,7 +235,6 @@
         
         <div class="bg-white rounded-lg shadow-md p-6 mb-6">
           <div class="flex flex-col md:flex-row gap-8">
-            <!-- Formulario mejorado -->
             <div class="w-full md:w-2/3">
               <form id="editForm">
                 <input type="hidden" id="editItemId">
@@ -331,7 +323,6 @@
               </form>
             </div>
             
-            <!-- Vista previa mejorada -->
             <div class="w-full md:w-1/3">
               <h4 class="text-lg font-bold mb-4 pb-2 border-b">Vista Previa</h4>
               <div class="preview-container">
@@ -348,14 +339,11 @@
       </div>
     </div>
     
-    <!-- TOAST (Notificación) -->
     <div id="toast" class="hidden fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-md shadow-lg"></div>
     
-    <!-- MODALES -->
     <div id="searchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="globalSearchInput" placeholder="Busca en todos tus botones, notas y prompts..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="globalSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeGlobalSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
     <div id="tagSearchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="tagSearchInput" placeholder="Busca por etiqueta..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="tagSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeTagSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
     
-    <!-- Modal de Notas Mejorado -->
     <div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center">
       <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-4/5 max-w-4xl h-[85vh] flex flex-col modal-content">
         <div class="p-4 border-b">
@@ -393,15 +381,13 @@
       </div>
     </div>
     
-    <!-- Modal de Tareas Mejorado -->
     <div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center">
       <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl h-[80vh] flex flex-col modal-content">
         <div class="p-4 border-b">
           <h2 id="taskModalTitle" class="text-2xl font-bold"></h2>
         </div>
         <div id="taskModalEditableList" class="p-4 flex-grow overflow-y-auto">
-          <!-- Las tareas se añadirán aquí dinámicamente -->
-        </div>
+          </div>
         <div class="p-4 border-t">
           <button id="addNewTaskItem" class="text-sm text-gray-500 hover:text-black" onclick="addNewTaskItemToModal()">+ Añadir ítem</button>
         </div>
@@ -1011,6 +997,7 @@ function updateLivePreview() {
   previewContainer.innerHTML = previewHtml;
 }
 
+// =========== FUNCIÓN CORREGIDA ===========
 function openEditPanel(itemId = null, prefillType = null, prefillCategory = null) {
   if (itemId) {
     const item = data.find(i => String(i.id) === itemId);
@@ -1028,7 +1015,6 @@ function openEditPanel(itemId = null, prefillType = null, prefillCategory = null
   title.textContent = "Agregar Nuevo Elemento";
   document.getElementById("saveItemButton").innerHTML = '<i class="fas fa-plus mr-2"></i>Agregar elemento';
   
-  // Reiniciar vista previa
   document.getElementById('iconPreview').innerHTML = '<i class="fas fa-link text-gray-400"></i>';
   
   if (itemId) {
@@ -1039,11 +1025,13 @@ function openEditPanel(itemId = null, prefillType = null, prefillCategory = null
       document.getElementById("editItemId").value = item.id;
       document.getElementById("newTitle").value = item.title;
       
-      // Actualizar campo de acción según tipo
+      // CORRECCIÓN: Primero se hace clic en el tipo para crear el campo correcto.
+      document.querySelector(`.type-btn[data-type="${item.type}"]`).click();
+
+      // CORRECCIÓN: Ahora que el campo correcto existe, se llena con los datos.
       if (item.type === 'Tarea') {
         document.getElementById("newAction").value = item.action.map(t => t.text).join('\n');
       } else if (item.type === 'Nota') {
-        // Extraer solo texto para mostrar
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = item.action;
         document.getElementById("newAction").value = tempDiv.textContent || tempDiv.innerText || "";
@@ -1056,8 +1044,6 @@ function openEditPanel(itemId = null, prefillType = null, prefillCategory = null
       document.getElementById("newTags").value = item.tags ? item.tags.join(", ") : "";
       document.getElementById("newIcon").value = item.icon || "";
       
-      // Seleccionar tipo visualmente
-      document.querySelector(`.type-btn[data-type="${item.type}"]`).click();
     }
   } else {
     populateCategorySuggestions(prefillCategory);
