@@ -61,11 +61,6 @@
     /* --- PANELES Y BOTONES --- */
     #editPanel, #noteModal, #taskModal{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;overflow-y:auto;transition:opacity .3s}
     .prompt-content,.note-content,.task-content{max-height:150px;overflow-y:auto;font-size:.8rem;white-space:pre-wrap;word-wrap:break-word}
-    #mainEditButton,#openGlobalSearch,#openTagSearch,#themeBtn{position:fixed;right:1rem;border:none;color:#fff;border-radius:9999px;cursor:pointer;transition:background-color .3s;z-index:1100;width:40px;height:40px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 6px rgba(0,0,0,.1)}
-    #themeBtn{top:1rem;background-color:#3b82f6}
-    #mainEditButton{top:4.5rem;background-color:#6b7280}
-    #openGlobalSearch{top:8rem;background-color:#10B981}
-    #openTagSearch{top:11.5rem;background-color:#8B5CF6}
     .tag-container{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
     .tag{background-color:#e5e7eb;color:#4b5563;padding:2px 8px;border-radius:9999px;font-size:0.75rem;font-weight:500}
     body.dark .tag{background-color:#374151;color:#d1d5db}
@@ -79,6 +74,25 @@
     .main-action-btn-focus:focus{ring-color:var(--theme-color) !important;}
     .icon-themed{color:var(--theme-color) !important;}
     
+    /* --- NUEVO: MENÚ DE BOTONES FLOTANTES (SPEED DIAL) --- */
+    .fab-container{position:fixed;right:1rem;bottom:1rem;z-index:1100}
+    .fab-main{width:56px;height:56px;border-radius:50%;background-color:#6b7280;color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px rgba(0,0,0,0.2);cursor:pointer;transition:transform .2s ease-in-out}
+    .fab-container:hover .fab-main{transform:rotate(45deg)}
+    .fab-actions{position:absolute;bottom:64px;right:8px;display:flex;flex-direction:column;gap:1rem;align-items:center}
+    .fab-action{width:40px;height:40px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,0.2);cursor:pointer;transition:transform .2s ease-in-out, opacity .2s ease-in-out;transform:translateY(10px) scale(0);opacity:0}
+    .fab-container:hover .fab-action{transform:translateY(0) scale(1);opacity:1}
+    .fab-action:nth-child(1){background-color:#f59e0b;transition-delay:0.15s}
+    .fab-action:nth-child(2){background-color:#8B5CF6;transition-delay:0.1s}
+    .fab-action:nth-child(3){background-color:#10B981;transition-delay:0.05s}
+    
+    /* --- NUEVO: PALETA DE TEMAS --- */
+    #themePalette{position:fixed;bottom:1rem;right:80px;background-color:white;padding:0.5rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);display:flex;gap:0.5rem;z-index:1100;transition:transform .2s ease, opacity .2s ease;transform:translateY(10px);opacity:0;pointer-events:none}
+    #themePalette.open{transform:translateY(0);opacity:1;pointer-events:auto}
+    body.dark #themePalette{background-color:#2a2a2a}
+    .theme-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;display:flex;align-items:center;justify-content:center}
+    .theme-swatch.active{border-color:var(--theme-color)}
+    .theme-swatch .dark-mode-icon{color:white;font-size:10px}
+    
     /* --- EDITOR DE NOTAS Y TAREAS --- */
     .editor-toolbar { background-color: #f3f4f6; padding: 8px; border-bottom: 1px solid #ddd; }
     body.dark .editor-toolbar { background-color: #2a2a2a; border-color: #444; }
@@ -90,11 +104,18 @@
   </style>
 </head>
 <body class="min-h-screen">
-  <!-- BOTONES FLOTANTES -->
-  <button id="themeBtn" title="Cambiar Tema y Modo"><i class="fas fa-fill-drip"></i></button>
-  <button id="mainEditButton" title="Añadir Contenido"><i class="fas fa-plus"></i></button>
-  <button id="openGlobalSearch" title="Búsqueda Global"><i class="fas fa-search"></i></button>
-  <button id="openTagSearch" title="Buscar por Etiqueta"><i class="fas fa-tags"></i></button>
+  <!-- BOTONES FLOTANTES UNIFICADOS -->
+  <div class="fab-container">
+    <div class="fab-actions">
+      <button id="themeSwitcherBtn" class="fab-action" title="Cambiar Tema"><i class="fas fa-palette"></i></button>
+      <button id="openTagSearch" class="fab-action" title="Buscar por Etiqueta"><i class="fas fa-tags"></i></button>
+      <button id="openGlobalSearch" class="fab-action" title="Búsqueda Global"><i class="fas fa-search"></i></button>
+    </div>
+    <div class="fab-main"><i class="fas fa-plus"></i></div>
+  </div>
+
+  <!-- PALETA DE TEMAS -->
+  <div id="themePalette" class="hidden"></div>
   
   <!-- CABECERA FIJA -->
   <header class="sticky-header">
@@ -216,6 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // --- FUNCIONES DE CONFIGURACIÓN (SETUP) ---
 function setupUnifiedThemeButton() {
     const btn = document.getElementById('themeBtn');
+    if (!btn) return; // FIX: Check if button exists
     const themeStates = THEMES.flatMap(theme => [`light-${theme}`, `dark-${theme}`]);
     let currentStateIndex = themeStates.indexOf(localStorage.getItem('themeState') || 'light-default');
 
@@ -244,7 +266,7 @@ function setupEventListeners() {
     document.querySelector("#searchButton").addEventListener("click", performSearch);
     document.querySelector("#searchInput").addEventListener("keypress", e => { if (e.key === 'Enter') performSearch(); });
     document.querySelector("#dropdownToggle").addEventListener("click", () => document.getElementById("searchEngineDropdown").classList.toggle("hidden"));
-    document.querySelector("#mainEditButton").addEventListener("click", () => openEditPanel());
+    document.querySelector(".fab-main").addEventListener("click", () => openEditPanel());
     document.querySelector("#closeEditButton").addEventListener("click", () => document.getElementById("editPanel").classList.add("hidden"));
     document.getElementById('editForm').addEventListener('submit', handleSaveItem);
     document.getElementById('categorySelect').addEventListener('change', handleCategoryChange);
@@ -387,7 +409,7 @@ function renderSection(type, containerId, filterId, searchId, notFoundId) {
             catDiv.innerHTML = `<div class="category-title-container"><h2 class="category-title">${cat}</h2><div><button onclick="editCategoryName('${cat}')" class="text-gray-400 hover:text-blue-500 p-1 rounded-full" title="Editar nombre de categoría"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteCategory('${cat}')" class="text-gray-400 hover:text-red-500 p-1 rounded-full ml-2" title="Eliminar categoría '${cat}'"><i class="fas fa-trash-alt"></i></button></div></div><div class="grid ${gridLayout} gap-4"></div>`;
             const grid = catDiv.querySelector(".grid");
             categorized[cat].forEach(item => grid.appendChild(createCard(item)));
-            if (['Nota', 'Tarea', 'Promp'].includes(type)) {
+            if (['Nota', 'Tarea', 'Promp', 'Buscador', 'Link'].includes(type)) { // AÑADIDO PARA TODOS
                 const addCard = document.createElement('div');
                 addCard.className = 'card bg-gray-100 dark:bg-gray-800 border-dashed border-2 flex items-center justify-center cursor-pointer min-h-[150px]';
                 addCard.innerHTML = '<i class="fas fa-plus text-4xl text-gray-400"></i>';
