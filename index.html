@@ -237,7 +237,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // --- FUNCIONES DE CONFIGURACIÓN (SETUP) ---
 function setupUnifiedThemeButton() {
     const btn = document.getElementById('themeBtn');
-    if (!btn) return; // FIX: Check if button exists
+    if (!btn) return;
     const themeStates = THEMES.flatMap(theme => [`light-${theme}`, `dark-${theme}`]);
     let currentStateIndex = themeStates.indexOf(localStorage.getItem('themeState') || 'light-default');
 
