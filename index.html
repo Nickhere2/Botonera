@@ -119,14 +119,9 @@
     .btn-add-category { width: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background-color: #f3f4f6; }
     .btn-add-category:hover { background-color: #e5e7eb; }
     .required:after { content: " *"; color: #e53e3e; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-    .tab-header { display: flex; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px; }
-    .tab-button { padding: 12px 20px; background: none; border: none; cursor: pointer; font-weight: 500; }
-    .tab-button.active { border-bottom: 2px solid var(--theme-color); color: var(--theme-color); }
   </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen theme-default">
   <!-- BOTONES FLOTANTES UNIFICADOS -->
   <div class="fab-container">
     <div class="fab-actions">
@@ -297,62 +292,6 @@ let data = [];
 let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
 const THEMES = ['default', 'blue', 'indigo', 'rose'];
 
-// Datos de ejemplo para demo
-const sampleData = [
-  {
-    id: 1,
-    title: "Google",
-    action: "https://www.google.com/search?q={search_term}",
-    type: "Buscador",
-    category: "Buscadores",
-    tags: ["búsqueda", "web"]
-  },
-  {
-    id: 2,
-    title: "GitHub",
-    action: "https://github.com",
-    type: "Link",
-    category: "Desarrollo",
-    tags: ["programación", "código"]
-  },
-  {
-    id: 3,
-    title: "ChatGPT",
-    action: "https://chat.openai.com",
-    type: "Link",
-    category: "IA",
-    tags: ["inteligencia artificial", "chat"]
-  },
-  {
-    id: 4,
-    title: "Prompt de escritura",
-    action: "Por favor, escribe un artículo de 500 palabras sobre [tema] con introducción, desarrollo y conclusión.",
-    type: "Promp",
-    category: "IA",
-    tags: ["escritura", "creativo"]
-  },
-  {
-    id: 5,
-    title: "Notas de reunión",
-    action: "<div>Reunión con equipo de desarrollo:<br>- Revisión de progreso<br>- Próximos pasos<br>- Asignación de tareas</div>",
-    type: "Nota",
-    category: "Trabajo",
-    tags: ["reunión", "equipo"]
-  },
-  {
-    id: 6,
-    title: "Tareas del proyecto",
-    action: [
-      { text: "Diseñar interfaz de usuario", status: "done" },
-      { text: "Implementar funcionalidad principal", status: "inprogress" },
-      { text: "Realizar pruebas de usuario", status: "todo" }
-    ],
-    type: "Tarea",
-    category: "Proyecto X",
-    tags: ["urgente", "desarrollo"]
-  }
-];
-
 // --- FUNCIONES DE CONEXIÓN CON GITHUB ---
 function getOrRequestInfo(key, promptMessage) {
     let value = localStorage.getItem(key);
@@ -365,14 +304,7 @@ function getOrRequestInfo(key, promptMessage) {
 
 async function loadData() {
     const gistId = getOrRequestInfo('gist_id', 'Bienvenido. Por favor, ingresa el ID de tu Gist de GitHub para cargar tu botonera:');
-    if (!gistId) {
-      // Usar datos de ejemplo si no se proporciona Gist ID
-      data = sampleData;
-      showToast("Usando datos de demostración");
-      initializeUI();
-      return;
-    }
-    
+    if (!gistId) return initializeUI();
     showToast("Cargando datos desde la nube...");
     try {
         const response = await fetch(`https://api.github.com/gists/${gistId}`);
@@ -396,8 +328,7 @@ async function loadData() {
     } catch (error) {
         console.error("Fallo al cargar datos:", error);
         showToast(`ERROR: ${error.message}`);
-        // Usar datos de ejemplo en caso de error
-        data = sampleData;
+        data = [];
     }
     initializeUI();
 }
@@ -1043,8 +974,6 @@ function handleSaveItem(event) {
   document.getElementById("editPanel").classList.add("hidden");
   showToast(id ? "Elemento actualizado" : "Elemento creado");
 }
-
-// Resto de funciones permanecen igual...
 
 function deleteItem(id) {
     if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
