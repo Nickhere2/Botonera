@@ -74,7 +74,7 @@
     .main-action-btn-focus:focus{ring-color:var(--theme-color) !important;}
     .icon-themed{color:var(--theme-color) !important;}
     
-    /* --- NUEVO: MENÚ DE BOTONES FLOTANTES (SPEED DIAL) --- */
+    /* --- MENÚ DE BOTONES FLOTANTES (SPEED DIAL) --- */
     .fab-container{position:fixed;right:1rem;bottom:1rem;z-index:1100}
     .fab-main{width:56px;height:56px;border-radius:50%;background-color:#6b7280;color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px rgba(0,0,0,0.2);cursor:pointer;transition:transform .2s ease-in-out}
     .fab-container:hover .fab-main{transform:rotate(45deg)}
@@ -85,8 +85,8 @@
     .fab-action:nth-child(2){background-color:#8B5CF6;transition-delay:0.1s}
     .fab-action:nth-child(3){background-color:#10B981;transition-delay:0.05s}
     
-    /* --- NUEVO: PALETA DE TEMAS --- */
-    #themePalette{position:fixed;bottom:1rem;right:80px;background-color:white;padding:0.5rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);display:flex;gap:0.5rem;z-index:1100;transition:transform .2s ease, opacity .2s ease;transform:translateY(10px);opacity:0;pointer-events:none}
+    /* --- PALETA DE TEMAS --- */
+    #themePalette{position:fixed;bottom:1rem;right:80px;background-color:white;padding:0.5rem;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.2);display:flex;flex-direction:column;gap:0.5rem;z-index:1100;transition:transform .2s ease, opacity .2s ease;transform:translateY(10px);opacity:0;pointer-events:none}
     #themePalette.open{transform:translateY(0);opacity:1;pointer-events:auto}
     body.dark #themePalette{background-color:#2a2a2a}
     .theme-swatch{width:24px;height:24px;border-radius:50%;cursor:pointer;border:2px solid transparent;display:flex;align-items:center;justify-content:center}
@@ -236,7 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // --- FUNCIONES DE CONFIGURACIÓN (SETUP) ---
 function setupUnifiedThemeButton() {
-    const btn = document.getElementById('themeBtn');
+    const btn = document.getElementById('themeSwitcherBtn');
     if (!btn) return;
     const themeStates = THEMES.flatMap(theme => [`light-${theme}`, `dark-${theme}`]);
     let currentStateIndex = themeStates.indexOf(localStorage.getItem('themeState') || 'light-default');
