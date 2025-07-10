@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centro de Accesos</title>
+  <title>Centro de Accesos Mejorado</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -52,11 +52,13 @@
     .category-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;color:#1f2937}
     
     /* --- TARJETAS ESPECIALES: NOTAS Y TAREAS --- */
-    .note-card{background-color:#fffbe0;font-family:'Kalam',cursive;cursor:pointer}
+    .note-card{background-color:#fffbe0;font-family:'Kalam',cursive;cursor:pointer;position:relative}
     body.dark .note-card{background-color:#4a462a}
-    .note-card-content{height:150px;overflow:hidden;position:relative;-webkit-mask-image:linear-gradient(to bottom,black 80%,transparent 100%)}
+    .note-card-content{height:150px;overflow:hidden;position:relative}
     .task-list{list-style:none;padding:0;margin-top:0.5rem;text-align:left}.task-item{display:flex;align-items:center;padding:0.25rem 0;border-bottom:1px solid #eee}body.dark .task-item{border-color:#333}.task-item.done .task-text{text-decoration:line-through;color:#9ca3af}
     .status-dot{width:12px;height:12px;border-radius:50%;margin-right:8px;cursor:pointer;border:2px solid transparent;transition:all .2s}.status-todo{background-color:#d1d5db}.status-inprogress{background-color:#f59e0b}.status-done{background-color:#10b981}
+    .note-expand-btn{position:absolute;bottom:5px;right:5px;background:rgba(255,255,255,0.7);border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;opacity:0.7;transition:opacity 0.2s}
+    .note-card:hover .note-expand-btn{opacity:1}
 
     /* --- PANELES Y BOTONES --- */
     #editPanel, #noteModal, #taskModal{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;overflow-y:auto;transition:opacity .3s}
@@ -94,13 +96,24 @@
     .theme-swatch .dark-mode-icon{color:white;font-size:10px}
     
     /* --- EDITOR DE NOTAS Y TAREAS --- */
-    .editor-toolbar { background-color: #f3f4f6; padding: 8px; border-bottom: 1px solid #ddd; }
+    .editor-toolbar { background-color: #f3f4f6; padding: 8px; border-bottom: 1px solid #ddd; display: flex; gap: 4px; flex-wrap: wrap; }
     body.dark .editor-toolbar { background-color: #2a2a2a; border-color: #444; }
-    .editor-toolbar button { margin-right: 8px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; }
-    body.dark .editor-toolbar button { border-color: #555; }
-    #noteModalContent { min-height: 250px; padding: 1rem; }
+    .editor-toolbar button { padding: 6px 10px; border-radius: 4px; background: white; border: 1px solid #ddd; cursor: pointer; }
+    body.dark .editor-toolbar button { border-color: #555; background: #333; color: #ddd; }
+    .editor-toolbar button:hover { background-color: #f0f0f0; }
+    body.dark .editor-toolbar button:hover { background-color: #3a3a3a; }
+    .editor-toolbar .color-btn { position: relative; }
+    .editor-toolbar .color-options { position: absolute; top: 100%; left: 0; background: white; padding: 8px; border-radius: 4px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); display: none; z-index: 100; }
+    body.dark .editor-toolbar .color-options { background: #333; }
+    .editor-toolbar .color-options.show { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+    .editor-toolbar .color-option { width: 24px; height: 24px; border-radius: 50%; cursor: pointer; }
+    #noteModalContent { min-height: 400px; padding: 1rem; overflow-y: auto; border: 1px solid #e5e7eb; margin-top: 8px; border-radius: 8px; }
+    body.dark #noteModalContent { border-color: #444; }
     #taskModalEditableList .task-item { border-bottom: none; }
     #taskModalEditableList input[type="text"] { flex-grow: 1; background: transparent; }
+    .note-full-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; display: flex; justify-content: center; align-items: center; }
+    .note-full-content { background: white; padding: 2rem; border-radius: 12px; max-width: 800px; max-height: 90vh; overflow-y: auto; width: 90%; }
+    body.dark .note-full-content { background: #1e1e1e; }
     
     /* --- MEJORAS PARA EL PANEL DE EDICIÓN --- */
     .type-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
@@ -119,6 +132,11 @@
     .btn-add-category { width: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background-color: #f3f4f6; }
     .btn-add-category:hover { background-color: #e5e7eb; }
     .required:after { content: " *"; color: #e53e3e; }
+    .search-term-indicator { display: inline-block; background-color: #e0f2fe; color: #0369a1; padding: 0 6px; border-radius: 4px; font-size: 0.8rem; margin-left: 4px; }
+    .progress-container { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+    .progress-bar { flex-grow: 1; height: 8px; background-color: #e5e7eb; border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background-color: var(--theme-color); }
+    .progress-text { font-size: 0.8rem; color: #6b7280; }
   </style>
 </head>
 <body class="min-h-screen theme-default">
@@ -220,7 +238,13 @@
                 
                 <div class="form-group" id="actionFieldContainer">
                   <label class="form-label required">URL</label>
-                  <input type="text" id="newAction" class="form-control" placeholder="https://ejemplo.com">
+                  <div class="flex items-center gap-2">
+                    <input type="text" id="newAction" class="form-control flex-grow" placeholder="https://ejemplo.com/search?q={search_term}">
+                    <button type="button" onclick="insertSearchTerm()" class="px-3 py-2 bg-gray-200 rounded-md text-sm" title="Insertar marcador de posición para término de búsqueda">
+                      Insertar {search_term}
+                    </button>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Usa <code>{search_term}</code> donde quieras que se inserte la búsqueda.</p>
                 </div>
                 
                 <div class="form-group">
@@ -281,8 +305,72 @@
     <!-- MODALES -->
     <div id="searchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="globalSearchInput" placeholder="Busca en todos tus botones, notas y prompts..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="globalSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeGlobalSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
     <div id="tagSearchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="tagSearchInput" placeholder="Busca por etiqueta..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="tagSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeTagSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
-    <div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all modal-content flex flex-col"><div class="p-4 border-b"><h2 id="noteModalTitle" class="text-2xl font-bold"></h2></div><div class="editor-toolbar"><button onclick="formatDoc('bold')"><i class="fas fa-bold"></i></button><button onclick="formatDoc('italic')"><i class="fas fa-italic"></i></button><button onclick="formatDoc('underline')"><i class="fas fa-underline"></i></button><button onclick="formatDoc('insertUnorderedList')"><i class="fas fa-list-ul"></i></button></div><div id="noteModalContent" class="p-4 flex-grow overflow-y-auto" contenteditable="true"></div><div class="mt-4 flex justify-end gap-2 p-4 border-t"><input type="hidden" id="noteModalId"><button id="closeNoteModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveNoteModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar</button></div></div></div>
-    <div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all modal-content flex flex-col"><div class="p-4 border-b"><h2 id="taskModalTitle" class="text-2xl font-bold"></h2></div><div id="taskModalEditableList" class="p-4 flex-grow overflow-y-auto"></div><div class="p-4 border-t"><button id="addNewTaskItem" class="text-sm text-gray-500 hover:text-black">+ Añadir ítem</button></div><div class="mt-4 flex justify-end gap-2 p-4 border-t"><input type="hidden" id="taskModalId"><button id="closeTaskModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveTaskModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar Tarea</button></div></div></div>
+    
+    <!-- Modal de Nota mejorado -->
+    <div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center">
+      <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-4xl transform transition-all modal-content flex flex-col h-[80vh]">
+        <div class="p-4 border-b">
+          <h2 id="noteModalTitle" class="text-2xl font-bold"></h2>
+        </div>
+        <div class="editor-toolbar">
+          <button type="button" onclick="formatDoc('bold')" title="Negrita"><i class="fas fa-bold"></i></button>
+          <button type="button" onclick="formatDoc('italic')" title="Cursiva"><i class="fas fa-italic"></i></button>
+          <button type="button" onclick="formatDoc('underline')" title="Subrayado"><i class="fas fa-underline"></i></button>
+          <button type="button" onclick="formatDoc('insertUnorderedList')" title="Lista con viñetas"><i class="fas fa-list-ul"></i></button>
+          <button type="button" onclick="formatDoc('insertOrderedList')" title="Lista numerada"><i class="fas fa-list-ol"></i></button>
+          <button type="button" onclick="formatDoc('createLink')" title="Insertar enlace"><i class="fas fa-link"></i></button>
+          <div class="color-btn">
+            <button type="button" title="Color de fondo"><i class="fas fa-fill-drip"></i></button>
+            <div class="color-options">
+              <div class="color-option bg-white" data-color="#fff" onclick="setNoteColor(this)"></div>
+              <div class="color-option bg-yellow-100" data-color="#fffbeb" onclick="setNoteColor(this)"></div>
+              <div class="color-option bg-blue-100" data-color="#dbeafe" onclick="setNoteColor(this)"></div>
+              <div class="color-option bg-green-100" data-color="#dcfce7" onclick="setNoteColor(this)"></div>
+              <div class="color-option bg-pink-100" data-color="#fce7f3" onclick="setNoteColor(this)"></div>
+            </div>
+          </div>
+        </div>
+        <div id="noteModalContent" class="p-4 flex-grow overflow-y-auto" contenteditable="true"></div>
+        <div class="mt-4 flex justify-end gap-2 p-4 border-t">
+          <input type="hidden" id="noteModalId">
+          <button id="closeNoteModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button>
+          <button id="saveNoteModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal de Tarea mejorado -->
+    <div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center">
+      <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all modal-content flex flex-col h-[70vh]">
+        <div class="p-4 border-b">
+          <h2 id="taskModalTitle" class="text-2xl font-bold"></h2>
+        </div>
+        <div id="taskModalEditableList" class="p-4 flex-grow overflow-y-auto"></div>
+        <div class="p-4 border-t">
+          <button id="addNewTaskItem" class="text-sm text-gray-500 hover:text-black">
+            <i class="fas fa-plus mr-1"></i> Añadir ítem
+          </button>
+        </div>
+        <div class="mt-4 flex justify-end gap-2 p-4 border-t">
+          <input type="hidden" id="taskModalId">
+          <button id="closeTaskModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button>
+          <button id="saveTaskModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar Tarea</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Vista completa de nota -->
+    <div id="noteFullView" class="note-full-view hidden">
+      <div class="note-full-content">
+        <div class="flex justify-between items-center mb-4">
+          <h2 id="noteFullTitle" class="text-2xl font-bold"></h2>
+          <button id="closeNoteFullView" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div id="noteFullContent" class="prose max-w-none"></div>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -403,6 +491,7 @@ function setupEventListeners() {
     document.getElementById('closeTaskModal').addEventListener('click', () => document.getElementById('taskModal').classList.add('hidden'));
     document.getElementById('saveTaskModal').addEventListener('click', saveTaskFromModal);
     document.getElementById('addNewTaskItem').addEventListener('click', () => addNewTaskItemToModal());
+    document.getElementById('closeNoteFullView').addEventListener('click', () => document.getElementById('noteFullView').classList.add('hidden'));
 }
 
 function setupGlobalSearch() {
@@ -572,6 +661,7 @@ function createCard(item) {
     const card = document.createElement("div");
     let cardClasses = "card bg-white p-4 rounded-lg text-left flex flex-col justify-between";
     if (item.type === 'Nota') cardClasses += ' note-card';
+    if (item.color) card.style.backgroundColor = item.color;
     card.className = cardClasses;
     card.title = item.title;
     card.dataset.id = item.id;
@@ -580,7 +670,15 @@ function createCard(item) {
     const iconHtml = getIconHtml(item);
 
     if (item.type === 'Nota') {
-        contentHtml = `<div onclick="openNoteModal('${item.id}')" class="cursor-pointer h-full flex flex-col"><h4 class="text-lg font-bold mb-2">${item.title}</h4><div class="text-sm flex-grow note-card-content">${item.action}</div></div>`;
+        contentHtml = `
+          <div class="cursor-pointer h-full flex flex-col">
+            <h4 class="text-lg font-bold mb-2">${item.title}</h4>
+            <div class="text-sm flex-grow note-card-content">${item.action}</div>
+            <button class="note-expand-btn" onclick="openFullNote('${item.id}')" title="Ver nota completa">
+              <i class="fas fa-expand"></i>
+            </button>
+          </div>
+        `;
     } else if (item.type === 'Tarea') {
         const tasksHtml = item.action.map((task, index) => `
             <li class="task-item ${task.status === 'done' ? 'done' : ''}">
@@ -588,7 +686,24 @@ function createCard(item) {
                 <span class="task-text">${task.text}</span>
             </li>
         `).join('');
-        contentHtml = `<div><h4 class="text-lg font-bold mb-2">${item.title}</h4><ul class="task-list">${tasksHtml}</ul></div>`;
+        
+        // Calcular progreso
+        const totalTasks = item.action.length;
+        const completedTasks = item.action.filter(t => t.status === 'done').length;
+        const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        
+        contentHtml = `
+          <div>
+            <h4 class="text-lg font-bold mb-2">${item.title}</h4>
+            <ul class="task-list">${tasksHtml}</ul>
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${progress}%"></div>
+              </div>
+              <div class="progress-text">${progress}% completado</div>
+            </div>
+          </div>
+        `;
     } else if (item.type === "Buscador" || item.type === "Link") {
         contentHtml = `<a href="#" class="flex items-center w-full text-left p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" onclick="event.preventDefault(); handleCardClick('${item.id}')"><div class="flex-shrink-0 w-8 h-8 flex items-center justify-center">${iconHtml}</div><span class="ml-3 font-medium">${item.title}</span></a>`;
         card.className = "card bg-white p-2 rounded-lg"; // Override for Brave style
@@ -759,6 +874,12 @@ function setupEditPanel() {
   document.getElementById('newAction').addEventListener('input', updateLivePreview);
   document.getElementById('newTags').addEventListener('input', updateLivePreview);
   document.getElementById('categorySelect').addEventListener('change', updateLivePreview);
+  
+  // Configurar botones de color en el editor
+  document.querySelector('.color-btn button').addEventListener('click', function() {
+    const colorOptions = document.querySelector('.color-options');
+    colorOptions.classList.toggle('show');
+  });
 }
 
 function updateActionField(type) {
@@ -767,6 +888,17 @@ function updateActionField(type) {
   
   switch(type) {
     case 'Buscador':
+      html = `
+        <label class="form-label required">URL</label>
+        <div class="flex items-center gap-2">
+          <input type="text" id="newAction" class="form-control flex-grow" placeholder="https://ejemplo.com/search?q={search_term}">
+          <button type="button" onclick="insertSearchTerm()" class="px-3 py-2 bg-gray-200 rounded-md text-sm" title="Insertar marcador de posición para término de búsqueda">
+            Insertar {search_term}
+          </button>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">Usa <code>{search_term}</code> donde quieras que se inserte la búsqueda.</p>
+      `;
+      break;
     case 'Link':
       html = `
         <label class="form-label required">URL</label>
@@ -922,6 +1054,17 @@ function openEditPanel(itemId = null, prefillType = null, prefillCategory = null
   panel.classList.remove("hidden");
 }
 
+function insertSearchTerm() {
+  const actionField = document.getElementById('newAction');
+  const startPos = actionField.selectionStart;
+  const endPos = actionField.selectionEnd;
+  const value = actionField.value;
+  
+  actionField.value = value.substring(0, startPos) + '{search_term}' + value.substring(endPos);
+  actionField.focus();
+  actionField.setSelectionRange(startPos + 12, startPos + 12);
+}
+
 function handleSaveItem(event) {
   event.preventDefault();
   const id = document.getElementById("editItemId").value;
@@ -1037,7 +1180,27 @@ function saveNoteFromModal() {
 }
 
 function formatDoc(command, value = null) {
-    document.execCommand(command, false, value);
+    if (command === 'createLink') {
+        const url = prompt('Ingresa la URL:', 'https://');
+        if (url) {
+            document.execCommand(command, false, url);
+        }
+    } else {
+        document.execCommand(command, false, value);
+    }
+}
+
+function setNoteColor(element) {
+    const color = element.getAttribute('data-color');
+    document.getElementById('noteModalContent').style.backgroundColor = color;
+}
+
+function openFullNote(itemId) {
+    const item = data.find(i => String(i.id) === itemId);
+    if (!item) return;
+    document.getElementById('noteFullTitle').textContent = item.title;
+    document.getElementById('noteFullContent').innerHTML = item.action;
+    document.getElementById('noteFullView').classList.remove('hidden');
 }
 
 function openTaskModal(itemId) {
