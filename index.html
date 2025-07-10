@@ -74,6 +74,75 @@
     .main-action-btn-focus:focus{ring-color:var(--theme-color) !important;}
     .icon-themed{color:var(--theme-color) !important;}
     
+    /* --- MEJORAS PARA NOTAS EXTENSAS --- */
+    #noteModalContent {
+      min-height: 300px;
+      max-height: 60vh;
+      overflow-y: auto;
+      line-height: 1.6;
+      padding: 1rem;
+    }
+    
+    #noteModalContent:focus {
+      outline: none;
+    }
+    
+    /* Editor de notas */
+    .editor-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background-color: #f3f4f6;
+      padding: 8px;
+      border-bottom: 1px solid #ddd;
+      display: flex;
+      gap: 4px;
+    }
+    
+    body.dark .editor-toolbar {
+      background-color: #2a2a2a;
+      border-color: #444;
+    }
+    
+    .editor-toolbar button {
+      margin-right: 8px;
+      padding: 4px 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      background: white;
+      cursor: pointer;
+    }
+    
+    body.dark .editor-toolbar button {
+      background-color: #333;
+      border-color: #555;
+      color: #ddd;
+    }
+    
+    .editor-toolbar button.active {
+      background-color: var(--theme-color);
+      color: white;
+    }
+    
+    /* Estilos para los estados de tareas */
+    .task-item.status-todo { border-left: 4px solid #d1d5db; }
+    .task-item.status-inprogress { border-left: 4px solid #f59e0b; }
+    .task-item.status-done { border-left: 4px solid #10b981; }
+    
+    .status-select {
+      background-color: white;
+      padding: 2px 8px;
+      border-radius: 4px;
+      border: 1px solid #ddd;
+      font-size: 12px;
+    }
+    
+    body.dark .status-select {
+      background-color: #2a2a2a;
+      border-color: #444;
+      color: #ddd;
+    }
+    
     /* --- MENÚ DE BOTONES FLOTANTES (SPEED DIAL) --- */
     .fab-container{position:fixed;right:1rem;bottom:1rem;z-index:1100}
     .fab-main{width:56px;height:56px;border-radius:50%;background-color:#6b7280;color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px rgba(0,0,0,0.2);cursor:pointer;transition:transform .2s ease-in-out}
@@ -98,8 +167,6 @@
     body.dark .editor-toolbar { background-color: #2a2a2a; border-color: #444; }
     .editor-toolbar button { margin-right: 8px; padding: 4px 8px; border: 1px solid #ccc; border-radius: 4px; }
     body.dark .editor-toolbar button { border-color: #555; }
-    #noteModalContent { min-height: 250px; padding: 1rem; }
-    #taskModalEditableList .task-item { border-bottom: none; }
     #taskModalEditableList input[type="text"] { flex-grow: 1; background: transparent; }
     
     /* --- MEJORAS PARA EL PANEL DE EDICIÓN --- */
@@ -220,7 +287,13 @@
                 
                 <div class="form-group" id="actionFieldContainer">
                   <label class="form-label required">URL</label>
-                  <input type="text" id="newAction" class="form-control" placeholder="https://ejemplo.com">
+                  <div class="flex gap-2">
+                    <input type="text" id="newAction" class="form-control flex-grow" placeholder="https://ejemplo.com/search?q=...">
+                    <button type="button" onclick="insertSearchTerm()" class="bg-gray-200 hover:bg-gray-300 px-3 rounded">
+                      <i class="fas fa-plus mr-1"></i>{search_term}
+                    </button>
+                  </div>
+                  <p class="text-xs text-gray-500 mt-1">Inserta <code>{search_term}</code> donde irá el término de búsqueda</p>
                 </div>
                 
                 <div class="form-group">
@@ -281,8 +354,64 @@
     <!-- MODALES -->
     <div id="searchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="globalSearchInput" placeholder="Busca en todos tus botones, notas y prompts..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="globalSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeGlobalSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
     <div id="tagSearchModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-start pt-20"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-1/2 max-w-2xl transform transition-all modal-content"><div class="p-4"><input type="text" id="tagSearchInput" placeholder="Busca por etiqueta..." class="w-full px-4 py-3 border border-gray-300 rounded-lg text-lg"></div><div id="tagSearchResults" class="p-4 max-h-[60vh] overflow-y-auto"></div><div class="p-2 border-t text-right"><button id="closeTagSearch" class="px-4 py-2 bg-gray-200 rounded-md text-sm">Cerrar</button></div></div></div>
-    <div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all modal-content flex flex-col"><div class="p-4 border-b"><h2 id="noteModalTitle" class="text-2xl font-bold"></h2></div><div class="editor-toolbar"><button onclick="formatDoc('bold')"><i class="fas fa-bold"></i></button><button onclick="formatDoc('italic')"><i class="fas fa-italic"></i></button><button onclick="formatDoc('underline')"><i class="fas fa-underline"></i></button><button onclick="formatDoc('insertUnorderedList')"><i class="fas fa-list-ul"></i></button></div><div id="noteModalContent" class="p-4 flex-grow overflow-y-auto" contenteditable="true"></div><div class="mt-4 flex justify-end gap-2 p-4 border-t"><input type="hidden" id="noteModalId"><button id="closeNoteModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveNoteModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar</button></div></div></div>
-    <div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center"><div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all modal-content flex flex-col"><div class="p-4 border-b"><h2 id="taskModalTitle" class="text-2xl font-bold"></h2></div><div id="taskModalEditableList" class="p-4 flex-grow overflow-y-auto"></div><div class="p-4 border-t"><button id="addNewTaskItem" class="text-sm text-gray-500 hover:text-black">+ Añadir ítem</button></div><div class="mt-4 flex justify-end gap-2 p-4 border-t"><input type="hidden" id="taskModalId"><button id="closeTaskModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button><button id="saveTaskModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar Tarea</button></div></div></div>
+    
+    <!-- Modal de Notas Mejorado -->
+    <div id="noteModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center">
+      <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-4/5 max-w-4xl h-[85vh] flex flex-col modal-content">
+        <div class="p-4 border-b">
+          <h2 id="noteModalTitle" class="text-2xl font-bold"></h2>
+        </div>
+        <div class="editor-toolbar sticky top-0 z-10">
+          <button type="button" onclick="formatNote('bold')" class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Negrita">
+            <i class="fas fa-bold"></i>
+          </button>
+          <button type="button" onclick="formatNote('italic')" class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Cursiva">
+            <i class="fas fa-italic"></i>
+          </button>
+          <button type="button" onclick="formatNote('underline')" class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Subrayado">
+            <i class="fas fa-underline"></i>
+          </button>
+          <button type="button" onclick="formatNote('insertUnorderedList')" class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Lista con viñetas">
+            <i class="fas fa-list-ul"></i>
+          </button>
+          <button type="button" onclick="formatNote('insertOrderedList')" class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700" title="Lista numerada">
+            <i class="fas fa-list-ol"></i>
+          </button>
+          <button type="button" onclick="formatNote('foreColor','#dc2626')" class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-red-600" title="Color de texto">
+            <i class="fas fa-font"></i>
+          </button>
+          <button type="button" onclick="formatNote('hiliteColor','#fef08a')" class="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 bg-yellow-200" title="Resaltar">
+            <i class="fas fa-highlighter"></i>
+          </button>
+        </div>
+        <div id="noteModalContent" class="p-4 flex-grow overflow-y-auto" contenteditable="true"></div>
+        <div class="mt-4 flex justify-end gap-2 p-4 border-t">
+          <input type="hidden" id="noteModalId">
+          <button id="closeNoteModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button>
+          <button id="saveNoteModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Modal de Tareas Mejorado -->
+    <div id="taskModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[1200] flex justify-center items-center">
+      <div class="bg-white rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl h-[80vh] flex flex-col modal-content">
+        <div class="p-4 border-b">
+          <h2 id="taskModalTitle" class="text-2xl font-bold"></h2>
+        </div>
+        <div id="taskModalEditableList" class="p-4 flex-grow overflow-y-auto">
+          <!-- Las tareas se añadirán aquí dinámicamente -->
+        </div>
+        <div class="p-4 border-t">
+          <button id="addNewTaskItem" class="text-sm text-gray-500 hover:text-black" onclick="addNewTaskItemToModal()">+ Añadir ítem</button>
+        </div>
+        <div class="mt-4 flex justify-end gap-2 p-4 border-t">
+          <input type="hidden" id="taskModalId">
+          <button id="closeTaskModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button>
+          <button id="saveTaskModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar Tarea</button>
+        </div>
+      </div>
+    </div>
   </div>
 
 <script>
@@ -616,7 +745,7 @@ function getIconHtml(item) {
                 <img src="https://icon.horse/icon/${domain}" 
                      class="w-full h-full object-contain" 
                      alt="Favicon" 
-                     onerror="this.onerror=null; this.innerHTML='<i class=\'fas fa-link text-2xl mx-auto icon-themed\'></i>';">
+                     onerror="this.onerror=null; this.innerHTML='<i class=\'fas fa-link text-2xl mx-auto icon-themed\'></i>';">>
             </div>`;
         } catch (e) {
             return '<i class="fas fa-link text-2xl mx-auto icon-themed"></i>';
@@ -761,12 +890,35 @@ function setupEditPanel() {
   document.getElementById('categorySelect').addEventListener('change', updateLivePreview);
 }
 
+function insertSearchTerm() {
+  const actionField = document.getElementById('newAction');
+  const cursorPos = actionField.selectionStart;
+  const currentValue = actionField.value;
+  
+  actionField.value = currentValue.substring(0, cursorPos) + 
+                     '{search_term}' + 
+                     currentValue.substring(cursorPos);
+  actionField.focus();
+  actionField.setSelectionRange(cursorPos + 12, cursorPos + 12);
+}
+
 function updateActionField(type) {
   const container = document.getElementById('actionFieldContainer');
   let html = '';
   
   switch(type) {
     case 'Buscador':
+      html = `
+        <label class="form-label required">URL</label>
+        <div class="flex gap-2">
+          <input type="text" id="newAction" class="form-control flex-grow" placeholder="https://ejemplo.com/search?q=...">
+          <button type="button" onclick="insertSearchTerm()" class="bg-gray-200 hover:bg-gray-300 px-3 rounded">
+            <i class="fas fa-plus mr-1"></i>{search_term}
+          </button>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">Inserta <code>{search_term}</code> donde irá el término de búsqueda</p>
+      `;
+      break;
     case 'Link':
       html = `
         <label class="form-label required">URL</label>
@@ -1023,6 +1175,11 @@ function openNoteModal(itemId) {
     document.getElementById('noteModal').classList.remove('hidden');
 }
 
+function formatNote(command, value = null) {
+    document.execCommand(command, false, value);
+    document.getElementById('noteModalContent').focus();
+}
+
 function saveNoteFromModal() {
     const id = document.getElementById('noteModalId').value;
     const content = document.getElementById('noteModalContent').innerHTML;
@@ -1036,40 +1193,67 @@ function saveNoteFromModal() {
     }
 }
 
-function formatDoc(command, value = null) {
-    document.execCommand(command, false, value);
-}
-
 function openTaskModal(itemId) {
     const item = data.find(i => String(i.id) === itemId);
     if (!item) return;
+    
     document.getElementById('taskModalTitle').textContent = item.title;
     document.getElementById('taskModalId').value = item.id;
     const listContainer = document.getElementById('taskModalEditableList');
     listContainer.innerHTML = '';
-    item.action.forEach(task => addNewTaskItemToModal(task));
+    
+    if (item.action && item.action.length > 0) {
+        item.action.forEach(task => addNewTaskItemToModal(task));
+    } else {
+        addNewTaskItemToModal(); // Añade una tarea vacía por defecto
+    }
+    
     document.getElementById('taskModal').classList.remove('hidden');
 }
 
 function addNewTaskItemToModal(task = { text: '', status: 'todo' }) {
     const listContainer = document.getElementById('taskModalEditableList');
-    const li = document.createElement('li');
-    li.className = 'flex items-center gap-2 mb-2';
-    li.innerHTML = `
-        <span class="status-dot status-${task.status}" data-status="${task.status}"></span>
-        <input type="text" class="w-full border-b p-1" value="${task.text}">
-        <button class="text-red-500"><i class="fas fa-trash"></i></button>
+    const taskId = Date.now().toString();
+    
+    const taskHtml = `
+      <div class="task-item mb-3 p-2 rounded border status-${task.status}" data-id="${taskId}">
+        <div class="flex items-center mb-1">
+          <select class="status-select p-1 rounded text-xs border mr-2" 
+                  onchange="updateTaskStatus(this)" 
+                  value="${task.status}">
+            <option value="todo">Por hacer</option>
+            <option value="inprogress">En progreso</option>
+            <option value="done">Finalizada</option>
+          </select>
+          <button onclick="removeTaskItem(this)" class="text-red-500 ml-auto">
+            <i class="fas fa-trash"></i>
+          </button>
+        </div>
+        <div class="task-content p-1 min-h-[2rem]" contenteditable="true">
+          ${task.text || ''}
+        </div>
+      </div>
     `;
-    li.querySelector('.status-dot').addEventListener('click', function() {
-        const statuses = ['todo', 'inprogress', 'done'];
-        let currentStatus = this.dataset.status;
-        let currentIndex = statuses.indexOf(currentStatus);
-        let nextStatus = statuses[(currentIndex + 1) % statuses.length];
-        this.className = `status-dot status-${nextStatus}`;
-        this.dataset.status = nextStatus;
-    });
-    li.querySelector('button').addEventListener('click', () => li.remove());
-    listContainer.appendChild(li);
+    
+    listContainer.insertAdjacentHTML('beforeend', taskHtml);
+    
+    // Establecer el valor seleccionado correctamente
+    const select = listContainer.querySelector(`[data-id="${taskId}"] .status-select`);
+    if (select) {
+        select.value = task.status;
+    }
+}
+
+function updateTaskStatus(selectElement) {
+    const taskItem = selectElement.closest('.task-item');
+    // Eliminar todas las clases de estado
+    taskItem.classList.remove('status-todo', 'status-inprogress', 'status-done');
+    // Añadir la clase correspondiente al nuevo estado
+    taskItem.classList.add(`status-${selectElement.value}`);
+}
+
+function removeTaskItem(buttonElement) {
+    buttonElement.closest('.task-item').remove();
 }
 
 function saveTaskFromModal() {
@@ -1078,11 +1262,14 @@ function saveTaskFromModal() {
     if (index === -1) return;
     
     const newTasks = [];
-    document.querySelectorAll('#taskModalEditableList li').forEach(li => {
-        const text = li.querySelector('input').value.trim();
-        const status = li.querySelector('.status-dot').dataset.status || 'todo';
+    document.querySelectorAll('#taskModalEditableList .task-item').forEach(item => {
+        const text = item.querySelector('.task-content').innerHTML.trim();
+        const status = item.querySelector('.status-select').value || 'todo';
         if (text) {
-            newTasks.push({ text, status });
+            newTasks.push({ 
+                text: text,
+                status: status 
+            });
         }
     });
     
