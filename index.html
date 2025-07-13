@@ -1041,60 +1041,6 @@ function setupThemeSwitcher() {
     applyThemeState(themeStates[currentStateIndex]);
 }
 
-function toggleTagFilterPanel() {
-    const panel = document.getElementById('tagFilterPanel');
-    panel.classList.toggle('open');
-    if (panel.classList.contains('open')) {
-        populateTagFilterPanel();
-    }
-}
-
-function populateTagFilterPanel() {
-    const activeSection = document.querySelector('.section:not(.hidden)');
-    const itemsInView = Array.from(activeSection.querySelectorAll('.card-container')).map(card => {
-        return data.find(d => String(d.id) === card.dataset.id);
-    }).filter(Boolean);
-
-    const allTags = [...new Set(itemsInView.flatMap(item => item.tags || []))].sort();
-    
-    const list = document.getElementById('tagFilterList');
-    list.innerHTML = '';
-
-    allTags.forEach(tag => {
-        const itemEl = document.createElement('div');
-        itemEl.className = 'tag-filter-item p-2 rounded-md';
-        itemEl.textContent = tag;
-        if (activeTagFilters.includes(tag)) {
-            itemEl.classList.add('active');
-        }
-        itemEl.onclick = () => {
-            itemEl.classList.toggle('active');
-            if (activeTagFilters.includes(tag)) {
-                activeTagFilters = activeTagFilters.filter(t => t !== tag);
-            } else {
-                activeTagFilters.push(tag);
-            }
-            applyFilters();
-        };
-        list.appendChild(itemEl);
-    });
-}
-
-function applyFilters() {
-    const searchTerm = document.getElementById('localSearchInput').value.toLowerCase();
-    
-    document.querySelectorAll('.card-container').forEach(card => {
-        const title = card.querySelector('h4')?.textContent.toLowerCase() || '';
-        const category = card.querySelector('p')?.textContent.toLowerCase() || '';
-        const cardTags = (card.dataset.tags || '').split(',');
-
-        const searchMatch = title.includes(searchTerm) || category.includes(searchTerm);
-        const tagMatch = activeTagFilters.length === 0 || activeTagFilters.every(filterTag => cardTags.includes(filterTag));
-        
-        card.style.display = searchMatch && tagMatch ? '' : 'none';
-    });
-}
-
 // --- SEARCH PALETTE FUNCTIONS ---
 function openSearchPalette() {
     const searchPaletteOverlay = document.getElementById('search-palette-overlay');
@@ -1145,12 +1091,30 @@ function applySearchPaletteFilters() {
     const searchInput = document.getElementById('search-palette-input');
     const searchTerm = searchInput.value.toLowerCase();
     
-    const results = data.filter(card => {
+    const activeNavBtn = document.querySelector('.nav-btn.active');
+    const activeType = activeNavBtn.id.replace('nav-', '').replace('s', ''); // e.g., 'link', 'nota'
+    const typeMap = { 'link': 'Link', 'buscadore': 'Buscador', 'prompt': 'Promp', 'note': 'Nota', 'task': 'Tarea' };
+    const currentType = typeMap[activeType];
+
+    const itemsToSearch = data.filter(item => item.type === currentType);
+
+    const results = itemsToSearch.filter(card => {
         const title = card.title.toLowerCase();
         const category = card.category.toLowerCase();
         const cardTags = card.tags || [];
+        
+        let contentToSearch = '';
+        if (card.type === 'Nota' || card.type === 'Promp' || card.type === 'Tarea') {
+            if (typeof card.action === 'string') {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = card.action;
+                contentToSearch = tempDiv.textContent.toLowerCase();
+            } else if (Array.isArray(card.action)) { // For tasks
+                contentToSearch = card.action.map(t => t.text).join(' ').toLowerCase();
+            }
+        }
 
-        const searchMatch = title.includes(searchTerm) || category.includes(searchTerm);
+        const searchMatch = title.includes(searchTerm) || category.includes(searchTerm) || contentToSearch.includes(searchTerm);
         const tagMatch = activeSearchTags.length === 0 || activeSearchTags.every(filterTag => cardTags.includes(filterTag));
         
         return searchMatch && tagMatch;
