@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centro de Accesos v8</title>
+  <title>Centro de Accesos v9</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
@@ -23,8 +23,8 @@
     body.dark input,body.dark select,body.dark textarea, body.dark .rich-text-editor{background-color:#2a2a2a;color:#ddd;border-color:#444}
     body.dark .filter-btn{background-color:#3a3a3a;color:#ddd}
     body.dark .filter-btn.active{background-color:var(--theme-color);color:#fff}
-    body.dark #editPanel,body.dark .modal-content, body.dark #tagFilterPanel{background-color:rgba(30,30,30,.97);backdrop-filter:blur(4px)}
-    body.dark #noteModal, body.dark #taskModal{background-color:rgba(0,0,0,.7)}
+    body.dark #editPanel,body.dark .modal-content, body.dark #tagFilterPanel, body.dark #search-palette{background-color:rgba(30,30,30,.97);backdrop-filter:blur(4px)}
+    body.dark #noteModal, body.dark #taskModal, body.dark #search-palette-overlay{background-color:rgba(0,0,0,.7)}
     body.dark .sticky-header{background-color:rgba(18,18,18,0.85);backdrop-filter:blur(10px);border-bottom-color:rgba(255,255,255,0.1)}
     body.dark .category-title{color:#e5e7eb}
     
@@ -34,159 +34,34 @@
     .nav-btn{transition:all .2s ease;position:relative;color:#4b5563;font-weight:600;padding:0.5rem 0.75rem;border-radius:8px}
     .nav-btn.active{color:var(--theme-color)}
     
-    /* --- NUEVO DISEÑO DE TARJETA MINIMALISTA --- */
-    .card-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 1.5rem;
-    }
-
-    .card-container {
-        width: 100%;
-        height: 220px;
-    }
-    
-    .card-preview-container {
-        transition: all 0.3s ease;
-        overflow: hidden;
-        cursor: pointer;
-    }
-
-    .card-preview-container:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1);
-    }
-    
-    .card-preview-container .card-content {
-      transition: opacity 0.3s ease-in-out;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      height: 100%;
-      padding: 1.5rem;
-      position: relative; /* Para las etiquetas */
-    }
-    
-    .card-preview-container:hover .card-content {
-      opacity: 0;
-    }
-    
-    .card-preview-container .card-preview {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      opacity: 0;
-      transition: opacity 0.3s ease-in-out;
-      background-size: cover;
-      background-position: center;
-    }
-    
-    .card-preview-container:hover .card-preview {
-      opacity: 1;
-    }
-    
-    .card-icon-image {
-        width: 48px;
-        height: 48px;
-        object-fit: contain;
-    }
-    
-    .card-actions, .card-drag-handle {
-        position: absolute;
-        opacity: 0;
-        transition: opacity 0.2s ease-in-out;
-        z-index: 10;
-    }
-
-    .card-preview-container:hover .card-actions,
-    .card-preview-container:hover .card-drag-handle {
-        opacity: 1;
-    }
-
-    .card-actions {
-        top: 0.75rem;
-        right: 0.75rem;
-        display: flex;
-        gap: 0.5rem;
-    }
-    .card-actions button {
-        width: 28px;
-        height: 28px;
-        border-radius: 9999px;
-        background-color: rgba(255, 255, 255, 0.8);
-    }
-    body.dark .card-actions button {
-        background-color: rgba(30, 30, 30, 0.8);
-    }
-
-    .card-drag-handle {
-        top: 0.75rem;
-        left: 0.75rem;
-        cursor: move;
-        color: #9ca3af;
-    }
-    body.dark .card-drag-handle {
-        color: #6b7280;
-    }
-    
-    .card-tags {
-        position: absolute;
-        bottom: 1rem;
-        left: 1rem;
-        right: 1rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.25rem;
-        justify-content: center;
-    }
-    .tag {
-        background-color:#e5e7eb;
-        color:#4b5563;
-        padding: 2px 8px;
-        border-radius: 9999px;
-        font-size: 0.7rem;
-        font-weight: 500;
-    }
-    body.dark .tag {
-        background-color: #374151;
-        color: #d1d5db;
-    }
-
-
+    /* --- DISEÑO DE TARJETA --- */
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+    .card-container { width: 100%; height: 220px; }
+    .card-preview-container { transition: all 0.3s ease; overflow: hidden; cursor: pointer; }
+    .card-preview-container:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1); }
+    .card-preview-container .card-content { transition: opacity 0.3s ease-in-out; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; height: 100%; padding: 1.5rem; position: relative; }
+    .card-preview-container:hover .card-content { opacity: 0; }
+    .card-preview-container .card-preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s ease-in-out; background-size: cover; background-position: center; }
+    .card-preview-container:hover .card-preview { opacity: 1; }
+    .card-icon-image { width: 48px; height: 48px; object-fit: contain; }
+    .card-actions, .card-drag-handle { position: absolute; opacity: 0; transition: opacity 0.2s ease-in-out; z-index: 10; }
+    .card-preview-container:hover .card-actions, .card-preview-container:hover .card-drag-handle { opacity: 1; }
+    .card-actions { top: 0.75rem; right: 0.75rem; display: flex; gap: 0.5rem; }
+    .card-actions button { width: 28px; height: 28px; border-radius: 9999px; background-color: rgba(255, 255, 255, 0.8); }
+    body.dark .card-actions button { background-color: rgba(30, 30, 30, 0.8); }
+    .card-drag-handle { top: 0.75rem; left: 0.75rem; cursor: move; color: #9ca3af; }
+    body.dark .card-drag-handle { color: #6b7280; }
+    .card-tags { position: absolute; bottom: 1rem; left: 1rem; right: 1rem; display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: center; }
+    .tag { background-color:#e5e7eb; color:#4b5563; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; }
+    body.dark .tag { background-color: #374151; color: #d1d5db; }
     .category-title-container{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid #e5e7eb;padding-bottom:0.5rem}
     body.dark .category-title-container{border-color:rgba(255,255,255,0.1)}
     .category-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;color:#1f2937; cursor: pointer;}
-
-    /* --- ESTILOS PARA VISTA PREVIA DE TEXTO --- */
-    .card-preview.text-preview {
-        display: flex;
-        padding: 1.5rem;
-        background-color: #fff;
-        color: #333;
-        overflow: hidden;
-    }
-    body.dark .card-preview.text-preview {
-        background-color: #1e1e1e;
-        color: #ddd;
-    }
-    .scrolling-text {
-        text-align: left;
-        white-space: pre-wrap;
-        font-size: 0.875rem;
-        line-height: 1.5;
-        animation: none;
-    }
-    .card-preview-container:hover .scrolling-text {
-        animation: scroll-up 20s linear 1s; /* 20s duration, 1s delay */
-    }
-    @keyframes scroll-up {
-        from { transform: translateY(0); }
-        to { transform: translateY(-100%); }
-    }
+    .card-preview.text-preview { display: flex; padding: 1.5rem; background-color: #fff; color: #333; overflow: hidden; }
+    body.dark .card-preview.text-preview { background-color: #1e1e1e; color: #ddd; }
+    .scrolling-text { text-align: left; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.5; animation: none; }
+    .card-preview-container:hover .scrolling-text { animation: scroll-up 20s linear 1s; }
+    @keyframes scroll-up { from { transform: translateY(0); } to { transform: translateY(-100%); } }
     
     /* --- ESTILOS PANEL DE EDICIÓN --- */
     .type-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
@@ -212,78 +87,22 @@
     .fab-container.open .fab-action{transform:scale(1)}
     .fab-action-item{width:48px;height:48px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,0.2);cursor:pointer; background-color: #4b5563;}
   
-    /* --- PANEL DE FILTROS POR ETIQUETA --- */
-    #tagFilterPanel {
-        position: fixed;
-        top: 0;
-        right: -350px; /* Start off-screen */
-        width: 300px;
-        height: 100%;
-        background-color: rgba(255,255,255,0.95);
-        backdrop-filter: blur(4px);
-        z-index: 1200;
-        transition: right 0.3s ease-in-out;
-        box-shadow: -5px 0 15px rgba(0,0,0,0.1);
-        display: flex;
-        flex-direction: column;
-    }
-    #tagFilterPanel.open {
-        right: 0;
-    }
-    .tag-filter-item {
-        cursor: pointer;
-        border: 1px solid #ddd;
-    }
-    .tag-filter-item.active {
-        background-color: var(--theme-color);
-        color: white;
-        border-color: var(--theme-color);
-    }
+    /* --- PALETA DE BÚSQUEDA --- */
+    #search-palette-overlay { transition: opacity 0.2s ease-in-out; z-index: 1400; }
+    #search-palette { transition: all 0.2s ease-in-out; }
+    .filter-tag { cursor: pointer; transition: all 0.2s ease; }
+    .filter-tag.active { background-color: var(--theme-color); color: white; border-color: var(--theme-color); }
+    .search-result-item:hover { background-color: #f3f4f6; }
+    body.dark .search-result-item:hover { background-color: #374151; }
     
     /* MODAL STYLES */
-    .modal {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 1300;
-        background-color: rgba(0,0,0,0.5);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .modal-content {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 0.5rem;
-        width: 90%;
-        max-width: 600px;
-        max-height: 90vh;
-        display: flex;
-        flex-direction: column;
-    }
-    .modal-task-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 0;
-        border-bottom: 1px solid #eee;
-    }
-    .modal-task-item input[type="checkbox"] {
-        width: 1.25rem;
-        height: 1.25rem;
-    }
-    .modal-task-item .task-text {
-        flex-grow: 1;
-    }
-    .modal-task-item .task-text[contenteditable]:focus {
-        outline: 1px solid var(--theme-color);
-        background: #f0f2f5;
-    }
-    body.dark .modal-task-item .task-text[contenteditable]:focus {
-        background: #2a2a2a;
-    }
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1300; background-color: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; }
+    .modal-content { background: white; padding: 1.5rem; border-radius: 0.5rem; width: 90%; max-width: 600px; max-height: 90vh; display: flex; flex-direction: column; }
+    .modal-task-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+    .modal-task-item input[type="checkbox"] { width: 1.25rem; height: 1.25rem; }
+    .modal-task-item .task-text { flex-grow: 1; }
+    .modal-task-item .task-text[contenteditable]:focus { outline: 1px solid var(--theme-color); background: #f0f2f5; }
+    body.dark .modal-task-item .task-text[contenteditable]:focus { background: #2a2a2a; }
   </style>
 </head>
 <body class="min-h-screen theme-default">
@@ -305,9 +124,6 @@
 
   <div class="container mx-auto px-4">
     <main>
-      <div class="mb-4">
-        <input type="text" id="localSearchInput" class="w-full p-2 border rounded-lg hidden" placeholder="Buscar en esta sección...">
-      </div>
       <div id="section-buscadores" class="section">
         <div id="searchFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
         <div id="searchEnginesContainer" class="space-y-8"></div>
@@ -453,16 +269,20 @@
         </div>
     </div>
 
-    <div id="tagFilterPanel">
-        <div class="p-4 border-b flex justify-between items-center">
-            <h3 class="font-bold text-lg">Filtrar por Etiqueta</h3>
-            <button id="closeTagFilter" class="p-1"><i class="fas fa-times"></i></button>
-        </div>
-        <div id="tagFilterList" class="p-4 flex-grow overflow-y-auto flex flex-col gap-2">
-            <!-- Las etiquetas se insertarán aquí -->
-        </div>
-        <div class="p-2 border-t">
-            <button id="clearTagFilters" class="w-full text-sm text-center">Limpiar filtros</button>
+    <div id="search-palette-overlay" class="fixed inset-0 bg-black bg-opacity-70 z-50 flex justify-center items-start pt-[15vh] hidden">
+        <div id="search-palette" class="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl transform transition-all scale-95 opacity-0">
+            <div class="p-4 border-b dark:border-gray-700">
+                <input type="text" id="search-palette-input" placeholder="Buscar por título, categoría o etiqueta..." class="w-full px-2 py-2 text-xl bg-transparent focus:outline-none">
+            </div>
+            <div class="p-4 border-b dark:border-gray-700">
+                <h4 class="text-xs font-bold uppercase text-gray-500 mb-2">Filtrar por Etiqueta</h4>
+                <div id="search-palette-tags" class="flex flex-wrap gap-2">
+                    <!-- Tags se generan dinámicamente -->
+                </div>
+            </div>
+            <div id="search-palette-results" class="p-2 max-h-[40vh] overflow-y-auto">
+                 <p class="text-center text-gray-500 p-4">Los resultados aparecerán aquí.</p>
+            </div>
         </div>
     </div>
 
@@ -470,7 +290,6 @@
         <ul class="fab-actions">
             <li class="fab-action"><button id="fab-add" class="fab-action-item" title="Añadir Tarjeta"><i class="fas fa-plus"></i></button></li>
             <li class="fab-action"><button id="fab-search" class="fab-action-item" title="Buscar en Sección"><i class="fas fa-search"></i></button></li>
-            <li class="fab-action"><button id="fab-filter" class="fab-action-item" title="Filtrar por Etiquetas"><i class="fas fa-filter"></i></button></li>
             <li class="fab-action"><button id="fab-theme" class="fab-action-item" title="Cambiar Tema"><i class="fas fa-palette"></i></button></li>
         </ul>
         <div class="fab-main"><i class="fas fa-bars"></i></div>
@@ -485,7 +304,7 @@ let data = [];
 let imageBasePath = '';
 let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
 const THEMES = ['default', 'blue', 'indigo', 'rose'];
-let activeTagFilters = [];
+let activeSearchTags = [];
 
 // --- DATOS DE EJEMPLO ---
 const mockData = {
@@ -636,20 +455,22 @@ function setupEventListeners() {
         }
     });
     document.getElementById('fab-add').addEventListener('click', () => openEditPanel());
-    document.getElementById('fab-search').addEventListener('click', () => {
-        document.getElementById('localSearchInput').classList.toggle('hidden');
-        document.getElementById('localSearchInput').focus();
+    document.getElementById('fab-search').addEventListener('click', openSearchPalette);
+    
+    // Search Palette Listeners
+    const searchPaletteOverlay = document.getElementById('search-palette-overlay');
+    searchPaletteOverlay.addEventListener('click', (e) => {
+        if (e.target === searchPaletteOverlay) closeSearchPalette();
     });
-    
-    document.getElementById('localSearchInput').addEventListener('input', applyFilters);
-    
-    // Tag Filter Panel
-    document.getElementById('fab-filter').addEventListener('click', toggleTagFilterPanel);
-    document.getElementById('closeTagFilter').addEventListener('click', () => document.getElementById('tagFilterPanel').classList.remove('open'));
-    document.getElementById('clearTagFilters').addEventListener('click', () => {
-        activeTagFilters = [];
-        document.querySelectorAll('#tagFilterList .tag-filter-item').forEach(el => el.classList.remove('active'));
-        applyFilters();
+    document.getElementById('search-palette-input').addEventListener('input', applySearchPaletteFilters);
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+            e.preventDefault();
+            openSearchPalette();
+        }
+        if (e.key === 'Escape' && !searchPaletteOverlay.classList.contains('hidden')) {
+            closeSearchPalette();
+        }
     });
 
     // Live Preview Listeners
@@ -683,12 +504,6 @@ function switchTab(tabName) {
     activeSection.classList.remove("hidden");
     
     document.getElementById('main-search-bar').style.display = (tabName === 'buscadores') ? 'block' : 'none';
-    
-    // Reset filters when switching tabs
-    document.getElementById('localSearchInput').value = '';
-    document.getElementById('localSearchInput').classList.add('hidden');
-    activeTagFilters = [];
-    applyFilters();
 }
 
 // --- RENDERIZADO DE SECCIONES ---
@@ -1278,6 +1093,121 @@ function applyFilters() {
         
         card.style.display = searchMatch && tagMatch ? '' : 'none';
     });
+}
+
+// --- SEARCH PALETTE FUNCTIONS ---
+function openSearchPalette() {
+    const searchPaletteOverlay = document.getElementById('search-palette-overlay');
+    const searchPalette = document.getElementById('search-palette');
+    const searchInput = document.getElementById('search-palette-input');
+    
+    populateSearchPaletteTags();
+    applySearchPaletteFilters(); // Show initial results
+    searchPaletteOverlay.classList.remove('hidden');
+    setTimeout(() => {
+        searchPalette.classList.remove('scale-95', 'opacity-0');
+        searchInput.focus();
+    }, 10);
+}
+
+function closeSearchPalette() {
+    const searchPaletteOverlay = document.getElementById('search-palette-overlay');
+    const searchPalette = document.getElementById('search-palette');
+    searchPalette.classList.add('scale-95', 'opacity-0');
+    setTimeout(() => searchPaletteOverlay.classList.add('hidden'), 200);
+}
+
+function populateSearchPaletteTags() {
+    const tagsContainer = document.getElementById('search-palette-tags');
+    tagsContainer.innerHTML = '';
+    const allTags = [...new Set(data.flatMap(card => card.tags || []))].sort();
+    
+    allTags.forEach(tag => {
+        if (!tag) return;
+        const tagEl = document.createElement('button');
+        tagEl.className = 'filter-tag text-sm border border-gray-300 dark:border-gray-600 rounded-full px-3 py-1';
+        tagEl.textContent = tag;
+        tagEl.dataset.tag = tag;
+        tagEl.onclick = () => {
+            tagEl.classList.toggle('active');
+            if (activeSearchTags.includes(tag)) {
+                activeSearchTags = activeSearchTags.filter(t => t !== tag);
+            } else {
+                activeSearchTags.push(tag);
+            }
+            applySearchPaletteFilters();
+        };
+        tagsContainer.appendChild(tagEl);
+    });
+}
+
+function applySearchPaletteFilters() {
+    const searchInput = document.getElementById('search-palette-input');
+    const searchTerm = searchInput.value.toLowerCase();
+    
+    const results = data.filter(card => {
+        const title = card.title.toLowerCase();
+        const category = card.category.toLowerCase();
+        const cardTags = card.tags || [];
+
+        const searchMatch = title.includes(searchTerm) || category.includes(searchTerm);
+        const tagMatch = activeSearchTags.length === 0 || activeSearchTags.every(filterTag => cardTags.includes(filterTag));
+        
+        return searchMatch && tagMatch;
+    });
+
+    renderSearchPaletteResults(results);
+}
+
+function renderSearchPaletteResults(results) {
+    const resultsContainer = document.getElementById('search-palette-results');
+    resultsContainer.innerHTML = '';
+    if (results.length === 0) {
+        resultsContainer.innerHTML = '<p class="text-center text-gray-500 p-4">No se encontraron resultados.</p>';
+    } else {
+        results.forEach(item => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'search-result-item p-3 rounded-md cursor-pointer flex items-center';
+            resultItem.innerHTML = `
+                <div class="w-8 flex-shrink-0 text-center">${getIconHtml(item, 'text-xl')}</div>
+                <div class="ml-4">
+                    <div class="font-bold text-gray-800 dark:text-white">${item.title}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">${item.type} / ${item.category}</div>
+                </div>
+            `;
+            resultItem.onclick = () => {
+                handleCardClick(String(item.id));
+                closeSearchPalette();
+            };
+            resultsContainer.appendChild(resultItem);
+        });
+    }
+}
+
+function getIconHtml(item, sizeClass = 'text-5xl') {
+    const iconValue = item.icon || '';
+    const defaultIconClass = { 
+        Buscador: "fas fa-search", Link: "fas fa-link", Promp: "fas fa-brain", 
+        Nota: "fas fa-sticky-note", Tarea: "fas fa-tasks" 
+    }[item.type] || 'fas fa-question-circle';
+
+    if (iconValue) {
+        if (iconValue.startsWith('http') || iconValue.startsWith('imagenes/')) {
+            const fullUrl = iconValue.startsWith('http') ? iconValue : imageBasePath + iconValue;
+            return `<img src="${fullUrl}" alt="Icono" class="card-icon-image" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} ${sizeClass} text-teal-500\\'></i>'">`;
+        } else {
+            return `<i class="${iconValue} ${sizeClass} text-teal-500"></i>`;
+        }
+    } else if (item.type === 'Link' || item.type === 'Buscador') {
+        try {
+            const domain = new URL(item.action).hostname;
+            return `<img src="https://icon.horse/icon/${domain}" alt="Icono" class="card-icon-image" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} ${sizeClass} text-teal-500\\'></i>'">`;
+        } catch (e) {
+            return `<i class="${defaultIconClass} ${sizeClass} text-teal-500"></i>`;
+        }
+    } else {
+        return `<i class="${defaultIconClass} ${sizeClass} text-teal-500"></i>`;
+    }
 }
 
 </script>
