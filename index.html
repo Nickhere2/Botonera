@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centro de Accesos v3</title>
+  <title>Centro de Accesos v8</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
@@ -20,16 +20,16 @@
     body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f0f2f5;color:#333;transition:background-color .3s,color .3s}
     body.dark{background-color:#121212;color:#ddd}
     body.dark .bg-white{background-color:#1e1e1e;color:#ddd;border-color:rgba(255,255,255,0.1)}
-    body.dark input,body.dark select,body.dark textarea{background-color:#2a2a2a;color:#ddd;border-color:#444}
+    body.dark input,body.dark select,body.dark textarea, body.dark .rich-text-editor{background-color:#2a2a2a;color:#ddd;border-color:#444}
     body.dark .filter-btn{background-color:#3a3a3a;color:#ddd}
     body.dark .filter-btn.active{background-color:var(--theme-color);color:#fff}
-    body.dark #editPanel,body.dark .modal-content{background-color:rgba(30,30,30,.97);backdrop-filter:blur(4px)}
-    body.dark #searchModal,body.dark #tagSearchModal, body.dark #noteModal, body.dark #taskModal{background-color:rgba(0,0,0,.7)}
+    body.dark #editPanel,body.dark .modal-content, body.dark #tagFilterPanel{background-color:rgba(30,30,30,.97);backdrop-filter:blur(4px)}
+    body.dark #noteModal, body.dark #taskModal{background-color:rgba(0,0,0,.7)}
     body.dark .sticky-header{background-color:rgba(18,18,18,0.85);backdrop-filter:blur(10px);border-bottom-color:rgba(255,255,255,0.1)}
     body.dark .category-title{color:#e5e7eb}
     
     /* --- CABECERA Y NAVEGACIÓN --- */
-    .sticky-header{position:sticky;top:0;z-index:999;background-color:rgba(240,242,245,0.85);backdrop-filter:blur(10px);border-bottom:1px solid #ddd;padding-top:0.5rem;padding-bottom:0.5rem}
+    .sticky-header{position:sticky;top:0;z-index:999;background-color:rgba(240,242,245,0.85);backdrop-filter:blur(10px);border-bottom:1px solid #ddd;padding:0.5rem 0}
     main{padding-top:1rem}
     .nav-btn{transition:all .2s ease;position:relative;color:#4b5563;font-weight:600;padding:0.5rem 0.75rem;border-radius:8px}
     .nav-btn.active{color:var(--theme-color)}
@@ -66,6 +66,7 @@
       text-align: center;
       height: 100%;
       padding: 1.5rem;
+      position: relative; /* Para las etiquetas */
     }
     
     .card-preview-container:hover .card-content {
@@ -131,10 +132,34 @@
     body.dark .card-drag-handle {
         color: #6b7280;
     }
+    
+    .card-tags {
+        position: absolute;
+        bottom: 1rem;
+        left: 1rem;
+        right: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        justify-content: center;
+    }
+    .tag {
+        background-color:#e5e7eb;
+        color:#4b5563;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+    body.dark .tag {
+        background-color: #374151;
+        color: #d1d5db;
+    }
+
 
     .category-title-container{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid #e5e7eb;padding-bottom:0.5rem}
     body.dark .category-title-container{border-color:rgba(255,255,255,0.1)}
-    .category-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;color:#1f2937}
+    .category-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;color:#1f2937; cursor: pointer;}
 
     /* --- ESTILOS PARA VISTA PREVIA DE TEXTO --- */
     .card-preview.text-preview {
@@ -163,7 +188,7 @@
         to { transform: translateY(-100%); }
     }
     
-    /* Estilos para el panel de edición (del código original) */
+    /* --- ESTILOS PANEL DE EDICIÓN --- */
     .type-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
     .type-btn { flex: 1; min-width: 120px; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid #ddd;}
     .type-btn.active { background-color: var(--theme-color); color: white; border-color: var(--theme-color); }
@@ -172,42 +197,149 @@
     .form-label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
     .form-control { width: 100%; padding: 0.5rem; border: 1px solid #ddd; border-radius: 8px; }
     .required:after { content: " *"; color: #e53e3e; }
+    .editor-toolbar { display: flex; flex-wrap: wrap; gap: 4px; border: 1px solid #ddd; padding: 4px; border-radius: 8px 8px 0 0; border-bottom: none;}
+    .editor-toolbar button { background: #f9fafb; border: 1px solid #ddd; padding: 4px 8px; border-radius: 4px;}
+    .rich-text-editor { border: 1px solid #ddd; padding: 0.5rem; min-height: 120px; border-radius: 0 0 8px 8px;}
+    .preview-placeholder { border: 2px dashed #d1d5db; background-color: #f9fafb; display: flex; align-items: center; justify-content: center; text-align: center; color: #6b7280;}
+    body.dark .preview-placeholder { border-color: #4b5563; background-color: #1f2937; color: #9ca3af;}
+
+    /* --- MENÚ DE BOTONES FLOTANTES (FAB) --- */
+    .fab-container{position:fixed;right:1rem;bottom:1rem;z-index:1100}
+    .fab-main{width:56px;height:56px;border-radius:50%;background-color:var(--theme-color);color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px rgba(0,0,0,0.2);cursor:pointer;transition:transform .2s ease-in-out, background-color .2s}
+    .fab-container.open .fab-main{transform:rotate(45deg); background-color: #6b7280;}
+    .fab-actions{position:absolute;bottom:64px;right:0;display:flex;flex-direction:column;gap:1rem;align-items:center; list-style: none; margin: 0; padding: 0;}
+    .fab-action{transform:scale(0);transition:transform .2s ease-in-out}
+    .fab-container.open .fab-action{transform:scale(1)}
+    .fab-action-item{width:48px;height:48px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 4px rgba(0,0,0,0.2);cursor:pointer; background-color: #4b5563;}
+  
+    /* --- PANEL DE FILTROS POR ETIQUETA --- */
+    #tagFilterPanel {
+        position: fixed;
+        top: 0;
+        right: -350px; /* Start off-screen */
+        width: 300px;
+        height: 100%;
+        background-color: rgba(255,255,255,0.95);
+        backdrop-filter: blur(4px);
+        z-index: 1200;
+        transition: right 0.3s ease-in-out;
+        box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+    }
+    #tagFilterPanel.open {
+        right: 0;
+    }
+    .tag-filter-item {
+        cursor: pointer;
+        border: 1px solid #ddd;
+    }
+    .tag-filter-item.active {
+        background-color: var(--theme-color);
+        color: white;
+        border-color: var(--theme-color);
+    }
+    
+    /* MODAL STYLES */
+    .modal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1300;
+        background-color: rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .modal-content {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 0.5rem;
+        width: 90%;
+        max-width: 600px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+    .modal-task-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #eee;
+    }
+    .modal-task-item input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+    }
+    .modal-task-item .task-text {
+        flex-grow: 1;
+    }
+    .modal-task-item .task-text[contenteditable]:focus {
+        outline: 1px solid var(--theme-color);
+        background: #f0f2f5;
+    }
+    body.dark .modal-task-item .task-text[contenteditable]:focus {
+        background: #2a2a2a;
+    }
   </style>
 </head>
 <body class="min-h-screen theme-default">
   
   <header class="sticky-header">
     <div class="container mx-auto px-4">
-      <nav class="flex justify-center flex-wrap gap-4 sm:gap-8 mb-4">
-        <button id="nav-buscadores" class="nav-btn active"><i class="fas fa-search mr-2"></i>Buscadores</button>
-        <button id="nav-links" class="nav-btn"><i class="fas fa-link mr-2"></i>Links</button>
-        <button id="nav-prompts" class="nav-btn"><i class="fas fa-brain mr-2"></i>Prompts</button>
-        <button id="nav-notes" class="nav-btn"><i class="fas fa-sticky-note mr-2"></i>Notas</button>
-        <button id="nav-tasks" class="nav-btn"><i class="fas fa-tasks mr-2"></i>Tareas</button>
-      </nav>
-      <!-- El resto del header del código original se mantiene aquí -->
+      <div class="flex justify-between items-center">
+        <div></div> <!-- Espaciador izquierdo -->
+        <nav class="flex justify-center flex-wrap gap-4 sm:gap-8">
+          <button id="nav-buscadores" class="nav-btn active"><i class="fas fa-search mr-2"></i>Buscadores</button>
+          <button id="nav-links" class="nav-btn"><i class="fas fa-link mr-2"></i>Links</button>
+          <button id="nav-prompts" class="nav-btn"><i class="fas fa-brain mr-2"></i>Prompts</button>
+          <button id="nav-notes" class="nav-btn"><i class="fas fa-sticky-note mr-2"></i>Notas</button>
+          <button id="nav-tasks" class="nav-btn"><i class="fas fa-tasks mr-2"></i>Tareas</button>
+        </nav>
+        <div class="relative">
+            <button id="userProfileBtn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+                <i class="fas fa-user-circle text-2xl"></i>
+            </button>
+            <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-20">
+                <a href="#" id="changeUserBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Cambiar de Usuario</a>
+                <a href="#" id="forgetUserBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Olvidar mis Datos</a>
+            </div>
+        </div>
+      </div>
+      <div id="main-search-bar" class="max-w-2xl mx-auto mt-4"><div class="relative"><div class="flex"><input type="text" id="searchInput" list="searchSuggestions" placeholder="Ingresa tu búsqueda aquí..." class="w-full px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-lg"><datalist id="searchSuggestions"></datalist><div class="relative"><button id="dropdownToggle" class="bg-teal-600 text-white px-4 py-3 rounded-r-lg flex items-center"><span id="selectedEngine">Google</span><i class="fas fa-chevron-down ml-2"></i></button><div id="searchEngineDropdown" class="hidden absolute right-0 top-full mt-1 w-64 bg-white rounded-md shadow-lg z-10"></div></div></div><button id="searchButton" class="mt-3 bg-teal-600 hover:bg-teal-700 text-white w-full py-3 rounded-lg flex items-center justify-center text-lg font-medium"><i class="fas fa-search mr-2"></i>Buscar</button></div></div>
     </div>
   </header>
 
   <div class="container mx-auto px-4">
     <main>
+      <div class="mb-4">
+        <input type="text" id="localSearchInput" class="w-full p-2 border rounded-lg hidden" placeholder="Buscar en esta sección...">
+      </div>
       <div id="section-buscadores" class="section">
+        <div id="searchFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
         <div id="searchEnginesContainer" class="space-y-8"></div>
         <div id="noBuscadoresFound" class="hidden text-center text-gray-500 mt-8">No se encontraron buscadores.</div>
       </div>
       <div id="section-links" class="section hidden">
+        <div id="linkFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
         <div id="linksContainer" class="space-y-8"></div>
         <div id="noLinksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron links.</div>
       </div>
       <div id="section-prompts" class="section hidden">
+        <div id="promptFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
         <div id="promptsContainer" class="space-y-8"></div>
         <div id="noPromptsFound" class="hidden text-center text-gray-500 mt-8">No se encontraron prompts.</div>
       </div>
       <div id="section-notes" class="section hidden">
+        <div id="noteFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
         <div id="notesContainer" class="space-y-8"></div>
         <div id="noNotesFound" class="hidden text-center text-gray-500 mt-8">No se encontraron notas.</div>
       </div>
       <div id="section-tasks" class="section hidden">
+        <div id="taskFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
         <div id="tasksContainer" class="space-y-8"></div>
         <div id="noTasksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron tareas.</div>
       </div>
@@ -215,7 +347,7 @@
     
     <div id="editPanel" class="hidden fixed top-0 left-0 w-full h-full bg-white/95 dark:bg-black/95 backdrop-blur-sm z-[1000] overflow-y-auto">
       <div class="container mx-auto px-4 py-8">
-        <div class="max-w-2xl mx-auto">
+        <div class="max-w-4xl mx-auto">
             <div class="flex justify-between items-center mb-6">
               <h2 id="editPanelTitle" class="text-2xl font-bold">Agregar Nuevo Elemento</h2>
               <button id="closeEditButton" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full">
@@ -223,71 +355,136 @@
               </button>
             </div>
             
-            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
-                <form id="editForm">
-                    <input type="hidden" id="editItemId">
-                    
-                    <div class="form-group">
-                      <label class="form-label required">Tipo de elemento</label>
-                      <div class="type-selector">
-                        <div class="type-btn" data-type="Buscador"><i class="fas fa-search"></i>Buscador</div>
-                        <div class="type-btn" data-type="Link"><i class="fas fa-link"></i>Link</div>
-                        <div class="type-btn" data-type="Promp"><i class="fas fa-brain"></i>Prompt</div>
-                        <div class="type-btn" data-type="Nota"><i class="fas fa-sticky-note"></i>Nota</div>
-                        <div class="type-btn" data-type="Tarea"><i class="fas fa-tasks"></i>Tarea</div>
-                      </div>
-                      <select id="newType" class="hidden">
-                        <option value="Buscador">Buscador</option>
-                        <option value="Link">Link</option>
-                        <option value="Promp">Promp</option>
-                        <option value="Nota">Nota</option>
-                        <option value="Tarea">Tarea</option>
-                      </select>
-                    </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Columna del Formulario -->
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+                    <form id="editForm">
+                        <input type="hidden" id="editItemId">
+                        
+                        <div class="form-group">
+                          <label class="form-label required">Tipo de elemento</label>
+                          <div class="type-selector">
+                            <div class="type-btn" data-type="Buscador"><i class="fas fa-search"></i>Buscador</div>
+                            <div class="type-btn" data-type="Link"><i class="fas fa-link"></i>Link</div>
+                            <div class="type-btn" data-type="Promp"><i class="fas fa-brain"></i>Prompt</div>
+                            <div class="type-btn" data-type="Nota"><i class="fas fa-sticky-note"></i>Nota</div>
+                            <div class="type-btn" data-type="Tarea"><i class="fas fa-tasks"></i>Tarea</div>
+                          </div>
+                          <select id="newType" class="hidden">
+                            <option value="Buscador">Buscador</option>
+                            <option value="Link">Link</option>
+                            <option value="Promp">Promp</option>
+                            <option value="Nota">Nota</option>
+                            <option value="Tarea">Tarea</option>
+                          </select>
+                        </div>
 
-                    <div class="form-group">
-                      <label class="form-label required">Título</label>
-                      <input type="text" id="newTitle" class="form-control" placeholder="Nombre del elemento">
-                    </div>
+                        <div class="form-group">
+                          <label class="form-label required">Título</label>
+                          <input type="text" id="newTitle" class="form-control" placeholder="Nombre del elemento">
+                        </div>
 
-                    <div class="form-group" id="actionFieldContainer">
-                      <label class="form-label required">URL / Acción</label>
-                      <textarea id="newAction" class="form-control" rows="3"></textarea>
-                    </div>
+                        <div class="form-group" id="actionFieldContainer">
+                          <label class="form-label required">URL / Acción</label>
+                          <div id="richTextToolbar" class="editor-toolbar hidden">
+                            <button type="button" onmousedown="event.preventDefault(); formatDoc('bold')"><i class="fas fa-bold"></i></button>
+                            <button type="button" onmousedown="event.preventDefault(); formatDoc('italic')"><i class="fas fa-italic"></i></button>
+                            <button type="button" onmousedown="event.preventDefault(); formatDoc('underline')"><i class="fas fa-underline"></i></button>
+                            <input type="color" oninput="formatDoc('foreColor', this.value)" class="w-6 h-6 p-0 border-none bg-transparent cursor-pointer">
+                          </div>
+                          <textarea id="newActionText" class="form-control" rows="3"></textarea>
+                          <div id="newActionRich" class="rich-text-editor hidden" contenteditable="true"></div>
+                        </div>
 
-                    <div class="form-group" id="iconFieldContainer">
-                      <label class="form-label">Icono (Opcional)</label>
-                      <input type="text" id="newIcon" class="form-control" placeholder="fas fa-search  o  imagenes/logo.png">
-                      <p class="text-xs text-gray-500 mt-1">Dejar vacío para automático. O usar Font Awesome / ruta local.</p>
-                    </div>
+                        <div class="form-group" id="iconFieldContainer">
+                          <label class="form-label">Icono (Opcional)</label>
+                          <input type="text" id="newIcon" class="form-control" placeholder="fas fa-search  o  imagenes/logo.png">
+                        </div>
 
-                    <div class="form-group" id="previewFieldContainer">
-                      <label class="form-label">URL de Vista Previa (Opcional)</label>
-                      <input type="text" id="newPreviewUrl" class="form-control" placeholder="imagenes/mi-vista-previa.png">
-                      <p class="text-xs text-gray-500 mt-1">Dejar vacío para automático. O usar una ruta a una imagen.</p>
-                    </div>
+                        <div class="form-group" id="previewFieldContainer">
+                          <label class="form-label">URL de Vista Previa (Opcional)</label>
+                          <input type="text" id="newPreviewUrl" class="form-control" placeholder="imagenes/mi-vista-previa.png">
+                        </div>
 
-                    <div class="form-group">
-                      <label class="form-label required">Categoría</label>
-                      <select id="categorySelect" class="form-control"></select>
+                        <div class="form-group">
+                          <label class="form-label required">Categoría</label>
+                          <input type="text" id="newCategory" class="form-control" list="category-suggestions" placeholder="Escribe o selecciona una categoría">
+                          <datalist id="category-suggestions"></datalist>
+                        </div>
+                         
+                        <div class="form-group">
+                          <label class="form-label">Etiquetas</label>
+                          <input type="text" id="newTags" class="form-control" placeholder="trabajo, personal">
+                        </div>
+                        
+                        <button id="saveItemButton" type="submit" class="w-full mt-4 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded">
+                          Guardar Elemento
+                        </button>
+                    </form>
+                </div>
+                <!-- Columna de Vista Previa -->
+                <div class="flex flex-col">
+                    <h3 class="text-lg font-bold mb-2">Vista Previa</h3>
+                    <div id="livePreview" class="w-full h-56 rounded-xl preview-placeholder">
+                        <p>La vista previa aparecerá aquí</p>
                     </div>
-                     
-                    <div class="form-group">
-                      <label class="form-label">Etiquetas</label>
-                      <input type="text" id="newTags" class="form-control" placeholder="trabajo, personal">
-                    </div>
-                    
-                    <button id="saveItemButton" type="submit" class="w-full mt-4 bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 px-4 rounded">
-                      Guardar Elemento
-                    </button>
-                </form>
+                </div>
             </div>
         </div>
       </div>
     </div>
     
-    <!-- Todos los demás modales (search, tag, note, task) y el toast del código original se mantienen aquí -->
     <div id="toast" class="hidden fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-md shadow-lg"></div>
+
+    <div id="noteModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="noteModalTitle" class="text-2xl font-bold mb-4"></h2>
+            <div id="noteModalContent" class="flex-grow overflow-y-auto border p-2" contenteditable="true"></div>
+            <div class="mt-4 flex justify-end gap-2">
+                <input type="hidden" id="noteModalId">
+                <button id="closeNoteModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button>
+                <button id="saveNoteModal" class="px-4 py-2 bg-teal-600 text-white rounded-md">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskModal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="taskModalTitle" class="text-2xl font-bold mb-4"></h2>
+            <div id="taskModalList" class="flex-grow overflow-y-auto"></div>
+            <div class="mt-4">
+                <button id="addNewTaskItem" class="text-sm text-teal-600">+ Añadir ítem</button>
+            </div>
+            <div class="mt-4 flex justify-end gap-2">
+                <input type="hidden" id="taskModalId">
+                <button id="closeTaskModal" class="px-4 py-2 bg-gray-200 rounded-md">Cerrar</button>
+                <button id="saveTaskModal" class="px-4 py-2 bg-teal-600 text-white rounded-md">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tagFilterPanel">
+        <div class="p-4 border-b flex justify-between items-center">
+            <h3 class="font-bold text-lg">Filtrar por Etiqueta</h3>
+            <button id="closeTagFilter" class="p-1"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="tagFilterList" class="p-4 flex-grow overflow-y-auto flex flex-col gap-2">
+            <!-- Las etiquetas se insertarán aquí -->
+        </div>
+        <div class="p-2 border-t">
+            <button id="clearTagFilters" class="w-full text-sm text-center">Limpiar filtros</button>
+        </div>
+    </div>
+
+    <div class="fab-container">
+        <ul class="fab-actions">
+            <li class="fab-action"><button id="fab-add" class="fab-action-item" title="Añadir Tarjeta"><i class="fas fa-plus"></i></button></li>
+            <li class="fab-action"><button id="fab-search" class="fab-action-item" title="Buscar en Sección"><i class="fas fa-search"></i></button></li>
+            <li class="fab-action"><button id="fab-filter" class="fab-action-item" title="Filtrar por Etiquetas"><i class="fas fa-filter"></i></button></li>
+            <li class="fab-action"><button id="fab-theme" class="fab-action-item" title="Cambiar Tema"><i class="fas fa-palette"></i></button></li>
+        </ul>
+        <div class="fab-main"><i class="fas fa-bars"></i></div>
+    </div>
 
 </div>
 
@@ -295,36 +492,78 @@
 // --- CONFIGURACIÓN Y LÓGICA PRINCIPAL ---
 const FILENAME_IN_GIST = 'Botones.json';
 let data = [];
+let imageBasePath = '';
 let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
 const THEMES = ['default', 'blue', 'indigo', 'rose'];
+let activeTagFilters = [];
 
-// --- LÓGICA DE DATOS (load/save) ---
+// --- DATOS DE EJEMPLO ---
+const mockData = {
+    "config": {
+        "image_base_path": ""
+    },
+    "items": [
+        { id: 1, type: 'Buscador', title: 'Google', action: 'https://www.google.com/search?q={search_term}', category: 'General', icon: 'fab fa-google', tags: ['motor', 'busqueda'] },
+        { id: 2, type: 'Buscador', title: 'YouTube', action: 'https://www.youtube.com/results?search_query={search_term}', category: 'Video', icon: 'fab fa-youtube', tags: ['videos', 'tutoriales'] },
+        { id: 3, type: 'Link', title: 'GitHub', action: 'https://github.com', category: 'Desarrollo', icon: 'fab fa-github', previewUrl: '', tags: ['codigo', 'proyectos'] },
+        { id: 4, type: 'Link', title: 'Notion', action: 'https://notion.so', category: 'Productividad', icon: '', previewUrl: '', tags: ['notas', 'organizacion'] },
+        { id: 5, type: 'Promp', title: 'Generar Idea', action: 'Crea una lista de 5 ideas para un video de YouTube sobre inteligencia artificial y su impacto en la vida cotidiana. Este es un texto largo para probar el scroll automático al pasar el mouse sobre la tarjeta. Debería moverse lentamente hacia arriba para permitir la lectura completa del contenido sin necesidad de hacer clic.', category: 'Creatividad', icon: 'fas fa-lightbulb', tags: ['ideas', 'youtube'] },
+        { id: 6, type: 'Nota', title: 'Reunión Lunes', action: '<div>Discutir el <b>presupuesto Q3</b>.</div><ul><li>Revisar métricas de ventas.</li><li>Asignar tareas para el próximo sprint.</li></ul>', category: 'Trabajo', tags: ['reunion', 'importante'] },
+        { id: 7, type: 'Tarea', title: 'Proyecto Web', action: [{text: 'Diseñar mockup', status: true}, {text: 'Desarrollar landing page', status: false}, {text: 'Realizar pruebas de usuario', status: false}], category: 'Proyectos', tags: ['diseño', 'web'] }
+    ]
+};
+
+
+// --- LÓGICA DE DATOS Y PERFILES ---
 function getOrRequestInfo(key, promptMessage) {
     let value = localStorage.getItem(key);
     if (!value) {
         value = prompt(promptMessage);
-        if (value) localStorage.setItem(key, value.trim());
+        if (value) localStorage.setItem(key, value);
     }
     return value;
 }
 
 async function loadData() {
-    const gistId = getOrRequestInfo('gist_id', 'Bienvenido. Por favor, ingresa el ID de tu Gist de GitHub para cargar tu botonera:');
-    if (!gistId) return initializeUI();
-    showToast("Cargando datos...");
+    const gistId = localStorage.getItem('gist_id');
+    if (!gistId) {
+        const newGistId = prompt("Bienvenido. Por favor, ingresa el ID de tu Gist de GitHub para empezar:");
+        if (newGistId) {
+            localStorage.setItem('gist_id', newGistId);
+            window.location.reload();
+        } else {
+            showToast("Usando datos de ejemplo. Recarga para iniciar sesión.");
+            imageBasePath = mockData.config.image_base_path;
+            data = mockData.items;
+            initializeUI();
+        }
+        return;
+    }
+
+    showToast("Cargando datos desde Gist...");
     try {
         const response = await fetch(`https://api.github.com/gists/${gistId}`);
         if (!response.ok) throw new Error(`Gist no encontrado: ${response.status}`);
         const gistData = await response.json();
-        if (!gistData.files[FILENAME_IN_GIST]) throw new Error(`El archivo '${FILENAME_IN_GIST}' no existe.`);
-        let loadedData = JSON.parse(gistData.files[FILENAME_IN_GIST].content);
+        if (!gistData.files[FILENAME_IN_GIST]) {
+            const confirmCreate = confirm(`El archivo '${FILENAME_IN_GIST}' no existe en este Gist. ¿Quieres crearlo con datos de ejemplo?`);
+            if (confirmCreate) {
+                data = mockData.items;
+                await saveData(); // Intenta guardar la estructura inicial
+            } else {
+                throw new Error(`El archivo '${FILENAME_IN_GIST}' no existe.`);
+            }
+        }
         
-        data = loadedData.map(item => ({
-            ...item,
-            icon: item.icon || '',
-            previewUrl: item.previewUrl || ''
-        }));
-
+        let loadedJson = JSON.parse(gistData.files[FILENAME_IN_GIST].content);
+        
+        if (loadedJson.config && loadedJson.items) {
+            imageBasePath = loadedJson.config.image_base_path || '';
+            data = loadedJson.items.map(item => ({ ...item, icon: item.icon || '', previewUrl: item.previewUrl || '' }));
+        } else {
+            imageBasePath = '';
+            data = loadedJson.map(item => ({ ...item, icon: item.icon || '', previewUrl: item.previewUrl || '' }));
+        }
         showToast("Datos cargados.");
     } catch (error) {
         console.error("Fallo al cargar datos:", error);
@@ -336,14 +575,28 @@ async function loadData() {
 
 async function saveData() {
     const gistId = localStorage.getItem('gist_id');
+    if (!gistId) {
+        showToast("No hay Gist ID. Los cambios no se guardarán.");
+        return;
+    }
+    
     const token = getOrRequestInfo('github_pat', 'Para guardar, ingresa tu GitHub Personal Access Token:');
-    if (!gistId || !token) return showToast("Acción cancelada.");
+    if (!token) {
+        showToast("Acción cancelada. Se necesita un token para guardar.");
+        return;
+    }
+    
     showToast("Guardando cambios...");
+    const dataToSave = {
+        config: { image_base_path: imageBasePath },
+        items: data
+    };
+
     try {
         const response = await fetch(`https://api.github.com/gists/${gistId}`, {
             method: 'PATCH',
             headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
-            body: JSON.stringify({ files: { [FILENAME_IN_GIST]: { content: JSON.stringify(data, null, 2) } } })
+            body: JSON.stringify(dataToSave, null, 2)
         });
         if (!response.ok) throw new Error(`Error al guardar: ${response.status}`);
         showToast("Cambios guardados.");
@@ -357,6 +610,7 @@ async function saveData() {
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
     setupEventListeners();
+    setupThemeSwitcher();
 });
 
 function setupEventListeners() {
@@ -376,71 +630,178 @@ function setupEventListeners() {
             const type = this.dataset.type;
             document.getElementById('newType').value = type;
             updateEditFormFields(type);
+            updateLivePreview();
         });
     });
+
+    document.querySelector("#searchButton").addEventListener("click", performSearch);
+    document.querySelector("#searchInput").addEventListener("keypress", e => { if (e.key === 'Enter') performSearch(); });
+    document.querySelector("#dropdownToggle").addEventListener("click", () => document.getElementById("searchEngineDropdown").classList.toggle("hidden"));
+
+    // FAB Menu
+    const fabContainer = document.querySelector('.fab-container');
+    fabContainer.addEventListener('click', (e) => {
+        if (e.target.closest('.fab-main')) {
+            fabContainer.classList.toggle('open');
+        }
+    });
+    document.getElementById('fab-add').addEventListener('click', () => openEditPanel());
+    document.getElementById('fab-search').addEventListener('click', () => {
+        document.getElementById('localSearchInput').classList.toggle('hidden');
+        document.getElementById('localSearchInput').focus();
+    });
+    
+    document.getElementById('localSearchInput').addEventListener('input', applyFilters);
+    
+    // Tag Filter Panel
+    document.getElementById('fab-filter').addEventListener('click', toggleTagFilterPanel);
+    document.getElementById('closeTagFilter').addEventListener('click', () => document.getElementById('tagFilterPanel').classList.remove('open'));
+    document.getElementById('clearTagFilters').addEventListener('click', () => {
+        activeTagFilters = [];
+        document.querySelectorAll('#tagFilterList .tag-filter-item').forEach(el => el.classList.remove('active'));
+        applyFilters();
+    });
+
+    // Live Preview Listeners
+    ['newTitle', 'newIcon', 'newPreviewUrl', 'newCategory', 'newTags'].forEach(id => {
+        document.getElementById(id).addEventListener('input', updateLivePreview);
+    });
+    document.getElementById('newActionText').addEventListener('input', updateLivePreview);
+    document.getElementById('newActionRich').addEventListener('input', updateLivePreview);
+
+    // User Menu
+    const userProfileBtn = document.getElementById('userProfileBtn');
+    const userMenu = document.getElementById('userMenu');
+    userProfileBtn.addEventListener('click', () => userMenu.classList.toggle('hidden'));
+    document.getElementById('changeUserBtn').addEventListener('click', () => {
+        localStorage.removeItem('gist_id');
+        localStorage.removeItem('github_pat');
+        window.location.reload();
+    });
+    document.getElementById('forgetUserBtn').addEventListener('click', () => {
+        if(confirm('¿Seguro que quieres borrar todos los datos de esta aplicación de tu navegador?')) {
+            localStorage.clear();
+            window.location.reload();
+        }
+    });
+
+
+    // Modal Listeners
+    document.getElementById('closeNoteModal').addEventListener('click', () => document.getElementById('noteModal').classList.add('hidden'));
+    document.getElementById('saveNoteModal').addEventListener('click', saveNoteFromModal);
+    document.getElementById('closeTaskModal').addEventListener('click', () => document.getElementById('taskModal').classList.add('hidden'));
+    document.getElementById('saveTaskModal').addEventListener('click', saveTaskFromModal);
+    document.getElementById('addNewTaskItem').addEventListener('click', () => addNewTaskItemToModal());
 }
 
 function initializeUI() {
     if (!data) return;
     renderAllSections();
+    populateSearchEngineDropdown();
+    updateSearchSuggestions();
 }
 
 function switchTab(tabName) {
     document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
     document.querySelector(`#nav-${tabName}`).classList.add("active");
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
-    document.querySelector(`#section-${tabName}`).classList.remove("hidden");
+    
+    const activeSection = document.querySelector(`#section-${tabName}`);
+    activeSection.classList.remove("hidden");
+    
+    document.getElementById('main-search-bar').style.display = (tabName === 'buscadores') ? 'block' : 'none';
+    
+    // Reset filters when switching tabs
+    document.getElementById('localSearchInput').value = '';
+    document.getElementById('localSearchInput').classList.add('hidden');
+    activeTagFilters = [];
+    applyFilters();
 }
 
 // --- RENDERIZADO DE SECCIONES ---
 function renderAllSections() {
-    renderSection("Buscador", "searchEnginesContainer", "noBuscadoresFound");
-    renderSection("Link", "linksContainer", "noLinksFound");
-    renderSection("Promp", "promptsContainer", "noPromptsFound");
-    renderSection("Nota", "notesContainer", "noNotesFound");
-    renderSection("Tarea", "tasksContainer", "noTasksFound");
+    renderSection("Buscador", "searchEnginesContainer", "searchFilterButtons", "noBuscadoresFound");
+    renderSection("Link", "linksContainer", "linkFilterButtons", "noLinksFound");
+    renderSection("Promp", "promptsContainer", "promptFilterButtons", "noPromptsFound");
+    renderSection("Nota", "notesContainer", "noteFilterButtons", "noNotesFound");
+    renderSection("Tarea", "tasksContainer", "taskFilterButtons", "noTasksFound");
 }
 
-function renderSection(type, containerId, notFoundId) {
+function renderSection(type, containerId, filterId, notFoundId) {
     const container = document.getElementById(containerId);
+    const filterContainer = document.getElementById(filterId);
     const notFound = document.getElementById(notFoundId);
     
-    const items = data.filter(item => item.type === type);
-    
-    container.innerHTML = '';
-    const categorized = items.reduce((acc, item) => {
-        (acc[item.category] = acc[item.category] || []).push(item);
-        return acc;
-    }, {});
+    let items = data.filter(item => item.type === type);
+    const categories = [...new Set(items.map(item => item.category))].sort();
 
-    Object.keys(categorized).sort().forEach(cat => {
-        const catDiv = document.createElement('div');
-        catDiv.className = "mb-8";
-        catDiv.innerHTML = `<div class="category-title-container"><h2 class="category-title">${cat}</h2></div><div class="card-grid" data-category="${cat}"></div>`;
-        const grid = catDiv.querySelector(".card-grid");
+    const renderFiltered = (category) => {
+        container.innerHTML = '';
+        const itemsToRender = category ? items.filter(item => item.category === category) : items;
         
-        categorized[cat].forEach(item => grid.appendChild(createCard(item)));
-        
-        container.appendChild(catDiv);
+        const categorized = itemsToRender.reduce((acc, item) => {
+            (acc[item.category] = acc[item.category] || []).push(item);
+            return acc;
+        }, {});
 
-        new Sortable(grid, {
-            animation: 150,
-            handle: '.card-drag-handle',
-            onEnd: function (evt) {
-                const category = evt.to.dataset.category;
-                const categoryItems = data.filter(d => d.category === category);
-                const otherItems = data.filter(d => d.category !== category);
-                
-                const movedItem = categoryItems.splice(evt.oldIndex, 1)[0];
-                categoryItems.splice(evt.newIndex, 0, movedItem);
+        Object.keys(categorized).sort().forEach(cat => {
+            const catDiv = document.createElement('div');
+            catDiv.className = "mb-8";
+            catDiv.innerHTML = `<div class="category-title-container">
+                <h2 class="category-title" data-category-name="${cat}">${cat}</h2>
+                <div>
+                    <button onclick="editCategoryName('${cat}')" class="text-gray-400 hover:text-blue-500 p-1"><i class="fas fa-pencil-alt"></i></button>
+                    <button onclick="deleteCategory('${cat}')" class="text-gray-400 hover:text-red-500 p-1"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            </div><div class="card-grid" data-category="${cat}" data-group="shared-cards"></div>`;
+            const grid = catDiv.querySelector(".card-grid");
+            
+            categorized[cat].forEach(item => grid.appendChild(createCard(item)));
+            
+            container.appendChild(catDiv);
 
-                data = [...otherItems, ...categoryItems];
-                saveData();
-            }
+            new Sortable(grid, {
+                group: 'shared-cards',
+                animation: 150,
+                handle: '.card-drag-handle',
+                onEnd: function (evt) {
+                    const itemId = evt.item.dataset.id;
+                    const newCategory = evt.to.dataset.category;
+                    const item = data.find(d => String(d.id) === itemId);
+                    if (item && item.category !== newCategory) {
+                        item.category = newCategory;
+                        saveData().then(() => renderAllSections());
+                    }
+                }
+            });
         });
+        notFound.classList.toggle('hidden', itemsToRender.length > 0);
+    };
+
+    filterContainer.innerHTML = '';
+    const allBtn = document.createElement('button');
+    allBtn.className = 'filter-btn active';
+    allBtn.textContent = 'Todos';
+    allBtn.onclick = () => {
+        filterContainer.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        allBtn.classList.add('active');
+        renderFiltered(null);
+    };
+    filterContainer.appendChild(allBtn);
+
+    categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.textContent = cat;
+        btn.onclick = () => {
+            filterContainer.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderFiltered(cat);
+        };
+        filterContainer.appendChild(btn);
     });
 
-    notFound.classList.toggle('hidden', items.length > 0);
+    renderFiltered(null);
 }
 
 // --- NUEVA FUNCIÓN `createCard` CON LÓGICA HÍBRIDA MEJORADA ---
@@ -448,6 +809,9 @@ function createCard(item) {
     const cardWrapper = document.createElement("div");
     cardWrapper.className = 'card-container';
     cardWrapper.dataset.id = item.id;
+    if (item.tags) {
+        cardWrapper.dataset.tags = item.tags.join(',');
+    }
 
     // --- LÓGICA DE ICONO ---
     let iconHtml = '';
@@ -459,7 +823,8 @@ function createCard(item) {
 
     if (iconValue) {
         if (iconValue.startsWith('http') || iconValue.startsWith('imagenes/')) {
-            iconHtml = `<img src="${iconValue}" alt="Icono" class="card-icon-image mb-4" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} text-5xl text-teal-500 mb-4\\'></i>'">`;
+            const fullUrl = iconValue.startsWith('http') ? iconValue : imageBasePath + iconValue;
+            iconHtml = `<img src="${fullUrl}" alt="Icono" class="card-icon-image mb-4" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} text-5xl text-teal-500 mb-4\\'></i>'">`;
         } else {
             iconHtml = `<i class="${iconValue} text-5xl text-teal-500 mb-4"></i>`;
         }
@@ -480,18 +845,19 @@ function createCard(item) {
 
     if (isTextPreview) {
         let textContent = '';
-        if (item.type === 'Nota') {
+        if (item.type === 'Tarea' && Array.isArray(item.action)) {
+            textContent = item.action.map(task => `<span>${task.status ? '✅' : '⬜️'} ${task.text}</span>`).join('<br>');
+        } else if (typeof item.action === 'string') {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = item.action;
-            textContent = tempDiv.innerText || tempDiv.textContent || '';
-        } else if (item.type === 'Tarea' && Array.isArray(item.action)) {
-            textContent = item.action.map(task => `• ${task.text}`).join('\n');
-        } else {
-            textContent = item.action || '';
+            textContent = tempDiv.innerHTML;
         }
-        previewContentHtml = `<div class="card-preview text-preview"><p class="scrolling-text">${textContent.replace(/\n/g, '<br>')}</p></div>`;
+        previewContentHtml = `<div class="card-preview text-preview"><div class="scrolling-text">${textContent}</div></div>`;
     } else {
         let previewUrl = item.previewUrl;
+        if (previewUrl && !previewUrl.startsWith('http')) {
+            previewUrl = imageBasePath + previewUrl;
+        }
         if (!previewUrl) {
             try {
                 new URL(item.action); 
@@ -504,13 +870,17 @@ function createCard(item) {
         previewContentHtml = `<div class="card-preview" ${previewStyle}></div>`;
     }
     
+    const tagsHtml = item.tags && item.tags.length > 0 ? 
+        `<div class="card-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : '';
+
     const cardHtml = `
       <div class="card-preview-container group relative w-full h-full bg-white dark:bg-gray-800 rounded-xl shadow-lg">
         ${previewContentHtml}
         <div class="card-content">
           ${iconHtml}
           <h4 class="font-bold text-lg text-gray-800 dark:text-white">${item.title}</h4>
-          <p class="text-sm text-gray-500 dark:text-gray-400">${item.category}</p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mb-8">${item.category}</p>
+          ${tagsHtml}
         </div>
         <div class="card-actions">
             <button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="hover:bg-blue-100 text-blue-600" title="Editar"><i class="fas fa-pencil-alt text-xs"></i></button>
@@ -535,16 +905,49 @@ function handleCardClick(id) {
     if (item.type === "Link") {
         window.open(item.action, "_blank");
     } else if (item.type === "Buscador") {
-        const searchTerm = prompt(`Buscar en ${item.title}:`);
-        if (searchTerm) {
-            window.open(item.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
-        }
+        document.getElementById("selectedEngine").textContent = item.title;
+        showToast(`Motor seleccionado: ${item.title}`);
     } else if (item.type === "Promp") {
         navigator.clipboard.writeText(item.action).then(() => showToast("Prompt copiado."));
+    } else if (item.type === "Nota") {
+        openNoteModal(id);
+    } else if (item.type === "Tarea") {
+        openTaskModal(id);
     }
-    // Nota: El click en Notas y Tareas debería abrir sus modales.
-    // Esta lógica debe ser añadida aquí o en el event listener de la tarjeta.
 }
+
+function performSearch() {
+    const searchTerm = document.getElementById("searchInput").value.trim();
+    if (!searchTerm) return;
+    if (!searchHistory.includes(searchTerm)) {
+        searchHistory.push(searchTerm);
+        localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+        updateSearchSuggestions();
+    }
+    const engineTitle = document.getElementById("selectedEngine").textContent;
+    const engine = data.find(item => item.type === "Buscador" && item.title === engineTitle);
+    if (engine) window.open(engine.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
+}
+
+function populateSearchEngineDropdown() {
+    const dropdown = document.getElementById("searchEngineDropdown");
+    dropdown.innerHTML = "";
+    data.filter(item => item.type === "Buscador").forEach(engine => {
+        const itemEl = document.createElement("div");
+        itemEl.className = "p-2 hover:bg-gray-100 cursor-pointer flex items-center";
+        itemEl.innerHTML = `<span>${engine.title}</span>`;
+        itemEl.onclick = () => {
+            document.getElementById("selectedEngine").textContent = engine.title;
+            dropdown.classList.add("hidden");
+        };
+        dropdown.appendChild(itemEl);
+    });
+}
+
+function updateSearchSuggestions() {
+    document.getElementById("searchSuggestions").innerHTML = searchHistory.map(term => `<option value="${term}"></option>`).join("");
+}
+
 
 // --- PANEL DE EDICIÓN ---
 function openEditPanel(itemId = null) {
@@ -561,29 +964,34 @@ function openEditPanel(itemId = null) {
             document.getElementById('editItemId').value = item.id;
             document.getElementById('newTitle').value = item.title;
             
-            if (item.type === 'Tarea' && Array.isArray(item.action)) {
-                document.getElementById('newAction').value = item.action.map(t => t.text).join('\n');
+            if (item.type === 'Nota' || item.type === 'Tarea') {
+                document.getElementById('newActionRich').innerHTML = item.action;
+                document.getElementById('newActionText').value = '';
             } else {
-                document.getElementById('newAction').value = item.action;
+                document.getElementById('newActionText').value = item.action;
+                document.getElementById('newActionRich').innerHTML = '';
             }
 
             document.getElementById('newTags').value = item.tags ? item.tags.join(', ') : '';
             document.getElementById('newIcon').value = item.icon || '';
             document.getElementById('newPreviewUrl').value = item.previewUrl || '';
+            document.getElementById('newCategory').value = item.category || '';
             
             document.querySelector(`.type-btn[data-type="${item.type}"]`).classList.add('active');
             document.getElementById('newType').value = item.type;
-            populateCategorySuggestions(item.category);
+            populateCategorySuggestions();
             updateEditFormFields(item.type);
         }
     } else {
         document.getElementById('editPanelTitle').textContent = 'Agregar Nuevo Elemento';
         document.getElementById('editItemId').value = '';
+        document.getElementById('newActionRich').innerHTML = '';
         document.querySelector('.type-btn[data-type="Link"]').classList.add('active');
         document.getElementById('newType').value = 'Link';
         populateCategorySuggestions();
         updateEditFormFields('Link');
     }
+    updateLivePreview();
     panel.classList.remove('hidden');
 }
 
@@ -591,17 +999,19 @@ function handleSaveItem(event) {
     event.preventDefault();
     const id = document.getElementById("editItemId").value;
     const type = document.getElementById("newType").value;
-    let action = document.getElementById("newAction").value;
+    let action;
 
-    if (type === 'Tarea') {
-        action = action.split('\n').filter(Boolean).map(line => ({ text: line, status: 'todo' }));
+    if (type === 'Nota' || type === 'Tarea') {
+        action = document.getElementById('newActionRich').innerHTML;
+    } else {
+        action = document.getElementById('newActionText').value;
     }
 
     const newItemData = {
         title: document.getElementById("newTitle").value.trim(),
         action: action,
         type: type,
-        category: document.getElementById("categorySelect").value,
+        category: document.getElementById("newCategory").value.trim(),
         icon: document.getElementById("newIcon").value.trim(),
         previewUrl: document.getElementById("newPreviewUrl").value.trim(),
         tags: document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(Boolean)
@@ -617,6 +1027,7 @@ function handleSaveItem(event) {
   
     saveData().then(() => {
         renderAllSections();
+        populateSearchEngineDropdown();
         document.getElementById("editPanel").classList.add("hidden");
     });
 }
@@ -625,39 +1036,104 @@ function updateEditFormFields(type) {
     const iconField = document.getElementById('iconFieldContainer');
     const previewField = document.getElementById('previewFieldContainer');
     const actionLabel = document.querySelector('#actionFieldContainer label');
-    
-    // El icono ahora es visible para todos los tipos
+    const richTextToolbar = document.getElementById('richTextToolbar');
+    const richTextEditor = document.getElementById('newActionRich');
+    const plainTextEditor = document.getElementById('newActionText');
+
     iconField.style.display = 'block';
-    // La vista previa de imagen solo para Link y Buscador
     previewField.style.display = (type === 'Link' || type === 'Buscador') ? 'block' : 'none';
 
-    if (type === 'Tarea') actionLabel.textContent = 'Tareas (una por línea)';
-    else if (type === 'Promp') actionLabel.textContent = 'Contenido del Prompt';
-    else if (type === 'Nota') actionLabel.textContent = 'Contenido de la Nota';
-    else actionLabel.textContent = 'URL / Acción';
+    if (type === 'Nota' || type === 'Tarea') {
+        richTextToolbar.classList.remove('hidden');
+        richTextEditor.classList.remove('hidden');
+        plainTextEditor.classList.add('hidden');
+        actionLabel.textContent = type === 'Nota' ? 'Contenido de la Nota' : 'Contenido de la Tarea';
+    } else {
+        richTextToolbar.classList.add('hidden');
+        richTextEditor.classList.add('hidden');
+        plainTextEditor.classList.remove('hidden');
+        
+        if (type === 'Promp') actionLabel.textContent = 'Contenido del Prompt';
+        else actionLabel.textContent = 'URL / Acción';
+    }
 }
 
-function populateCategorySuggestions(selectedCategory = "") {
-    const select = document.getElementById("categorySelect");
+function formatDoc(command, value = null) {
+    document.execCommand(command, false, value);
+    document.getElementById('newActionRich').focus();
+    updateLivePreview();
+}
+
+function updateLivePreview() {
+    const livePreview = document.getElementById('livePreview');
+    const type = document.getElementById('newType').value;
+    let action;
+
+    if (type === 'Nota' || type === 'Tarea') {
+        action = document.getElementById('newActionRich').innerHTML;
+    } else {
+        action = document.getElementById('newActionText').value;
+    }
+
+    const itemData = {
+        id: 'preview',
+        title: document.getElementById('newTitle').value || 'Título...',
+        type: type,
+        action: action,
+        category: document.getElementById('newCategory').value || 'Categoría...',
+        icon: document.getElementById('newIcon').value,
+        previewUrl: document.getElementById('newPreviewUrl').value,
+        tags: document.getElementById('newTags').value.split(',').map(t => t.trim()).filter(Boolean)
+    };
+
+    livePreview.innerHTML = '';
+    livePreview.appendChild(createCard(itemData));
+}
+
+
+function populateCategorySuggestions() {
+    const dataList = document.getElementById("category-suggestions");
     const categories = [...new Set(data.map(item => item.category))].sort();
-    select.innerHTML = '<option value="" disabled>-- Elige o escribe una categoría --</option>';
+    dataList.innerHTML = '';
     categories.forEach(cat => {
         if (cat) {
             const option = document.createElement("option");
             option.value = cat;
-            option.textContent = cat;
-            select.appendChild(option);
+            dataList.appendChild(option);
         }
     });
-    if (selectedCategory) {
-        select.value = selectedCategory;
+}
+
+function editCategoryName(oldName) {
+    const newName = prompt(`Editar nombre de la categoría "${oldName}":`, oldName);
+    if (newName && newName.trim() !== oldName) {
+        data.forEach(item => {
+            if (item.category === oldName) {
+                item.category = newName.trim();
+            }
+        });
+        saveData().then(() => renderAllSections());
+    }
+}
+
+function deleteCategory(categoryName) {
+    if (confirm(`¿Seguro que quieres eliminar la categoría "${categoryName}"? Las tarjetas se moverán a "Sin clasificar".`)) {
+        data.forEach(item => {
+            if (item.category === categoryName) {
+                item.category = "Sin clasificar";
+            }
+        });
+        saveData().then(() => renderAllSections());
     }
 }
 
 function deleteItem(id) {
     if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
         data = data.filter(i => String(i.id) !== id);
-        saveData().then(() => renderAllSections());
+        saveData().then(() => {
+            renderAllSections();
+            populateSearchEngineDropdown();
+        });
     }
 }
 
@@ -668,8 +1144,168 @@ function showToast(message) {
     setTimeout(() => toast.classList.add("hidden"), 3000);
 }
 
-// Aquí irían las funciones completas para manejar los modales de Notas, Tareas, Búsqueda, etc.
-// que estaban en el código original.
+// --- MODAL FUNCTIONS ---
+function openNoteModal(id) {
+    const item = data.find(i => String(i.id) === id);
+    if (!item) return;
+    const modal = document.getElementById('noteModal');
+    document.getElementById('noteModalTitle').textContent = item.title;
+    document.getElementById('noteModalContent').innerHTML = item.action;
+    document.getElementById('noteModalId').value = item.id;
+    modal.classList.remove('hidden');
+}
+
+function saveNoteFromModal() {
+    const id = document.getElementById('noteModalId').value;
+    const content = document.getElementById('noteModalContent').innerHTML;
+    const index = data.findIndex(i => String(i.id) === id);
+    if (index !== -1) {
+        data[index].action = content;
+        saveData().then(() => {
+            renderAllSections();
+            document.getElementById('noteModal').classList.add('hidden');
+            showToast('Nota guardada.');
+        });
+    }
+}
+
+function openTaskModal(id) {
+    const item = data.find(i => String(i.id) === id);
+    if (!item) return;
+    const modal = document.getElementById('taskModal');
+    document.getElementById('taskModalTitle').textContent = item.title;
+    document.getElementById('taskModalId').value = item.id;
+    const listContainer = document.getElementById('taskModalList');
+    listContainer.innerHTML = '';
+
+    if (Array.isArray(item.action)) {
+        item.action.forEach(task => addNewTaskItemToModal(task));
+    } else if (typeof item.action === 'string') {
+        // Handle old format
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = item.action;
+        const tasks = Array.from(tempDiv.querySelectorAll('li, div, p'));
+        if (tasks.length > 0) {
+            tasks.forEach(t => addNewTaskItemToModal({ text: t.textContent, status: false }));
+        } else {
+            addNewTaskItemToModal({ text: tempDiv.textContent, status: false });
+        }
+    }
+    
+    modal.classList.remove('hidden');
+}
+
+function addNewTaskItemToModal(task = { text: '', status: false }) {
+    const listContainer = document.getElementById('taskModalList');
+    const itemEl = document.createElement('div');
+    itemEl.className = 'modal-task-item';
+    itemEl.innerHTML = `
+        <input type="checkbox" ${task.status ? 'checked' : ''}>
+        <span class="task-text" contenteditable="true">${task.text}</span>
+        <button class="text-red-500 hover:text-red-700" onclick="this.parentElement.remove()"><i class="fas fa-trash-alt"></i></button>
+    `;
+    listContainer.appendChild(itemEl);
+}
+
+function saveTaskFromModal() {
+    const id = document.getElementById('taskModalId').value;
+    const index = data.findIndex(i => String(i.id) === id);
+    if (index === -1) return;
+
+    const newTasks = [];
+    document.querySelectorAll('#taskModalList .modal-task-item').forEach(item => {
+        const text = item.querySelector('.task-text').textContent.trim();
+        const status = item.querySelector('input[type="checkbox"]').checked;
+        if (text) {
+            newTasks.push({ text, status });
+        }
+    });
+
+    data[index].action = newTasks;
+    saveData().then(() => {
+        renderAllSections();
+        document.getElementById('taskModal').classList.add('hidden');
+        showToast('Tarea guardada.');
+    });
+}
+
+// --- THEME & FILTER FUNCTIONS ---
+
+function setupThemeSwitcher() {
+    const themeBtn = document.getElementById('fab-theme');
+    const themeStates = THEMES.flatMap(theme => [`light-${theme}`, `dark-${theme}`]);
+    let currentStateIndex = themeStates.indexOf(localStorage.getItem('themeState') || 'light-default');
+
+    const applyThemeState = (state) => {
+        const [mode, theme] = state.split('-');
+        document.body.classList.toggle('dark', mode === 'dark');
+        THEMES.forEach(t => document.body.classList.remove(`theme-${t}`));
+        if (theme !== 'default') document.body.classList.add(`theme-${theme}`);
+        localStorage.setItem('themeState', state);
+    };
+
+    themeBtn.addEventListener('click', () => {
+        currentStateIndex = (currentStateIndex + 1) % themeStates.length;
+        applyThemeState(themeStates[currentStateIndex]);
+    });
+
+    // Apply initial theme
+    applyThemeState(themeStates[currentStateIndex]);
+}
+
+function toggleTagFilterPanel() {
+    const panel = document.getElementById('tagFilterPanel');
+    panel.classList.toggle('open');
+    if (panel.classList.contains('open')) {
+        populateTagFilterPanel();
+    }
+}
+
+function populateTagFilterPanel() {
+    const activeSection = document.querySelector('.section:not(.hidden)');
+    const itemsInView = Array.from(activeSection.querySelectorAll('.card-container')).map(card => {
+        return data.find(d => String(d.id) === card.dataset.id);
+    }).filter(Boolean);
+
+    const allTags = [...new Set(itemsInView.flatMap(item => item.tags || []))].sort();
+    
+    const list = document.getElementById('tagFilterList');
+    list.innerHTML = '';
+
+    allTags.forEach(tag => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'tag-filter-item p-2 rounded-md';
+        itemEl.textContent = tag;
+        if (activeTagFilters.includes(tag)) {
+            itemEl.classList.add('active');
+        }
+        itemEl.onclick = () => {
+            itemEl.classList.toggle('active');
+            if (activeTagFilters.includes(tag)) {
+                activeTagFilters = activeTagFilters.filter(t => t !== tag);
+            } else {
+                activeTagFilters.push(tag);
+            }
+            applyFilters();
+        };
+        list.appendChild(itemEl);
+    });
+}
+
+function applyFilters() {
+    const searchTerm = document.getElementById('localSearchInput').value.toLowerCase();
+    
+    document.querySelectorAll('.card-container').forEach(card => {
+        const title = card.querySelector('h4')?.textContent.toLowerCase() || '';
+        const category = card.querySelector('p')?.textContent.toLowerCase() || '';
+        const cardTags = (card.dataset.tags || '').split(',');
+
+        const searchMatch = title.includes(searchTerm) || category.includes(searchTerm);
+        const tagMatch = activeTagFilters.length === 0 || activeTagFilters.every(filterTag => cardTags.includes(filterTag));
+        
+        card.style.display = searchMatch && tagMatch ? '' : 'none';
+    });
+}
 
 </script>
 </body>
