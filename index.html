@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centro de Accesos v9</title>
+  <title>Centro de Accesos v11</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
@@ -34,22 +34,33 @@
     .nav-btn{transition:all .2s ease;position:relative;color:#4b5563;font-weight:600;padding:0.5rem 0.75rem;border-radius:8px}
     .nav-btn.active{color:var(--theme-color)}
     
-    /* --- DISEÑO DE TARJETA --- */
+    /* --- DISEÑO DE TARJETA Y LISTA --- */
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+    .list-view { display: flex; flex-direction: column; gap: 0.5rem; }
+    .micro-view { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .card-container { width: 100%; height: 220px; }
-    .card-preview-container { transition: all 0.3s ease; overflow: hidden; cursor: pointer; }
+    .list-item-container, .micro-item-container { transition: all 0.2s ease-in-out; }
+    
+    .card-preview-container, .list-item-container, .micro-item-container { transition: all 0.3s ease; overflow: hidden; cursor: pointer; position: relative; }
     .card-preview-container:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1); }
-    .card-preview-container .card-content { transition: opacity 0.3s ease-in-out; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; height: 100%; padding: 1.5rem; position: relative; }
+    .list-item-container:hover, .micro-item-container:hover { transform: scale(1.03); }
+    
+    .card-content { transition: opacity 0.3s ease-in-out; }
     .card-preview-container:hover .card-content { opacity: 0; }
-    .card-preview-container .card-preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s ease-in-out; background-size: cover; background-position: center; }
+    
+    .card-preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s ease-in-out; background-size: cover; background-position: center; border-radius: 0.75rem; }
     .card-preview-container:hover .card-preview { opacity: 1; }
+    
     .card-icon-image { width: 48px; height: 48px; object-fit: contain; }
     .card-actions, .card-drag-handle { position: absolute; opacity: 0; transition: opacity 0.2s ease-in-out; z-index: 10; }
-    .card-preview-container:hover .card-actions, .card-preview-container:hover .card-drag-handle { opacity: 1; }
-    .card-actions { top: 0.75rem; right: 0.75rem; display: flex; gap: 0.5rem; }
+    .card-preview-container:hover .card-actions, .card-preview-container:hover .card-drag-handle,
+    .list-item-container:hover .card-actions, .list-item-container:hover .card-drag-handle,
+    .micro-item-container:hover .card-actions, .micro-item-container:hover .card-drag-handle { opacity: 1; }
+    
+    .card-actions { top: 0.5rem; right: 0.5rem; display: flex; gap: 0.5rem; }
     .card-actions button { width: 28px; height: 28px; border-radius: 9999px; background-color: rgba(255, 255, 255, 0.8); }
     body.dark .card-actions button { background-color: rgba(30, 30, 30, 0.8); }
-    .card-drag-handle { top: 0.75rem; left: 0.75rem; cursor: move; color: #9ca3af; }
+    .card-drag-handle { top: 0.5rem; left: 0.5rem; cursor: move; color: #9ca3af; }
     body.dark .card-drag-handle { color: #6b7280; }
     .card-tags { position: absolute; bottom: 1rem; left: 1rem; right: 1rem; display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: center; }
     .tag { background-color:#e5e7eb; color:#4b5563; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; }
@@ -125,27 +136,42 @@
   <div class="container mx-auto px-4">
     <main>
       <div id="section-buscadores" class="section">
-        <div id="searchFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
+        <div class="flex justify-between items-center mb-4">
+            <div id="searchFilterButtons" class="flex flex-wrap gap-2"></div>
+            <div id="searchViewSwitcher" class="flex items-center gap-2"></div>
+        </div>
         <div id="searchEnginesContainer" class="space-y-8"></div>
         <div id="noBuscadoresFound" class="hidden text-center text-gray-500 mt-8">No se encontraron buscadores.</div>
       </div>
       <div id="section-links" class="section hidden">
-        <div id="linkFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
+        <div class="flex justify-between items-center mb-4">
+            <div id="linkFilterButtons" class="flex flex-wrap gap-2"></div>
+            <div id="linkViewSwitcher" class="flex items-center gap-2"></div>
+        </div>
         <div id="linksContainer" class="space-y-8"></div>
         <div id="noLinksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron links.</div>
       </div>
       <div id="section-prompts" class="section hidden">
-        <div id="promptFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
+        <div class="flex justify-between items-center mb-4">
+            <div id="promptFilterButtons" class="flex flex-wrap gap-2"></div>
+            <div id="promptViewSwitcher" class="flex items-center gap-2"></div>
+        </div>
         <div id="promptsContainer" class="space-y-8"></div>
         <div id="noPromptsFound" class="hidden text-center text-gray-500 mt-8">No se encontraron prompts.</div>
       </div>
       <div id="section-notes" class="section hidden">
-        <div id="noteFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
+        <div class="flex justify-between items-center mb-4">
+            <div id="noteFilterButtons" class="flex flex-wrap gap-2"></div>
+            <div id="noteViewSwitcher" class="flex items-center gap-2"></div>
+        </div>
         <div id="notesContainer" class="space-y-8"></div>
         <div id="noNotesFound" class="hidden text-center text-gray-500 mt-8">No se encontraron notas.</div>
       </div>
       <div id="section-tasks" class="section hidden">
-        <div id="taskFilterButtons" class="flex flex-wrap gap-2 mb-4"></div>
+        <div class="flex justify-between items-center mb-4">
+            <div id="taskFilterButtons" class="flex flex-wrap gap-2"></div>
+            <div id="taskViewSwitcher" class="flex items-center gap-2"></div>
+        </div>
         <div id="tasksContainer" class="space-y-8"></div>
         <div id="noTasksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron tareas.</div>
       </div>
@@ -285,6 +311,10 @@
             </div>
         </div>
     </div>
+    
+    <div id="imagePreviewModal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[2000] flex items-center justify-center pointer-events-none">
+        <img id="imagePreviewSrc" src="" class="max-w-[80%] max-h-[80%] rounded-lg shadow-2xl">
+    </div>
 
     <div class="fab-container">
         <ul class="fab-actions">
@@ -305,6 +335,7 @@ let imageBasePath = '';
 let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
 const THEMES = ['default', 'blue', 'indigo', 'rose'];
 let activeSearchTags = [];
+let sectionViews = {}; // Almacena la vista actual para cada sección
 
 // --- DATOS DE EJEMPLO ---
 const mockData = {
@@ -508,18 +539,37 @@ function switchTab(tabName) {
 
 // --- RENDERIZADO DE SECCIONES ---
 function renderAllSections() {
-    renderSection("Buscador", "searchEnginesContainer", "searchFilterButtons", "noBuscadoresFound");
-    renderSection("Link", "linksContainer", "linkFilterButtons", "noLinksFound");
-    renderSection("Promp", "promptsContainer", "promptFilterButtons", "noPromptsFound");
-    renderSection("Nota", "notesContainer", "noteFilterButtons", "noNotesFound");
-    renderSection("Tarea", "tasksContainer", "taskFilterButtons", "noTasksFound");
+    renderSection("Buscador", "searchEnginesContainer", "searchFilterButtons", "searchViewSwitcher", "noBuscadoresFound");
+    renderSection("Link", "linksContainer", "linkFilterButtons", "linkViewSwitcher", "noLinksFound");
+    renderSection("Promp", "promptsContainer", "promptFilterButtons", "promptViewSwitcher", "noPromptsFound");
+    renderSection("Nota", "notesContainer", "noteFilterButtons", "noteViewSwitcher", "noNotesFound");
+    renderSection("Tarea", "tasksContainer", "taskFilterButtons", "taskViewSwitcher", "noTasksFound");
 }
 
-function renderSection(type, containerId, filterId, notFoundId) {
+function renderSection(type, containerId, filterId, viewSwitcherId, notFoundId) {
     const container = document.getElementById(containerId);
     const filterContainer = document.getElementById(filterId);
+    const viewSwitcher = document.getElementById(viewSwitcherId);
     const notFound = document.getElementById(notFoundId);
     
+    if (!sectionViews[type]) {
+        sectionViews[type] = 'grid'; // Vista por defecto
+    }
+
+    const setView = (view) => {
+        sectionViews[type] = view;
+        renderFiltered(filterContainer.querySelector('.active')?.dataset.category);
+    };
+
+    viewSwitcher.innerHTML = `
+        <button class="view-btn ${sectionViews[type] === 'grid' ? 'text-teal-500' : 'text-gray-400'}" data-view="grid" title="Vista de Tarjetas"><i class="fas fa-th-large"></i></button>
+        <button class="view-btn ${sectionViews[type] === 'list' ? 'text-teal-500' : 'text-gray-400'}" data-view="list" title="Vista de Lista"><i class="fas fa-bars"></i></button>
+        <button class="view-btn ${sectionViews[type] === 'micro' ? 'text-teal-500' : 'text-gray-400'}" data-view="micro" title="Vista Micro"><i class="fas fa-grip-horizontal"></i></button>
+    `;
+    viewSwitcher.querySelectorAll('.view-btn').forEach(btn => {
+        btn.onclick = () => setView(btn.dataset.view);
+    });
+
     let items = data.filter(item => item.type === type);
     const categories = [...new Set(items.map(item => item.category))].sort();
 
@@ -535,16 +585,22 @@ function renderSection(type, containerId, filterId, notFoundId) {
         Object.keys(categorized).sort().forEach(cat => {
             const catDiv = document.createElement('div');
             catDiv.className = "mb-8";
+            
+            const viewClass = sectionViews[type] === 'grid' ? 'card-grid' : (sectionViews[type] === 'list' ? 'list-view' : 'micro-view');
+            
             catDiv.innerHTML = `<div class="category-title-container">
                 <h2 class="category-title" data-category-name="${cat}">${cat}</h2>
                 <div>
                     <button onclick="editCategoryName('${cat}')" class="text-gray-400 hover:text-blue-500 p-1"><i class="fas fa-pencil-alt"></i></button>
                     <button onclick="deleteCategory('${cat}')" class="text-gray-400 hover:text-red-500 p-1"><i class="fas fa-trash-alt"></i></button>
                 </div>
-            </div><div class="card-grid" data-category="${cat}" data-group="shared-cards"></div>`;
-            const grid = catDiv.querySelector(".card-grid");
+            </div><div class="${viewClass}" data-category="${cat}" data-group="shared-cards"></div>`;
+            const grid = catDiv.querySelector(`.${viewClass}`);
             
-            categorized[cat].forEach(item => grid.appendChild(createCard(item)));
+            categorized[cat].forEach(item => {
+                const element = sectionViews[type] === 'grid' ? createCard(item) : createListItem(item, sectionViews[type]);
+                grid.appendChild(element);
+            });
             
             container.appendChild(catDiv);
 
@@ -581,6 +637,7 @@ function renderSection(type, containerId, filterId, notFoundId) {
         const btn = document.createElement('button');
         btn.className = 'filter-btn';
         btn.textContent = cat;
+        btn.dataset.category = cat;
         btn.onclick = () => {
             filterContainer.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -592,7 +649,7 @@ function renderSection(type, containerId, filterId, notFoundId) {
     renderFiltered(null);
 }
 
-// --- NUEVA FUNCIÓN `createCard` CON LÓGICA HÍBRIDA MEJORADA ---
+// --- FUNCIONES DE CREACIÓN DE ELEMENTOS ---
 function createCard(item) {
     const cardWrapper = document.createElement("div");
     cardWrapper.className = 'card-container';
@@ -601,62 +658,8 @@ function createCard(item) {
         cardWrapper.dataset.tags = item.tags.join(',');
     }
 
-    // --- LÓGICA DE ICONO ---
-    let iconHtml = '';
-    const iconValue = item.icon || '';
-    const defaultIconClass = { 
-        Buscador: "fas fa-search", Link: "fas fa-link", Promp: "fas fa-brain", 
-        Nota: "fas fa-sticky-note", Tarea: "fas fa-tasks" 
-    }[item.type] || 'fas fa-question-circle';
-
-    if (iconValue) {
-        if (iconValue.startsWith('http') || iconValue.startsWith('imagenes/')) {
-            const fullUrl = iconValue.startsWith('http') ? iconValue : imageBasePath + iconValue;
-            iconHtml = `<img src="${fullUrl}" alt="Icono" class="card-icon-image mb-4" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} text-5xl text-teal-500 mb-4\\'></i>'">`;
-        } else {
-            iconHtml = `<i class="${iconValue} text-5xl text-teal-500 mb-4"></i>`;
-        }
-    } else if (item.type === 'Link' || item.type === 'Buscador') {
-        try {
-            const domain = new URL(item.action).hostname;
-            iconHtml = `<img src="https://icon.horse/icon/${domain}" alt="Icono" class="card-icon-image mb-4" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} text-5xl text-teal-500 mb-4\\'></i>'">`;
-        } catch (e) {
-            iconHtml = `<i class="${defaultIconClass} text-5xl text-teal-500 mb-4"></i>`;
-        }
-    } else {
-        iconHtml = `<i class="${defaultIconClass} text-5xl text-teal-500 mb-4"></i>`;
-    }
-
-    // --- LÓGICA DE VISTA PREVIA ---
-    let previewContentHtml = '';
-    const isTextPreview = ['Promp', 'Nota', 'Tarea'].includes(item.type);
-
-    if (isTextPreview) {
-        let textContent = '';
-        if (item.type === 'Tarea' && Array.isArray(item.action)) {
-            textContent = item.action.map(task => `<span>${task.status ? '✅' : '⬜️'} ${task.text}</span>`).join('<br>');
-        } else if (typeof item.action === 'string') {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = item.action;
-            textContent = tempDiv.innerHTML;
-        }
-        previewContentHtml = `<div class="card-preview text-preview"><div class="scrolling-text">${textContent}</div></div>`;
-    } else {
-        let previewUrl = item.previewUrl;
-        if (previewUrl && !previewUrl.startsWith('http')) {
-            previewUrl = imageBasePath + previewUrl;
-        }
-        if (!previewUrl) {
-            try {
-                new URL(item.action); 
-                previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=400`;
-            } catch(e) {
-                previewUrl = '';
-            }
-        }
-        const previewStyle = previewUrl ? `style="background-image: url('${previewUrl}')"` : '';
-        previewContentHtml = `<div class="card-preview" ${previewStyle}></div>`;
-    }
+    let iconHtml = getIconHtml(item, 'text-5xl');
+    let previewContentHtml = getPreviewHtml(item);
     
     const tagsHtml = item.tags && item.tags.length > 0 ? 
         `<div class="card-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : '';
@@ -683,6 +686,110 @@ function createCard(item) {
     cardWrapper.innerHTML = cardHtml;
     cardWrapper.querySelector('.card-preview-container').addEventListener('click', () => handleCardClick(String(item.id)));
     return cardWrapper;
+}
+
+function createListItem(item, viewType) {
+    const listItemWrapper = document.createElement("div");
+    listItemWrapper.dataset.id = item.id;
+    if (item.tags) {
+        listItemWrapper.dataset.tags = item.tags.join(',');
+    }
+
+    if (viewType === 'list') {
+        listItemWrapper.className = 'list-item-container relative flex items-center p-3 rounded-lg border border-transparent dark:border-transparent bg-white dark:bg-gray-800 shadow-sm';
+        let iconHtml = getIconHtml(item, 'text-2xl');
+        const tagsHtml = item.tags && item.tags.length > 0 ?
+            `<div class="flex items-center gap-2">
+                ${item.tags.slice(0, 2).map(tag => `<span class="text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">${tag}</span>`).join('')}
+            </div>` : '';
+
+        listItemWrapper.innerHTML = `
+            <div class="card-content flex items-center w-full">
+                <div class="w-8 text-center">${iconHtml}</div>
+                <div class="ml-4 flex-grow">
+                    <h4 class="font-bold text-gray-800 dark:text-white">${item.title}</h4>
+                    <p class="text-xs text-gray-500 dark:text-gray-400">${item.category}</p>
+                </div>
+                ${tagsHtml}
+            </div>
+            <div class="card-actions absolute right-12 top-1/2 -translate-y-1/2">
+                <button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="p-1 text-gray-500 hover:text-blue-500"><i class="fas fa-pencil-alt"></i></button>
+                <button onclick="event.stopPropagation(); deleteItem('${item.id}')" class="p-1 text-gray-500 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <div class="card-drag-handle absolute right-3 top-1/2 -translate-y-1/2" title="Arrastrar para reordenar">
+                <i class="fas fa-grip-vertical"></i>
+            </div>
+        `;
+    } else { // micro view
+        listItemWrapper.className = 'micro-item-container relative flex items-center p-2 rounded-md bg-white dark:bg-gray-800 shadow-sm';
+        let iconHtml = getIconHtml(item, 'text-lg');
+        listItemWrapper.innerHTML = `
+            <div class="w-6 text-center">${iconHtml}</div>
+            <span class="ml-2 font-medium text-sm text-gray-800 dark:text-white">${item.title}</span>
+        `;
+        listItemWrapper.addEventListener('mouseenter', () => showPreviewModal(item));
+        listItemWrapper.addEventListener('mouseleave', hidePreviewModal);
+    }
+    
+    listItemWrapper.addEventListener('click', () => handleCardClick(String(item.id)));
+    return listItemWrapper;
+}
+
+function getIconHtml(item, sizeClass = 'text-5xl') {
+    const iconValue = item.icon || '';
+    const defaultIconClass = { 
+        Buscador: "fas fa-search", Link: "fas fa-link", Promp: "fas fa-brain", 
+        Nota: "fas fa-sticky-note", Tarea: "fas fa-tasks" 
+    }[item.type] || 'fas fa-question-circle';
+
+    if (iconValue) {
+        if (iconValue.startsWith('http') || iconValue.startsWith('imagenes/')) {
+            const fullUrl = iconValue.startsWith('http') ? iconValue : imageBasePath + iconValue;
+            return `<img src="${fullUrl}" alt="Icono" class="card-icon-image" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} ${sizeClass} text-teal-500\\'></i>'">`;
+        } else {
+            return `<i class="${iconValue} ${sizeClass} text-teal-500"></i>`;
+        }
+    } else if (item.type === 'Link' || item.type === 'Buscador') {
+        try {
+            const domain = new URL(item.action).hostname;
+            return `<img src="https://icon.horse/icon/${domain}" alt="Icono" class="card-icon-image" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} ${sizeClass} text-teal-500\\'></i>'">`;
+        } catch (e) {
+            return `<i class="${defaultIconClass} ${sizeClass} text-teal-500"></i>`;
+        }
+    } else {
+        return `<i class="${defaultIconClass} ${sizeClass} text-teal-500"></i>`;
+    }
+}
+
+function getPreviewHtml(item) {
+    const isTextPreview = ['Promp', 'Nota', 'Tarea'].includes(item.type);
+
+    if (isTextPreview) {
+        let textContent = '';
+        if (item.type === 'Tarea' && Array.isArray(item.action)) {
+            textContent = item.action.map(task => `<span>${task.status ? '✅' : '⬜️'} ${task.text}</span>`).join('<br>');
+        } else if (typeof item.action === 'string') {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = item.action;
+            textContent = tempDiv.innerHTML;
+        }
+        return `<div class="card-preview text-preview"><div class="scrolling-text">${textContent}</div></div>`;
+    } else {
+        let previewUrl = item.previewUrl;
+        if (previewUrl && !previewUrl.startsWith('http')) {
+            previewUrl = imageBasePath + previewUrl;
+        }
+        if (!previewUrl) {
+            try {
+                new URL(item.action); 
+                previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=400`;
+            } catch(e) {
+                previewUrl = '';
+            }
+        }
+        const previewStyle = previewUrl ? `style="background-image: url('${previewUrl}')"` : '';
+        return `<div class="card-preview" ${previewStyle}></div>`;
+    }
 }
 
 
@@ -1092,7 +1199,7 @@ function applySearchPaletteFilters() {
     const searchTerm = searchInput.value.toLowerCase();
     
     const activeNavBtn = document.querySelector('.nav-btn.active');
-    const activeType = activeNavBtn.id.replace('nav-', '').replace('s', ''); // e.g., 'link', 'nota'
+    const activeType = activeNavBtn.id.replace('nav-', '').replace('s', ''); // e.g., 'link', 'note'
     const typeMap = { 'link': 'Link', 'buscadore': 'Buscador', 'prompt': 'Promp', 'note': 'Nota', 'task': 'Tarea' };
     const currentType = typeMap[activeType];
 
@@ -1172,6 +1279,42 @@ function getIconHtml(item, sizeClass = 'text-5xl') {
     } else {
         return `<i class="${defaultIconClass} ${sizeClass} text-teal-500"></i>`;
     }
+}
+
+// --- PREVIEW MODAL FUNCTIONS ---
+function showPreviewModal(item) {
+    const modal = document.getElementById('imagePreviewModal');
+    const img = document.getElementById('imagePreviewSrc');
+    let previewUrl = getPreviewUrl(item);
+    if (previewUrl) {
+        img.src = previewUrl;
+        modal.classList.remove('hidden');
+    }
+}
+
+function hidePreviewModal() {
+    const modal = document.getElementById('imagePreviewModal');
+    modal.classList.add('hidden');
+    document.getElementById('imagePreviewSrc').src = '';
+}
+
+function getPreviewUrl(item) {
+    const isTextPreview = ['Promp', 'Nota', 'Tarea'].includes(item.type);
+    if (isTextPreview) return null;
+
+    let url = item.previewUrl;
+    if (url && !url.startsWith('http')) {
+        url = imageBasePath + url;
+    }
+    if (!url) {
+        try {
+            new URL(item.action); 
+            url = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=800`;
+        } catch(e) {
+            url = '';
+        }
+    }
+    return url;
 }
 
 </script>
