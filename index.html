@@ -3,388 +3,344 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centro de Accesos v2</title>
+  <title>Centro de Accesos v3</title>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Kalam:wght@400;700&display=swap" rel="stylesheet">
+  <!-- Librería para Fuzzy Search -->
   <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
 
   <style>
     /* --- TEMAS DE COLORES --- */
-    :root { --theme-color: #0d9488; --theme-color-hover: #0f766e; }
-    body.theme-blue { --theme-color: #2563eb; --theme-color-hover: #1d4ed8; }
-    body.theme-indigo { --theme-color: #4f46e5; --theme-color-hover: #4338ca; }
-    body.theme-rose { --theme-color: #e11d48; --theme-color-hover: #be123c; }
+    :root { --theme-color: #0d9488; --theme-color-hover: #0f766e; --theme-text-color: #0d9488; }
+    body.theme-blue { --theme-color: #2563eb; --theme-color-hover: #1d4ed8; --theme-text-color: #2563eb;}
+    body.theme-indigo { --theme-color: #4f46e5; --theme-color-hover: #4338ca; --theme-text-color: #4f46e5;}
+    body.theme-rose { --theme-color: #e11d48; --theme-color-hover: #be123c; --theme-text-color: #e11d48;}
 
     /* --- ESTILOS GENERALES Y MODO OSCURO --- */
-    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f0f2f5;color:#333;transition:background-color .3s,color .3s}
-    body.dark{background-color:#121212;color:#ddd}
-    body.dark .card,body.dark .bg-white{background-color:#1e1e1e;color:#ddd;border-color:rgba(255,255,255,0.1)}
-    body.dark input,body.dark select,body.dark textarea{background-color:#2a2a2a;color:#ddd;border-color:#444}
-    body.dark #editPanel,body.dark .modal-content{background-color:rgba(30,30,30,.97);backdrop-filter:blur(4px)}
-    body.dark #searchModal,body.dark #tagSearchModal, body.dark #noteModal, body.dark #taskModal{background-color:rgba(0,0,0,.7)}
-    body.dark .sticky-header{background-color:rgba(18,18,18,0.85);backdrop-filter:blur(10px);border-bottom-color:rgba(255,255,255,0.1)}
-    body.dark .category-title{color:#e5e7eb}
-    body.dark .nav-btn{color:#9ca3af}
-    body.dark .nav-btn.active{color:var(--theme-color)}
-    body.dark .nav-btn:not(.active):hover{background-color:#2a2a2a}
+    body { 
+        font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+        background-color: #f8f9fa; 
+        color: #212529;
+        transition: background-color .3s, color .3s;
+    }
+    body.dark { 
+        background-color: #121212; 
+        color: #e9ecef;
+    }
+    body.dark .card, body.dark .bg-white { 
+        background-color: #1e1e1e; 
+        border-color: rgba(255,255,255,0.1);
+    }
+    body.dark input, body.dark select, body.dark textarea {
+        background-color: #2a2a2a;
+        color: #e9ecef;
+        border-color: #495057;
+    }
+    body.dark #editPanel, body.dark .modal-content {
+        background-color: rgba(30, 30, 30, 0.97);
+        backdrop-filter: blur(4px);
+    }
+    body.dark .sticky-header {
+        background-color: rgba(18, 18, 18, 0.85);
+        backdrop-filter: blur(10px);
+        border-bottom-color: rgba(255, 255, 255, 0.1);
+    }
+    body.dark .nav-btn.active { color: var(--theme-text-color); }
+    body.dark #filterPanel {
+        background-color: #212529;
+        border-right-color: rgba(255,255,255,0.15);
+    }
+    body.dark .category-title { color: #e9ecef; }
     
-    /* --- CABECERA FIJA Y NAVEGACIÓN --- */
-    .sticky-header{position:sticky;top:0;z-index:999;background-color:rgba(240,242,245,0.85);backdrop-filter:blur(10px);border-bottom:1px solid #ddd;padding-top:0.5rem;padding-bottom:0.5rem}
-    main{transition: margin-left .3s ease; padding: 1rem 0;}
-    .nav-btn{transition:all .2s ease;position:relative;color:#4b5563;font-weight:600;padding:0.5rem 0.75rem;border-radius:8px}
-    .nav-btn.active{color:var(--theme-color)}
-    .nav-btn:not(.active):hover{transform:translateY(-2px);background-color:#fff}
-    
+    /* --- ESTRUCTURA Y CABECERA --- */
+    .sticky-header {
+        position: sticky;
+        top: 0;
+        z-index: 999;
+        background-color: rgba(248, 249, 250, 0.85);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #dee2e6;
+    }
+    .nav-btn {
+        transition: all .2s ease;
+        position: relative;
+        color: #6c757d;
+        font-weight: 600;
+        padding: 0.75rem 0.25rem;
+        border-bottom: 2px solid transparent;
+    }
+    .nav-btn.active {
+        color: var(--theme-text-color);
+        border-bottom-color: var(--theme-color);
+    }
+    .nav-btn:not(.active):hover { color: #343a40; }
+    body.dark .nav-btn:not(.active):hover { color: #f8f9fa; }
+
     /* --- TARJETAS --- */
-    .card{transition:all .3s ease;box-shadow:0 4px 6px rgba(0,0,0,.05);border-radius:12px;position:relative;display:flex;flex-direction:column;border:1px solid #e5e7eb}
-    .card:hover{transform:translateY(-5px);box-shadow:0 10px 15px rgba(0,0,0,.07)}
-    .category-title-container{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid #e5e7eb;padding-bottom:0.5rem}
-    body.dark .category-title-container{border-color:rgba(255,255,255,0.1)}
-    .category-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;color:#1f2937}
-    
-    /* --- TARJETAS ESPECIALES: NOTAS Y TAREAS --- */
-    .note-card{background-color:#fffbe0;font-family:'Kalam',cursive;cursor:pointer}
-    body.dark .note-card{background-color:#4a462a}
-    .note-card-content{height:150px;overflow:hidden;position:relative;-webkit-mask-image:linear-gradient(to bottom,black 80%,transparent 100%)}
-    .task-list{list-style:none;padding:0;margin-top:0.5rem;text-align:left}.task-item{display:flex;align-items:center;padding:0.25rem 0;border-bottom:1px solid #eee}body.dark .task-item{border-color:#333}.task-item.done .task-text{text-decoration:line-through;color:#9ca3af}
-    
+    .card {
+        transition: all .3s ease;
+        box-shadow: 0 4px 6px rgba(0,0,0,.04);
+        border-radius: 12px;
+        border: 1px solid #e9ecef;
+        display: flex;
+        flex-direction: column;
+    }
+    .card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0,0,0,.06);
+    }
+    .category-title { font-size: 1.5rem; font-weight: 700; }
+    .note-card { background-color: #fffbe0; font-family: 'Kalam', cursive; cursor: pointer; }
+    body.dark .note-card { background-color: #4a462a; }
+    .note-card-content { -webkit-mask-image: linear-gradient(to bottom, black 80%, transparent 100%); }
+    .task-list { list-style: none; padding: 0; }
+    .task-item.done .task-text { text-decoration: line-through; color: #6c757d; }
+    .tag { background-color: #e9ecef; color: #495057; }
+    body.dark .tag { background-color: #343a40; color: #ced4da; }
+    .card-actions { position: absolute; bottom: 8px; right: 8px; display: flex; gap: 8px; opacity: 0; transition: opacity .2s ease-in-out; }
+    .card:hover .card-actions { opacity: 1; }
+    .main-action-btn { background-color: var(--theme-color) !important; }
+    .main-action-btn:hover { background-color: var(--theme-color-hover) !important; }
+    .main-action-btn-focus:focus { ring-color: var(--theme-color) !important; }
+    .icon-themed { color: var(--theme-text-color) !important; }
+
     /* --- PANEL DE FILTROS --- */
     #filterPanel {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 280px;
-      height: 100vh;
-      background-color: white;
-      border-right: 1px solid #ddd;
-      padding: 1rem;
-      padding-top: 80px; /* Espacio para el header */
-      z-index: 900;
-      transform: translateX(-100%);
-      transition: transform 0.3s ease;
-      overflow-y: auto;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 280px;
+        height: 100vh;
+        background-color: white;
+        border-right: 1px solid #dee2e6;
+        padding: 1rem;
+        padding-top: 2rem;
+        z-index: 1100;
+        transform: translateX(-100%);
+        transition: transform 0.3s ease;
+        overflow-y: auto;
     }
-    #filterPanel.open {
-      transform: translateX(0);
+    #filterPanel.open { transform: translateX(0); }
+    #filterPanelOverlay {
+        position: fixed;
+        inset: 0;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1099;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
     }
-    body.dark #filterPanel {
-        background-color: #1e1e1e;
-        border-right-color: rgba(255,255,255,0.1);
-    }
-    main.filters-open {
-      margin-left: 280px;
-    }
+    #filterPanelOverlay.open { opacity: 1; pointer-events: auto; }
     .filter-group { margin-bottom: 1.5rem; }
-    .filter-title { font-weight: 600; margin-bottom: 0.75rem; border-bottom: 1px solid #eee; padding-bottom: 0.5rem; }
-    body.dark .filter-title { border-color: #333; }
-    .filter-group label { display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer; }
-    .filter-group input[type="checkbox"] { margin-right: 0.5rem; }
+    .filter-title { font-weight: 600; margin-bottom: 0.75rem; border-bottom: 1px solid #e9ecef; padding-bottom: 0.5rem; }
+    body.dark .filter-title { border-color: #343a40; }
 
-    /* --- OTROS ESTILOS (sin cambios) --- */
-    .prompt-content,.note-content,.task-content{max-height:150px;overflow-y:auto;font-size:.8rem;white-space:pre-wrap;word-wrap:break-word}
-    .tag-container{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
-    .tag{background-color:#e5e7eb;color:#4b5563;padding:2px 8px;border-radius:9999px;font-size:0.75rem;font-weight:500}
-    body.dark .tag{background-color:#374151;color:#d1d5db}
-    .card-actions{position:absolute;bottom:8px;right:8px;display:flex;gap:8px;opacity:0;transition:opacity .2s ease-in-out}.card:hover .card-actions{opacity:1}.card-actions button{background-color:rgba(255,255,255,0.7);border:1px solid #ddd;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer}
-    body.dark .card-actions button{background-color:rgba(40,40,40,0.8);border-color:#555}
-    .main-action-btn{background-color:var(--theme-color) !important;}
-    .main-action-btn:hover{background-color:var(--theme-color-hover) !important;}
-    .main-action-btn-focus:focus{ring-color:var(--theme-color) !important;}
-    .icon-themed{color:var(--theme-color) !important;}
-    .fab-container{position:fixed;right:1rem;bottom:1rem;z-index:1100}
-    .fab-main{width:56px;height:56px;border-radius:50%;color:white;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 8px rgba(0,0,0,0.2);cursor:pointer;transition:all .2s ease-in-out; background-color: var(--theme-color);}
-    .fab-main:hover{transform:rotate(90deg)}
-    #editPanel, #noteModal, #taskModal{position:fixed;top:0;left:0;width:100%;height:100%;z-index:1000;overflow-y:auto;transition:opacity .3s}
-    /* El resto de los estilos del panel de edición, modales, etc. se mantienen igual */
+    /* --- BOTÓN FLOTANTE --- */
+    .fab-main {
+        position: fixed;
+        right: 1.5rem;
+        bottom: 1.5rem;
+        z-index: 1050;
+        width: 56px; height: 56px;
+        border-radius: 50%;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        cursor: pointer;
+        transition: all .2s ease-in-out;
+        background-color: var(--theme-color);
+    }
+    .fab-main:hover { transform: scale(1.1) rotate(90deg); }
+    
+    /* Panel de edición y modales */
+    #editPanel, #noteModal, #taskModal {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        z-index: 1200;
+        overflow-y: auto;
+        transition: opacity .3s;
+    }
   </style>
 </head>
 <body class="min-h-screen theme-default">
 
-  <div class="fab-container">
-    <button id="addItemBtn" class="fab-main" title="Agregar Nuevo Elemento">
-      <i class="fas fa-plus"></i>
-    </button>
-  </div>
-  
+  <div id="filterPanelOverlay"></div>
   <aside id="filterPanel">
-    <h3 class="filter-title text-lg">Filtros</h3>
-    
+    <div class="flex justify-between items-center mb-6">
+        <h3 class="font-bold text-lg">Filtros</h3>
+        <button id="closeFilterPanelBtn" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full">&times;</button>
+    </div>
     <div class="filter-group">
       <h4 class="filter-title">Tipo de Elemento</h4>
       <div id="typeFilterContainer"></div>
     </div>
-    
     <div class="filter-group">
       <h4 class="filter-title">Categorías</h4>
       <div id="categoryFilterContainer" class="max-h-60 overflow-y-auto"></div>
     </div>
-    
     <div class="filter-group">
         <h4 class="filter-title">Etiquetas</h4>
         <input type="text" id="tagFilterInput" placeholder="Filtrar por etiqueta..." class="w-full px-2 py-1 border rounded text-sm">
     </div>
-
     <button id="resetFiltersBtn" class="w-full mt-4 px-4 py-2 text-sm bg-gray-200 dark:bg-gray-600 rounded-md">Limpiar Filtros</button>
   </aside>
 
   <header class="sticky-header">
     <div class="container mx-auto px-4">
-      <div class="flex items-center justify-between gap-4">
-        <button id="toggleFiltersBtn" title="Mostrar/Ocultar Filtros" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">
-          <i class="fas fa-filter"></i>
-        </button>
-        <div class="relative flex-grow max-w-2xl mx-auto">
-          <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-          <input type="text" id="unifiedSearchInput" placeholder="Busca en todo tu contenido..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 main-action-btn-focus">
-        </div>
-        <div>
-          <button id="themeSwitcherBtn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" title="Cambiar Tema y Modo">
-              <i class="fas fa-palette"></i>
-          </button>
-          <button id="gistSettingsBtn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" title="Configurar Gist">
-              <i class="fab fa-github"></i>
-          </button>
-        </div>
-      </div>
-      <nav class="flex justify-center flex-wrap gap-4 sm:gap-6 mt-4">
-        <button data-type-filter="Todos" class="nav-btn active">Todos</button>
-        <button data-type-filter="Buscador" class="nav-btn"><i class="fas fa-search mr-2"></i>Buscadores</button>
-        <button data-type-filter="Link" class="nav-btn"><i class="fas fa-link mr-2"></i>Links</button>
-        <button data-type-filter="Promp" class="nav-btn"><i class="fas fa-brain mr-2"></i>Prompts</button>
-        <button data-type-filter="Nota" class="nav-btn"><i class="fas fa-sticky-note mr-2"></i>Notas</button>
-        <button data-type-filter="Tarea" class="nav-btn"><i class="fas fa-tasks mr-2"></i>Tareas</button>
+      <nav class="flex justify-center items-center flex-wrap gap-x-6 sm:gap-x-8">
+        <button data-view="Buscadores" class="nav-btn"><i class="fas fa-search mr-2"></i>Buscadores</button>
+        <button data-view="Todos" class="nav-btn active"><i class="fas fa-grip-horizontal mr-2"></i>Todos</button>
+        <button data-view="Link" class="nav-btn"><i class="fas fa-link mr-2"></i>Links</button>
+        <button data-view="Promp" class="nav-btn"><i class="fas fa-brain mr-2"></i>Prompts</button>
+        <button data-view="Nota" class="nav-btn"><i class="fas fa-sticky-note mr-2"></i>Notas</button>
+        <button data-view="Tarea" class="nav-btn"><i class="fas fa-tasks mr-2"></i>Tareas</button>
       </nav>
     </div>
   </header>
 
-  <div class="container mx-auto px-4">
-    <main id="mainContent">
-      <div id="unifiedResultsContainer" class="space-y-8"></div>
-      <div id="noResultsFound" class="hidden text-center text-gray-500 mt-16">
-        <i class="fas fa-ghost text-5xl mb-4"></i>
-        <p class="text-xl">No se encontraron resultados</p>
-        <p>Intenta cambiar tus filtros o término de búsqueda.</p>
-      </div>
-    </main>
+  <main class="container mx-auto px-4 py-6">
+    <!-- Header dinámico: Buscador o Filtros -->
+    <div id="dynamic-header" class="mb-8"></div>
+    
+    <!-- Contenedor de resultados -->
+    <div id="unifiedResultsContainer" class="space-y-10"></div>
+    <div id="noResultsFound" class="hidden text-center text-gray-500 mt-16">
+      <i class="fas fa-ghost text-5xl mb-4"></i>
+      <p class="text-xl font-semibold">No se encontraron resultados</p>
+      <p>Intenta cambiar tus filtros o término de búsqueda.</p>
+    </div>
+  </main>
+
+  <button id="addItemBtn" class="fab-main" title="Agregar Nuevo Elemento"><i class="fas fa-plus text-xl"></i></button>
+
+  <div id="global-controls" class="fixed top-4 right-4 z-[1000]">
+      <button id="themeSwitcherBtn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" title="Cambiar Tema y Modo">
+          <i class="fas fa-palette"></i>
+      </button>
+      <button id="gistSettingsBtn" class="p-2 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700" title="Configurar Gist">
+          <i class="fab fa-github"></i>
+      </button>
   </div>
 
-  <div id="editPanel" class="hidden">...</div>
-  <div id="noteModal" class="hidden">...</div>
-  <div id="taskModal" class="hidden">...</div>
   <div id="toast" class="hidden fixed bottom-5 right-5 bg-green-600 text-white py-2 px-4 rounded-md shadow-lg"></div>
-
-  <div id="editPanel" class="hidden fixed top-0 left-0 w-full h-full z-[1000] overflow-y-auto bg-gray-800 bg-opacity-50">
-      <div class="container mx-auto px-4 py-8">
-        <div class="bg-white dark:bg-[#1e1e1e] rounded-lg shadow-xl max-w-4xl mx-auto p-6 relative">
-          <div class="flex justify-between items-center mb-6">
-            <h2 id="editPanelTitle" class="text-2xl font-bold">Agregar Nuevo Elemento</h2>
-            <button id="closeEditButton" class="bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 p-2 rounded-full">
-              <i class="fas fa-times"></i>
-            </button>
-          </div>
-          <form id="editForm"> ... </form>
-        </div>
-      </div>
-  </div>
-
+  
+  <!-- Aquí se inyectarán los modales desde JS para mantener el HTML limpio -->
+  <div id="modals-container"></div>
 
 <script>
 // --- CONFIGURACIÓN Y LÓGICA PRINCIPAL ---
 const FILENAME_IN_GIST = 'Botones.json';
 let data = [];
-let fuse; // Instancia de Fuse.js
-let activeFilters = { // Objeto para mantener el estado de los filtros
-    searchTerm: '',
-    type: 'Todos',
-    categories: [],
-    tagTerm: ''
-};
-
+let fuse;
+let activeFilters = { searchTerm: '', type: 'Todos', categories: [], tagTerm: '' };
 const THEMES = ['default', 'blue', 'indigo', 'rose'];
 
-// --- FUNCIONES DE CONEXIÓN CON GITHUB (sin cambios) ---
-function getOrRequestInfo(key, promptMessage) {
-    let value = localStorage.getItem(key);
-    if (!value) {
-        value = prompt(promptMessage);
-        if (value) localStorage.setItem(key, value.trim());
-    }
-    return value;
-}
+// --- TEMPLATES HTML ---
+const templates = {
+    externalSearchHeader: `
+        <div class="max-w-2xl mx-auto">
+            <h1 class="text-2xl font-bold text-center mb-4">Buscadores Externos</h1>
+            <div class="relative flex rounded-lg shadow-sm">
+                <div class="relative">
+                    <button id="dropdownToggle" class="h-full main-action-btn text-white px-4 py-3 rounded-l-lg flex items-center">
+                        <span id="selectedEngine" class="font-semibold">Google</span>
+                        <i class="fas fa-chevron-down ml-2 text-xs"></i>
+                    </button>
+                    <div id="searchEngineDropdown" class="hidden absolute left-0 top-full mt-1 w-64 bg-white dark:bg-[#2a2a2a] rounded-md shadow-lg z-20"></div>
+                </div>
+                <input type="text" id="externalSearchInput" list="searchSuggestions" placeholder="Realiza una búsqueda en la web..." class="w-full px-4 py-3 border-t border-b border-gray-300 focus:outline-none text-lg">
+                <datalist id="searchSuggestions"></datalist>
+                <button id="externalSearchButton" class="main-action-btn text-white px-5 py-3 rounded-r-lg flex items-center justify-center text-lg font-medium">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>`,
+    internalFilterHeader: `
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="relative w-full md:flex-grow">
+                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                <input type="text" id="internalSearchInput" placeholder="Busca en tu contenido..." class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 main-action-btn-focus">
+            </div>
+            <button id="openFilterPanelBtn" class="flex-shrink-0 w-full md:w-auto flex items-center justify-center gap-2 px-4 py-3 bg-white dark:bg-[#1e1e1e] border border-gray-300 rounded-full font-semibold">
+                <i class="fas fa-filter text-gray-600 dark:text-gray-300"></i>
+                Filtros
+            </button>
+        </div>`
+};
 
-async function loadData() {
-    const gistId = localStorage.getItem('gist_id');
-    if (!gistId) {
-        showToast("Configura tu Gist ID en el menú de GitHub.");
-        return initializeUI();
-    }
-    showToast("Cargando datos...");
-    try {
-        const response = await fetch(`https://api.github.com/gists/${gistId}`);
-        if (!response.ok) throw new Error(`Gist no encontrado: ${response.status}`);
-        const gistData = await response.json();
-        if (!gistData.files[FILENAME_IN_GIST]) throw new Error(`El archivo '${FILENAME_IN_GIST}' no existe.`);
-        let loadedData = JSON.parse(gistData.files[FILENAME_IN_GIST].content);
-        
-        data = loadedData.map(item => { // Lógica de migración
-            if (!item.id) item.id = Date.now() + Math.random();
-            if (item.type === 'Tarea' && typeof item.action === 'string') {
-                return { ...item, action: item.action.split('\n').filter(Boolean).map(line => ({ text: line, status: 'todo' })) };
-            }
-            return item;
-        });
-
-        showToast("Datos cargados correctamente.");
-    } catch (error) {
-        console.error("Fallo al cargar datos:", error);
-        showToast(`ERROR: ${error.message}`);
-        data = [];
-    }
-    initializeUI();
-}
-
-async function saveData() {
-    const gistId = localStorage.getItem('gist_id');
-    const token = localStorage.getItem('github_pat');
-    if (!gistId || !token) return showToast("Se necesita Gist ID y Token para guardar.");
-    showToast("Guardando cambios...");
-    try {
-        await fetch(`https://api.github.com/gists/${gistId}`, {
-            method: 'PATCH',
-            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
-            body: JSON.stringify({ files: { [FILENAME_IN_GIST]: { content: JSON.stringify(data, null, 2) } } })
-        });
-        showToast("Cambios guardados.");
-    } catch (error) {
-        console.error("Fallo al guardar datos:", error);
-        showToast("ERROR: No se pudieron guardar los cambios.");
-    }
-}
-
-// --- INICIALIZACIÓN DE LA APLICACIÓN ---
+// --- INICIALIZACIÓN ---
 document.addEventListener("DOMContentLoaded", () => {
-    // Escondemos el HTML de los modales para no duplicarlo
-    const editPanelContent = document.getElementById('editPanel').innerHTML;
-    document.getElementById('editPanel').innerHTML = ''; // Limpiamos para evitar duplicados
-    document.body.insertAdjacentHTML('beforeend', `<div id="editPanel" class="hidden">${editPanelContent}</div>`);
-    // Copiar aquí el resto de modales (noteModal, taskModal) si se hace de la misma forma.
-
+    injectModals();
     loadData();
-    // Los event listeners se configuran en initializeUI
 });
 
-function initializeUI() {
+function initializeApp() {
     setupEventListeners();
-    setupThemeSwitcher();
+    // FIX: Removed call to non-existent function setupThemeSwitcher()
     initializeFuse();
     renderFilterPanel();
+    switchView('Todos'); // Vista inicial
+}
+
+// --- LÓGICA DE VISTAS Y FILTROS ---
+function switchView(viewName) {
+    document.querySelectorAll('.nav-btn.active').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.nav-btn[data-view="${viewName}"]`).classList.add('active');
+
+    const headerContainer = document.getElementById('dynamic-header');
+    if (viewName === 'Buscadores') {
+        headerContainer.innerHTML = templates.externalSearchHeader;
+        activeFilters.type = 'Buscador';
+        setupExternalSearchListeners();
+        populateSearchEngineDropdown();
+        updateSearchSuggestions();
+    } else {
+        headerContainer.innerHTML = templates.internalFilterHeader;
+        activeFilters.type = viewName; // 'Todos', 'Link', etc.
+        setupInternalFilterListeners();
+    }
     runFilterAndRender();
 }
 
-function initializeFuse() {
-    const options = {
-        includeScore: true,
-        threshold: 0.4, // Más tolerante
-        keys: [
-            { name: 'title', weight: 0.7 },
-            { name: 'tags', weight: 0.5 },
-            { name: 'category', weight: 0.4 },
-            { name: 'action', weight: 0.2 }
-        ]
-    };
-    fuse = new Fuse(data, options);
-}
-
-// --- CONFIGURACIÓN DE EVENT LISTENERS ---
-function setupEventListeners() {
-    // Búsqueda y Filtros
-    document.getElementById('unifiedSearchInput').addEventListener('input', () => {
-        activeFilters.searchTerm = event.target.value;
-        runFilterAndRender();
-    });
-    document.getElementById('tagFilterInput').addEventListener('input', () => {
-        activeFilters.tagTerm = event.target.value.toLowerCase();
-        runFilterAndRender();
-    });
-    document.getElementById('toggleFiltersBtn').addEventListener('click', toggleFilterPanel);
-    document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
-
-    // Navegación principal (actúa como filtro de tipo)
-    document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelector('.nav-btn.active').classList.remove('active');
-            btn.classList.add('active');
-            activeFilters.type = btn.dataset.typeFilter;
-            runFilterAndRender();
-        });
-    });
-
-    // Botones principales
-    document.getElementById('addItemBtn').addEventListener('click', () => openEditPanel());
-    document.getElementById('gistSettingsBtn').addEventListener('click', configureGist);
-
-    // Panel de edición (delegación de eventos si el panel se re-inserta)
-    document.body.addEventListener('click', event => {
-        if (event.target.id === 'closeEditButton' || event.target.closest('#closeEditButton')) {
-            document.getElementById('editPanel').classList.add('hidden');
-        }
-    });
-    document.body.addEventListener('submit', event => {
-        if (event.target.id === 'editForm') {
-            handleSaveItem(event);
-        }
-    });
-}
-
-function configureGist() {
-    const gistId = prompt("Ingresa el ID de tu Gist de GitHub:", localStorage.getItem('gist_id') || '');
-    if (gistId) localStorage.setItem('gist_id', gistId.trim());
-    
-    const token = prompt("Ingresa tu GitHub Personal Access Token:", localStorage.getItem('github_pat') || '');
-    if (token) localStorage.setItem('github_pat', token.trim());
-
-    if (gistId && token) {
-        showToast("Configuración guardada. Recargando datos...");
-        loadData();
-    }
-}
-
-// --- LÓGICA DE FILTRADO Y RENDERIZADO ---
-
 function runFilterAndRender() {
-    // 1. Leer estado de los filtros de checkboxes
-    activeFilters.categories = Array.from(document.querySelectorAll('#categoryFilterContainer input:checked')).map(cb => cb.value);
-    activeFilters.typesFromPanel = Array.from(document.querySelectorAll('#typeFilterContainer input:checked')).map(cb => cb.value);
-
-    // 2. Aplicar filtros secuencialmente
     let results = data;
+    
+    // Aplicar filtros del panel
+    const checkedTypes = Array.from(document.querySelectorAll('#typeFilterContainer input:checked')).map(cb => cb.value);
+    const checkedCategories = Array.from(document.querySelectorAll('#categoryFilterContainer input:checked')).map(cb => cb.value);
+    const tagTerm = document.getElementById('tagFilterInput')?.value.toLowerCase() || '';
+    
+    // Determinar el filtro de tipo a usar
+    let typeFilter = [];
+    if (activeFilters.type !== 'Todos') {
+        typeFilter = [activeFilters.type];
+    } else if (checkedTypes.length > 0) {
+        typeFilter = checkedTypes;
+    }
 
-    // Filtro por tipo (pestaña principal o checkboxes)
-    const typeFilter = activeFilters.type !== 'Todos' ? [activeFilters.type] : activeFilters.typesFromPanel;
     if (typeFilter.length > 0) {
         results = results.filter(item => typeFilter.includes(item.type));
     }
-    
-    // Filtro por categoría
-    if (activeFilters.categories.length > 0) {
-        results = results.filter(item => activeFilters.categories.includes(item.category));
+    if (checkedCategories.length > 0) {
+        results = results.filter(item => checkedCategories.includes(item.category));
     }
-
-    // Filtro por etiqueta
-    if (activeFilters.tagTerm) {
-        results = results.filter(item => item.tags && item.tags.some(tag => tag.toLowerCase().includes(activeFilters.tagTerm)));
+    if (tagTerm) {
+        results = results.filter(item => item.tags && item.tags.some(tag => tag.toLowerCase().includes(tagTerm)));
     }
     
-    // 3. Aplicar Fuzzy Search si hay término de búsqueda
-    if (activeFilters.searchTerm.trim()) {
-        const fuseResults = fuse.search(activeFilters.searchTerm, { collection: results });
+    // Aplicar Fuzzy Search
+    const searchTerm = document.getElementById('internalSearchInput')?.value || '';
+    if (searchTerm.trim()) {
+        const fuseResults = fuse.search(searchTerm, { collection: results });
         results = fuseResults.map(result => result.item);
     }
 
-    // 4. Renderizar los resultados
     renderResults(results);
 }
 
@@ -408,108 +364,116 @@ function renderResults(items) {
 
     Object.keys(categorized).sort().forEach(cat => {
         const catDiv = document.createElement('div');
-        catDiv.className = "mb-8";
         const gridLayout = 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
-        catDiv.innerHTML = `<div class="category-title-container"><h2 class="category-title">${cat}</h2></div><div class="grid ${gridLayout} gap-4"></div>`;
+        catDiv.innerHTML = `<div class="mb-4"><h2 class="category-title">${cat}</h2></div><div class="grid ${gridLayout} gap-6"></div>`;
         const grid = catDiv.querySelector(".grid");
         categorized[cat].forEach(item => grid.appendChild(createCard(item)));
         container.appendChild(catDiv);
     });
 }
 
-function renderFilterPanel() {
-    // Tipos
-    const types = [...new Set(data.map(item => item.type))].sort();
-    const typeContainer = document.getElementById('typeFilterContainer');
-    typeContainer.innerHTML = types.map(type => `
-        <label>
-            <input type="checkbox" value="${type}" class="filter-checkbox-type"> ${type}
-        </label>
-    `).join('');
-    typeContainer.querySelectorAll('.filter-checkbox-type').forEach(cb => cb.addEventListener('change', runFilterAndRender));
-
-    // Categorías
-    const categories = [...new Set(data.map(item => item.category || 'Sin clasificar'))].sort();
-    const categoryContainer = document.getElementById('categoryFilterContainer');
-    categoryContainer.innerHTML = categories.map(cat => `
-        <label>
-            <input type="checkbox" value="${cat}" class="filter-checkbox-cat"> ${cat}
-        </label>
-    `).join('');
-    categoryContainer.querySelectorAll('.filter-checkbox-cat').forEach(cb => cb.addEventListener('change', runFilterAndRender));
+// --- SETUP DE EVENT LISTENERS ---
+function setupEventListeners() {
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.addEventListener('click', (e) => switchView(e.currentTarget.dataset.view)));
+    document.getElementById('addItemBtn').addEventListener('click', () => openEditPanel());
+    document.getElementById('gistSettingsBtn').addEventListener('click', configureGist);
+    document.getElementById('themeSwitcherBtn').addEventListener('click', handleThemeSwitch);
+    
+    // Panel de filtros
+    document.getElementById('closeFilterPanelBtn').addEventListener('click', closeFilterPanel);
+    document.getElementById('filterPanelOverlay').addEventListener('click', closeFilterPanel);
+    document.getElementById('resetFiltersBtn').addEventListener('click', resetFilters);
 }
 
-function resetFilters() {
-    activeFilters = { searchTerm: '', type: 'Todos', categories: [], tagTerm: '' };
-    
-    document.getElementById('unifiedSearchInput').value = '';
-    document.getElementById('tagFilterInput').value = '';
-    
-    document.querySelectorAll('#filterPanel input[type="checkbox"]').forEach(cb => cb.checked = false);
-    
-    document.querySelector('.nav-btn.active').classList.remove('active');
-    document.querySelector('.nav-btn[data-type-filter="Todos"]').classList.add('active');
-
-    runFilterAndRender();
+function setupExternalSearchListeners() {
+    document.getElementById('externalSearchButton').addEventListener('click', performExternalSearch);
+    document.getElementById('externalSearchInput').addEventListener('keypress', e => { if (e.key === 'Enter') performExternalSearch(); });
+    document.getElementById('dropdownToggle').addEventListener('click', () => document.getElementById('searchEngineDropdown').classList.toggle('hidden'));
 }
 
-function toggleFilterPanel() {
-    const panel = document.getElementById('filterPanel');
-    const main = document.getElementById('mainContent');
-    panel.classList.toggle('open');
-    main.classList.toggle('filters-open');
+function setupInternalFilterListeners() {
+    document.getElementById('internalSearchInput').addEventListener('input', runFilterAndRender);
+    document.getElementById('openFilterPanelBtn').addEventListener('click', openFilterPanel);
 }
 
-// --- CREACIÓN DE TARJETAS Y OTROS HELPERS (con pequeñas adaptaciones) ---
+// --- LÓGICA DE COMPONENTES UI ---
 
 function createCard(item) {
     const card = document.createElement("div");
-    let cardClasses = "card bg-white p-4 rounded-lg text-left flex flex-col justify-between min-h-[160px]";
-    if (item.type === 'Nota') cardClasses += ' note-card';
-    card.className = cardClasses;
-    card.title = item.title;
-    card.dataset.id = item.id;
-    
-    // El resto de la función createCard puede ser mayormente copiada de tu versión original
-    // Asegúrate de que las funciones onclick como openEditPanel, deleteItem, etc. sigan funcionando
     let contentHtml = "";
     const iconHtml = getIconHtml(item);
 
-    if (item.type === 'Nota') {
-        contentHtml = `<div onclick="openNoteModal('${item.id}')" class="cursor-pointer h-full flex flex-col"><h4 class="text-lg font-bold mb-2">${item.title}</h4><div class="text-sm flex-grow note-card-content">${item.action}</div></div>`;
-    } else if (item.type === 'Tarea') {
-        const tasksHtml = (item.action || []).map((task, index) => `
-            <li class="task-item ${task.status === 'done' ? 'done' : ''}">
-                <span class="task-text">${task.text}</span>
-            </li>
-        `).slice(0, 3).join(''); // Mostrar solo las primeras 3
-        contentHtml = `<div onclick="openTaskModal('${item.id}')"><h4 class="text-lg font-bold mb-2">${item.title}</h4><ul class="task-list">${tasksHtml}</ul></div>`;
-    } else if (item.type === "Buscador" || item.type === "Link") {
-        contentHtml = `<a href="#" class="flex items-start w-full text-left p-2 rounded-lg" onclick="event.preventDefault(); handleCardClick('${item.id}')">
-            <div class="flex-shrink-0 w-8 h-8 flex items-center justify-center mt-1">${iconHtml}</div>
-            <div class="ml-3">
-              <span class="font-medium">${item.title}</span>
-              <p class="text-xs text-gray-500 break-all">${item.type === 'Link' ? item.action : 'Buscador'}</p>
-            </div>
-        </a>`;
-        card.className = "card bg-white p-2 rounded-lg";
-    } else { // Prompt
-        contentHtml = `<div class="flex items-center text-left"><div class="flex-shrink-0 w-6 mr-2 flex items-center justify-center">${iconHtml}</div><h4 class="text-lg font-medium">${item.title}</h4></div><div class="mt-3 bg-gray-50 dark:bg-gray-800 p-2 rounded text-sm text-left text-gray-700 prompt-content">${item.action.replace(/\n/g,"<br>")}</div><button class="copy-btn mt-3 w-full bg-purple-100 hover:bg-purple-200 text-purple-800 py-1 rounded-md text-sm" onclick="copyToClipboard('${item.id}')">Copiar</button>`;
-    }
+    let tagsHtml = (item.tags && item.tags.length > 0) 
+        ? `<div class="tag-container mt-auto pt-2 flex flex-wrap gap-2">${item.tags.map(tag => `<span class="tag text-xs font-medium px-2 py-1 rounded-full">${tag}</span>`).join("")}</div>`
+        : '';
 
-    let tagsHtml = "";
-    if (item.tags && item.tags.length > 0) {
-        tagsHtml = `<div class="tag-container mt-auto pt-2">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join("")}</div>`;
+    const actionsHtml = `<div class="card-actions">
+        <button onclick="openEditPanel('${item.id}')" class="bg-white/80 dark:bg-black/60 w-7 h-7 rounded-full text-blue-600" title="Editar"><i class="fas fa-pencil-alt text-xs"></i></button>
+        <button onclick="deleteItem('${item.id}')" class="bg-white/80 dark:bg-black/60 w-7 h-7 rounded-full text-red-600" title="Eliminar"><i class="fas fa-trash-alt text-xs"></i></button>
+    </div>`;
+
+    switch (item.type) {
+        case 'Nota':
+            card.className = 'card note-card p-4 min-h-[220px]';
+            contentHtml = `<div onclick="openNoteModal('${item.id}')" class="h-full flex flex-col">
+                <h4 class="text-lg font-bold mb-2">${item.title}</h4>
+                <div class="text-sm flex-grow note-card-content">${item.action}</div>
+            </div>`;
+            break;
+        case 'Tarea':
+            card.className = 'card bg-white p-4 min-h-[220px]';
+            const tasksHtml = (item.action || []).map((task, index) => `
+                <li class="task-item flex items-center py-1 ${task.status === 'done' ? 'done' : ''}">
+                    <i class="far ${task.status === 'done' ? 'fa-check-square' : 'fa-square'} mr-2 icon-themed"></i>
+                    <span class="task-text text-sm">${task.text}</span>
+                </li>
+            `).slice(0, 4).join('');
+            contentHtml = `<div onclick="openTaskModal('${item.id}')" class="cursor-pointer">
+                <h4 class="text-lg font-bold mb-2 flex items-center"><i class="fas fa-tasks mr-3 text-gray-400"></i>${item.title}</h4>
+                <ul class="task-list space-y-1">${tasksHtml}</ul>
+            </div>`;
+            break;
+        case 'Link':
+        case 'Buscador':
+            card.className = 'card bg-white p-3';
+            contentHtml = `<a href="#" class="flex items-center w-full h-full" onclick="event.preventDefault(); handleCardClick('${item.id}')">
+                <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center mr-4">${iconHtml}</div>
+                <div class="overflow-hidden">
+                    <h4 class="font-semibold truncate">${item.title}</h4>
+                    <p class="text-xs text-gray-500 truncate">${item.type === 'Link' ? item.action : 'Motor de búsqueda'}</p>
+                </div>
+            </a>`;
+            tagsHtml = ''; // No tags on compact cards
+            break;
+        default: // Prompt
+            card.className = 'card bg-white p-4 min-h-[220px]';
+            contentHtml = `<div>
+                <h4 class="text-lg font-bold mb-2 flex items-center"><i class="fas fa-brain mr-3 text-gray-400"></i>${item.title}</h4>
+                <div class="mt-2 bg-gray-50 dark:bg-gray-800 p-2 rounded text-sm text-gray-700 dark:text-gray-300 max-h-24 overflow-y-auto">${item.action.replace(/\n/g,"<br>")}</div>
+                <button class="copy-btn mt-3 w-full bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 py-1 rounded-md text-sm font-semibold" onclick="copyToClipboard('${item.id}')">Copiar</button>
+            </div>`;
     }
-    const actionsHtml = `<div class="card-actions"><button onclick="openEditPanel('${item.id}')" class="text-blue-600" title="Editar"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteItem('${item.id}')" class="text-red-600" title="Eliminar"><i class="fas fa-trash-alt"></i></button></div>`;
-    card.innerHTML = `<div>${contentHtml}</div>${tagsHtml}${actionsHtml}`;
+    card.innerHTML = `<div class="relative h-full flex flex-col">${contentHtml}${tagsHtml}${actionsHtml}</div>`;
     return card;
 }
 
 function getIconHtml(item) {
-    if (item.icon) return `<i class="${item.icon} text-2xl mx-auto icon-themed"></i>`;
-    // El resto de la función es igual
-    return '';
+    if (item.icon && item.icon.startsWith('fa')) {
+        return `<i class="${item.icon} text-2xl icon-themed"></i>`;
+    }
+    if (item.type === "Link") {
+        try {
+            const domain = new URL(item.action).hostname;
+            return `<img src="https://icon.horse/icon/${domain}" 
+                         class="w-6 h-6 object-contain" 
+                         alt="" 
+                         onerror="this.parentElement.innerHTML='<i class=\\'fas fa-link text-xl text-gray-400\\'></i>'; this.remove();">`;
+        } catch (e) {
+            return '<i class="fas fa-link text-xl text-gray-400"></i>';
+        }
+    }
+    const defaultIcons = { Buscador: "fas fa-search", Promp: "fas fa-brain", Nota: "fas fa-sticky-note", Tarea: "fas fa-tasks" };
+    return `<i class="${defaultIcons[item.type] || 'fas fa-question-circle'} text-2xl text-gray-400"></i>`;
 }
 
 function handleCardClick(id) {
@@ -518,34 +482,176 @@ function handleCardClick(id) {
     if (item.type === "Link") {
         window.open(item.action, "_blank");
     } else if (item.type === "Buscador") {
-        const term = prompt(`Buscar en ${item.title}:`);
-        if (term) {
-            window.open(item.action.replace("{search_term}", encodeURIComponent(term)), "_blank");
-        }
+        document.getElementById('selectedEngine').textContent = item.title;
+        showToast(`Motor seleccionado: ${item.title}`);
+        document.getElementById('externalSearchInput').focus();
     }
 }
 
-// --- FUNCIONES DE TEMA, TOAST Y MODALES (sin cambios importantes) ---
-function setupThemeSwitcher() {
-    const btn = document.getElementById('themeSwitcherBtn');
-    if (!btn) return;
+function performExternalSearch() {
+    const searchTerm = document.getElementById("externalSearchInput").value.trim();
+    if (!searchTerm) return;
+    let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+    if (!searchHistory.includes(searchTerm)) {
+        searchHistory.unshift(searchTerm);
+        localStorage.setItem("searchHistory", JSON.stringify(searchHistory.slice(0, 20)));
+        updateSearchSuggestions();
+    }
+    const engineTitle = document.getElementById("selectedEngine").textContent;
+    const engine = data.find(item => item.type === "Buscador" && item.title === engineTitle) || data.find(item => item.title === 'Google');
+    if (engine) window.open(engine.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
+}
+
+function populateSearchEngineDropdown() {
+    const dropdown = document.getElementById("searchEngineDropdown");
+    if(!dropdown) return;
+    dropdown.innerHTML = "";
+    data.filter(item => item.type === "Buscador").forEach(engine => {
+        const itemEl = document.createElement("a");
+        itemEl.href = "#";
+        itemEl.className = "p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center text-sm";
+        itemEl.innerHTML = `${getIconHtml(engine)}<span class="ml-2">${engine.title}</span>`;
+        itemEl.onclick = (e) => {
+            e.preventDefault();
+            document.getElementById("selectedEngine").textContent = engine.title;
+            dropdown.classList.add("hidden");
+        };
+        dropdown.appendChild(itemEl);
+    });
+}
+
+function updateSearchSuggestions() {
+    const suggestions = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+    const datalist = document.getElementById("searchSuggestions");
+    if (datalist) {
+        datalist.innerHTML = suggestions.map(term => `<option value="${term}"></option>`).join("");
+    }
+}
+
+function renderFilterPanel() {
+    const types = [...new Set(data.map(item => item.type))].sort();
+    const typeContainer = document.getElementById('typeFilterContainer');
+    typeContainer.innerHTML = types.map(type => `<label class="flex items-center text-sm mb-2"><input type="checkbox" value="${type}" class="mr-2 filter-checkbox-type rounded"> ${type}</label>`).join('');
+    typeContainer.querySelectorAll('.filter-checkbox-type').forEach(cb => cb.addEventListener('change', runFilterAndRender));
+
+    const categories = [...new Set(data.map(item => item.category || 'Sin clasificar'))].sort();
+    const categoryContainer = document.getElementById('categoryFilterContainer');
+    categoryContainer.innerHTML = categories.map(cat => `<label class="flex items-center text-sm mb-2"><input type="checkbox" value="${cat}" class="mr-2 filter-checkbox-cat rounded"> ${cat}</label>`).join('');
+    categoryContainer.querySelectorAll('.filter-checkbox-cat').forEach(cb => cb.addEventListener('change', runFilterAndRender));
+    
+    const tagInput = document.getElementById('tagFilterInput');
+    if (tagInput) {
+        tagInput.addEventListener('input', runFilterAndRender);
+    }
+}
+
+function openFilterPanel() {
+    document.getElementById('filterPanel').classList.add('open');
+    document.getElementById('filterPanelOverlay').classList.add('open');
+}
+
+function closeFilterPanel() {
+    document.getElementById('filterPanel').classList.remove('open');
+    document.getElementById('filterPanelOverlay').classList.remove('open');
+}
+
+function resetFilters() {
+    document.querySelectorAll('#filterPanel input[type="checkbox"]').forEach(cb => cb.checked = false);
+    const tagInput = document.getElementById('tagFilterInput');
+    if(tagInput) tagInput.value = '';
+    runFilterAndRender();
+}
+
+// --- LÓGICA DE DATOS (CRUD) Y CONFIG ---
+async function loadData() {
+    const gistId = localStorage.getItem('gist_id');
+    if (!gistId) {
+        showToast("Configura tu Gist ID en el menú de GitHub (arriba a la derecha).");
+        return initializeApp();
+    }
+    showToast("Cargando datos...");
+    try {
+        const response = await fetch(`https://api.github.com/gists/${gistId}`);
+        if (!response.ok) throw new Error(`Gist no encontrado: ${response.status}`);
+        const gistData = await response.json();
+        if (!gistData.files[FILENAME_IN_GIST]) { data = []; throw new Error(`El archivo '${FILENAME_IN_GIST}' no existe. Se creará al guardar.`);}
+        let loadedData = JSON.parse(gistData.files[FILENAME_IN_GIST].content);
+        
+        data = loadedData.map(item => { // Lógica de migración
+            if (!item.id) item.id = Date.now() + Math.random();
+            if (item.type === 'Tarea' && typeof item.action === 'string') {
+                return { ...item, action: item.action.split('\n').filter(Boolean).map(line => ({ text: line, status: 'todo' })) };
+            }
+            return item;
+        });
+        showToast("Datos cargados correctamente.");
+    } catch (error) {
+        console.error("Fallo al cargar datos:", error);
+        showToast(`AVISO: ${error.message}`);
+    }
+    initializeApp();
+}
+
+async function saveData() {
+    const gistId = localStorage.getItem('gist_id');
+    const token = localStorage.getItem('github_pat');
+    if (!gistId || !token) return showToast("Se necesita Gist ID y Token para guardar.");
+    showToast("Guardando cambios...");
+    try {
+        await fetch(`https://api.github.com/gists/${gistId}`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+            body: JSON.stringify({ files: { [FILENAME_IN_GIST]: { content: JSON.stringify(data, null, 2) } } })
+        });
+        showToast("Cambios guardados.");
+    } catch (error) {
+        console.error("Fallo al guardar datos:", error);
+        showToast("ERROR: No se pudieron guardar los cambios.");
+    }
+}
+
+function configureGist() {
+    const gistId = prompt("Ingresa el ID de tu Gist de GitHub:", localStorage.getItem('gist_id') || '');
+    if (gistId !== null) localStorage.setItem('gist_id', gistId.trim());
+    
+    const token = prompt("Ingresa tu GitHub Personal Access Token:", localStorage.getItem('github_pat') || '');
+    if (token !== null) localStorage.setItem('github_pat', token.trim());
+
+    if (gistId !== null || token !== null) {
+        showToast("Configuración guardada. Recargando datos...");
+        loadData();
+    }
+}
+
+function initializeFuse() {
+    fuse = new Fuse(data, {
+        includeScore: true,
+        threshold: 0.4,
+        keys: [
+            { name: 'title', weight: 0.7 },
+            { name: 'tags', weight: 0.5 },
+            { name: 'category', weight: 0.4 },
+            { name: 'action', weight: 0.2 }
+        ]
+    });
+}
+
+function handleThemeSwitch() {
     const themeStates = THEMES.flatMap(theme => [`light-${theme}`, `dark-${theme}`]);
     let currentStateIndex = themeStates.indexOf(localStorage.getItem('themeState') || 'light-default');
-
-    const applyThemeState = (state) => {
-        const [mode, theme] = state.split('-');
-        document.body.classList.toggle('dark', mode === 'dark');
-        THEMES.forEach(t => document.body.classList.remove(`theme-${t}`));
-        if (theme !== 'default') document.body.classList.add(`theme-${theme}`);
-        localStorage.setItem('themeState', state);
-    };
-
-    btn.addEventListener('click', () => {
-        currentStateIndex = (currentStateIndex + 1) % themeStates.length;
-        applyThemeState(themeStates[currentStateIndex]);
-    });
+    currentStateIndex = (currentStateIndex + 1) % themeStates.length;
     applyThemeState(themeStates[currentStateIndex]);
 }
+
+function applyThemeState(state) {
+    if(!state) state = 'light-default';
+    const [mode, theme] = state.split('-');
+    document.body.classList.toggle('dark', mode === 'dark');
+    THEMES.forEach(t => document.body.classList.remove(`theme-${t}`));
+    if (theme !== 'default') document.body.classList.add(`theme-${theme}`);
+    localStorage.setItem('themeState', state);
+}
+applyThemeState(localStorage.getItem('themeState')); // Apply on load
 
 function showToast(message) {
     const toast = document.getElementById("toast");
@@ -554,28 +660,227 @@ function showToast(message) {
     setTimeout(() => toast.classList.add("hidden"), 3000);
 }
 
-// --- CRUD: CREATE, UPDATE, DELETE (sin cambios en su lógica interna) ---
-// Aquí van las funciones: openEditPanel, handleSaveItem, deleteItem,
-// openNoteModal, saveNoteFromModal, openTaskModal, saveTaskFromModal, etc.
-// Puedes copiar y pegar todo ese bloque desde tu código original.
-// Asegúrate de que al final de cada operación CRUD (guardar, borrar)
-// llames a `runFilterAndRender()` y `renderFilterPanel()` para actualizar la UI.
+// --- INYECCIÓN DE MODALES Y FUNCIONES CRUD ---
+function injectModals() {
+    const modalsContainer = document.getElementById('modals-container');
+    if (!modalsContainer) return;
 
-function deleteItem(id) {
-    if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
-        data = data.filter(i => String(i.id) !== id);
-        saveData();
-        initializeFuse(); // Re-inicializar Fuse con los nuevos datos
-        renderFilterPanel();
-        runFilterAndRender();
-        showToast("Elemento eliminado.");
+    modalsContainer.innerHTML = `
+    <!-- Edit Panel -->
+    <div id="editPanel" class="hidden fixed inset-0 bg-black/60 z-[1200] p-4 overflow-y-auto">
+        <div class="bg-white dark:bg-[#1e1e1e] rounded-lg shadow-xl max-w-4xl mx-auto my-8 p-6 relative" id="editPanelContent">
+            <!-- Content is injected dynamically by openEditPanel -->
+        </div>
+    </div>
+
+    <!-- Note Modal -->
+    <div id="noteModal" class="hidden fixed inset-0 bg-black/60 z-[1200] flex justify-center items-center p-4">
+      <div class="bg-white dark:bg-[#1e1e1e] rounded-lg shadow-xl w-11/12 md:w-4/5 max-w-4xl h-[85vh] flex flex-col modal-content">
+        <div class="p-4 border-b dark:border-gray-700 flex justify-between items-center">
+          <h2 id="noteModalTitle" class="text-2xl font-bold"></h2>
+          <button id="closeNoteModal" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full">&times;</button>
+        </div>
+        <div class="editor-toolbar sticky top-0 z-10 bg-gray-100 dark:bg-[#2a2a2a] p-2 border-b dark:border-gray-700 flex flex-wrap gap-2">
+          <button type="button" onclick="formatNote('bold')" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600" title="Negrita"><i class="fas fa-bold"></i></button>
+          <button type="button" onclick="formatNote('italic')" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600" title="Cursiva"><i class="fas fa-italic"></i></button>
+          <button type="button" onclick="formatNote('underline')" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600" title="Subrayado"><i class="fas fa-underline"></i></button>
+          <button type="button" onclick="formatNote('insertUnorderedList')" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600" title="Lista"><i class="fas fa-list-ul"></i></button>
+          <button type="button" onclick="formatNote('insertOrderedList')" class="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-600" title="Lista Numerada"><i class="fas fa-list-ol"></i></button>
+        </div>
+        <div id="noteModalContent" class="p-4 flex-grow overflow-y-auto" contenteditable="true"></div>
+        <div class="flex justify-end gap-2 p-4 border-t dark:border-gray-700">
+          <input type="hidden" id="noteModalId">
+          <button id="saveNoteModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Task Modal -->
+    <div id="taskModal" class="hidden fixed inset-0 bg-black/60 z-[1200] flex justify-center items-center p-4">
+      <div class="bg-white dark:bg-[#1e1e1e] rounded-lg shadow-xl w-11/12 md:w-2/3 max-w-3xl h-[80vh] flex flex-col modal-content">
+        <div class="p-4 border-b dark:border-gray-700 flex justify-between items-center">
+          <h2 id="taskModalTitle" class="text-2xl font-bold"></h2>
+          <button id="closeTaskModal" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full">&times;</button>
+        </div>
+        <div id="taskModalEditableList" class="p-4 flex-grow overflow-y-auto"></div>
+        <div class="p-4 border-t dark:border-gray-700">
+          <button id="addNewTaskItem" class="text-sm icon-themed font-semibold hover:underline">+ Añadir ítem</button>
+        </div>
+        <div class="flex justify-end gap-2 p-4 border-t dark:border-gray-700">
+          <input type="hidden" id="taskModalId">
+          <button id="saveTaskModal" class="main-action-btn text-white px-4 py-2 rounded-md">Guardar Tarea</button>
+        </div>
+      </div>
+    </div>
+    `;
+}
+
+function copyToClipboard(id) {
+    const item = data.find(i => String(i.id) === id);
+    if (item) {
+        navigator.clipboard.writeText(item.action).then(() => showToast("Copiado al portapapeles"));
     }
+}
+
+function openEditPanel(itemId = null) {
+    const panel = document.getElementById('editPanel');
+    const contentContainer = document.getElementById('editPanelContent');
+    const isEditing = itemId !== null;
+    const item = isEditing ? data.find(i => String(i.id) === itemId) : {};
+
+    if (isEditing && item && (item.type === 'Nota' || item.type === 'Tarea')) {
+        return item.type === 'Nota' ? openNoteModal(itemId) : openTaskModal(itemId);
+    }
+
+    contentContainer.innerHTML = `
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="font-bold text-2xl">${isEditing ? 'Editar Elemento' : 'Agregar Nuevo Elemento'}</h2>
+          <button id="closeEditButton" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">&times;</button>
+        </div>
+        <form id="editForm" class="space-y-6">
+            <input type="hidden" id="editItemId" value="${itemId || ''}">
+            <div>
+                <label class="font-semibold">Tipo de elemento</label>
+                <div class="type-selector grid grid-cols-3 md:grid-cols-5 gap-2 mt-2">
+                    ${['Buscador', 'Link', 'Promp', 'Nota', 'Tarea'].map(type => `
+                        <div class="type-btn border p-3 rounded-lg text-center cursor-pointer transition-all data-[active=true]:bg-blue-100 dark:data-[active=true]:bg-blue-900 data-[active=true]:border-blue-500 data-[active=true]:ring-2 data-[active=true]:ring-blue-300" data-type="${type}">
+                            <i class="fas ${ {Buscador:'fa-search',Link:'fa-link',Promp:'fa-brain',Nota:'fa-sticky-note',Tarea:'fa-tasks'}[type] } text-xl mb-1"></i>
+                            <span class="text-xs font-medium block">${type}</span>
+                        </div>`).join('')}
+                </div>
+                <select id="newType" class="hidden"></select>
+            </div>
+            <div>
+                <label class="font-semibold" for="newTitle">Título</label>
+                <input type="text" id="newTitle" class="w-full p-2 border rounded mt-1" value="${item.title || ''}" required>
+            </div>
+            <div id="actionFieldContainer"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="font-semibold" for="categorySelect">Categoría</label>
+                    <div class="flex gap-2 mt-1">
+                        <select id="categorySelect" class="w-full p-2 border rounded" required></select>
+                        <button type="button" id="addCategoryBtn" class="p-2 border rounded bg-gray-100 dark:bg-gray-700 hover:bg-gray-200" title="Nueva Categoría"><i class="fas fa-plus"></i></button>
+                    </div>
+                </div>
+                <div>
+                    <label class="font-semibold" for="newTags">Etiquetas (separadas por coma)</label>
+                    <input type="text" id="newTags" class="w-full p-2 border rounded mt-1" value="${(item.tags || []).join(', ')}">
+                </div>
+            </div>
+            <div>
+                <label class="font-semibold" for="newIcon">Icono (ej: fas fa-star)</label>
+                <input type="text" id="newIcon" class="w-full p-2 border rounded mt-1" value="${item.icon || ''}">
+            </div>
+            <div class="mt-6 pt-4 border-t dark:border-gray-700 text-right">
+                <button type="submit" class="main-action-btn text-white px-6 py-2 rounded-md font-semibold">${isEditing ? 'Guardar Cambios' : 'Crear Elemento'}</button>
+            </div>
+        </form>
+    `;
+    
+    panel.classList.remove('hidden');
+
+    document.getElementById('closeEditButton').onclick = () => panel.classList.add('hidden');
+    document.getElementById('addCategoryBtn').onclick = () => {
+        const newCat = prompt("Nombre de la nueva categoría:");
+        if (newCat && newCat.trim()) {
+            const select = document.getElementById('categorySelect');
+            if (![...select.options].some(o => o.value === newCat.trim())) {
+                select.add(new Option(newCat.trim(), newCat.trim(), false, true));
+            } else {
+                 select.value = newCat.trim();
+            }
+        }
+    };
+    
+    populateCategorySuggestions(item.category);
+    
+    const type = isEditing ? item.type : 'Buscador';
+    const typeBtn = document.querySelector(`.type-btn[data-type="${type}"]`);
+    if(typeBtn) typeBtn.dataset.active = true;
+    const typeSelect = document.getElementById('newType');
+    typeSelect.innerHTML = ['Buscador', 'Link', 'Promp', 'Nota', 'Tarea'].map(t => `<option value="${t}">${t}</option>`).join('');
+    typeSelect.value = type;
+    updateActionField(type, item.action);
+
+    document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.onclick = () => {
+            document.querySelectorAll('.type-btn').forEach(b => b.dataset.active = false);
+            btn.dataset.active = true;
+            document.getElementById('newType').value = btn.dataset.type;
+            updateActionField(btn.dataset.type);
+        };
+    });
+    
+    document.getElementById('editForm').addEventListener('submit', handleSaveItem);
+}
+
+function updateActionField(type, value = '') {
+    const container = document.getElementById('actionFieldContainer');
+    let html = '';
+    switch(type) {
+        case 'Buscador':
+            html = `<label class="font-semibold">URL con {search_term}</label><input type="text" id="newAction" class="w-full p-2 border rounded mt-1" value="${value}" placeholder="https://google.com/search?q={search_term}">`;
+            break;
+        case 'Link':
+            html = `<label class="font-semibold">URL del Enlace</label><input type="text" id="newAction" class="w-full p-2 border rounded mt-1" value="${value}" placeholder="https://ejemplo.com">`;
+            break;
+        case 'Promp':
+        case 'Nota':
+            html = `<label class="font-semibold">Contenido</label><textarea id="newAction" class="w-full p-2 border rounded mt-1" rows="5">${value}</textarea>`;
+            break;
+        case 'Tarea':
+            const taskText = Array.isArray(value) ? value.map(t => t.text).join('\n') : '';
+            html = `<label class="font-semibold">Tareas (una por línea)</label><textarea id="newAction" class="w-full p-2 border rounded mt-1" rows="5">${taskText}</textarea>`;
+            break;
+    }
+    container.innerHTML = html;
+}
+
+function populateCategorySuggestions(selectedCategory = "") {
+    const categorySelect = document.getElementById("categorySelect");
+    const categories = [...new Set(data.map(item => item.category).filter(Boolean))].sort();
+    categorySelect.innerHTML = '<option value="">-- Elige una categoría --</option>';
+    categories.forEach(cat => {
+        const option = new Option(cat, cat);
+        categorySelect.add(option);
+    });
+    if (selectedCategory) categorySelect.value = selectedCategory;
 }
 
 function handleSaveItem(event) {
     event.preventDefault();
-    // Esta función es larga, cópiala de tu original.
-    // Al final, en lugar de renderAllSections(), haz esto:
+    const id = document.getElementById("editItemId").value;
+    const type = document.getElementById("newType").value;
+    let action;
+
+    if (type === 'Tarea') {
+        action = document.getElementById("newAction").value.split('\n').filter(Boolean).map(line => ({ text: line, status: 'todo' }));
+    } else {
+        action = document.getElementById("newAction").value.trim();
+    }
+
+    const newItemData = {
+        title: document.getElementById("newTitle").value.trim(),
+        action: action,
+        type: type,
+        category: document.getElementById("categorySelect").value,
+        icon: document.getElementById("newIcon").value.trim(),
+        tags: document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(tag => tag)
+    };
+
+    if (!newItemData.title || !newItemData.category) {
+        return showToast("Error: Título y Categoría son obligatorios.");
+    }
+  
+    if (id) {
+        const index = data.findIndex(i => String(i.id) === id);
+        if (index !== -1) data[index] = { ...data[index], ...newItemData };
+    } else {
+        newItemData.id = Date.now();
+        data.push(newItemData);
+    }
+  
     saveData().then(() => {
         initializeFuse();
         renderFilterPanel();
@@ -584,9 +889,103 @@ function handleSaveItem(event) {
         showToast(id ? "Elemento actualizado" : "Elemento creado");
     });
 }
-//... resto de funciones CRUD ...
+
+function deleteItem(id) {
+    if (confirm("¿Estás seguro de que deseas eliminar este elemento?")) {
+        data = data.filter(i => String(i.id) !== id);
+        saveData().then(() => {
+            initializeFuse();
+            renderFilterPanel();
+            runFilterAndRender();
+            showToast("Elemento eliminado.");
+        });
+    }
+}
+
+function openNoteModal(itemId) {
+    const item = data.find(i => String(i.id) === itemId);
+    if (!item) return;
+    document.getElementById('noteModalTitle').textContent = item.title;
+    document.getElementById('noteModalContent').innerHTML = item.action;
+    document.getElementById('noteModalId').value = item.id;
+    document.getElementById('noteModal').classList.remove('hidden');
+    document.getElementById('closeNoteModal').onclick = () => document.getElementById('noteModal').classList.add('hidden');
+    document.getElementById('saveNoteModal').onclick = saveNoteFromModal;
+}
+
+function saveNoteFromModal() {
+    const id = document.getElementById('noteModalId').value;
+    const content = document.getElementById('noteModalContent').innerHTML;
+    const index = data.findIndex(i => String(i.id) === id);
+    if (index !== -1) {
+        data[index].action = content;
+        saveData().then(() => {
+            runFilterAndRender();
+            document.getElementById('noteModal').classList.add('hidden');
+            showToast('Nota guardada.');
+        });
+    }
+}
+
+function formatNote(command) {
+    document.execCommand(command, false, null);
+    document.getElementById('noteModalContent').focus();
+}
+
+function openTaskModal(itemId) {
+    const item = data.find(i => String(i.id) === itemId);
+    if (!item) return;
+    document.getElementById('taskModalTitle').textContent = item.title;
+    document.getElementById('taskModalId').value = item.id;
+    const listContainer = document.getElementById('taskModalEditableList');
+    listContainer.innerHTML = '';
+    if (item.action && item.action.length > 0) {
+        item.action.forEach(task => addNewTaskItemToModal(task));
+    }
+    document.getElementById('taskModal').classList.remove('hidden');
+    document.getElementById('closeTaskModal').onclick = () => document.getElementById('taskModal').classList.add('hidden');
+    document.getElementById('saveTaskModal').onclick = saveTaskFromModal;
+    document.getElementById('addNewTaskItem').onclick = () => addNewTaskItemToModal();
+}
+
+function addNewTaskItemToModal(task = { text: '', status: 'todo' }) {
+    const listContainer = document.getElementById('taskModalEditableList');
+    const div = document.createElement('div');
+    div.className = 'task-item-modal flex items-center gap-2 mb-2';
+    div.innerHTML = `
+        <select class="status-select p-1 text-xs border rounded">
+            <option value="todo" ${task.status === 'todo' ? 'selected' : ''}>Pendiente</option>
+            <option value="inprogress" ${task.status === 'inprogress' ? 'selected' : ''}>En Progreso</option>
+            <option value="done" ${task.status === 'done' ? 'selected' : ''}>Hecho</option>
+        </select>
+        <input type="text" class="task-text-input flex-grow p-1 border rounded" value="${task.text}">
+        <button class="remove-task-btn text-red-500 p-1">&times;</button>
+    `;
+    div.querySelector('.remove-task-btn').onclick = () => div.remove();
+    listContainer.appendChild(div);
+}
+
+function saveTaskFromModal() {
+    const id = document.getElementById('taskModalId').value;
+    const index = data.findIndex(i => String(i.id) === id);
+    if (index === -1) return;
+    
+    const newTasks = [];
+    document.querySelectorAll('#taskModalEditableList .task-item-modal').forEach(item => {
+        const text = item.querySelector('.task-text-input').value.trim();
+        if (text) {
+            newTasks.push({ text, status: item.querySelector('.status-select').value });
+        }
+    });
+    
+    data[index].action = newTasks;
+    saveData().then(() => {
+        runFilterAndRender();
+        document.getElementById('taskModal').classList.add('hidden');
+        showToast('Tarea guardada.');
+    });
+}
 
 </script>
-
 </body>
 </html>
