@@ -245,15 +245,15 @@
                     </div>
 
                     <div class="form-group" id="iconFieldContainer">
-                      <label class="form-label">Icono</label>
+                      <label class="form-label">Icono (Opcional)</label>
                       <input type="text" id="newIcon" class="form-control" placeholder="fas fa-search  o  imagenes/logo.png">
-                      <p class="text-xs text-gray-500 mt-1">Clase de Font Awesome o ruta a una imagen local.</p>
+                      <p class="text-xs text-gray-500 mt-1">Dejar vacío para automático. O usar Font Awesome / ruta local.</p>
                     </div>
 
                     <div class="form-group" id="previewFieldContainer">
-                      <label class="form-label">URL de Vista Previa</label>
+                      <label class="form-label">URL de Vista Previa (Opcional)</label>
                       <input type="text" id="newPreviewUrl" class="form-control" placeholder="imagenes/mi-vista-previa.png">
-                      <p class="text-xs text-gray-500 mt-1">Ruta a la imagen para la vista previa (opcional).</p>
+                      <p class="text-xs text-gray-500 mt-1">Dejar vacío para automático. O usar una ruta a una imagen.</p>
                     </div>
 
                     <div class="form-group">
@@ -310,6 +310,7 @@ async function loadData() {
         
         data = loadedData.map(item => ({
             ...item,
+            icon: item.icon || '',
             previewUrl: item.previewUrl || ''
         }));
 
@@ -431,32 +432,59 @@ function renderSection(type, containerId, notFoundId) {
     notFound.classList.toggle('hidden', items.length > 0);
 }
 
-// --- NUEVA FUNCIÓN `createCard` PARA EL DISEÑO MINIMALISTA ---
+// --- NUEVA FUNCIÓN `createCard` CON LÓGICA HÍBRIDA ---
 function createCard(item) {
     const cardWrapper = document.createElement("div");
     cardWrapper.className = 'card-container';
     cardWrapper.dataset.id = item.id;
 
     if (item.type === 'Nota' || item.type === 'Tarea') {
-        // Renderizado especial para Notas y Tareas
-        cardWrapper.innerHTML = `<div class="${item.type === 'Nota' ? 'note-card' : 'task-card'}">... contenido de nota/tarea ...</div>`;
-        // Aquí iría la lógica completa para renderizar notas y tareas
+        // Placeholder for Note/Task rendering
+        cardWrapper.innerHTML = `<div class="relative ${item.type === 'Nota' ? 'note-card' : 'task-card'}">
+            <h4 class="font-bold">${item.title}</h4>
+            <p class="text-sm text-gray-600">Contenido de ${item.type.toLowerCase()}...</p>
+            <div class="card-actions" style="opacity:1; background:transparent;">
+             <button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="hover:bg-blue-100 text-blue-600" title="Editar"><i class="fas fa-pencil-alt text-xs"></i></button>
+             <button onclick="event.stopPropagation(); deleteItem('${item.id}')" class="hover:bg-red-100 text-red-600" title="Eliminar"><i class="fas fa-trash-alt text-xs"></i></button>
+            </div>
+        </div>`;
         return cardWrapper;
     }
 
-    // Renderizado para Link, Buscador, Prompt
+    // --- LÓGICA HÍBRIDA PARA ICONOS Y VISTAS PREVIAS ---
     let iconHtml = '';
     const iconValue = item.icon || '';
-    if (iconValue.startsWith('http') || iconValue.startsWith('imagenes/')) {
-        iconHtml = `<img src="${iconValue}" alt="Icono" class="card-icon-image mb-4">`;
-    } else {
-        const defaultIcons = { Buscador: "fas fa-search", Link: "fas fa-link", Promp: "fas fa-brain" };
-        const iconClass = iconValue || defaultIcons[item.type] || 'fas fa-question-circle';
-        iconHtml = `<i class="${iconClass} text-5xl text-teal-500 mb-4"></i>`;
+    const defaultIconClass = { Buscador: "fas fa-search", Link: "fas fa-link", Promp: "fas fa-brain" }[item.type] || 'fas fa-question-circle';
+
+    if (iconValue) { // 1. El usuario proveyó un icono
+        if (iconValue.startsWith('http') || iconValue.startsWith('imagenes/')) {
+            iconHtml = `<img src="${iconValue}" alt="Icono" class="card-icon-image mb-4" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} text-5xl text-teal-500 mb-4\\'></i>'">`;
+        } else {
+            iconHtml = `<i class="${iconValue} text-5xl text-teal-500 mb-4"></i>`;
+        }
+    } else { // 2. Intentar obtener icono automáticamente
+        try {
+            const domain = new URL(item.action).hostname;
+            iconHtml = `<img src="https://icon.horse/icon/${domain}" alt="Icono" class="card-icon-image mb-4" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} text-5xl text-teal-500 mb-4\\'></i>'">`;
+        } catch (e) {
+            iconHtml = `<i class="${defaultIconClass} text-5xl text-teal-500 mb-4"></i>`;
+        }
     }
 
-    const previewStyle = item.previewUrl ? `style="background-image: url('${item.previewUrl}')"` : '';
-
+    // Lógica para la vista previa
+    let previewUrl = item.previewUrl; // 1. Usar la URL manual si existe
+    if (!previewUrl) { // 2. Si no, generar una automáticamente
+        try {
+            // Validar que la acción sea una URL válida antes de generar la vista previa
+            new URL(item.action); 
+            previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=400`;
+        } catch(e) {
+            // Si item.action no es una URL, no se genera vista previa
+            previewUrl = '';
+        }
+    }
+    const previewStyle = previewUrl ? `style="background-image: url('${previewUrl}')"` : '';
+    
     const cardHtml = `
       <div class="card-preview-container group relative w-full h-full bg-white dark:bg-gray-800 rounded-xl shadow-lg">
         <div class="card-preview" ${previewStyle}></div>
@@ -479,6 +507,7 @@ function createCard(item) {
     cardWrapper.querySelector('.card-preview-container').addEventListener('click', () => handleCardClick(String(item.id)));
     return cardWrapper;
 }
+
 
 function handleCardClick(id) {
     const item = data.find(i => String(i.id) === id);
