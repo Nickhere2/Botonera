@@ -290,8 +290,7 @@
   
   <header class="sticky-header">
     <div class="container mx-auto px-4">
-      <div class="flex justify-between items-center">
-        <div></div> <!-- Espaciador izquierdo -->
+      <div class="flex justify-center items-center">
         <nav class="flex justify-center flex-wrap gap-4 sm:gap-8">
           <button id="nav-buscadores" class="nav-btn active"><i class="fas fa-search mr-2"></i>Buscadores</button>
           <button id="nav-links" class="nav-btn"><i class="fas fa-link mr-2"></i>Links</button>
@@ -299,15 +298,6 @@
           <button id="nav-notes" class="nav-btn"><i class="fas fa-sticky-note mr-2"></i>Notas</button>
           <button id="nav-tasks" class="nav-btn"><i class="fas fa-tasks mr-2"></i>Tareas</button>
         </nav>
-        <div class="relative">
-            <button id="userProfileBtn" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
-                <i class="fas fa-user-circle text-2xl"></i>
-            </button>
-            <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg z-20">
-                <a href="#" id="changeUserBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Cambiar de Usuario</a>
-                <a href="#" id="forgetUserBtn" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Olvidar mis Datos</a>
-            </div>
-        </div>
       </div>
       <div id="main-search-bar" class="max-w-2xl mx-auto mt-4"><div class="relative"><div class="flex"><input type="text" id="searchInput" list="searchSuggestions" placeholder="Ingresa tu búsqueda aquí..." class="w-full px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-teal-500 text-lg"><datalist id="searchSuggestions"></datalist><div class="relative"><button id="dropdownToggle" class="bg-teal-600 text-white px-4 py-3 rounded-r-lg flex items-center"><span id="selectedEngine">Google</span><i class="fas fa-chevron-down ml-2"></i></button><div id="searchEngineDropdown" class="hidden absolute right-0 top-full mt-1 w-64 bg-white rounded-md shadow-lg z-10"></div></div></div><button id="searchButton" class="mt-3 bg-teal-600 hover:bg-teal-700 text-white w-full py-3 rounded-lg flex items-center justify-center text-lg font-medium"><i class="fas fa-search mr-2"></i>Buscar</button></div></div>
     </div>
@@ -668,23 +658,6 @@ function setupEventListeners() {
     });
     document.getElementById('newActionText').addEventListener('input', updateLivePreview);
     document.getElementById('newActionRich').addEventListener('input', updateLivePreview);
-
-    // User Menu
-    const userProfileBtn = document.getElementById('userProfileBtn');
-    const userMenu = document.getElementById('userMenu');
-    userProfileBtn.addEventListener('click', () => userMenu.classList.toggle('hidden'));
-    document.getElementById('changeUserBtn').addEventListener('click', () => {
-        localStorage.removeItem('gist_id');
-        localStorage.removeItem('github_pat');
-        window.location.reload();
-    });
-    document.getElementById('forgetUserBtn').addEventListener('click', () => {
-        if(confirm('¿Seguro que quieres borrar todos los datos de esta aplicación de tu navegador?')) {
-            localStorage.clear();
-            window.location.reload();
-        }
-    });
-
 
     // Modal Listeners
     document.getElementById('closeNoteModal').addEventListener('click', () => document.getElementById('noteModal').classList.add('hidden'));
