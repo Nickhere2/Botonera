@@ -282,7 +282,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function initializeApp() {
     setupEventListeners();
-    // FIX: Removed call to non-existent function setupThemeSwitcher()
     initializeFuse();
     renderFilterPanel();
     switchView('Todos'); // Vista inicial
@@ -564,11 +563,17 @@ function resetFilters() {
 
 // --- LÓGICA DE DATOS (CRUD) Y CONFIG ---
 async function loadData() {
-    const gistId = localStorage.getItem('gist_id');
+    let gistId = localStorage.getItem('gist_id');
     if (!gistId) {
-        showToast("Configura tu Gist ID en el menú de GitHub (arriba a la derecha).");
-        return initializeApp();
+        gistId = prompt("Bienvenido. Por favor, ingresa el ID de tu Gist de GitHub para cargar y guardar tus datos. Si cancelas, la aplicación funcionará en modo local (sin guardar en la nube).");
+        if (gistId && gistId.trim()) {
+            localStorage.setItem('gist_id', gistId.trim());
+        } else {
+            showToast("Modo local activado. Los cambios no se guardarán en la nube.");
+            return initializeApp(); // Initialize with empty data
+        }
     }
+
     showToast("Cargando datos...");
     try {
         const response = await fetch(`https://api.github.com/gists/${gistId}`);
@@ -594,19 +599,37 @@ async function loadData() {
 
 async function saveData() {
     const gistId = localStorage.getItem('gist_id');
-    const token = localStorage.getItem('github_pat');
-    if (!gistId || !token) return showToast("Se necesita Gist ID y Token para guardar.");
+    if (!gistId) {
+        // Do not show a toast, to avoid spamming in local mode.
+        return;
+    }
+
+    let token = localStorage.getItem('github_pat');
+    if (!token) {
+        token = prompt("Para guardar los cambios en GitHub, por favor ingresa tu Personal Access Token:");
+        if (token && token.trim()) {
+            localStorage.setItem('github_pat', token.trim());
+        } else {
+            showToast("No se proporcionó un Token. No se pueden guardar los cambios en la nube.");
+            return;
+        }
+    }
+
     showToast("Guardando cambios...");
     try {
-        await fetch(`https://api.github.com/gists/${gistId}`, {
+        const response = await fetch(`https://api.github.com/gists/${gistId}`, {
             method: 'PATCH',
             headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
             body: JSON.stringify({ files: { [FILENAME_IN_GIST]: { content: JSON.stringify(data, null, 2) } } })
         });
-        showToast("Cambios guardados.");
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Error al guardar: ${errorData.message}`);
+        }
+        showToast("Cambios guardados en la nube.");
     } catch (error) {
         console.error("Fallo al guardar datos:", error);
-        showToast("ERROR: No se pudieron guardar los cambios.");
+        showToast(`ERROR: ${error.message}`);
     }
 }
 
