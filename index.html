@@ -186,65 +186,6 @@
     .btn-add-category { width: 40px; display: flex; align-items: center; justify-content: center; border-radius: 8px; background-color: #f3f4f6; }
     .btn-add-category:hover { background-color: #e5e7eb; }
     .required:after { content: " *"; color: #e53e3e; }
-    /* --- NUEVO: PANEL DE FILTROS AVANZADOS --- */
-    #filterPanel {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 1200;
-      background-color: rgba(0, 0, 0, 0.5);
-      display: none; /* Oculto por defecto */
-      justify-content: center;
-      align-items: center;
-    }
-    .filter-panel-content {
-      background-color: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 600px;
-      max-height: 80vh;
-      overflow-y: auto;
-    }
-    body.dark .filter-panel-content {
-      background-color: #1e1e1e;
-    }
-    .filter-section h3 {
-      font-size: 1.1rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      border-bottom: 1px solid #e5e7eb;
-      padding-bottom: 0.5rem;
-    }
-    body.dark .filter-section h3 {
-      border-color: #374151;
-    }
-    .filter-options {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-    }
-    .filter-chip {
-      padding: 0.5rem 1rem;
-      border-radius: 9999px;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      font-size: 0.875rem;
-      background-color: #f3f4f6;
-      border: 1px solid #e5e7eb;
-    }
-    body.dark .filter-chip {
-      background-color: #374151;
-      border-color: #4b5563;
-    }
-    .filter-chip.selected {
-      background-color: var(--theme-color);
-      color: white;
-      border-color: var(--theme-color);
-    }
   </style>
 </head>
 <body class="min-h-screen theme-default">
@@ -268,66 +209,21 @@
         <button id="nav-notes" class="nav-btn"><i class="fas fa-sticky-note mr-2"></i>Notas</button>
         <button id="nav-tasks" class="nav-btn"><i class="fas fa-tasks mr-2"></i>Tareas</button>
       </nav>
-      <div id="global-search-container" class="search-container">
-        <div class="relative flex">
-          <input type="text" id="globalSearchInput" placeholder="Busca en todos tus elementos..." class="w-full px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 main-action-btn-focus text-lg">
-          <button id="openFilterPanelBtn" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-3 rounded-r-lg flex items-center" title="Filtrar por Categoría y Etiquetas">
-            <i class="fas fa-filter"></i>
-          </button>
-        </div>
-      </div>
+      <div id="main-search-bar" class="search-container"><div class="relative"><div class="flex"><input type="text" id="searchInput" list="searchSuggestions" placeholder="Ingresa tu búsqueda aquí..." class="w-full px-4 py-3 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 main-action-btn-focus text-lg"><datalist id="searchSuggestions"></datalist><div class="relative"><button id="dropdownToggle" class="main-action-btn text-white px-4 py-3 rounded-r-lg flex items-center"><span id="selectedEngine">Google</span><i class="fas fa-chevron-down ml-2"></i></button><div id="searchEngineDropdown" class="hidden absolute right-0 top-full mt-1 w-64 bg-white rounded-md shadow-lg z-10"></div></div></div><button id="searchButton" class="mt-3 main-action-btn text-white w-full py-3 rounded-lg flex items-center justify-center text-lg font-medium"><i class="fas fa-search mr-2"></i>Buscar</button></div></div>
     </div>
   </header>
 
   <div class="container mx-auto px-4">
     <main>
       <div id="section-buscadores" class="section">
-        <div id="searchEnginesContainer" class="space-y-8"></div>
-        <div id="noBuscadoresFound" class="hidden text-center text-gray-500 mt-8">No se encontraron buscadores.</div>
+        <div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="searchFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="searchCardSearchInput" placeholder="Buscar en Buscadores..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 main-action-btn-focus mb-8 search-container"><div id="searchEnginesContainer" class="space-y-8"></div><div id="noBuscadoresFound" class="hidden text-center text-gray-500 mt-8">No se encontraron buscadores.</div>
       </div>
-      <div id="section-links" class="section hidden">
-        <div id="linksContainer" class="space-y-8"></div>
-        <div id="noLinksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron links.</div>
-      </div>
-      <div id="section-prompts" class="section hidden">
-        <div id="promptsContainer" class="space-y-8"></div>
-        <div id="noPromptsFound" class="hidden text-center text-gray-500 mt-8">No se encontraron prompts.</div>
-      </div>
-      <div id="section-notes" class="section hidden">
-        <div id="notesContainer" class="space-y-8"></div>
-        <div id="noNotesFound" class="hidden text-center text-gray-500 mt-8">No se encontraron notas.</div>
-      </div>
-      <div id="section-tasks" class="section hidden">
-        <div id="tasksContainer" class="space-y-8"></div>
-        <div id="noTasksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron tareas.</div>
-      </div>
+      <div id="section-links" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="linkFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="linkCardSearchInput" placeholder="Buscar en Links..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 main-action-btn-focus mb-8 search-container"><div id="linksContainer" class="space-y-8"></div><div id="noLinksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron links.</div></div>
+      <div id="section-prompts" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="promptFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="promptCardSearchInput" placeholder="Buscar en Prompts..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 mb-8 search-container"><div id="promptsContainer" class="space-y-8"></div><div id="noPromptsFound" class="hidden text-center text-gray-500 mt-8">No se encontraron prompts.</div></div>
+      <div id="section-notes" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="noteFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="noteCardSearchInput" placeholder="Buscar en Notas..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 mb-8 search-container"><div id="notesContainer" class="space-y-8"></div><div id="noNotesFound" class="hidden text-center text-gray-500 mt-8">No se encontraron notas.</div></div>
+      <div id="section-tasks" class="section hidden"><div class="flex justify-between items-center mb-4"><h2 class="text-xl font-semibold text-gray-700">Filtrar por categoría</h2></div><div id="taskFilterButtons" class="flex flex-wrap gap-2 mb-4"></div><input type="text" id="taskCardSearchInput" placeholder="Buscar en Tareas..." class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 mb-8 search-container"><div id="tasksContainer" class="space-y-8"></div><div id="noTasksFound" class="hidden text-center text-gray-500 mt-8">No se encontraron tareas.</div></div>
     </main>
     
-    <div id="filterPanel">
-      <div class="filter-panel-content">
-        <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold">Filtrar Elementos</h2>
-          <button id="closeFilterPanelBtn" class="bg-gray-200 hover:bg-gray-300 p-2 rounded-full">
-            <i class="fas fa-times"></i>
-          </button>
-        </div>
-        <div class="space-y-6">
-          <div class="filter-section">
-            <h3>Categorías</h3>
-            <div id="filterCategories" class="filter-options"></div>
-          </div>
-          <div class="filter-section">
-            <h3>Etiquetas</h3>
-            <div id="filterTags" class="filter-options"></div>
-          </div>
-        </div>
-        <div class="mt-8 flex justify-end gap-3">
-            <button id="clearFiltersBtn" class="px-4 py-2 bg-gray-200 rounded-md">Limpiar Filtros</button>
-            <button id="applyFiltersBtn" class="main-action-btn text-white px-4 py-2 rounded-md">Aplicar</button>
-        </div>
-      </div>
-    </div>
-
     <div id="editPanel" class="hidden">
       <div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-6">
@@ -510,12 +406,6 @@ const FILENAME_IN_GIST = 'Botones.json';
 let data = [];
 let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
 const THEMES = ['default', 'blue', 'indigo', 'rose'];
-// NUEVO: Estado de filtros aplicados
-let activeFilters = {
-    categories: [],
-    tags: []
-};
-
 
 // --- FUNCIONES DE CONEXIÓN CON GITHUB ---
 function getOrRequestInfo(key, promptMessage) {
@@ -582,9 +472,9 @@ document.addEventListener("DOMContentLoaded", () => {
     loadData();
     setupEventListeners();
     setupUnifiedThemeButton();
+    setupGlobalSearch();
+    setupTagSearch();
     setupEditPanel();
-    // CAMBIO: Configuración del nuevo buscador y panel de filtros
-    setupGlobalSearchAndFilter();
 });
 
 // --- FUNCIONES DE CONFIGURACIÓN (SETUP) ---
@@ -616,7 +506,9 @@ function setupEventListeners() {
     document.querySelector("#nav-prompts").addEventListener("click", () => switchTab("prompts"));
     document.querySelector("#nav-notes").addEventListener("click", () => switchTab("notes"));
     document.querySelector("#nav-tasks").addEventListener("click", () => switchTab("tasks"));
-    
+    document.querySelector("#searchButton").addEventListener("click", performSearch);
+    document.querySelector("#searchInput").addEventListener("keypress", e => { if (e.key === 'Enter') performSearch(); });
+    document.querySelector("#dropdownToggle").addEventListener("click", () => document.getElementById("searchEngineDropdown").classList.toggle("hidden"));
     document.querySelector(".fab-main").addEventListener("click", () => openEditPanel());
     document.querySelector("#closeEditButton").addEventListener("click", () => document.getElementById("editPanel").classList.add("hidden"));
     document.getElementById('editForm').addEventListener('submit', handleSaveItem);
@@ -628,74 +520,71 @@ function setupEventListeners() {
     document.getElementById('addNewTaskItem').addEventListener('click', () => addNewTaskItemToModal());
 }
 
-// CAMBIO: Unifica la lógica de búsqueda y filtros
-function setupGlobalSearchAndFilter() {
+function setupGlobalSearch() {
+    const openBtn = document.getElementById('openGlobalSearch');
+    const modal = document.getElementById('searchModal');
     const searchInput = document.getElementById('globalSearchInput');
-    const filterPanel = document.getElementById('filterPanel');
-    const openBtn = document.getElementById('openFilterPanelBtn');
-    const closeBtn = document.getElementById('closeFilterPanelBtn');
-    const applyBtn = document.getElementById('applyFiltersBtn');
-    const clearBtn = document.getElementById('clearFiltersBtn');
     
-    searchInput.addEventListener('input', () => renderAllSections());
+    openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+    document.getElementById('closeGlobalSearch').addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
 
-    openBtn.addEventListener('click', () => {
-        populateFilterPanel();
-        filterPanel.style.display = 'flex';
-    });
-
-    closeBtn.addEventListener('click', () => filterPanel.style.display = 'none');
-    
-    applyBtn.addEventListener('click', () => {
-        // Guardar selecciones del panel
-        activeFilters.categories = Array.from(document.querySelectorAll('#filterCategories .filter-chip.selected')).map(el => el.dataset.value);
-        activeFilters.tags = Array.from(document.querySelectorAll('#filterTags .filter-chip.selected')).map(el => el.dataset.value);
-        filterPanel.style.display = 'none';
-        renderAllSections();
-    });
-
-    clearBtn.addEventListener('click', () => {
-        document.querySelectorAll('.filter-chip.selected').forEach(chip => chip.classList.remove('selected'));
-    });
-
-    filterPanel.addEventListener('click', (e) => {
-        if (e.target === filterPanel) {
-            filterPanel.style.display = 'none';
-        }
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const results = data.filter(item =>
+            item.title.toLowerCase().includes(searchTerm) ||
+            (typeof item.action === 'string' && item.action.toLowerCase().includes(searchTerm)) ||
+            item.category.toLowerCase().includes(searchTerm) ||
+            (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
+        );
+        renderSearchResults(results, document.getElementById('globalSearchResults'), searchTerm.length < 2);
     });
 }
 
-function populateFilterPanel() {
-    const categories = [...new Set(data.map(item => item.category))].sort();
-    const tags = [...new Set(data.flatMap(item => item.tags || []))].sort();
+function setupTagSearch() {
+    const openBtn = document.getElementById('openTagSearch');
+    const modal = document.getElementById('tagSearchModal');
+    const searchInput = document.getElementById('tagSearchInput');
 
-    const catContainer = document.getElementById('filterCategories');
-    catContainer.innerHTML = '';
-    categories.forEach(cat => {
-        const chip = document.createElement('div');
-        chip.className = 'filter-chip';
-        chip.textContent = cat;
-        chip.dataset.value = cat;
-        if (activeFilters.categories.includes(cat)) {
-            chip.classList.add('selected');
-        }
-        chip.addEventListener('click', () => chip.classList.toggle('selected'));
-        catContainer.appendChild(chip);
-    });
+    openBtn.addEventListener('click', () => modal.classList.remove('hidden'));
+    document.getElementById('closeTagSearch').addEventListener('click', () => modal.classList.add('hidden'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.add('hidden'); });
 
-    const tagContainer = document.getElementById('filterTags');
-    tagContainer.innerHTML = '';
-    tags.forEach(tag => {
-        const chip = document.createElement('div');
-        chip.className = 'filter-chip';
-        chip.textContent = tag;
-        chip.dataset.value = tag;
-        if (activeFilters.tags.includes(tag)) {
-            chip.classList.add('selected');
-        }
-        chip.addEventListener('click', () => chip.classList.toggle('selected'));
-        tagContainer.appendChild(chip);
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        const results = data.filter(item => 
+            item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+        );
+        renderSearchResults(results, document.getElementById('tagSearchResults'), searchTerm.length < 2);
     });
+}
+
+function renderSearchResults(results, container, isTooShort) {
+    container.innerHTML = '';
+    if (isTooShort) {
+        container.innerHTML = '<p class="text-gray-500">Escribe al menos 2 letras para buscar.</p>';
+        return;
+    }
+    if (results.length === 0) {
+        container.innerHTML = '<p class="text-gray-500">No se encontraron resultados.</p>';
+    } else {
+        results.forEach(item => {
+            const resultEl = document.createElement('div');
+            resultEl.className = "p-3 mb-2 border rounded-md hover:bg-gray-100 cursor-pointer flex items-center";
+            resultEl.innerHTML = `<div class="w-8 flex-shrink-0">${getIconHtml(item)}</div><div class="ml-3"><div class="font-bold">${item.title}</div><div class="text-xs text-gray-500">${item.type} / ${item.category}</div></div>`;
+            resultEl.addEventListener('click', () => {
+                showToast(`Seleccionado: ${item.title}`);
+                document.getElementById('searchModal').classList.add('hidden');
+                document.getElementById('tagSearchModal').classList.add('hidden');
+                if (item.type === 'Link' || item.type === 'Buscador') {
+                    handleCardClick(String(item.id));
+                } else {
+                    switchTab(item.type.toLowerCase().replace('p', 'ps'));
+                }
+            });
+            container.appendChild(resultEl);
+        });
+    }
 }
 
 // --- LÓGICA DE LA INTERFAZ (UI) ---
@@ -704,83 +593,99 @@ function switchTab(tabName) {
     document.querySelector(`#nav-${tabName}`).classList.add("active");
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
     document.querySelector(`#section-${tabName}`).classList.remove("hidden");
-    // La barra de búsqueda ahora es global y siempre visible.
-    renderAllSections(); // Re-renderizar al cambiar de pestaña
+    document.getElementById('main-search-bar').style.display = (tabName === 'buscadores') ? 'block' : 'none';
 }
 
 function initializeUI() {
     if (!data) return;
     renderAllSections();
+    populateSearchEngineDropdown();
+    updateSearchSuggestions();
     switchTab('buscadores');
 }
 
 function renderAllSections() {
-    renderSection("Buscador", "searchEnginesContainer", "noBuscadoresFound");
-    renderSection("Link", "linksContainer", "noLinksFound");
-    renderSection("Promp", "promptsContainer", "noPromptsFound");
-    renderSection("Nota", "notesContainer", "noNotesFound");
-    renderSection("Tarea", "tasksContainer", "noTasksFound");
+    renderSection("Buscador", "searchEnginesContainer", "searchFilterButtons", "searchCardSearchInput", "noBuscadoresFound");
+    renderSection("Link", "linksContainer", "linkFilterButtons", "linkCardSearchInput", "noLinksFound");
+    renderSection("Promp", "promptsContainer", "promptFilterButtons", "promptCardSearchInput", "noPromptsFound");
+    renderSection("Nota", "notesContainer", "noteFilterButtons", "noteCardSearchInput", "noNotesFound");
+    renderSection("Tarea", "tasksContainer", "taskFilterButtons", "taskCardSearchInput", "noTasksFound");
 }
 
-function renderSection(type, containerId, notFoundId) {
+function renderSection(type, containerId, filterId, searchId, notFoundId) {
     const container = document.getElementById(containerId);
+    const filterContainer = document.getElementById(filterId);
+    const searchInput = document.getElementById(searchId);
     const notFound = document.getElementById(notFoundId);
     
-    // Obtener el término de búsqueda global
-    const searchTerm = document.getElementById('globalSearchInput').value.toLowerCase();
-    
-    // Filtrar por tipo
-    let items = data.filter(item => item.type === type);
+    const items = data.filter(item => item.type === type);
+    const categories = [...new Set(items.map(item => item.category))].sort();
 
-    // Aplicar filtros de búsqueda
-    if (searchTerm) {
-        items = items.filter(item => 
-            item.title.toLowerCase().includes(searchTerm) ||
-            (typeof item.action === 'string' && item.action.toLowerCase().includes(searchTerm)) ||
-            (Array.isArray(item.action) && item.action.some(task => task.text.toLowerCase().includes(searchTerm))) ||
-            item.category.toLowerCase().includes(searchTerm) ||
-            (item.tags && item.tags.some(tag => tag.toLowerCase().includes(searchTerm)))
-        );
-    }
+    filterContainer.innerHTML = '';
 
-    // Aplicar filtros de categoría y etiquetas
-    if (activeFilters.categories.length > 0) {
-        items = items.filter(item => activeFilters.categories.includes(item.category));
-    }
-    if (activeFilters.tags.length > 0) {
-        items = items.filter(item => item.tags && item.tags.some(tag => activeFilters.tags.includes(tag)));
-    }
+    const render = () => {
+        const category = filterContainer.querySelector('.active')?.dataset.category;
+        const searchTerm = searchInput.value.toLowerCase();
+        let filteredItems = items;
 
-    container.innerHTML = '';
-    const categorized = items.reduce((acc, item) => {
-        (acc[item.category] = acc[item.category] || []).push(item);
-        return acc;
-    }, {});
+        if (category) {
+            filteredItems = filteredItems.filter(item => item.category === category);
+        }
+        if (searchTerm) {
+            filteredItems = filteredItems.filter(item => 
+                item.title.toLowerCase().includes(searchTerm) ||
+                (typeof item.action === 'string' && item.action.toLowerCase().includes(searchTerm)) ||
+                item.category.toLowerCase().includes(searchTerm)
+            );
+        }
 
-    Object.keys(categorized).sort().forEach(cat => {
-        const catDiv = document.createElement('div');
-        catDiv.className = "mb-8";
-        const gridLayout = (type === 'Nota' || type === 'Tarea') ? 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4';
-        catDiv.innerHTML = `<div class="category-title-container"><h2 class="category-title">${cat}</h2><div><button onclick="editCategoryName('${cat}')" class="text-gray-400 hover:text-blue-500 p-1 rounded-full" title="Editar nombre de categoría"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteCategory('${cat}')" class="text-gray-400 hover:text-red-500 p-1 rounded-full ml-2" title="Eliminar categoría '${cat}'"><i class="fas fa-trash-alt"></i></button></div></div><div class="grid ${gridLayout} gap-6"></div>`;
-        const grid = catDiv.querySelector(".grid");
-        categorized[cat].forEach(item => grid.appendChild(createCard(item)));
-        
-        const addCard = document.createElement('div');
-        addCard.className = 'card bg-gray-100 dark:bg-gray-800 border-dashed border-2 flex items-center justify-center cursor-pointer min-h-[150px]';
-        addCard.innerHTML = '<i class="fas fa-plus text-4xl text-gray-400"></i>';
-        addCard.onclick = () => openEditPanel(null, type, cat);
-        grid.appendChild(addCard);
-        
-        container.appendChild(catDiv);
+        container.innerHTML = '';
+        const categorized = filteredItems.reduce((acc, item) => {
+            (acc[item.category] = acc[item.category] || []).push(item);
+            return acc;
+        }, {});
+
+        Object.keys(categorized).sort().forEach(cat => {
+            const catDiv = document.createElement('div');
+            catDiv.className = "mb-8";
+            const gridLayout = (type === 'Nota' || type === 'Tarea') ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3' : 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3';
+            catDiv.innerHTML = `<div class="category-title-container"><h2 class="category-title">${cat}</h2><div><button onclick="editCategoryName('${cat}')" class="text-gray-400 hover:text-blue-500 p-1 rounded-full" title="Editar nombre de categoría"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteCategory('${cat}')" class="text-gray-400 hover:text-red-500 p-1 rounded-full ml-2" title="Eliminar categoría '${cat}'"><i class="fas fa-trash-alt"></i></button></div></div><div class="grid ${gridLayout} gap-4"></div>`;
+            const grid = catDiv.querySelector(".grid");
+            categorized[cat].forEach(item => grid.appendChild(createCard(item)));
+            if (['Nota', 'Tarea', 'Promp', 'Buscador', 'Link'].includes(type)) { // AÑADIDO PARA TODOS
+                const addCard = document.createElement('div');
+                addCard.className = 'card bg-gray-100 dark:bg-gray-800 border-dashed border-2 flex items-center justify-center cursor-pointer min-h-[150px]';
+                addCard.innerHTML = '<i class="fas fa-plus text-4xl text-gray-400"></i>';
+                addCard.onclick = () => openEditPanel(null, type, cat);
+                grid.appendChild(addCard);
+            }
+            container.appendChild(catDiv);
+        });
+
+        notFound.classList.toggle('hidden', filteredItems.length === 0);
+    };
+
+    ['Todos', ...categories].forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'filter-btn';
+        btn.textContent = cat;
+        if (cat !== 'Todos') btn.dataset.category = cat;
+        if (cat === 'Todos') btn.classList.add('active');
+        btn.addEventListener('click', (e) => {
+            filterContainer.querySelector('.active')?.classList.remove('active');
+            e.target.classList.add('active');
+            render();
+        });
+        filterContainer.appendChild(btn);
     });
 
-    notFound.classList.toggle('hidden', items.length > 0);
+    searchInput.oninput = render;
+    render();
 }
 
-// CAMBIO: Diseño de tarjeta mejorado
 function createCard(item) {
     const card = document.createElement("div");
-    let cardClasses = "card bg-white p-5 rounded-xl text-left flex flex-col justify-between min-h-[180px]";
+    let cardClasses = "card bg-white p-4 rounded-lg text-left flex flex-col justify-between";
     if (item.type === 'Nota') cardClasses += ' note-card';
     card.className = cardClasses;
     card.title = item.title;
@@ -789,95 +694,98 @@ function createCard(item) {
     let contentHtml = "";
     const iconHtml = getIconHtml(item);
 
-    // Contenido principal de la tarjeta
-    let mainContent = '';
     if (item.type === 'Nota') {
-        mainContent = `<div onclick="openNoteModal('${item.id}')" class="cursor-pointer h-full flex flex-col"><div class="flex-grow note-card-content">${item.action}</div></div>`;
+        contentHtml = `<div onclick="openNoteModal('${item.id}')" class="cursor-pointer h-full flex flex-col"><h4 class="text-lg font-bold mb-2">${item.title}</h4><div class="text-sm flex-grow note-card-content">${item.action}</div></div>`;
     } else if (item.type === 'Tarea') {
-        const tasksHtml = item.action.slice(0, 3).map((task, index) => `
-            <li class="task-item ${task.status === 'done' ? 'done' : ''}" onclick="event.stopPropagation(); cycleTaskStatus('${item.id}', ${index})">
-                <span class="status-dot status-${task.status}"></span>
+        const tasksHtml = item.action.map((task, index) => `
+            <li class="task-item ${task.status === 'done' ? 'done' : ''}">
+                <span class="status-dot status-${task.status}" onclick="cycleTaskStatus('${item.id}', ${index})"></span>
                 <span class="task-text">${task.text}</span>
             </li>
         `).join('');
-        mainContent = `<ul class="task-list -mx-1">${tasksHtml}</ul> ${item.action.length > 3 ? `<div class="text-xs text-gray-500 mt-2">+${item.action.length - 3} más</div>` : ''}`;
-    } else if (item.type === "Buscador" || item.type === "Link" || item.type === "Promp") {
-         mainContent = `<div class="mt-2 text-sm text-gray-500 dark:text-gray-400 h-10 overflow-hidden">${item.category}</div>`;
+        contentHtml = `<div><h4 class="text-lg font-bold mb-2">${item.title}</h4><ul class="task-list">${tasksHtml}</ul></div>`;
+    } else if (item.type === "Buscador" || item.type === "Link") {
+        contentHtml = `<a href="#" class="flex items-center w-full text-left p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" onclick="event.preventDefault(); handleCardClick('${item.id}')"><div class="flex-shrink-0 w-8 h-8 flex items-center justify-center">${iconHtml}</div><span class="ml-3 font-medium">${item.title}</span></a>`;
+        card.className = "card bg-white p-2 rounded-lg"; // Override for Brave style
+    } else {
+        contentHtml = `<div class="flex items-center text-left"><div class="flex-shrink-0 w-6 mr-2 flex items-center justify-center">${iconHtml}</div><h4 class="text-lg font-medium">${item.title}</h4></div><div class="mt-3 bg-gray-50 p-2 rounded text-sm text-left text-gray-700 prompt-content">${item.action.replace(/\n/g,"<br>")}</div>${item.type==="Promp"?`<button class="copy-btn mt-3 w-full bg-purple-100 hover:bg-purple-200 text-purple-800 py-1 rounded-md text-sm" onclick="copyToClipboard('${item.id}')">Copiar</button>`:""}`;
     }
 
-    // Unificar la estructura de la tarjeta
-    contentHtml = `
-      <div class="flex-grow flex flex-col" onclick="handleCardClick('${item.id}')">
-        <div class="flex-shrink-0 w-12 h-12 flex items-center justify-center mb-3">
-            ${iconHtml}
-        </div>
-        <h4 class="text-lg font-bold mb-1 leading-tight">${item.title}</h4>
-        ${mainContent}
-      </div>
-    `;
-
-    // Botones de acción y etiquetas
     let tagsHtml = "";
     if (item.tags && item.tags.length > 0) {
-        tagsHtml = `<div class="tag-container mt-auto pt-3">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join("")}</div>`;
+        tagsHtml = `<div class="tag-container">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join("")}</div>`;
     }
-    const actionsHtml = `<div class="card-actions"><button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="text-blue-600" title="Editar"><i class="fas fa-pencil-alt"></i></button><button onclick="event.stopPropagation(); deleteItem('${item.id}')" class="text-red-600" title="Eliminar"><i class="fas fa-trash-alt"></i></button></div>`;
+    const actionsHtml = `<div class="card-actions"><button onclick="openEditPanel('${item.id}')" class="text-blue-600" title="Editar"><i class="fas fa-pencil-alt"></i></button><button onclick="deleteItem('${item.id}')" class="text-red-600" title="Eliminar"><i class="fas fa-trash-alt"></i></button></div>`;
     const previewHtml = item.type === "Link" ? `<div class="preview-tooltip"><img src="https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=300" alt="Vista previa" loading="lazy"></div>` : "";
-    
-    card.innerHTML = `${contentHtml}${tagsHtml}${actionsHtml}${previewHtml}`;
+    card.innerHTML = `<div>${contentHtml}</div>${tagsHtml}${actionsHtml}${previewHtml}`;
     return card;
 }
 
-
-// CAMBIO: Iconos más grandes y sin ">"
 function getIconHtml(item) {
-    if (item.icon) return `<i class="${item.icon} text-4xl mx-auto icon-themed"></i>`;
+    if (item.icon) return `<i class="${item.icon} text-2xl mx-auto icon-themed"></i>`;
     if (item.type === "Link") {
         try {
             const domain = new URL(item.action).hostname;
-            return `<div class="w-10 h-10 mx-auto flex items-center justify-center">
+            // Servicio alternativo para favicons con fallback integrado
+            return `<div class="w-6 h-6 mx-auto flex items-center justify-center">
                 <img src="https://icon.horse/icon/${domain}" 
                      class="w-full h-full object-contain" 
                      alt="Favicon" 
-                     onerror="this.parentNode.innerHTML='<i class=\\'fas fa-link text-4xl mx-auto icon-themed\\'></i>';">
+                     onerror="this.onerror=null; this.innerHTML='<i class=\'fas fa-link text-2xl mx-auto icon-themed\'></i>';">>
             </div>`;
         } catch (e) {
-            return '<i class="fas fa-link text-4xl mx-auto icon-themed"></i>';
+            return '<i class="fas fa-link text-2xl mx-auto icon-themed"></i>';
         }
     }
     const defaultIcons = { Buscador: "fas fa-search", Promp: "fas fa-brain", Nota: "fas fa-sticky-note", Tarea: "fas fa-tasks" };
-    return `<i class="${defaultIcons[item.type] || 'fas fa-question-circle'} text-4xl mx-auto icon-themed"></i>`;
+    return `<i class="${defaultIcons[item.type] || 'fas fa-question-circle'} text-2xl mx-auto icon-themed"></i>`;
 }
 
 function handleCardClick(id) {
     const item = data.find(i => String(i.id) === id);
     if (!item) return;
-    
-    switch(item.type) {
-        case "Link":
-            window.open(item.action, "_blank");
-            break;
-        case "Buscador":
-             const searchTerm = prompt(`Buscar en ${item.title}:`);
-             if (searchTerm) {
-                 window.open(item.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
-             }
-            break;
-        case "Promp":
-            copyToClipboard(item.id);
-            break;
-        case "Nota":
-            openNoteModal(item.id);
-            break;
-        case "Tarea":
-            openTaskModal(item.id);
-            break;
+    if (item.type === "Link") window.open(item.action, "_blank");
+    else if (item.type === "Buscador") {
+        document.getElementById("selectedEngine").textContent = item.title;
+        showToast(`Motor seleccionado: ${item.title}`);
     }
 }
 
 function copyToClipboard(id) {
     const item = data.find(i => String(i.id) === id);
-    if (item) navigator.clipboard.writeText(item.action).then(() => showToast("Prompt copiado al portapapeles"));
+    if (item) navigator.clipboard.writeText(item.action).then(() => showToast("Copiado al portapapeles"));
+}
+
+function performSearch() {
+    const searchTerm = document.getElementById("searchInput").value.trim();
+    if (!searchTerm) return;
+    if (!searchHistory.includes(searchTerm)) {
+        searchHistory.push(searchTerm);
+        localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
+        updateSearchSuggestions();
+    }
+    const engineTitle = document.getElementById("selectedEngine").textContent;
+    const engine = data.find(item => item.type === "Buscador" && item.title === engineTitle);
+    if (engine) window.open(engine.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
+}
+
+function populateSearchEngineDropdown() {
+    const dropdown = document.getElementById("searchEngineDropdown");
+    dropdown.innerHTML = "";
+    data.filter(item => item.type === "Buscador").forEach(engine => {
+        const itemEl = document.createElement("div");
+        itemEl.className = "p-2 hover:bg-gray-100 cursor-pointer flex items-center";
+        itemEl.innerHTML = `${getIconHtml(engine)}<span class="ml-2">${engine.title}</span>`;
+        itemEl.onclick = () => {
+            document.getElementById("selectedEngine").textContent = engine.title;
+            dropdown.classList.add("hidden");
+        };
+        dropdown.appendChild(itemEl);
+    });
+}
+
+function updateSearchSuggestions() {
+    document.getElementById("searchSuggestions").innerHTML = searchHistory.map(term => `<option value="${term}"></option>`).join("");
 }
 
 function populateCategorySuggestions(selectedCategory = "") {
@@ -1359,7 +1267,6 @@ function saveTaskFromModal() {
 }
 
 function cycleTaskStatus(itemId, taskIndex) {
-    event.stopPropagation(); // Evita que se dispare el click de la tarjeta
     const itemIndex = data.findIndex(i => String(i.id) === itemId);
     if (itemIndex === -1) return;
     const task = data[itemIndex].action[taskIndex];
