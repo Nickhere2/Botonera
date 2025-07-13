@@ -136,21 +136,32 @@
     body.dark .category-title-container{border-color:rgba(255,255,255,0.1)}
     .category-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;color:#1f2937}
 
-    /* Estilos para Notas y Tareas (simplificados para el nuevo grid) */
-    .note-card, .task-card {
-        border: 1px solid #e5e7eb;
-        background-color: #fff;
-        padding: 1rem;
-        border-radius: 0.75rem;
+    /* --- ESTILOS PARA VISTA PREVIA DE TEXTO --- */
+    .card-preview.text-preview {
         display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        height: 220px;
+        padding: 1.5rem;
+        background-color: #fff;
+        color: #333;
+        overflow: hidden;
     }
-    .note-card { background-color: #fffbe0; font-family: 'Kalam', cursive; }
-    body.dark .note-card { background-color: #4a462a; }
-    .task-list{list-style:none;padding:0;margin-top:0.5rem;text-align:left}.task-item{display:flex;align-items:center;padding:0.25rem 0;border-bottom:1px solid #eee}body.dark .task-item{border-color:#333}.task-item.done .task-text{text-decoration:line-through;color:#9ca3af}
-    .status-dot{width:12px;height:12px;border-radius:50%;margin-right:8px;cursor:pointer;border:2px solid transparent;transition:all .2s}.status-todo{background-color:#d1d5db}.status-inprogress{background-color:#f59e0b}.status-done{background-color:#10b981}
+    body.dark .card-preview.text-preview {
+        background-color: #1e1e1e;
+        color: #ddd;
+    }
+    .scrolling-text {
+        text-align: left;
+        white-space: pre-wrap;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        animation: none;
+    }
+    .card-preview-container:hover .scrolling-text {
+        animation: scroll-up 20s linear 1s; /* 20s duration, 1s delay */
+    }
+    @keyframes scroll-up {
+        from { transform: translateY(0); }
+        to { transform: translateY(-100%); }
+    }
     
     /* Estilos para el panel de edición (del código original) */
     .type-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
@@ -432,62 +443,70 @@ function renderSection(type, containerId, notFoundId) {
     notFound.classList.toggle('hidden', items.length > 0);
 }
 
-// --- NUEVA FUNCIÓN `createCard` CON LÓGICA HÍBRIDA ---
+// --- NUEVA FUNCIÓN `createCard` CON LÓGICA HÍBRIDA MEJORADA ---
 function createCard(item) {
     const cardWrapper = document.createElement("div");
     cardWrapper.className = 'card-container';
     cardWrapper.dataset.id = item.id;
 
-    if (item.type === 'Nota' || item.type === 'Tarea') {
-        // Placeholder for Note/Task rendering
-        cardWrapper.innerHTML = `<div class="relative ${item.type === 'Nota' ? 'note-card' : 'task-card'}">
-            <h4 class="font-bold">${item.title}</h4>
-            <p class="text-sm text-gray-600">Contenido de ${item.type.toLowerCase()}...</p>
-            <div class="card-actions" style="opacity:1; background:transparent;">
-             <button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="hover:bg-blue-100 text-blue-600" title="Editar"><i class="fas fa-pencil-alt text-xs"></i></button>
-             <button onclick="event.stopPropagation(); deleteItem('${item.id}')" class="hover:bg-red-100 text-red-600" title="Eliminar"><i class="fas fa-trash-alt text-xs"></i></button>
-            </div>
-        </div>`;
-        return cardWrapper;
-    }
-
-    // --- LÓGICA HÍBRIDA PARA ICONOS Y VISTAS PREVIAS ---
+    // --- LÓGICA DE ICONO ---
     let iconHtml = '';
     const iconValue = item.icon || '';
-    const defaultIconClass = { Buscador: "fas fa-search", Link: "fas fa-link", Promp: "fas fa-brain" }[item.type] || 'fas fa-question-circle';
+    const defaultIconClass = { 
+        Buscador: "fas fa-search", Link: "fas fa-link", Promp: "fas fa-brain", 
+        Nota: "fas fa-sticky-note", Tarea: "fas fa-tasks" 
+    }[item.type] || 'fas fa-question-circle';
 
-    if (iconValue) { // 1. El usuario proveyó un icono
+    if (iconValue) {
         if (iconValue.startsWith('http') || iconValue.startsWith('imagenes/')) {
             iconHtml = `<img src="${iconValue}" alt="Icono" class="card-icon-image mb-4" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} text-5xl text-teal-500 mb-4\\'></i>'">`;
         } else {
             iconHtml = `<i class="${iconValue} text-5xl text-teal-500 mb-4"></i>`;
         }
-    } else { // 2. Intentar obtener icono automáticamente
+    } else if (item.type === 'Link' || item.type === 'Buscador') {
         try {
             const domain = new URL(item.action).hostname;
             iconHtml = `<img src="https://icon.horse/icon/${domain}" alt="Icono" class="card-icon-image mb-4" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} text-5xl text-teal-500 mb-4\\'></i>'">`;
         } catch (e) {
             iconHtml = `<i class="${defaultIconClass} text-5xl text-teal-500 mb-4"></i>`;
         }
+    } else {
+        iconHtml = `<i class="${defaultIconClass} text-5xl text-teal-500 mb-4"></i>`;
     }
 
-    // Lógica para la vista previa
-    let previewUrl = item.previewUrl; // 1. Usar la URL manual si existe
-    if (!previewUrl) { // 2. Si no, generar una automáticamente
-        try {
-            // Validar que la acción sea una URL válida antes de generar la vista previa
-            new URL(item.action); 
-            previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=400`;
-        } catch(e) {
-            // Si item.action no es una URL, no se genera vista previa
-            previewUrl = '';
+    // --- LÓGICA DE VISTA PREVIA ---
+    let previewContentHtml = '';
+    const isTextPreview = ['Promp', 'Nota', 'Tarea'].includes(item.type);
+
+    if (isTextPreview) {
+        let textContent = '';
+        if (item.type === 'Nota') {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = item.action;
+            textContent = tempDiv.innerText || tempDiv.textContent || '';
+        } else if (item.type === 'Tarea' && Array.isArray(item.action)) {
+            textContent = item.action.map(task => `• ${task.text}`).join('\n');
+        } else {
+            textContent = item.action || '';
         }
+        previewContentHtml = `<div class="card-preview text-preview"><p class="scrolling-text">${textContent.replace(/\n/g, '<br>')}</p></div>`;
+    } else {
+        let previewUrl = item.previewUrl;
+        if (!previewUrl) {
+            try {
+                new URL(item.action); 
+                previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=400`;
+            } catch(e) {
+                previewUrl = '';
+            }
+        }
+        const previewStyle = previewUrl ? `style="background-image: url('${previewUrl}')"` : '';
+        previewContentHtml = `<div class="card-preview" ${previewStyle}></div>`;
     }
-    const previewStyle = previewUrl ? `style="background-image: url('${previewUrl}')"` : '';
     
     const cardHtml = `
       <div class="card-preview-container group relative w-full h-full bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-        <div class="card-preview" ${previewStyle}></div>
+        ${previewContentHtml}
         <div class="card-content">
           ${iconHtml}
           <h4 class="font-bold text-lg text-gray-800 dark:text-white">${item.title}</h4>
@@ -523,6 +542,8 @@ function handleCardClick(id) {
     } else if (item.type === "Promp") {
         navigator.clipboard.writeText(item.action).then(() => showToast("Prompt copiado."));
     }
+    // Nota: El click en Notas y Tareas debería abrir sus modales.
+    // Esta lógica debe ser añadida aquí o en el event listener de la tarjeta.
 }
 
 // --- PANEL DE EDICIÓN ---
@@ -539,7 +560,13 @@ function openEditPanel(itemId = null) {
             document.getElementById('editPanelTitle').textContent = 'Editar Elemento';
             document.getElementById('editItemId').value = item.id;
             document.getElementById('newTitle').value = item.title;
-            document.getElementById('newAction').value = item.action;
+            
+            if (item.type === 'Tarea' && Array.isArray(item.action)) {
+                document.getElementById('newAction').value = item.action.map(t => t.text).join('\n');
+            } else {
+                document.getElementById('newAction').value = item.action;
+            }
+
             document.getElementById('newTags').value = item.tags ? item.tags.join(', ') : '';
             document.getElementById('newIcon').value = item.icon || '';
             document.getElementById('newPreviewUrl').value = item.previewUrl || '';
@@ -599,8 +626,9 @@ function updateEditFormFields(type) {
     const previewField = document.getElementById('previewFieldContainer');
     const actionLabel = document.querySelector('#actionFieldContainer label');
     
-    const showFor = ['Link', 'Buscador', 'Promp'];
-    iconField.style.display = showFor.includes(type) ? 'block' : 'none';
+    // El icono ahora es visible para todos los tipos
+    iconField.style.display = 'block';
+    // La vista previa de imagen solo para Link y Buscador
     previewField.style.display = (type === 'Link' || type === 'Buscador') ? 'block' : 'none';
 
     if (type === 'Tarea') actionLabel.textContent = 'Tareas (una por línea)';
