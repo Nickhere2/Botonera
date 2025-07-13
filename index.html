@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centro de Accesos v11</title>
+  <title>Centro de Accesos v12</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
@@ -36,44 +36,35 @@
     
     /* --- DISEÑO DE TARJETA Y LISTA --- */
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
-    .list-view { display: flex; flex-direction: column; gap: 0.5rem; }
-    .micro-view { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .list-view { display: flex; flex-direction: column; gap: 0.75rem; }
+    .chip-view { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .card-container, .list-item-container, .chip-item-container { transition: all 0.2s ease-in-out; }
     .card-container { width: 100%; height: 220px; }
-    .list-item-container, .micro-item-container { transition: all 0.2s ease-in-out; }
     
-    .card-preview-container, .list-item-container, .micro-item-container { transition: all 0.3s ease; overflow: hidden; cursor: pointer; position: relative; }
-    .card-preview-container:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1); }
-    .list-item-container:hover, .micro-item-container:hover { transform: scale(1.03); }
+    .card-preview-container, .list-item-container, .chip-item-container { transition: all 0.3s ease; overflow: hidden; cursor: pointer; position: relative; }
+    .card-preview-container:hover, .list-item-container:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1); }
+    .chip-item-container:hover { transform: scale(1.03); }
     
-    .card-content { transition: opacity 0.3s ease-in-out; }
-    .card-preview-container:hover .card-content { opacity: 0; }
-    
-    .card-preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s ease-in-out; background-size: cover; background-position: center; border-radius: 0.75rem; }
-    .card-preview-container:hover .card-preview { opacity: 1; }
+    .card-content { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; padding: 1rem; position: relative; z-index: 2; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+    .card-background-preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; border-radius: 0.75rem; }
+    .card-background-preview::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 50%); }
     
     .card-icon-image { width: 48px; height: 48px; object-fit: contain; }
     .card-actions, .card-drag-handle { position: absolute; opacity: 0; transition: opacity 0.2s ease-in-out; z-index: 10; }
     .card-preview-container:hover .card-actions, .card-preview-container:hover .card-drag-handle,
     .list-item-container:hover .card-actions, .list-item-container:hover .card-drag-handle,
-    .micro-item-container:hover .card-actions, .micro-item-container:hover .card-drag-handle { opacity: 1; }
+    .chip-item-container:hover .card-actions { opacity: 1; }
     
-    .card-actions { top: 0.5rem; right: 0.5rem; display: flex; gap: 0.5rem; }
-    .card-actions button { width: 28px; height: 28px; border-radius: 9999px; background-color: rgba(255, 255, 255, 0.8); }
-    body.dark .card-actions button { background-color: rgba(30, 30, 30, 0.8); }
-    .card-drag-handle { top: 0.5rem; left: 0.5rem; cursor: move; color: #9ca3af; }
-    body.dark .card-drag-handle { color: #6b7280; }
-    .card-tags { position: absolute; bottom: 1rem; left: 1rem; right: 1rem; display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: center; }
-    .tag { background-color:#e5e7eb; color:#4b5563; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; }
-    body.dark .tag { background-color: #374151; color: #d1d5db; }
+    .card-actions { top: 0.5rem; right: 0.5rem; display: flex; gap: 0.25rem; }
+    .card-actions button { width: 24px; height: 24px; border-radius: 9999px; background-color: rgba(255, 255, 255, 0.8); font-size: 10px; color: #333; }
+    body.dark .card-actions button { background-color: rgba(30, 30, 30, 0.8); color: #ddd; }
+    .card-drag-handle { top: 0.5rem; left: 0.5rem; cursor: move; color: rgba(255,255,255,0.7); text-shadow: 0 1px 2px #000; }
+    .card-tags { display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: flex-start; margin-top: 0.5rem; }
+    .tag { background-color:rgba(255,255,255,0.2); color:white; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; }
     .category-title-container{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid #e5e7eb;padding-bottom:0.5rem}
     body.dark .category-title-container{border-color:rgba(255,255,255,0.1)}
     .category-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;color:#1f2937; cursor: pointer;}
-    .card-preview.text-preview { display: flex; padding: 1.5rem; background-color: #fff; color: #333; overflow: hidden; }
-    body.dark .card-preview.text-preview { background-color: #1e1e1e; color: #ddd; }
-    .scrolling-text { text-align: left; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.5; animation: none; }
-    .card-preview-container:hover .scrolling-text { animation: scroll-up 20s linear 1s; }
-    @keyframes scroll-up { from { transform: translateY(0); } to { transform: translateY(-100%); } }
-    
+
     /* --- ESTILOS PANEL DE EDICIÓN --- */
     .type-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
     .type-btn { flex: 1; min-width: 120px; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid #ddd;}
@@ -564,7 +555,7 @@ function renderSection(type, containerId, filterId, viewSwitcherId, notFoundId) 
     viewSwitcher.innerHTML = `
         <button class="view-btn ${sectionViews[type] === 'grid' ? 'text-teal-500' : 'text-gray-400'}" data-view="grid" title="Vista de Tarjetas"><i class="fas fa-th-large"></i></button>
         <button class="view-btn ${sectionViews[type] === 'list' ? 'text-teal-500' : 'text-gray-400'}" data-view="list" title="Vista de Lista"><i class="fas fa-bars"></i></button>
-        <button class="view-btn ${sectionViews[type] === 'micro' ? 'text-teal-500' : 'text-gray-400'}" data-view="micro" title="Vista Micro"><i class="fas fa-grip-horizontal"></i></button>
+        <button class="view-btn ${sectionViews[type] === 'chip' ? 'text-teal-500' : 'text-gray-400'}" data-view="chip" title="Vista Ultra Compacta"><i class="fas fa-grip"></i></button>
     `;
     viewSwitcher.querySelectorAll('.view-btn').forEach(btn => {
         btn.onclick = () => setView(btn.dataset.view);
@@ -586,7 +577,7 @@ function renderSection(type, containerId, filterId, viewSwitcherId, notFoundId) 
             const catDiv = document.createElement('div');
             catDiv.className = "mb-8";
             
-            const viewClass = sectionViews[type] === 'grid' ? 'card-grid' : (sectionViews[type] === 'list' ? 'list-view' : 'micro-view');
+            const viewClass = sectionViews[type] === 'grid' ? 'card-grid' : (sectionViews[type] === 'list' ? 'list-view' : 'chip-view');
             
             catDiv.innerHTML = `<div class="category-title-container">
                 <h2 class="category-title" data-category-name="${cat}">${cat}</h2>
@@ -598,7 +589,14 @@ function renderSection(type, containerId, filterId, viewSwitcherId, notFoundId) 
             const grid = catDiv.querySelector(`.${viewClass}`);
             
             categorized[cat].forEach(item => {
-                const element = sectionViews[type] === 'grid' ? createCard(item) : createListItem(item, sectionViews[type]);
+                let element;
+                if (sectionViews[type] === 'grid') {
+                    element = createCard(item);
+                } else if (sectionViews[type] === 'list') {
+                    element = createListItem(item);
+                } else {
+                    element = createChipItem(item);
+                }
                 grid.appendChild(element);
             });
             
@@ -658,19 +656,20 @@ function createCard(item) {
         cardWrapper.dataset.tags = item.tags.join(',');
     }
 
-    let iconHtml = getIconHtml(item, 'text-5xl');
-    let previewContentHtml = getPreviewHtml(item);
-    
+    const previewUrl = getPreviewUrl(item);
+    const previewStyle = previewUrl ? `style="background-image: url('${previewUrl}')"` : 'style="background-color: #4a5568;"';
+    const iconHtml = getIconHtml(item, 'text-2xl');
+
     const tagsHtml = item.tags && item.tags.length > 0 ? 
         `<div class="card-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : '';
 
     const cardHtml = `
       <div class="card-preview-container group relative w-full h-full bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-        ${previewContentHtml}
-        <div class="card-content">
-          ${iconHtml}
-          <h4 class="font-bold text-lg text-gray-800 dark:text-white">${item.title}</h4>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mb-8">${item.category}</p>
+        <div class="card-background-preview" ${previewStyle}></div>
+        <div class="absolute top-3 left-3 bg-black/30 p-2 rounded-full backdrop-blur-sm">${iconHtml}</div>
+        <div class="card-content text-left">
+          <h4 class="font-bold text-lg">${item.title}</h4>
+          <p class="text-sm font-light opacity-80">${item.category}</p>
           ${tagsHtml}
         </div>
         <div class="card-actions">
@@ -688,52 +687,71 @@ function createCard(item) {
     return cardWrapper;
 }
 
-function createListItem(item, viewType) {
+function createListItem(item) {
     const listItemWrapper = document.createElement("div");
+    listItemWrapper.className = 'list-item-container bg-white dark:bg-gray-800 rounded-lg shadow-sm flex overflow-hidden h-36';
     listItemWrapper.dataset.id = item.id;
     if (item.tags) {
         listItemWrapper.dataset.tags = item.tags.join(',');
     }
 
-    if (viewType === 'list') {
-        listItemWrapper.className = 'list-item-container relative flex items-center p-3 rounded-lg border border-transparent dark:border-transparent bg-white dark:bg-gray-800 shadow-sm';
-        let iconHtml = getIconHtml(item, 'text-2xl');
-        const tagsHtml = item.tags && item.tags.length > 0 ?
-            `<div class="flex items-center gap-2">
-                ${item.tags.slice(0, 2).map(tag => `<span class="text-xs bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">${tag}</span>`).join('')}
-            </div>` : '';
+    let iconHtml = getIconHtml(item, 'text-3xl');
+    let previewUrl = getPreviewUrl(item);
+    const previewHtml = previewUrl 
+        ? `<div class="w-2/5 bg-cover bg-center" style="background-image: url('${previewUrl}')"></div>`
+        : `<div class="w-2/5 flex items-center justify-center bg-gray-100 dark:bg-gray-700 text-gray-400"><i class="fas fa-image text-4xl"></i></div>`;
 
-        listItemWrapper.innerHTML = `
-            <div class="card-content flex items-center w-full">
-                <div class="w-8 text-center">${iconHtml}</div>
-                <div class="ml-4 flex-grow">
-                    <h4 class="font-bold text-gray-800 dark:text-white">${item.title}</h4>
-                    <p class="text-xs text-gray-500 dark:text-gray-400">${item.category}</p>
-                </div>
-                ${tagsHtml}
+    listItemWrapper.innerHTML = `
+        <div class="w-3/5 p-4 flex flex-col">
+            <div class="flex items-center mb-2">
+                <div class="w-8 text-center mr-3">${iconHtml}</div>
+                <h4 class="font-bold text-gray-800 dark:text-white">${item.title}</h4>
             </div>
-            <div class="card-actions absolute right-12 top-1/2 -translate-y-1/2">
-                <button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="p-1 text-gray-500 hover:text-blue-500"><i class="fas fa-pencil-alt"></i></button>
-                <button onclick="event.stopPropagation(); deleteItem('${item.id}')" class="p-1 text-gray-500 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+            <p class="text-xs text-gray-500 dark:text-gray-400 ml-11">${item.category}</p>
+            <div class="mt-auto pt-2 flex flex-wrap gap-1 ml-11">
+                ${(item.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
             </div>
-            <div class="card-drag-handle absolute right-3 top-1/2 -translate-y-1/2" title="Arrastrar para reordenar">
-                <i class="fas fa-grip-vertical"></i>
-            </div>
-        `;
-    } else { // micro view
-        listItemWrapper.className = 'micro-item-container relative flex items-center p-2 rounded-md bg-white dark:bg-gray-800 shadow-sm';
-        let iconHtml = getIconHtml(item, 'text-lg');
-        listItemWrapper.innerHTML = `
-            <div class="w-6 text-center">${iconHtml}</div>
-            <span class="ml-2 font-medium text-sm text-gray-800 dark:text-white">${item.title}</span>
-        `;
-        listItemWrapper.addEventListener('mouseenter', () => showPreviewModal(item));
-        listItemWrapper.addEventListener('mouseleave', hidePreviewModal);
-    }
-    
+        </div>
+        ${previewHtml}
+        <div class="card-actions absolute right-2 top-2">
+            <button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="p-1 text-gray-500 hover:text-blue-500"><i class="fas fa-pencil-alt"></i></button>
+            <button onclick="event.stopPropagation(); deleteItem('${item.id}')" class="p-1 text-gray-500 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+        </div>
+        <div class="card-drag-handle absolute left-2 top-2" title="Arrastrar para reordenar">
+            <i class="fas fa-grip-vertical"></i>
+        </div>
+    `;
     listItemWrapper.addEventListener('click', () => handleCardClick(String(item.id)));
     return listItemWrapper;
 }
+
+function createChipItem(item) {
+    const chipWrapper = document.createElement("div");
+    chipWrapper.className = 'chip-item-container relative bg-white dark:bg-gray-800 rounded-full shadow-sm flex items-center p-2 pr-3 cursor-pointer';
+    chipWrapper.dataset.id = item.id;
+    if (item.tags) {
+        chipWrapper.dataset.tags = item.tags.join(',');
+    }
+
+    let iconHtml = getIconHtml(item, 'text-base');
+    
+    chipWrapper.innerHTML = `
+        <div class="flex items-center">
+            <div class="w-6 h-6 flex-shrink-0 flex items-center justify-center">${iconHtml}</div>
+            <span class="ml-2 font-medium text-sm text-gray-800 dark:text-white">${item.title}</span>
+        </div>
+        <div class="card-actions absolute right-1 top-1/2 -translate-y-1/2">
+             <button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="p-1 text-gray-500 hover:text-blue-500"><i class="fas fa-pencil-alt"></i></button>
+             <button onclick="event.stopPropagation(); deleteItem('${item.id}')" class="p-1 text-gray-500 hover:text-red-500"><i class="fas fa-trash-alt"></i></button>
+        </div>
+         <div class="card-drag-handle absolute left-0 top-0 bottom-0 w-6" title="Arrastrar para reordenar"></div>
+    `;
+    chipWrapper.addEventListener('mouseenter', () => showPreviewModal(item));
+    chipWrapper.addEventListener('mouseleave', hidePreviewModal);
+    chipWrapper.addEventListener('click', () => handleCardClick(String(item.id)));
+    return chipWrapper;
+}
+
 
 function getIconHtml(item, sizeClass = 'text-5xl') {
     const iconValue = item.icon || '';
@@ -761,35 +779,23 @@ function getIconHtml(item, sizeClass = 'text-5xl') {
     }
 }
 
-function getPreviewHtml(item) {
+function getPreviewUrl(item) {
     const isTextPreview = ['Promp', 'Nota', 'Tarea'].includes(item.type);
+    if (isTextPreview) return null;
 
-    if (isTextPreview) {
-        let textContent = '';
-        if (item.type === 'Tarea' && Array.isArray(item.action)) {
-            textContent = item.action.map(task => `<span>${task.status ? '✅' : '⬜️'} ${task.text}</span>`).join('<br>');
-        } else if (typeof item.action === 'string') {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = item.action;
-            textContent = tempDiv.innerHTML;
-        }
-        return `<div class="card-preview text-preview"><div class="scrolling-text">${textContent}</div></div>`;
-    } else {
-        let previewUrl = item.previewUrl;
-        if (previewUrl && !previewUrl.startsWith('http')) {
-            previewUrl = imageBasePath + previewUrl;
-        }
-        if (!previewUrl) {
-            try {
-                new URL(item.action); 
-                previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=400`;
-            } catch(e) {
-                previewUrl = '';
-            }
-        }
-        const previewStyle = previewUrl ? `style="background-image: url('${previewUrl}')"` : '';
-        return `<div class="card-preview" ${previewStyle}></div>`;
+    let url = item.previewUrl;
+    if (url && !url.startsWith('http')) {
+        url = imageBasePath + url;
     }
+    if (!url) {
+        try {
+            new URL(item.action); 
+            url = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=800`;
+        } catch(e) {
+            url = '';
+        }
+    }
+    return url;
 }
 
 
