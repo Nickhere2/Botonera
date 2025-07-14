@@ -40,12 +40,18 @@
     .chip-view { display: flex; flex-wrap: wrap; gap: 0.5rem; }
     .card-container, .list-item-container, .chip-item-container { transition: all 0.2s ease-in-out; }
     .card-container { width: 100%; height: 220px; }
+    .list-item-container { height: 150px; }
     
     .card-preview-container, .list-item-container, .chip-item-container { transition: all 0.3s ease; overflow: hidden; cursor: pointer; position: relative; }
     .card-preview-container:hover, .list-item-container:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1), 0 6px 6px rgba(0,0,0,0.1); }
     .chip-item-container:hover { transform: scale(1.03); }
     
-    .card-content { display: flex; flex-direction: column; justify-content: flex-end; height: 100%; padding: 1rem; position: relative; z-index: 2; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+    .card-content { transition: opacity 0.3s ease-in-out; }
+    .card-preview-container.is-text-based:hover .card-content { opacity: 0; }
+    
+    .card-preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s ease-in-out; background-size: cover; background-position: center; border-radius: 0.75rem; }
+    .card-preview-container.is-text-based:hover .card-preview { opacity: 1; }
+    
     .card-background-preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; border-radius: 0.75rem; }
     .card-background-preview::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 50%); }
     
@@ -64,7 +70,12 @@
     .category-title-container{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid #e5e7eb;padding-bottom:0.5rem}
     body.dark .category-title-container{border-color:rgba(255,255,255,0.1)}
     .category-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;color:#1f2937; cursor: pointer;}
-
+    .card-preview.text-preview { display: flex; padding: 1.5rem; background-color: #fff; color: #333; overflow: hidden; }
+    body.dark .card-preview.text-preview { background-color: #1e1e1e; color: #ddd; }
+    .scrolling-text { text-align: left; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.5; animation: none; }
+    .card-preview-container:hover .scrolling-text { animation: scroll-up 20s linear 1s; }
+    @keyframes scroll-up { from { transform: translateY(0); } to { transform: translateY(-100%); } }
+    
     /* --- ESTILOS PANEL DE EDICIÓN --- */
     .type-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
     .type-btn { flex: 1; min-width: 120px; padding: 10px; border-radius: 8px; text-align: center; cursor: pointer; transition: all 0.2s; border: 1px solid #ddd;}
@@ -656,33 +667,63 @@ function createCard(item) {
         cardWrapper.dataset.tags = item.tags.join(',');
     }
 
-    const previewUrl = getPreviewUrl(item);
-    const previewStyle = previewUrl ? `style="background-image: url('${previewUrl}')"` : 'style="background-color: #4a5568;"';
-    const iconHtml = getIconHtml(item, 'text-2xl');
+    const isTextBased = ['Promp', 'Nota', 'Tarea'].includes(item.type);
+    let cardInnerHtml = '';
 
-    const tagsHtml = item.tags && item.tags.length > 0 ? 
-        `<div class="card-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : '';
+    if (isTextBased) {
+        // --- VISTA PARA NOTAS, PROMPTS Y TAREAS (ICONO POR DEFECTO, TEXTO AL PASAR EL RATÓN) ---
+        const iconHtml = getIconHtml(item, 'text-5xl');
+        const previewContentHtml = getPreviewHtml(item); // This will be the text preview
+        const tagsHtml = item.tags && item.tags.length > 0 ? 
+            `<div class="card-tags" style="color: #333; text-shadow: none;">${item.tags.map(tag => `<span class="tag" style="background-color: #e5e7eb;">${tag}</span>`).join('')}</div>` : '';
 
-    const cardHtml = `
-      <div class="card-preview-container group relative w-full h-full bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-        <div class="card-background-preview" ${previewStyle}></div>
-        <div class="absolute top-3 left-3 bg-black/30 p-2 rounded-full backdrop-blur-sm">${iconHtml}</div>
-        <div class="card-content text-left">
-          <h4 class="font-bold text-lg">${item.title}</h4>
-          <p class="text-sm font-light opacity-80">${item.category}</p>
-          ${tagsHtml}
-        </div>
-        <div class="card-actions">
-            <button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="hover:bg-blue-100 text-blue-600" title="Editar"><i class="fas fa-pencil-alt text-xs"></i></button>
-            <button onclick="event.stopPropagation(); deleteItem('${item.id}')" class="hover:bg-red-100 text-red-600" title="Eliminar"><i class="fas fa-trash-alt text-xs"></i></button>
-        </div>
-        <div class="card-drag-handle" title="Arrastrar para reordenar">
-            <i class="fas fa-grip-vertical"></i>
-        </div>
-      </div>
-    `;
+        cardInnerHtml = `
+          <div class="card-preview-container is-text-based group relative w-full h-full bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+            ${previewContentHtml}
+            <div class="card-content flex flex-col items-center justify-center text-center p-6">
+              ${iconHtml}
+              <h4 class="font-bold text-lg text-gray-800 dark:text-white">${item.title}</h4>
+              <p class="text-sm text-gray-500 dark:text-gray-400 mb-8">${item.category}</p>
+              ${tagsHtml}
+            </div>
+            <div class="card-actions">
+                <button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="hover:bg-blue-100 text-blue-600" title="Editar"><i class="fas fa-pencil-alt text-xs"></i></button>
+                <button onclick="event.stopPropagation(); deleteItem('${item.id}')" class="hover:bg-red-100 text-red-600" title="Eliminar"><i class="fas fa-trash-alt text-xs"></i></button>
+            </div>
+            <div class="card-drag-handle" title="Arrastrar para reordenar">
+                <i class="fas fa-grip-vertical"></i>
+            </div>
+          </div>
+        `;
+    } else {
+        // --- VISTA PARA LINKS Y BUSCADORES (VISTA PREVIA PERMANENTE) ---
+        const previewUrl = getPreviewUrl(item);
+        const previewStyle = previewUrl ? `style="background-image: url('${previewUrl}')"` : 'style="background-color: #4a5568;"';
+        const iconHtml = getIconHtml(item, 'text-2xl');
+        const tagsHtml = item.tags && item.tags.length > 0 ? 
+            `<div class="card-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : '';
+
+        cardInnerHtml = `
+          <div class="card-preview-container group relative w-full h-full bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+            <div class="card-background-preview" ${previewStyle}></div>
+            <div class="absolute top-3 left-3 bg-black/30 p-2 rounded-full backdrop-blur-sm">${iconHtml}</div>
+            <div class="card-content text-left">
+              <h4 class="font-bold text-lg">${item.title}</h4>
+              <p class="text-sm font-light opacity-80">${item.category}</p>
+              ${tagsHtml}
+            </div>
+            <div class="card-actions">
+                <button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="hover:bg-blue-100 text-blue-600" title="Editar"><i class="fas fa-pencil-alt text-xs"></i></button>
+                <button onclick="event.stopPropagation(); deleteItem('${item.id}')" class="hover:bg-red-100 text-red-600" title="Eliminar"><i class="fas fa-trash-alt text-xs"></i></button>
+            </div>
+            <div class="card-drag-handle" title="Arrastrar para reordenar">
+                <i class="fas fa-grip-vertical"></i>
+            </div>
+          </div>
+        `;
+    }
     
-    cardWrapper.innerHTML = cardHtml;
+    cardWrapper.innerHTML = cardInnerHtml;
     cardWrapper.querySelector('.card-preview-container').addEventListener('click', () => handleCardClick(String(item.id)));
     return cardWrapper;
 }
@@ -746,7 +787,7 @@ function createChipItem(item) {
         </div>
          <div class="card-drag-handle absolute left-0 top-0 bottom-0 w-6" title="Arrastrar para reordenar"></div>
     `;
-    chipWrapper.addEventListener('mouseenter', () => showPreviewModal(item));
+    chipWrapper.addEventListener('mouseenter', (e) => showPreviewModal(item, e.currentTarget));
     chipWrapper.addEventListener('mouseleave', hidePreviewModal);
     chipWrapper.addEventListener('click', () => handleCardClick(String(item.id)));
     return chipWrapper;
@@ -776,6 +817,26 @@ function getIconHtml(item, sizeClass = 'text-5xl') {
         }
     } else {
         return `<i class="${defaultIconClass} ${sizeClass} text-teal-500"></i>`;
+    }
+}
+
+function getPreviewHtml(item) {
+    const isTextPreview = ['Promp', 'Nota', 'Tarea'].includes(item.type);
+
+    if (isTextPreview) {
+        let textContent = '';
+        if (item.type === 'Tarea' && Array.isArray(item.action)) {
+            textContent = item.action.map(task => `<span>${task.status ? '✅' : '⬜️'} ${task.text}</span>`).join('<br>');
+        } else if (typeof item.action === 'string') {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = item.action;
+            textContent = tempDiv.innerHTML;
+        }
+        return `<div class="card-preview text-preview"><div class="scrolling-text">${textContent}</div></div>`;
+    } else {
+        let previewUrl = getPreviewUrl(item);
+        const previewStyle = previewUrl ? `style="background-image: url('${previewUrl}')"` : '';
+        return `<div class="card-preview" ${previewStyle}></div>`;
     }
 }
 
@@ -1288,12 +1349,15 @@ function getIconHtml(item, sizeClass = 'text-5xl') {
 }
 
 // --- PREVIEW MODAL FUNCTIONS ---
-function showPreviewModal(item) {
+function showPreviewModal(item, element) {
     const modal = document.getElementById('imagePreviewModal');
     const img = document.getElementById('imagePreviewSrc');
     let previewUrl = getPreviewUrl(item);
     if (previewUrl) {
         img.src = previewUrl;
+        const rect = element.getBoundingClientRect();
+        modal.style.top = `${rect.bottom + 10}px`;
+        modal.style.left = `${rect.left}px`;
         modal.classList.remove('hidden');
     }
 }
