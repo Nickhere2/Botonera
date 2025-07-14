@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Centro de Accesos - Xeneize</title>
+  <title>Centro de Accesos v12</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&display=swap" rel="stylesheet">
@@ -11,77 +11,30 @@
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
   <style>
     /* --- TEMAS DE COLORES --- */
-    :root { --boca-blue: #003366; --boca-gold: #FFCC00; }
-    
-    /* --- TEMA POR DEFECTO (CLARO) --- */
-    body { --theme-color: #0d9488; --theme-color-hover: #0f766e; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f0f2f5;color:#333;transition:background-color .3s,color .3s}
-    .main-layout { display: grid; grid-template-columns: auto 1fr; height: 100vh; }
-    .sidebar-nav { background-color: #e5e7eb; border-right: 1px solid #d1d5db; }
-    .sidebar-nav .nav-link { color: #4b5563; }
-    .sidebar-nav .nav-link.active { color: var(--theme-color); }
-    .main-content { background-color: #f9fafb; }
-    .category-title { color: #1f2937; }
-    .filter-btn { background-color: #e5e7eb; }
-    .filter-btn.active { background-color: var(--theme-color); color: white; }
-    .card-preview-container, .list-item-container, .chip-item-container { background-color: white; }
-    .card-content .text-gray-800 { color: #1f2937; }
-    .card-content .text-gray-500 { color: #6b7280; }
-    .tag { background-color: #e5e7eb; color: #4b5563; }
-    .modal-content { background: white; }
+    :root { --theme-color: #0d9488; --theme-color-hover: #0f766e; }
+    body.theme-blue { --theme-color: #2563eb; --theme-color-hover: #1d4ed8; }
+    body.theme-indigo { --theme-color: #4f46e5; --theme-color-hover: #4338ca; }
+    body.theme-rose { --theme-color: #e11d48; --theme-color-hover: #be123c; }
 
-    /* --- TEMA OSCURO --- */
-    body.dark{background-color:#121212;color:#ddd; --theme-color: #5eead4; --theme-color-hover: #2dd4bf;}
-    body.dark .sidebar-nav {background-color:#1e1e1e; border-color:rgba(255,255,255,0.1)}
-    body.dark .main-content { background-color: #121212; }
+    /* --- ESTILOS GENERALES Y MODO OSCURO --- */
+    body{font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;background-color:#f0f2f5;color:#333;transition:background-color .3s,color .3s}
+    body.dark{background-color:#121212;color:#ddd}
+    body.dark .bg-white{background-color:#1e1e1e;color:#ddd;border-color:rgba(255,255,255,0.1)}
     body.dark input,body.dark select,body.dark textarea, body.dark .rich-text-editor{background-color:#2a2a2a;color:#ddd;border-color:#444}
     body.dark .filter-btn{background-color:#3a3a3a;color:#ddd}
-    body.dark .filter-btn.active{background-color:var(--theme-color);color:black}
+    body.dark .filter-btn.active{background-color:var(--theme-color);color:#fff}
     body.dark #editPanel,body.dark .modal-content, body.dark #tagFilterPanel, body.dark #search-palette{background-color:rgba(30,30,30,.97);backdrop-filter:blur(4px)}
     body.dark #noteModal, body.dark #taskModal, body.dark #search-palette-overlay{background-color:rgba(0,0,0,.7)}
+    body.dark .sticky-header{background-color:rgba(18,18,18,0.85);backdrop-filter:blur(10px);border-bottom-color:rgba(255,255,255,0.1)}
     body.dark .category-title{color:#e5e7eb}
-    body.dark .nav-link { color: #9ca3af; }
-    body.dark .nav-link.active { color: var(--theme-color); }
-    body.dark .card-preview-container, body.dark .list-item-container, body.dark .chip-item-container { background-color: #1f2937; }
-    body.dark .card-content .text-gray-800 { color: white; }
-    body.dark .card-content .text-gray-500 { color: #9ca3af; }
-    body.dark .tag { background-color: #374151; color: #d1d5db; }
-
-    /* --- TEMA BOCA JUNIORS --- */
-    body.theme-boca {
-        background: linear-gradient(135deg, #0c1a2e, #001f4d);
-        color: #e5e7eb;
-        --theme-color: var(--boca-gold);
-        --theme-color-hover: #e6b800;
-    }
-    body.theme-boca .sidebar-nav {
-        background-color: rgba(0, 25, 77, 0.5);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        border-right: 1px solid rgba(255, 204, 0, 0.2);
-    }
-    body.theme-boca .main-content { background-color: transparent; }
-    body.theme-boca .nav-link { color: white; }
-    body.theme-boca .nav-link.active .franja-bg { left: 0; }
-    body.theme-boca .nav-link.active .icon, body.theme-boca .nav-link.active .text { color: var(--boca-blue); }
-    body.theme-boca .category-title { color: white; }
-    body.theme-boca .filter-btn { background-color: rgba(255,255,255,0.1); color: #ccc; }
-    body.theme-boca .filter-btn.active { background-color: var(--boca-gold); color: var(--boca-blue); }
-    body.theme-boca .card-preview-container, body.theme-boca .list-item-container, body.theme-boca .chip-item-container {
-        background-color: rgba(0, 40, 85, 0.4);
-        border: 1px solid rgba(255, 204, 0, 0.15);
-        backdrop-filter: blur(5px);
-    }
-    body.theme-boca .card-content .text-gray-800 { color: white; }
-    body.theme-boca .card-content .text-gray-500 { color: #ccc; }
-    body.theme-boca .tag { background-color: rgba(0, 51, 102, 0.8); color: var(--boca-gold); border: 1px solid var(--boca-gold); }
     
-    /* --- Estilos Comunes para Sidebar, Tarjetas, etc. --- */
-    .sidebar-nav { transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1); width: 80px; overflow: hidden; }
-    .sidebar-nav:hover { width: 256px; }
-    .sidebar-nav .nav-link { position: relative; overflow: hidden; display: flex; align-items: center; height: 56px; padding: 0 24px; border-radius: 8px; transition: background-color 0.2s ease; }
-    .sidebar-nav .nav-link .franja-bg { position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background-color: var(--boca-gold); transition: left 0.4s ease; z-index: 0; border-radius: 8px; }
-    .sidebar-nav .icon { width: 32px; font-size: 1.25rem; transition: color 0.3s ease; position: relative; z-index: 1; }
-    .sidebar-nav .text { margin-left: 1rem; font-weight: 600; white-space: nowrap; transition: color 0.3s ease; position: relative; z-index: 1; }
+    /* --- CABECERA Y NAVEGACIÓN --- */
+    .sticky-header{position:sticky;top:0;z-index:999;background-color:rgba(240,242,245,0.85);backdrop-filter:blur(10px);border-bottom:1px solid #ddd;padding:0.5rem 0}
+    main{padding-top:1rem}
+    .nav-btn{transition:all .2s ease;position:relative;color:#4b5563;font-weight:600;padding:0.5rem 0.75rem;border-radius:8px}
+    .nav-btn.active{color:var(--theme-color)}
+    
+    /* --- DISEÑO DE TARJETA Y LISTA --- */
     .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
     .list-view { display: flex; flex-direction: column; gap: 0.75rem; }
     .chip-view { display: flex; flex-wrap: wrap; gap: 0.5rem; }
@@ -110,11 +63,13 @@
     
     .card-actions { top: 0.5rem; right: 0.5rem; display: flex; gap: 0.25rem; }
     .card-actions button { width: 24px; height: 24px; border-radius: 9999px; background-color: rgba(255, 255, 255, 0.8); font-size: 10px; color: #333; }
-    body.dark .card-actions button, body.theme-boca .card-actions button { background-color: rgba(30, 30, 30, 0.8); color: #ddd; }
+    body.dark .card-actions button { background-color: rgba(30, 30, 30, 0.8); color: #ddd; }
     .card-drag-handle { top: 0.5rem; left: 0.5rem; cursor: move; color: rgba(255,255,255,0.7); text-shadow: 0 1px 2px #000; }
     .card-tags { display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: flex-start; margin-top: 0.5rem; }
+    .tag { background-color:rgba(255,255,255,0.2); color:white; padding: 2px 8px; border-radius: 9999px; font-size: 0.7rem; font-weight: 500; }
     .category-title-container{display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;border-bottom:1px solid #e5e7eb;padding-bottom:0.5rem}
     body.dark .category-title-container{border-color:rgba(255,255,255,0.1)}
+    .category-title{font-size:1.25rem;font-weight:600;letter-spacing:-0.02em;color:#1f2937; cursor: pointer;}
     .card-preview.text-preview { display: flex; padding: 1.5rem; background-color: #fff; color: #333; overflow: hidden; }
     body.dark .card-preview.text-preview { background-color: #1e1e1e; color: #ddd; }
     .scrolling-text { text-align: left; white-space: pre-wrap; font-size: 0.875rem; line-height: 1.5; animation: none; }
@@ -163,8 +118,6 @@
     body.dark .modal-task-item .task-text[contenteditable]:focus { background: #2a2a2a; }
   </style>
 </head>
-<body class="theme-boca">
-
 <body class="min-h-screen theme-default">
   
   <header class="sticky-header">
@@ -1436,5 +1389,4 @@ function getPreviewUrl(item) {
 
 </script>
 </body>
-</html>
 </html>
