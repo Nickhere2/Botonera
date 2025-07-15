@@ -52,8 +52,8 @@
     .card-preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 0.3s ease-in-out; background-size: cover; background-position: center; border-radius: 0.75rem; }
     .card-preview-container.is-text-based:hover .card-preview { opacity: 1; }
     
-    .card-background-preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; border-radius: 0.75rem; }
-    .card-background-preview::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 50%); }
+    .card-background-preview { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: cover; background-position: center; }
+    .card-background-preview::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 60%); }
     
     .card-icon-image { width: 48px; height: 48px; object-fit: contain; }
     .card-actions, .card-drag-handle { position: absolute; opacity: 0; transition: opacity 0.2s ease-in-out; z-index: 10; }
@@ -438,7 +438,13 @@ async function saveData() {
         const response = await fetch(`https://api.github.com/gists/${gistId}`, {
             method: 'PATCH',
             headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
-            body: JSON.stringify(dataToSave, null, 2)
+            body: JSON.stringify({
+                files: {
+                    [FILENAME_IN_GIST]: {
+                        content: JSON.stringify(dataToSave, null, 2)
+                    }
+                }
+            })
         });
         if (!response.ok) throw new Error(`Error al guardar: ${response.status}`);
         showToast("Cambios guardados.");
@@ -682,8 +688,8 @@ function createCard(item) {
             ${previewContentHtml}
             <div class="card-content flex flex-col items-center justify-center text-center p-6">
               ${iconHtml}
-              <h4 class="font-bold text-lg text-gray-800 dark:text-white">${item.title}</h4>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mb-8">${item.category}</p>
+              <h4 class="font-bold text-lg text-gray-800 dark:text-white mt-2">${item.title}</h4>
+              <p class="text-sm text-gray-500 dark:text-gray-400">${item.category}</p>
               ${tagsHtml}
             </div>
             <div class="card-actions">
@@ -696,21 +702,25 @@ function createCard(item) {
           </div>
         `;
     } else {
-        // --- VISTA PARA LINKS Y BUSCADORES (VISTA PREVIA PERMANENTE) ---
+        // --- VISTA PARA LINKS Y BUSCADORES (VISTA PREVIA PERMANENTE) - DISEÑO MEJORADO ---
         const previewUrl = getPreviewUrl(item);
         const previewStyle = previewUrl ? `style="background-image: url('${previewUrl}')"` : 'style="background-color: #4a5568;"';
-        const iconHtml = getIconHtml(item, 'text-2xl');
+        const iconHtml = getIconHtml(item); // Usa el tamaño por defecto de card-icon-image (48px)
         const tagsHtml = item.tags && item.tags.length > 0 ? 
             `<div class="card-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : '';
 
         cardInnerHtml = `
-          <div class="card-preview-container group relative w-full h-full bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+          <div class="card-preview-container group relative w-full h-full bg-gray-700 dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden">
             <div class="card-background-preview" ${previewStyle}></div>
-            <div class="absolute top-3 left-3 bg-black/30 p-2 rounded-full backdrop-blur-sm">${iconHtml}</div>
-            <div class="card-content text-left">
-              <h4 class="font-bold text-lg">${item.title}</h4>
-              <p class="text-sm font-light opacity-80">${item.category}</p>
-              ${tagsHtml}
+            <div class="absolute bottom-0 left-0 right-0 p-4">
+                <div class="flex items-center gap-3">
+                    <div class="flex-shrink-0 bg-black/30 p-2 rounded-lg backdrop-blur-sm">${iconHtml}</div>
+                    <div class="flex-grow overflow-hidden">
+                        <h4 class="font-bold text-lg text-white truncate" style="text-shadow: 1px 1px 3px #000;">${item.title}</h4>
+                        <p class="text-sm font-light text-white opacity-80" style="text-shadow: 1px 1px 2px #000;">${item.category}</p>
+                    </div>
+                </div>
+                ${tagsHtml}
             </div>
             <div class="card-actions">
                 <button onclick="event.stopPropagation(); openEditPanel('${item.id}')" class="hover:bg-blue-100 text-blue-600" title="Editar"><i class="fas fa-pencil-alt text-xs"></i></button>
@@ -750,7 +760,7 @@ function createListItem(item) {
             </div>
             <p class="text-xs text-gray-500 dark:text-gray-400 ml-11">${item.category}</p>
             <div class="mt-auto pt-2 flex flex-wrap gap-1 ml-11">
-                ${(item.tags || []).map(tag => `<span class="tag">${tag}</span>`).join('')}
+                ${(item.tags || []).map(tag => `<span class="tag text-gray-800 dark:text-white bg-gray-200 dark:bg-gray-700">${tag}</span>`).join('')}
             </div>
         </div>
         ${previewHtml}
@@ -794,29 +804,32 @@ function createChipItem(item) {
 }
 
 
-function getIconHtml(item, sizeClass = 'text-5xl') {
+function getIconHtml(item, sizeClass = '') {
     const iconValue = item.icon || '';
     const defaultIconClass = { 
         Buscador: "fas fa-search", Link: "fas fa-link", Promp: "fas fa-brain", 
         Nota: "fas fa-sticky-note", Tarea: "fas fa-tasks" 
     }[item.type] || 'fas fa-question-circle';
 
+    // Para las tarjetas con fondo, el ícono es blanco. Para las de texto, es color tema.
+    const colorClass = ['Link', 'Buscador'].includes(item.type) ? 'text-white' : 'text-teal-500';
+
     if (iconValue) {
         if (iconValue.startsWith('http') || iconValue.startsWith('imagenes/')) {
             const fullUrl = iconValue.startsWith('http') ? iconValue : imageBasePath + iconValue;
-            return `<img src="${fullUrl}" alt="Icono" class="card-icon-image" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} ${sizeClass} text-teal-500\\'></i>'">`;
+            return `<img src="${fullUrl}" alt="Icono" class="card-icon-image" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} ${sizeClass || 'text-4xl'} ${colorClass}\\'></i>'">`;
         } else {
-            return `<i class="${iconValue} ${sizeClass} text-teal-500"></i>`;
+            return `<i class="${iconValue} ${sizeClass || 'text-4xl'} ${colorClass}"></i>`;
         }
     } else if (item.type === 'Link' || item.type === 'Buscador') {
         try {
             const domain = new URL(item.action).hostname;
-            return `<img src="https://icon.horse/icon/${domain}" alt="Icono" class="card-icon-image" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} ${sizeClass} text-teal-500\\'></i>'">`;
+            return `<img src="https://icon.horse/icon/${domain}" alt="Icono" class="card-icon-image" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} ${sizeClass || 'text-4xl'} ${colorClass}\\'></i>'">`;
         } catch (e) {
-            return `<i class="${defaultIconClass} ${sizeClass} text-teal-500"></i>`;
+            return `<i class="${defaultIconClass} ${sizeClass || 'text-4xl'} ${colorClass}"></i>`;
         }
     } else {
-        return `<i class="${defaultIconClass} ${sizeClass} text-teal-500"></i>`;
+        return `<i class="${defaultIconClass} ${sizeClass || 'text-5xl'} ${colorClass}"></i>`;
     }
 }
 
@@ -926,9 +939,12 @@ function openEditPanel(itemId = null) {
             document.getElementById('editItemId').value = item.id;
             document.getElementById('newTitle').value = item.title;
             
-            if (item.type === 'Nota' || item.type === 'Tarea') {
+            if (item.type === 'Nota' || (item.type === 'Tarea' && typeof item.action === 'string')) {
                 document.getElementById('newActionRich').innerHTML = item.action;
                 document.getElementById('newActionText').value = '';
+            } else if (item.type === 'Tarea' && Array.isArray(item.action)) {
+                 document.getElementById('newActionRich').innerHTML = item.action.map(t => `<div>${t.text}</div>`).join('');
+                 document.getElementById('newActionText').value = '';
             } else {
                 document.getElementById('newActionText').value = item.action;
                 document.getElementById('newActionRich').innerHTML = '';
@@ -963,8 +979,13 @@ function handleSaveItem(event) {
     const type = document.getElementById("newType").value;
     let action;
 
-    if (type === 'Nota' || type === 'Tarea') {
+    if (type === 'Nota') {
         action = document.getElementById('newActionRich').innerHTML;
+    } else if (type === 'Tarea') {
+        // Para Tareas, siempre guardamos como array de objetos
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = document.getElementById('newActionRich').innerHTML;
+        action = Array.from(tempDiv.children).map(child => ({ text: child.textContent, status: false }));
     } else {
         action = document.getElementById('newActionText').value;
     }
@@ -1009,7 +1030,7 @@ function updateEditFormFields(type) {
         richTextToolbar.classList.remove('hidden');
         richTextEditor.classList.remove('hidden');
         plainTextEditor.classList.add('hidden');
-        actionLabel.textContent = type === 'Nota' ? 'Contenido de la Nota' : 'Contenido de la Tarea';
+        actionLabel.textContent = type === 'Nota' ? 'Contenido de la Nota' : 'Lista de Tareas (una por línea)';
     } else {
         richTextToolbar.classList.add('hidden');
         richTextEditor.classList.add('hidden');
@@ -1322,32 +1343,6 @@ function renderSearchPaletteResults(results) {
     }
 }
 
-function getIconHtml(item, sizeClass = 'text-5xl') {
-    const iconValue = item.icon || '';
-    const defaultIconClass = { 
-        Buscador: "fas fa-search", Link: "fas fa-link", Promp: "fas fa-brain", 
-        Nota: "fas fa-sticky-note", Tarea: "fas fa-tasks" 
-    }[item.type] || 'fas fa-question-circle';
-
-    if (iconValue) {
-        if (iconValue.startsWith('http') || iconValue.startsWith('imagenes/')) {
-            const fullUrl = iconValue.startsWith('http') ? iconValue : imageBasePath + iconValue;
-            return `<img src="${fullUrl}" alt="Icono" class="card-icon-image" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} ${sizeClass} text-teal-500\\'></i>'">`;
-        } else {
-            return `<i class="${iconValue} ${sizeClass} text-teal-500"></i>`;
-        }
-    } else if (item.type === 'Link' || item.type === 'Buscador') {
-        try {
-            const domain = new URL(item.action).hostname;
-            return `<img src="https://icon.horse/icon/${domain}" alt="Icono" class="card-icon-image" onerror="this.onerror=null; this.outerHTML='<i class=\\'${defaultIconClass} ${sizeClass} text-teal-500\\'></i>'">`;
-        } catch (e) {
-            return `<i class="${defaultIconClass} ${sizeClass} text-teal-500"></i>`;
-        }
-    } else {
-        return `<i class="${defaultIconClass} ${sizeClass} text-teal-500"></i>`;
-    }
-}
-
 // --- PREVIEW MODAL FUNCTIONS ---
 function showPreviewModal(item, element) {
     const modal = document.getElementById('imagePreviewModal');
@@ -1366,25 +1361,6 @@ function hidePreviewModal() {
     const modal = document.getElementById('imagePreviewModal');
     modal.classList.add('hidden');
     document.getElementById('imagePreviewSrc').src = '';
-}
-
-function getPreviewUrl(item) {
-    const isTextPreview = ['Promp', 'Nota', 'Tarea'].includes(item.type);
-    if (isTextPreview) return null;
-
-    let url = item.previewUrl;
-    if (url && !url.startsWith('http')) {
-        url = imageBasePath + url;
-    }
-    if (!url) {
-        try {
-            new URL(item.action); 
-            url = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=800`;
-        } catch(e) {
-            url = '';
-        }
-    }
-    return url;
 }
 
 </script>
