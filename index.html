@@ -199,7 +199,6 @@
         #global-search-container {
             border: var(--border-width) solid var(--text-color);
             padding: 1rem;
-            margin-top: auto; /* Pushes to the bottom */
             transition: all 0.3s ease;
         }
         #global-search-tags {
@@ -287,8 +286,18 @@
     <div class="flex h-screen">
         <!-- Barra Lateral de Navegación -->
         <aside class="w-64 brutalist-sidebar p-6 flex-shrink-0 flex flex-col">
-            <!-- Logo Principal -->
-            <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-10 w-10 object-contain mb-12">
+            <!-- Contenedor de Logo y Búsqueda -->
+            <div id="logo-search-wrapper" class="mb-8 flex flex-col items-center justify-center" style="min-height: 8rem;">
+                <!-- Logo Principal -->
+                <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" id="sidebar-logo" class="w-32 h-32 object-contain cursor-pointer">
+                
+                <!-- Barra de Filtro Global (inicialmente oculta) -->
+                <div id="global-search-container" class="hidden w-full">
+                    <input type="text" id="global-search-input" placeholder="FILTRAR..." class="brutalist-input w-full">
+                    <div id="global-search-tags" class="flex flex-wrap gap-2"></div>
+                </div>
+            </div>
+
             <nav id="main-nav" class="space-y-4">
                 <a href="#" data-section="buscadores" class="nav-link active block px-4 py-3"><i class="fas fa-search w-5 mr-2"></i><span>BUSCADORES</span></a>
                 <a href="#" data-section="links" class="nav-link block px-4 py-3"><i class="fas fa-link w-5 mr-2"></i><span>LINKS</span></a>
@@ -296,11 +305,6 @@
                 <a href="#" data-section="notes" class="nav-link block px-4 py-3"><i class="fas fa-sticky-note w-5 mr-2"></i><span>NOTAS</span></a>
                 <a href="#" data-section="tasks" class="nav-link block px-4 py-3"><i class="fas fa-tasks w-5 mr-2"></i><span>TAREAS</span></a>
             </nav>
-            <!-- Barra de Filtro Global -->
-            <div id="global-search-container" class="mt-auto">
-                <input type="text" id="global-search-input" placeholder="FILTRAR..." class="brutalist-input w-full">
-                <div id="global-search-tags" class="flex flex-wrap gap-2"></div>
-            </div>
         </aside>
 
         <!-- Contenido Principal -->
@@ -320,25 +324,6 @@
                 </div>
             </header>
             
-            <!-- Barra de Búsqueda Rápida (Solo en Buscadores) -->
-            <div id="main-search-bar" class="brutalist-card !h-auto p-6 lg:col-span-2 flex flex-col gap-4 mb-8">
-                <div class="flex items-center gap-3">
-                    <i id="search-bar-icon" class="fab fa-google text-2xl"></i>
-                    <h4 id="search-bar-title" class="text-xl font-bold">BUSQUEDA RAPIDA</h4>
-                </div>
-                <div class="flex">
-                    <input type="text" id="searchInput" list="searchSuggestions" placeholder="INGRESAR BUSQUEDA..." class="brutalist-input flex-grow">
-                    <div class="relative">
-                        <button id="dropdownToggle" class="brutalist-button h-full px-4 ml-[-3px]"><i class="fas fa-chevron-down"></i></button>
-                        <div id="searchEngineDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white border-2 border-slate-900 z-10">
-                            <!-- Opciones se insertan aquí -->
-                        </div>
-                    </div>
-                </div>
-                <datalist id="searchSuggestions"></datalist>
-                <button id="searchButton" class="brutalist-button w-full py-3">BUSCAR</button>
-            </div>
-
             <!-- Contenedores de Secciones -->
             <div id="section-buscadores" class="section space-y-8"></div>
             <div id="section-links" class="section hidden space-y-8"></div>
@@ -460,11 +445,13 @@
                 </div>
                 <div>
                     <h3 class="font-bold text-lg mb-2 uppercase">¿Cómo Funciona?</h3>
-                    <p class="mb-2">Este es un centro de accesos personalizable para organizar tus links, buscadores, notas y más, con una estética brutalista.</p>
+                     <div class="flex items-center gap-4 mb-2">
+                        <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-12 w-12 object-contain">
+                        <p>Este es un centro de accesos personalizable para organizar tus links, buscadores, notas y más.</p>
+                    </div>
                     <ul class="list-disc list-inside space-y-2">
                         <li><strong>Conexión de Datos:</strong> La aplicación se conecta a un Gist de GitHub para guardar tus datos. La primera vez, se te pedirá un Gist ID. Para guardar cambios, necesitarás un Personal Access Token (PAT) de GitHub con el permiso <code>gist</code>.</li>
                         <li><strong>Gestión de Categorías:</strong> Usa los botones que aparecen al pasar el ratón sobre un título de categoría para editarla o eliminarla. Para añadir una nueva, haz clic en "Nueva Categoría" o asigna un nombre de categoría nuevo al crear o editar un elemento.</li>
-                        <li><strong>Búsqueda Rápida:</strong> En la sección de Buscadores, selecciona un motor de búsqueda del menú desplegable y realiza búsquedas rápidamente.</li>
                         <li><strong>Filtro Global:</strong> Usa la barra de filtro en el menú lateral para buscar elementos por título o etiqueta en la sección actual. Haz clic para expandirla y ver los filtros de etiquetas.</li>
                     </ul>
                 </div>
@@ -478,7 +465,6 @@
 // --- CONFIG & GLOBAL STATE ---
 const FILENAME_IN_GIST = 'Botones.json';
 let data = [];
-let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
 
 const views = ['grid', 'list', 'chip'];
 let currentViewIndex = views.indexOf(localStorage.getItem('globalView') || 'grid');
@@ -611,12 +597,6 @@ function setupEventListeners() {
         });
     });
 
-    document.querySelector("#searchButton").addEventListener("click", performSearch);
-    document.querySelector("#searchInput").addEventListener("keypress", e => { if (e.key === 'Enter') performSearch(); });
-    document.getElementById('dropdownToggle').addEventListener('click', () => {
-        document.getElementById('searchEngineDropdown').classList.toggle('hidden');
-    });
-
     // Global View Switcher
     document.getElementById('global-view-switcher').addEventListener('click', (e) => {
         const button = e.target.closest('button');
@@ -630,10 +610,22 @@ function setupEventListeners() {
     // Global Filter Listeners
     const globalSearchInput = document.getElementById('global-search-input');
     const globalSearchContainer = document.getElementById('global-search-container');
+    const sidebarLogo = document.getElementById('sidebar-logo');
+    
     globalSearchInput.addEventListener('input', applyGlobalFilter);
-    globalSearchInput.addEventListener('focus', () => globalSearchContainer.classList.add('expanded'));
+    
+    sidebarLogo.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sidebarLogo.classList.add('hidden');
+        globalSearchContainer.classList.remove('hidden');
+        globalSearchInput.focus();
+        globalSearchContainer.classList.add('expanded');
+    });
+
     document.addEventListener('click', (e) => {
         if (!globalSearchContainer.contains(e.target)) {
+            globalSearchContainer.classList.add('hidden');
+            sidebarLogo.classList.remove('hidden');
             globalSearchContainer.classList.remove('expanded');
         }
     });
@@ -651,7 +643,7 @@ function setupEventListeners() {
             switch(e.key) {
                 case 'b':
                     e.preventDefault();
-                    document.getElementById('global-search-input').focus();
+                    sidebarLogo.click();
                     break;
                 case 'n':
                     e.preventDefault();
@@ -687,7 +679,6 @@ function initializeUI() {
 function refreshUI(sectionName) {
     const activeSection = sectionName || document.querySelector('#main-nav .active').dataset.section;
     applyGlobalFilter(); // This will re-render the section with current filters
-    populateSearchEngineDropdown();
     populateGlobalFilterTags();
 }
 
@@ -698,12 +689,21 @@ function switchTab(tabName) {
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
     const activeSection = document.querySelector(`#section-${tabName}`);
     activeSection.classList.remove("hidden");
-    document.getElementById('main-search-bar').style.display = (tabName === 'buscadores') ? 'flex' : 'none';
+    
     refreshUI(tabName);
-    updateSearchSuggestions();
 }
 
 // --- RENDERING ---
+function getIconHtml(icon, sizeClass = 'text-4xl') {
+    if (!icon) {
+        return `<i class="fas fa-question-circle ${sizeClass}"></i>`;
+    }
+    if (icon.startsWith('http')) {
+        return `<img src="${icon}" class="w-10 h-10 object-contain" alt="Icon">`;
+    }
+    return `<i class="${icon} ${sizeClass}"></i>`;
+}
+
 function renderSection(sectionName, itemsToRender) {
     document.querySelectorAll('#global-view-switcher button').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.view === globalView);
@@ -798,7 +798,7 @@ function createCard(item) {
     card.className = 'brutalist-card p-6';
     card.dataset.id = item.id;
     
-    const iconHtml = `<i class="${item.icon || 'fas fa-question-circle'} text-4xl sm:text-6xl mb-3"></i>`;
+    const iconHtml = getIconHtml(item.icon, 'text-6xl mb-3');
     const titleHtml = `<h4 class="font-bold text-lg uppercase">${item.title}</h4>`;
     const categoryHtml = `<p class="text-sm">CATEGORIA: ${item.category}</p>`;
     const tagsHtml = item.tags && item.tags.length > 0
@@ -855,7 +855,7 @@ function createListItem(item) {
         <div class="list-item-overlay"></div>
         <div class="list-item-content flex items-center gap-4 w-full">
             <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
-            <i class="${item.icon || 'fas fa-question-circle'} text-2xl w-8 text-center"></i>
+            <div class="w-8 text-center flex items-center justify-center">${getIconHtml(item.icon, 'text-2xl')}</div>
             <div class="flex-grow">
                 <h4 class="font-bold uppercase">${item.title}</h4>
                 <div class="flex flex-wrap gap-2 mt-1">
@@ -879,7 +879,7 @@ function createChipItem(item) {
     chipItem.dataset.id = item.id;
     chipItem.innerHTML = `
         <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
-        <i class="${item.icon || 'fas fa-question-circle'}"></i>
+        ${getIconHtml(item.icon, 'text-base')}
         <span class="font-bold uppercase">${item.title}</span>
     `;
     chipItem.addEventListener('click', (e) => handleCardClick(item.id, e));
@@ -901,67 +901,15 @@ function handleCardClick(id, event) {
     if (item.type === "Link") {
         window.open(item.action, "_blank");
     } else if (item.type === "Buscador") {
-        selectSearchEngine(item);
+        const searchTerm = prompt(`Buscar en ${item.title}:`);
+        if (searchTerm) {
+             window.open(item.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
+        }
     } else if (item.type === "Promp") {
         navigator.clipboard.writeText(item.action).then(() => showToast("PROMPT COPIADO."));
     } else {
         openEditPanel(id);
     }
-}
-
-function performSearch() {
-    const searchTerm = document.getElementById("searchInput").value.trim();
-    if (!searchTerm) return;
-    if (!searchHistory.includes(searchTerm)) {
-        searchHistory.push(searchTerm);
-        localStorage.setItem("searchHistory", JSON.stringify(searchHistory));
-        updateSearchSuggestions();
-    }
-    const engineTitle = document.getElementById("search-bar-title").textContent;
-    const engine = data.find(item => item.type === "Buscador" && item.title.toUpperCase() === engineTitle);
-    
-    if (engine) {
-        window.open(engine.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
-    } else {
-        const firstEngine = data.find(item => item.type === "Buscador");
-        if (firstEngine) {
-            window.open(firstEngine.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
-        } else {
-            showToast("NO HAY BUSCADORES CONFIGURADOS");
-        }
-    }
-}
-
-function selectSearchEngine(engine) {
-    if (!engine || engine.type !== 'Buscador') return;
-    const searchBar = document.getElementById('main-search-bar');
-    searchBar.querySelector('#search-bar-title').textContent = engine.title.toUpperCase();
-    searchBar.querySelector('#search-bar-icon').className = `${engine.icon || 'fas fa-search'} text-2xl`;
-    showToast(`MOTOR SELECCIONADO: ${engine.title}`);
-    document.getElementById('searchEngineDropdown').classList.add("hidden");
-}
-
-function populateSearchEngineDropdown() {
-    const dropdown = document.getElementById("searchEngineDropdown");
-    dropdown.innerHTML = "";
-    const searchEngines = data.filter(item => item.type === "Buscador");
-    if (searchEngines.length === 0) {
-        dropdown.innerHTML = `<div class="p-2 text-gray-500">No hay buscadores</div>`;
-        return;
-    }
-    searchEngines.forEach(engine => {
-        const itemEl = document.createElement("div");
-        itemEl.className = "p-2 hover:bg-yellow-200 cursor-pointer flex items-center gap-2";
-        itemEl.innerHTML = `<i class="${engine.icon}"></i><span>${engine.title}</span>`;
-        itemEl.onclick = (e) => {
-            selectSearchEngine(engine);
-        };
-        dropdown.appendChild(itemEl);
-    });
-}
-
-function updateSearchSuggestions() {
-    document.getElementById("searchSuggestions").innerHTML = searchHistory.map(term => `<option value="${term}"></option>`).join("");
 }
 
 // --- EDIT PANEL ---
@@ -1015,6 +963,7 @@ function handleSaveItem(event) {
     const id = document.getElementById("editItemId").value;
     const type = document.getElementById("newType").value;
     let action;
+    let icon = document.getElementById("newIcon").value.trim();
 
     if (type === 'Nota' || type === 'Promp') {
         action = document.getElementById('newActionRich').innerHTML;
@@ -1026,12 +975,22 @@ function handleSaveItem(event) {
         action = document.getElementById('newActionText').value;
     }
 
+    if (!icon && (type === 'Link' || type === 'Buscador')) {
+        try {
+            const url = new URL(action);
+            const hostname = url.hostname;
+            icon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${hostname}`;
+        } catch (e) {
+            console.error("URL inválida para obtener favicon:", action);
+        }
+    }
+
     const newItemData = {
         title: document.getElementById("newTitle").value.trim(),
         action: action,
         type: type,
         category: document.getElementById("newCategory").value.trim() || 'SIN CATEGORIA',
-        icon: document.getElementById("newIcon").value.trim(),
+        icon: icon,
         tags: document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(Boolean)
     };
   
