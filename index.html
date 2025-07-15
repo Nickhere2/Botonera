@@ -193,9 +193,22 @@
         .fab-action { transform: scale(0); transition: transform .2s ease-in-out; }
         .fab-container.open .fab-action { transform: scale(1); }
 
-        /* --- SEARCH PALETTE --- */
-        #search-palette-overlay { background-color: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1200; }
-        #search-palette { background-color: var(--bg-color); border: var(--border-width) solid var(--text-color); }
+        /* --- GLOBAL SEARCH BAR --- */
+        #global-search-container {
+            border: var(--border-width) solid var(--text-color);
+            padding: 1rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+        #global-search-tags {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out, margin-top 0.3s ease-in-out;
+        }
+        #global-search-container.expanded #global-search-tags {
+            max-height: 200px; /* Adjust as needed */
+            margin-top: 1rem;
+        }
         .filter-tag { border: var(--border-width) solid var(--text-color); cursor: pointer; }
         .filter-tag.active { background-color: var(--accent-color); color: #1e293b; }
         
@@ -299,6 +312,7 @@
                 </div>
             </header>
             
+            <!-- Barra de Búsqueda Rápida (Solo en Buscadores) -->
             <div id="main-search-bar" class="brutalist-card !h-auto p-6 lg:col-span-2 flex flex-col gap-4 mb-8">
                 <div class="flex items-center gap-3">
                     <i id="search-bar-icon" class="fab fa-google text-2xl"></i>
@@ -315,6 +329,12 @@
                 </div>
                 <datalist id="searchSuggestions"></datalist>
                 <button id="searchButton" class="brutalist-button w-full py-3">BUSCAR</button>
+            </div>
+
+            <!-- Barra de Filtro Global -->
+            <div id="global-search-container">
+                <input type="text" id="global-search-input" placeholder="FILTRAR POR TITULO O ETIQUETA..." class="brutalist-input w-full">
+                <div id="global-search-tags" class="flex flex-wrap gap-2"></div>
             </div>
 
             <!-- Contenedores de Secciones -->
@@ -396,19 +416,9 @@
     <div class="fab-container">
         <ul class="fab-actions">
             <li class="fab-action"><button id="fab-help" class="brutalist-button fab-main" title="Ayuda"><i class="fas fa-question"></i></button></li>
-            <li class="fab-action"><button id="fab-search" class="brutalist-button fab-main" title="Buscar"><i class="fas fa-search"></i></button></li>
             <li class="fab-action"><button id="fab-theme" class="brutalist-button fab-main" title="Cambiar Tema"><i class="fas fa-palette"></i></button></li>
         </ul>
         <div class="fab-main brutalist-button"><i class="fas fa-bars"></i></div>
-    </div>
-    
-    <!-- Search Palette -->
-    <div id="search-palette-overlay" class="hidden fixed inset-0 flex items-center justify-center p-4">
-        <div id="search-palette" class="w-full max-w-2xl p-6">
-            <input type="text" id="search-palette-input" placeholder="BUSCAR POR TITULO O ETIQUETA..." class="brutalist-input w-full mb-4">
-            <div id="search-palette-tags" class="flex flex-wrap gap-2 mb-4"></div>
-            <div id="search-palette-results" class="max-h-[50vh] overflow-y-auto"></div>
-        </div>
     </div>
     
     <!-- Preview Modal -->
@@ -439,10 +449,10 @@
                 <div>
                     <h3 class="font-bold text-lg mb-2 uppercase">Atajos de Teclado</h3>
                     <ul class="list-disc list-inside space-y-1">
-                        <li><kbd>Ctrl</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
-                        <li><kbd>Ctrl</kbd> + <kbd>B</kbd> : Abrir paleta de búsqueda</li>
-                        <li><kbd>Ctrl</kbd> + <kbd>T</kbd> : Cambiar tema visual</li>
-                        <li><kbd>Ctrl</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>B</kbd> : Activar barra de búsqueda</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema visual</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
                         <li><kbd>Esc</kbd> : Cerrar paneles y modales</li>
                     </ul>
                 </div>
@@ -453,6 +463,7 @@
                         <li><strong>Conexión de Datos:</strong> La aplicación se conecta a un Gist de GitHub para guardar tus datos. La primera vez, se te pedirá un Gist ID. Para guardar cambios, necesitarás un Personal Access Token (PAT) de GitHub con el permiso <code>gist</code>.</li>
                         <li><strong>Gestión de Categorías:</strong> Usa los botones que aparecen al pasar el ratón sobre un título de categoría para editarla o eliminarla. Para añadir una nueva, haz clic en "Nueva Categoría" o asigna un nombre de categoría nuevo al crear o editar un elemento.</li>
                         <li><strong>Búsqueda Rápida:</strong> En la sección de Buscadores, selecciona un motor de búsqueda del menú desplegable y realiza búsquedas rápidamente.</li>
+                        <li><strong>Filtro Global:</strong> Usa la barra de filtro para buscar elementos por título o etiqueta en la sección actual. Haz clic para expandirla y ver los filtros de etiquetas.</li>
                     </ul>
                 </div>
             </div>
@@ -474,7 +485,7 @@ let globalView = views[currentViewIndex];
 const themes = ['light', 'dark', 'theme-boca'];
 let currentThemeIndex = themes.indexOf(localStorage.getItem('theme') || 'light');
 
-let activeSearchTags = [];
+let activeFilterTags = [];
 
 // --- MOCK DATA (for when Gist is not available) ---
 const mockData = {
@@ -610,34 +621,35 @@ function setupEventListeners() {
         if (button) {
             globalView = button.dataset.view;
             currentViewIndex = views.indexOf(globalView);
-            const activeSection = document.querySelector('#main-nav .active').dataset.section;
-            renderSection(activeSection);
+            refreshUI();
         }
     });
 
-    // Search Palette Listeners
-    const searchPaletteOverlay = document.getElementById('search-palette-overlay');
-    searchPaletteOverlay.addEventListener('click', (e) => {
-        if (e.target === searchPaletteOverlay) closeSearchPalette();
+    // Global Filter Listeners
+    const globalSearchInput = document.getElementById('global-search-input');
+    const globalSearchContainer = document.getElementById('global-search-container');
+    globalSearchInput.addEventListener('input', applyGlobalFilter);
+    globalSearchInput.addEventListener('focus', () => globalSearchContainer.classList.add('expanded'));
+    document.addEventListener('click', (e) => {
+        if (!globalSearchContainer.contains(e.target)) {
+            globalSearchContainer.classList.remove('expanded');
+        }
     });
-    document.getElementById('search-palette-input').addEventListener('input', applySearchPaletteFilters);
     
     // Keyboard Shortcuts
     document.addEventListener('keydown', (e) => {
         const isModalOpen = !document.getElementById('editPanel').classList.contains('hidden') ||
-                              !document.getElementById('search-palette-overlay').classList.contains('hidden') ||
                               !document.getElementById('helpModal').classList.contains('hidden');
 
         if (e.key === 'Escape' && isModalOpen) {
-            closeSearchPalette();
             document.getElementById('editPanel').classList.add('hidden');
             document.getElementById('helpModal').classList.add('hidden');
         }
-        if (e.ctrlKey || e.metaKey) {
+        if ((e.ctrlKey || e.metaKey) && e.altKey) {
             switch(e.key) {
                 case 'b':
                     e.preventDefault();
-                    openSearchPalette();
+                    document.getElementById('global-search-input').focus();
                     break;
                 case 'n':
                     e.preventDefault();
@@ -667,8 +679,14 @@ function setupEventListeners() {
 function initializeUI() {
     if (!data) return;
     applyTheme(themes[currentThemeIndex]);
-    switchTab('buscadores'); // Start on the first tab
+    switchTab('buscadores'); 
+}
+
+function refreshUI(sectionName) {
+    const activeSection = sectionName || document.querySelector('#main-nav .active').dataset.section;
+    applyGlobalFilter(); // This will re-render the section with current filters
     populateSearchEngineDropdown();
+    populateGlobalFilterTags();
 }
 
 function switchTab(tabName) {
@@ -679,12 +697,12 @@ function switchTab(tabName) {
     const activeSection = document.querySelector(`#section-${tabName}`);
     activeSection.classList.remove("hidden");
     document.getElementById('main-search-bar').style.display = (tabName === 'buscadores') ? 'flex' : 'none';
-    renderSection(tabName);
+    refreshUI(tabName);
     updateSearchSuggestions();
 }
 
 // --- RENDERING ---
-function renderSection(sectionName) {
+function renderSection(sectionName, itemsToRender) {
     document.querySelectorAll('#global-view-switcher button').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.view === globalView);
     });
@@ -698,13 +716,17 @@ function renderSection(sectionName) {
     const container = document.getElementById(`section-${sectionName}`);
     container.innerHTML = `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`;
     
-    const items = data.filter(item => item.type === type);
+    const items = itemsToRender || data.filter(item => item.type === type);
     
     const categorized = items.reduce((acc, item) => {
         const category = item.category || 'SIN CATEGORIA';
         (acc[category] = acc[category] || []).push(item);
         return acc;
     }, {});
+
+    if (Object.keys(categorized).length === 0) {
+        container.innerHTML += '<p>No se encontraron resultados para el filtro actual.</p>';
+    }
 
     Object.keys(categorized).sort().forEach(cat => {
         const catDiv = document.createElement('div');
@@ -746,7 +768,7 @@ function renderSection(sectionName) {
                 const item = data.find(d => String(d.id) === itemId);
                 if (item && item.category !== newCategory) {
                     item.category = newCategory;
-                    saveData().then(() => renderSection(sectionName));
+                    saveData().then(() => refreshUI());
                 }
             }
         });
@@ -1022,9 +1044,7 @@ function handleSaveItem(event) {
     }
   
     saveData().then(() => {
-        const activeSection = document.querySelector('#main-nav .active').dataset.section;
-        renderSection(activeSection);
-        populateSearchEngineDropdown();
+        refreshUI();
         document.getElementById("editPanel").classList.add("hidden");
     });
 }
@@ -1064,8 +1084,6 @@ function addCategory() {
             showToast("Esa categoría ya existe.");
             return;
         }
-        // To create a category, we just need to re-render. The logic will pick it up if we add a dummy item.
-        // A better way is to just open the new item panel.
         openEditPanel();
         document.getElementById('newCategory').value = trimmedName;
         showToast(`Creando nuevo elemento en categoría "${trimmedName}"`);
@@ -1086,8 +1104,7 @@ function editCategory(oldName) {
             }
         });
         saveData().then(() => {
-            const activeSection = document.querySelector('#main-nav .active').dataset.section;
-            renderSection(activeSection);
+            refreshUI();
         });
     }
 }
@@ -1105,8 +1122,7 @@ function deleteCategory(categoryName) {
                 }
             });
             saveData().then(() => {
-                const activeSection = document.querySelector('#main-nav .active').dataset.section;
-                renderSection(activeSection);
+                refreshUI();
             });
         }
     });
@@ -1143,9 +1159,7 @@ function deleteItem(id) {
         if (confirmed) {
             data = data.filter(i => String(i.id) !== String(id));
             saveData().then(() => {
-                const activeSection = document.querySelector('#main-nav .active').dataset.section;
-                renderSection(activeSection);
-                populateSearchEngineDropdown();
+                refreshUI();
             });
         }
     });
@@ -1173,8 +1187,7 @@ function changeTheme() {
 function changeView() {
     currentViewIndex = (currentViewIndex + 1) % views.length;
     globalView = views[currentViewIndex];
-    const activeSection = document.querySelector('#main-nav .active').dataset.section;
-    renderSection(activeSection);
+    refreshUI();
 }
 
 function setupFabMenu() {
@@ -1186,23 +1199,11 @@ function setupFabMenu() {
     });
     
     document.getElementById('fab-theme').addEventListener('click', changeTheme);
-    document.getElementById('fab-search').addEventListener('click', openSearchPalette);
 }
 
-// --- SEARCH PALETTE ---
-function openSearchPalette() {
-    populateSearchPaletteTags();
-    applySearchPaletteFilters();
-    document.getElementById('search-palette-overlay').classList.remove('hidden');
-    document.getElementById('search-palette-input').focus();
-}
-
-function closeSearchPalette() {
-    document.getElementById('search-palette-overlay').classList.add('hidden');
-}
-
-function populateSearchPaletteTags() {
-    const tagsContainer = document.getElementById('search-palette-tags');
+// --- GLOBAL FILTER ---
+function populateGlobalFilterTags() {
+    const tagsContainer = document.getElementById('global-search-tags');
     tagsContainer.innerHTML = '';
     const allTags = [...new Set(data.flatMap(card => card.tags || []))].sort();
     
@@ -1214,51 +1215,35 @@ function populateSearchPaletteTags() {
         tagEl.dataset.tag = tag;
         tagEl.onclick = () => {
             tagEl.classList.toggle('active');
-            if (activeSearchTags.includes(tag)) {
-                activeSearchTags = activeSearchTags.filter(t => t !== tag);
+            if (activeFilterTags.includes(tag)) {
+                activeFilterTags = activeFilterTags.filter(t => t !== tag);
             } else {
-                activeSearchTags.push(tag);
+                activeFilterTags.push(tag);
             }
-            applySearchPaletteFilters();
+            applyGlobalFilter();
         };
         tagsContainer.appendChild(tagEl);
     });
 }
 
-function applySearchPaletteFilters() {
-    const searchTerm = document.getElementById('search-palette-input').value.toLowerCase();
+function applyGlobalFilter() {
+    const searchTerm = document.getElementById('global-search-input').value.toLowerCase();
     const activeNavBtn = document.querySelector('.nav-link.active');
-    const activeType = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes': 'Nota', 'tasks': 'Tarea' }[activeNavBtn.dataset.section];
+    const activeSectionName = activeNavBtn.dataset.section;
+    const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes': 'Nota', 'tasks': 'Tarea' };
+    const activeType = typeMap[activeSectionName];
 
-    const itemsToSearch = data.filter(item => item.type === activeType);
+    const itemsToFilter = data.filter(item => item.type === activeType);
 
-    const results = itemsToSearch.filter(card => {
-        const title = card.title.toLowerCase();
-        const cardTags = card.tags || [];
-        const searchMatch = title.includes(searchTerm);
-        const tagMatch = activeSearchTags.length === 0 || activeSearchTags.every(filterTag => cardTags.includes(filterTag));
-        return searchMatch && tagMatch;
+    const results = itemsToFilter.filter(card => {
+        const titleMatch = card.title.toLowerCase().includes(searchTerm);
+        const tagMatch = activeFilterTags.length === 0 || activeFilterTags.every(filterTag => (card.tags || []).includes(filterTag));
+        return (titleMatch || (card.tags || []).join(' ').toLowerCase().includes(searchTerm)) && tagMatch;
     });
 
-    renderSearchPaletteResults(results);
+    renderSection(activeSectionName, results);
 }
 
-function renderSearchPaletteResults(results) {
-    const resultsContainer = document.getElementById('search-palette-results');
-    resultsContainer.innerHTML = '';
-    if (results.length === 0) {
-        resultsContainer.innerHTML = '<p>No se encontraron resultados.</p>';
-        return;
-    }
-    results.forEach(item => {
-        const resultItem = createListItem(item);
-        resultItem.onclick = () => {
-            handleCardClick(String(item.id));
-            closeSearchPalette();
-        };
-        resultsContainer.appendChild(resultItem);
-    });
-}
 
 // --- PREVIEW MODAL ---
 function showPreviewModal(item, element) {
