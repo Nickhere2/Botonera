@@ -47,6 +47,7 @@
             position: relative;
             height: 380px; /* Altura fija para todas las tarjetas */
             overflow: hidden; /* Ocultar contenido que se desborde */
+            cursor: pointer;
         }
         .dark .brutalist-card, .theme-boca .brutalist-card {
             background-color: #0d1117;
@@ -167,12 +168,13 @@
         .brutalist-card:hover .scrolling-text { animation: scroll-up 20s linear 1s infinite; }
         @keyframes scroll-up { from { transform: translateY(0); } to { transform: translateY(-100%); } }
         
-        /* --- PANEL DE EDICIÓN --- */
-        #editPanel { background-color: rgba(254, 252, 232, 0.8); backdrop-filter: blur(4px); }
-        .dark #editPanel, .theme-boca #editPanel { background-color: rgba(30, 41, 59, 0.8); }
-        .edit-container { background-color: white; border: var(--border-width) solid var(--text-color); box-shadow: 8px 8px 0px var(--text-color); max-height: 90vh; overflow-y: auto; }
-        .dark .edit-container, .theme-boca .edit-container { background-color: #0d1117; }
-        .theme-boca .edit-container { background-color: #002244; }
+        /* --- PANEL DE EDICIÓN Y MODALES --- */
+        .modal-overlay { background-color: rgba(254, 252, 232, 0.8); backdrop-filter: blur(4px); }
+        .dark .modal-overlay, .theme-boca .modal-overlay { background-color: rgba(30, 41, 59, 0.8); }
+        .modal-container { background-color: white; border: var(--border-width) solid var(--text-color); box-shadow: 8px 8px 0px var(--text-color); max-height: 90vh; overflow-y: auto; }
+        .dark .modal-container, .theme-boca .modal-container { background-color: #0d1117; }
+        .theme-boca .modal-container { background-color: #002244; }
+        
         .type-btn { border: var(--border-width) solid var(--text-color); transition: all 0.2s; }
         .type-btn.active { background-color: var(--accent-color); box-shadow: 4px 4px 0 var(--text-color); transform: translate(-4px, -4px); color: #1e293b; }
         .rich-text-editor { border: var(--border-width) solid var(--text-color); min-height: 120px; padding: 0.5rem; }
@@ -200,6 +202,7 @@
             pointer-events: none; /* Allows clicking through the modal */
             box-shadow: 8px 8px 0 var(--text-color);
             border: var(--border-width) solid var(--text-color);
+            transition: opacity 0.2s ease-in-out;
         }
         #preview-modal-content {
             background-size: cover;
@@ -221,9 +224,6 @@
                 <a href="#" data-section="notes" class="nav-link block px-4 py-3"><i class="fas fa-sticky-note w-5 mr-2"></i><span>NOTAS</span></a>
                 <a href="#" data-section="tasks" class="nav-link block px-4 py-3"><i class="fas fa-tasks w-5 mr-2"></i><span>TAREAS</span></a>
             </nav>
-            <div class="mt-auto w-full">
-                 <p class="text-xs text-center mt-4">v12.brutalist.mod</p>
-            </div>
         </aside>
 
         <!-- Contenido Principal -->
@@ -272,8 +272,8 @@
     </div>
     
     <!-- Panel de Edición -->
-    <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center">
-        <div class="edit-container w-full max-w-2xl p-8">
+    <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay">
+        <div class="modal-container w-full max-w-2xl p-8">
             <div class="flex justify-between items-center mb-6">
               <h2 id="editPanelTitle" class="text-2xl font-bold">AGREGAR ELEMENTO</h2>
               <button id="closeEditButton" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
@@ -515,6 +515,10 @@ function setupEventListeners() {
         if (e.key === 'Escape' && !searchPaletteOverlay.classList.contains('hidden')) {
             closeSearchPalette();
         }
+        if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+            e.preventDefault();
+            openSearchPalette();
+        }
     });
 }
 
@@ -581,6 +585,7 @@ function renderSection(sectionName) {
         container.appendChild(catDiv);
 
         new Sortable(contentContainer, {
+            group: 'shared-cards', // Allow dragging between categories
             animation: 150,
             handle: '.card-drag-handle',
             onEnd: function (evt) {
@@ -632,8 +637,6 @@ function createCard(item) {
                 <span class="${task.status ? 'line-through' : ''}">${task.text}</span>
             </li>`).join('')}
         </ul>`;
-    } else if (item.type !== 'Nota' && item.type !== 'Promp') {
-        contentHtml = `<button class="mt-4 brutalist-button w-full py-2" onclick="handleCardClick('${item.id}')">ABRIR</button>`;
     }
 
     card.innerHTML = `
@@ -654,9 +657,7 @@ function createCard(item) {
     `;
     
     card.addEventListener('click', (e) => {
-        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && !e.target.closest('.card-actions')) {
-            handleCardClick(item.id);
-        }
+        handleCardClick(item.id, e);
     });
     
     return card;
@@ -676,11 +677,11 @@ function createListItem(item) {
             </div>
         </div>
         <div class="card-actions !static !opacity-100">
-            <button onclick="handleCardClick('${item.id}')" class="action-btn" title="Abrir/Activar"><i class="fas fa-play"></i></button>
             <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
         </div>
     `;
-    listItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
+    listItem.addEventListener('click', (e) => handleCardClick(item.id, e));
+    listItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e.currentTarget));
     listItem.addEventListener('mouseleave', hidePreviewModal);
     return listItem;
 }
@@ -693,29 +694,30 @@ function createChipItem(item) {
         <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
         <i class="${item.icon || 'fas fa-question-circle'}"></i>
         <span class="font-bold uppercase">${item.title}</span>
-        <div class="card-actions !static !opacity-100 ml-2">
-            <button onclick="handleCardClick('${item.id}')" class="action-btn !w-6 !h-6" title="Abrir/Activar"><i class="fas fa-play text-xs"></i></button>
-        </div>
     `;
-    chipItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
+    chipItem.addEventListener('click', (e) => handleCardClick(item.id, e));
+    chipItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e.currentTarget));
     chipItem.addEventListener('mouseleave', hidePreviewModal);
     return chipItem;
 }
 
 // --- ACTIONS & EVENT HANDLERS ---
-function handleCardClick(id) {
+function handleCardClick(id, event) {
+    // Stop if the click was on a button inside the card or other interactive elements
+    if (event && event.target.closest('button, .card-actions, .card-drag-handle')) {
+        event.stopPropagation();
+        return;
+    }
+
     const item = data.find(i => String(i.id) === id);
     if (!item) return;
 
-    if (item.type === "Link") {
-        window.open(item.action, "_blank");
-    } else if (item.type === "Buscador") {
-        const searchBar = document.getElementById('main-search-bar');
-        searchBar.querySelector('#search-bar-title').textContent = item.title.toUpperCase();
-        searchBar.querySelector('#search-bar-icon').className = `${item.icon || 'fas fa-search'} text-2xl`;
-        showToast(`MOTOR SELECCIONADO: ${item.title}`);
+    if (item.type === "Link" || item.type === "Buscador") {
+        window.open(item.action.split('?')[0], "_blank");
+    } else if (item.type === "Promp") {
+        navigator.clipboard.writeText(item.action).then(() => showToast("PROMPT COPIADO."));
     } else {
-        openEditPanel(id);
+        openEditPanel(id); // Open edit panel for Notes and Tasks
     }
 }
 
@@ -754,8 +756,11 @@ function populateSearchEngineDropdown() {
         const itemEl = document.createElement("div");
         itemEl.className = "p-2 hover:bg-yellow-200 cursor-pointer flex items-center gap-2";
         itemEl.innerHTML = `<i class="${engine.icon}"></i><span>${engine.title}</span>`;
-        itemEl.onclick = () => {
-            handleCardClick(String(engine.id));
+        itemEl.onclick = (e) => {
+            const searchBar = document.getElementById('main-search-bar');
+            searchBar.querySelector('#search-bar-title').textContent = engine.title.toUpperCase();
+            searchBar.querySelector('#search-bar-icon').className = `${engine.icon || 'fas fa-search'} text-2xl`;
+            showToast(`MOTOR SELECCIONADO: ${engine.title}`);
             dropdown.classList.add("hidden");
         };
         dropdown.appendChild(itemEl);
@@ -996,21 +1001,25 @@ function renderSearchPaletteResults(results) {
 }
 
 // --- PREVIEW MODAL ---
-function showPreviewModal(item, event) {
+function showPreviewModal(item, element) {
     const modal = document.getElementById('preview-modal');
     const modalContent = document.getElementById('preview-modal-content');
     modalContent.innerHTML = getPreviewContent(item);
     
-    const rect = event.currentTarget.getBoundingClientRect();
-    let top = rect.bottom + window.scrollY;
-    let left = rect.left + window.scrollX;
+    const rect = element.getBoundingClientRect();
+    let top = rect.top + window.scrollY;
+    let left = rect.right + window.scrollX + 15; // 15px gap
 
-    // Adjust if modal goes off-screen
+    // Adjust if modal goes off-screen horizontally
     if (left + modal.offsetWidth > window.innerWidth) {
-        left = window.innerWidth - modal.offsetWidth - 20;
+        left = rect.left + window.scrollX - modal.offsetWidth - 15;
     }
+    // Adjust if modal goes off-screen vertically
     if (top + modal.offsetHeight > window.innerHeight) {
-        top = rect.top + window.scrollY - modal.offsetHeight;
+        top = window.innerHeight - modal.offsetHeight - 15;
+    }
+    if (top < 0) {
+        top = 15;
     }
 
     modal.style.top = `${top}px`;
