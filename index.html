@@ -197,7 +197,7 @@
         #global-search-container {
             border: var(--border-width) solid var(--text-color);
             padding: 1rem;
-            margin-bottom: 2rem;
+            margin-top: auto; /* Pushes to the bottom */
             transition: all 0.3s ease;
         }
         #global-search-tags {
@@ -284,7 +284,7 @@
 
     <div class="flex h-screen">
         <!-- Barra Lateral de Navegación -->
-        <aside class="w-64 brutalist-sidebar p-6 flex-shrink-0 flex-col hidden sm:flex">
+        <aside class="w-64 brutalist-sidebar p-6 flex-shrink-0 flex flex-col">
             <h1 class="text-3xl font-bold mb-12">ACCESOS_</h1>
             <nav id="main-nav" class="space-y-4">
                 <a href="#" data-section="buscadores" class="nav-link active block px-4 py-3"><i class="fas fa-search w-5 mr-2"></i><span>BUSCADORES</span></a>
@@ -293,6 +293,11 @@
                 <a href="#" data-section="notes" class="nav-link block px-4 py-3"><i class="fas fa-sticky-note w-5 mr-2"></i><span>NOTAS</span></a>
                 <a href="#" data-section="tasks" class="nav-link block px-4 py-3"><i class="fas fa-tasks w-5 mr-2"></i><span>TAREAS</span></a>
             </nav>
+            <!-- Barra de Filtro Global -->
+            <div id="global-search-container" class="mt-auto">
+                <input type="text" id="global-search-input" placeholder="FILTRAR..." class="brutalist-input w-full">
+                <div id="global-search-tags" class="flex flex-wrap gap-2"></div>
+            </div>
         </aside>
 
         <!-- Contenido Principal -->
@@ -329,12 +334,6 @@
                 </div>
                 <datalist id="searchSuggestions"></datalist>
                 <button id="searchButton" class="brutalist-button w-full py-3">BUSCAR</button>
-            </div>
-
-            <!-- Barra de Filtro Global -->
-            <div id="global-search-container">
-                <input type="text" id="global-search-input" placeholder="FILTRAR POR TITULO O ETIQUETA..." class="brutalist-input w-full">
-                <div id="global-search-tags" class="flex flex-wrap gap-2"></div>
             </div>
 
             <!-- Contenedores de Secciones -->
@@ -463,7 +462,7 @@
                         <li><strong>Conexión de Datos:</strong> La aplicación se conecta a un Gist de GitHub para guardar tus datos. La primera vez, se te pedirá un Gist ID. Para guardar cambios, necesitarás un Personal Access Token (PAT) de GitHub con el permiso <code>gist</code>.</li>
                         <li><strong>Gestión de Categorías:</strong> Usa los botones que aparecen al pasar el ratón sobre un título de categoría para editarla o eliminarla. Para añadir una nueva, haz clic en "Nueva Categoría" o asigna un nombre de categoría nuevo al crear o editar un elemento.</li>
                         <li><strong>Búsqueda Rápida:</strong> En la sección de Buscadores, selecciona un motor de búsqueda del menú desplegable y realiza búsquedas rápidamente.</li>
-                        <li><strong>Filtro Global:</strong> Usa la barra de filtro para buscar elementos por título o etiqueta en la sección actual. Haz clic para expandirla y ver los filtros de etiquetas.</li>
+                        <li><strong>Filtro Global:</strong> Usa la barra de filtro en el menú lateral para buscar elementos por título o etiqueta en la sección actual. Haz clic para expandirla y ver los filtros de etiquetas.</li>
                     </ul>
                 </div>
             </div>
@@ -1205,15 +1204,25 @@ function setupFabMenu() {
 function populateGlobalFilterTags() {
     const tagsContainer = document.getElementById('global-search-tags');
     tagsContainer.innerHTML = '';
-    const allTags = [...new Set(data.flatMap(card => card.tags || []))].sort();
+    const activeNavBtn = document.querySelector('.nav-link.active');
+    const activeSectionName = activeNavBtn.dataset.section;
+    const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes': 'Nota', 'tasks': 'Tarea' };
+    const activeType = typeMap[activeSectionName];
+    const itemsInView = data.filter(item => item.type === activeType);
+
+    const allTags = [...new Set(itemsInView.flatMap(card => card.tags || []))].sort();
     
     allTags.forEach(tag => {
         if (!tag) return;
         const tagEl = document.createElement('button');
-        tagEl.className = 'filter-tag p-2';
+        tagEl.className = 'filter-tag p-1 text-xs';
         tagEl.textContent = tag;
         tagEl.dataset.tag = tag;
-        tagEl.onclick = () => {
+        if (activeFilterTags.includes(tag)) {
+            tagEl.classList.add('active');
+        }
+        tagEl.onclick = (e) => {
+            e.stopPropagation();
             tagEl.classList.toggle('active');
             if (activeFilterTags.includes(tag)) {
                 activeFilterTags = activeFilterTags.filter(t => t !== tag);
