@@ -32,6 +32,8 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            height: 380px; /* Altura fija para todas las tarjetas */
+            overflow: hidden; /* Ocultar contenido que se desborde */
         }
 
         .brutalist-card:hover {
@@ -114,6 +116,7 @@
             gap: 4px;
             opacity: 0;
             transition: opacity 0.2s;
+            z-index: 20;
         }
         .brutalist-card:hover .card-actions {
             opacity: 1;
@@ -138,9 +141,44 @@
             padding: 4px;
             opacity: 0;
             transition: opacity 0.2s;
+            z-index: 20;
         }
         .brutalist-card:hover .card-drag-handle {
             opacity: 1;
+        }
+
+        /* --- Estilos de Vista Previa de Tarjeta --- */
+        .card-default-view {
+            transition: opacity 0.3s ease;
+        }
+        .card-preview-view {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: white;
+            padding: 1.5rem;
+            transform: translateY(100%);
+            transition: transform 0.4s ease;
+            z-index: 10;
+            overflow-y: hidden;
+        }
+        .brutalist-card:hover .card-preview-view {
+            transform: translateY(0);
+        }
+        .brutalist-card:hover .card-default-view {
+            opacity: 0;
+        }
+        .scrolling-text {
+            animation: none;
+        }
+        .brutalist-card:hover .scrolling-text {
+            animation: scroll-up 20s linear 1s infinite;
+        }
+        @keyframes scroll-up {
+            from { transform: translateY(0); }
+            to { transform: translateY(-100%); }
         }
         
         /* --- PANEL DE EDICIÓN --- */
@@ -152,6 +190,8 @@
             background-color: white;
             border: var(--border-width) solid var(--text-color);
             box-shadow: 8px 8px 0px var(--text-color);
+            max-height: 90vh; /* Límite de altura */
+            overflow-y: auto; /* Scroll si el contenido excede */
         }
         .type-btn {
             border: var(--border-width) solid var(--text-color);
@@ -199,12 +239,20 @@
                 </div>
             </header>
             
-            <div id="main-search-bar" class="brutalist-card p-6 lg:col-span-2 flex flex-col gap-4 mb-8">
+            <div id="main-search-bar" class="brutalist-card !h-auto p-6 lg:col-span-2 flex flex-col gap-4 mb-8">
                 <div class="flex items-center gap-3">
                     <i id="search-bar-icon" class="fab fa-google text-2xl"></i>
                     <h4 id="search-bar-title" class="text-xl font-bold">BUSQUEDA RAPIDA</h4>
                 </div>
-                <input type="text" id="searchInput" list="searchSuggestions" placeholder="INGRESAR BUSQUEDA..." class="brutalist-input">
+                <div class="flex">
+                    <input type="text" id="searchInput" list="searchSuggestions" placeholder="INGRESAR BUSQUEDA..." class="brutalist-input flex-grow">
+                    <div class="relative">
+                        <button id="dropdownToggle" class="brutalist-button h-full px-4 ml-[-3px]"><i class="fas fa-chevron-down"></i></button>
+                        <div id="searchEngineDropdown" class="hidden absolute right-0 mt-2 w-56 bg-white border-2 border-slate-900 z-10">
+                            <!-- Opciones se insertan aquí -->
+                        </div>
+                    </div>
+                </div>
                 <datalist id="searchSuggestions"></datalist>
                 <button id="searchButton" class="brutalist-button w-full py-3">BUSCAR</button>
             </div>
@@ -220,7 +268,7 @@
     </div>
     
     <!-- Panel de Edición -->
-    <div id="editPanel" class="hidden fixed inset-0 z-[1000] overflow-y-auto p-8 flex items-center justify-center">
+    <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center">
         <div class="edit-container w-full max-w-2xl p-8">
             <div class="flex justify-between items-center mb-6">
               <h2 id="editPanelTitle" class="text-2xl font-bold">AGREGAR ELEMENTO</h2>
@@ -296,8 +344,8 @@ const mockData = {
         { id: 1, type: 'Buscador', title: 'Google', action: 'https://www.google.com/search?q={search_term}', category: 'General', icon: 'fab fa-google', tags: ['motor', 'busqueda'] },
         { id: 2, type: 'Buscador', title: 'YouTube', action: 'https://www.youtube.com/results?search_query={search_term}', category: 'Video', icon: 'fab fa-youtube', tags: ['videos', 'tutoriales'] },
         { id: 3, type: 'Link', title: 'GitHub', action: 'https://github.com', category: 'Desarrollo', icon: 'fab fa-github', tags: ['codigo', 'proyectos'] },
-        { id: 4, type: 'Promp', title: 'Generar Idea', action: 'Crea una lista de 5 ideas para un video de YouTube sobre IA.', category: 'Creatividad', icon: 'fas fa-lightbulb', tags: ['ideas'] },
-        { id: 5, type: 'Nota', title: 'Reunión Lunes', action: 'Discutir presupuesto Q3.', category: 'Trabajo', icon: 'fas fa-sticky-note', tags: ['reunion'] },
+        { id: 4, type: 'Promp', title: 'Generar Idea', action: 'Crea una lista de 5 ideas para un video de YouTube sobre IA. Este texto es largo para demostrar el efecto de scroll. Debería poder leerse completo al pasar el mouse por encima de la tarjeta, ya que se animará de abajo hacia arriba.', category: 'Creatividad', icon: 'fas fa-lightbulb', tags: ['ideas'] },
+        { id: 5, type: 'Nota', title: 'Reunión Lunes', action: 'Discutir presupuesto Q3. Revisar métricas. Asignar tareas.', category: 'Trabajo', icon: 'fas fa-sticky-note', tags: ['reunion'] },
         { id: 6, type: 'Tarea', title: 'Proyecto Web', action: [{text: 'Diseñar mockup', status: true}, {text: 'Desarrollar landing', status: false}], category: 'Proyectos', icon: 'fas fa-tasks', tags: ['web'] }
     ]
 };
@@ -369,7 +417,7 @@ async function saveData() {
             body: JSON.stringify({ files: { [FILENAME_IN_GIST]: { content: JSON.stringify(dataToSave, null, 2) } } })
         });
         if (!response.ok) {
-             if(response.status === 404) {
+             if(response.status === 401 || response.status === 404) {
                 localStorage.removeItem('github_pat');
                 showToast("TOKEN INVALIDO. VUELVE A INTENTAR GUARDAR.");
              }
@@ -412,11 +460,15 @@ function setupEventListeners() {
 
     document.querySelector("#searchButton").addEventListener("click", performSearch);
     document.querySelector("#searchInput").addEventListener("keypress", e => { if (e.key === 'Enter') performSearch(); });
+    document.getElementById('dropdownToggle').addEventListener('click', () => {
+        document.getElementById('searchEngineDropdown').classList.toggle('hidden');
+    });
 }
 
 function initializeUI() {
     if (!data) return;
     switchTab('buscadores'); // Start on the first tab
+    populateSearchEngineDropdown();
 }
 
 function switchTab(tabName) {
@@ -495,18 +547,22 @@ function createCard(item) {
     const categoryHtml = `<p class="text-sm">CATEGORIA: ${item.category}</p>`;
     
     let contentHtml = '';
+    let previewHtml = '';
+
     if (item.type === 'Tarea' && Array.isArray(item.action)) {
-        contentHtml = `<ul class="space-y-2 list-none mt-4 flex-grow">
-            ${item.action.map(task => `<li class="flex items-center gap-3">
-                <input type="checkbox" class="w-6 h-6 appearance-none border-2 border-slate-900 checked:bg-slate-900" ${task.status ? 'checked' : ''} onchange="toggleTask(event, '${item.id}', '${task.text}')">
+        contentHtml = `<div class="flex-grow"></div><ul class="space-y-2 list-none mt-4 w-full">
+            ${item.action.slice(0, 3).map(task => `<li class="flex items-center gap-3">
+                <i class="fas ${task.status ? 'fa-check-square' : 'fa-square'}"></i>
                 <span class="${task.status ? 'line-through' : ''}">${task.text}</span>
             </li>`).join('')}
         </ul>`;
     } else if (item.type === 'Nota' || item.type === 'Promp') {
-        contentHtml = `<div class="flex-grow mt-4 p-4 bg-gray-100 border-2 border-slate-900">
-            <p class="opacity-90">${item.action}</p>
-        </div>
-        <button class="mt-4 brutalist-button w-full py-2" onclick="copyAction('${item.id}')">COPIAR</button>`;
+        // Vista por defecto solo con icono y titulo
+        contentHtml = `<div class="flex-grow"></div>`;
+        // Vista previa con el texto que se anima
+        previewHtml = `<div class="card-preview-view">
+            <div class="scrolling-text">${item.action}</div>
+        </div>`;
     } else { // Link or Buscador
         contentHtml = `<div class="flex-grow"></div><button class="mt-4 brutalist-button w-full py-2" onclick="handleCardClick('${item.id}')">ABRIR</button>`;
     }
@@ -517,17 +573,18 @@ function createCard(item) {
             <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
             <button onclick="deleteItem('${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
         </div>
-        <div class="flex-grow flex flex-col items-center text-center">
+        <div class="card-default-view h-full flex flex-col items-center text-center">
             ${iconHtml}
             ${titleHtml}
             ${categoryHtml}
+            ${contentHtml}
         </div>
-        ${contentHtml}
+        ${previewHtml}
     `;
     
     if (item.type !== 'Link' && item.type !== 'Buscador') {
         card.addEventListener('click', (e) => {
-            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT') {
+            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && !e.target.closest('.card-actions')) {
                 openEditPanel(item.id);
             }
         });
@@ -564,7 +621,10 @@ function toggleTask(event, itemId, taskText) {
         const task = item.action.find(t => t.text === taskText);
         if (task) {
             task.status = event.target.checked;
-            saveData();
+            saveData().then(() => {
+                const activeSection = document.querySelector('#main-nav .active').dataset.section;
+                renderSection(activeSection);
+            });
         }
     }
 }
@@ -590,6 +650,21 @@ function performSearch() {
             showToast("NO HAY BUSCADORES CONFIGURADOS");
         }
     }
+}
+
+function populateSearchEngineDropdown() {
+    const dropdown = document.getElementById("searchEngineDropdown");
+    dropdown.innerHTML = "";
+    data.filter(item => item.type === "Buscador").forEach(engine => {
+        const itemEl = document.createElement("div");
+        itemEl.className = "p-2 hover:bg-yellow-200 cursor-pointer flex items-center gap-2";
+        itemEl.innerHTML = `<i class="${engine.icon}"></i><span>${engine.title}</span>`;
+        itemEl.onclick = () => {
+            handleCardClick(String(engine.id));
+            dropdown.classList.add("hidden");
+        };
+        dropdown.appendChild(itemEl);
+    });
 }
 
 function updateSearchSuggestions() {
@@ -674,6 +749,7 @@ function handleSaveItem(event) {
     saveData().then(() => {
         const activeSection = document.querySelector('#main-nav .active').dataset.section;
         renderSection(activeSection);
+        populateSearchEngineDropdown();
         document.getElementById("editPanel").classList.add("hidden");
     });
 }
@@ -709,6 +785,7 @@ function deleteItem(id) {
         saveData().then(() => {
             const activeSection = document.querySelector('#main-nav .active').dataset.section;
             renderSection(activeSection);
+            populateSearchEngineDropdown();
         });
     }
 }
