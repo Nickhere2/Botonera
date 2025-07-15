@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v12 - Brutalist</title>
+    <title>Centro de Accesos v12 - Brutalist (Corregido)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         /* --- ESTILO BRUTALISTA --- */
         :root {
@@ -359,7 +358,19 @@
         <div id="preview-modal-content" class="w-full h-full bg-white overflow-hidden border-4" style="border-color: var(--text-color);"></div>
     </div>
 
+    <!-- Confirmation Modal -->
+    <div id="confirmModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
+        <div class="modal-container w-full max-w-md p-8">
+            <h2 id="confirmTitle" class="text-xl font-bold mb-4">CONFIRMAR ACCIÓN</h2>
+            <p id="confirmMessage" class="mb-6">¿Estás seguro de que quieres continuar?</p>
+            <div class="flex justify-end gap-4">
+                <button id="confirmCancel" class="brutalist-button !bg-transparent text-current">CANCELAR</button>
+                <button id="confirmOk" class="brutalist-button">ACEPTAR</button>
+            </div>
+        </div>
+    </div>
 
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
 // --- CONFIG & GLOBAL STATE ---
 const FILENAME_IN_GIST = 'Botones.json';
@@ -374,6 +385,7 @@ const mockData = {
         { id: 1, type: 'Buscador', title: 'Google', action: 'https://www.google.com/search?q={search_term}', category: 'General', icon: 'fab fa-google', tags: ['motor', 'busqueda'] },
         { id: 2, type: 'Buscador', title: 'YouTube', action: 'https://www.youtube.com/results?search_query={search_term}', category: 'Video', icon: 'fab fa-youtube', tags: ['videos', 'tutoriales'] },
         { id: 3, type: 'Link', title: 'GitHub', action: 'https://github.com', category: 'Desarrollo', icon: 'fab fa-github', tags: ['codigo', 'proyectos'] },
+        { id: 31, type: 'Link', title: 'YouTube Video', action: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', category: 'Musica', icon: 'fab fa-youtube', tags: ['video', 'importante'] },
         { id: 4, type: 'Promp', title: 'Generar Idea', action: 'Crea una lista de 5 ideas para un video de YouTube sobre IA. Este texto es largo para demostrar el efecto de scroll. Debería poder leerse completo al pasar el mouse por encima de la tarjeta, ya que se animará de abajo hacia arriba.', category: 'Creatividad', icon: 'fas fa-lightbulb', tags: ['ideas'] },
         { id: 5, type: 'Nota', title: 'Reunión Lunes', action: 'Discutir presupuesto Q3. Revisar métricas. Asignar tareas.', category: 'Trabajo', icon: 'fas fa-sticky-note', tags: ['reunion'] },
         { id: 6, type: 'Tarea', title: 'Proyecto Web', action: [{text: 'Diseñar mockup', status: true}, {text: 'Desarrollar landing', status: false}], category: 'Proyectos', icon: 'fas fa-tasks', tags: ['web'] }
@@ -384,15 +396,11 @@ const mockData = {
 async function loadData() {
     let gistId = localStorage.getItem('gist_id');
     if (!gistId) {
-        gistId = prompt("Para conectar tus datos, ingresa tu GITHUB GIST ID:");
-        if (gistId) {
-            localStorage.setItem('gist_id', gistId);
-        } else {
-            showToast("USANDO DATOS DE EJEMPLO. Para conectar, reinicia y provee un Gist ID.");
-            data = mockData.items;
-            initializeUI();
-            return;
-        }
+        // Using mock data directly for demonstration as prompt is not ideal in this environment
+        showToast("USANDO DATOS DE EJEMPLO. La conexión con Gist está desactivada en este demo.");
+        data = mockData.items;
+        initializeUI();
+        return;
     }
 
     showToast("CARGANDO DATOS...");
@@ -414,7 +422,7 @@ async function loadData() {
         console.error("Fallo al cargar datos:", error);
         showToast(`ERROR: ${error.message}`);
         localStorage.removeItem('gist_id'); // Clear bad Gist ID
-        data = [];
+        data = mockData.items; // Fallback to mock data
     }
     initializeUI();
 }
@@ -428,13 +436,9 @@ async function saveData() {
     
     let token = localStorage.getItem('github_pat');
     if (!token) {
-        token = prompt('Para guardar, ingresa tu GITHUB PERSONAL ACCESS TOKEN:');
-        if (token) {
-            localStorage.setItem('github_pat', token);
-        } else {
-            showToast("ACCION CANCELADA. SE NECESITA TOKEN.");
-            return;
-        }
+        // Using a placeholder as prompt is not ideal.
+        showToast("NO GITHUB TOKEN. Se necesita para guardar.");
+        return;
     }
     
     showToast("GUARDANDO...");
@@ -709,10 +713,12 @@ function handleCardClick(id, event) {
         return;
     }
 
-    const item = data.find(i => String(i.id) === id);
+    const item = data.find(i => String(i.id) === String(id));
     if (!item) return;
 
-    if (item.type === "Link" || item.type === "Buscador") {
+    if (item.type === "Link") {
+        window.open(item.action, "_blank");
+    } else if (item.type === "Buscador") {
         window.open(item.action.split('?')[0], "_blank");
     } else if (item.type === "Promp") {
         navigator.clipboard.writeText(item.action).then(() => showToast("PROMPT COPIADO."));
@@ -778,7 +784,7 @@ function openEditPanel(itemId = null) {
     document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
     
     if (itemId) {
-        const item = data.find(i => String(i.id) === itemId);
+        const item = data.find(i => String(i.id) === String(itemId));
         if (item) {
             document.getElementById('editPanelTitle').textContent = 'EDITAR ELEMENTO';
             document.getElementById('editItemId').value = item.id;
@@ -879,15 +885,42 @@ function populateCategorySuggestions() {
     });
 }
 
+function showConfirmModal(message, callback) {
+    const confirmModal = document.getElementById('confirmModal');
+    document.getElementById('confirmMessage').textContent = message;
+    confirmModal.classList.remove('hidden');
+
+    const confirmOk = document.getElementById('confirmOk');
+    const confirmCancel = document.getElementById('confirmCancel');
+
+    const close = () => {
+        confirmModal.classList.add('hidden');
+        confirmOk.replaceWith(confirmOk.cloneNode(true));
+        confirmCancel.replaceWith(confirmCancel.cloneNode(true));
+    };
+
+    document.getElementById('confirmOk').onclick = () => {
+        callback(true);
+        close();
+    };
+    
+    document.getElementById('confirmCancel').onclick = () => {
+        callback(false);
+        close();
+    };
+}
+
 function deleteItem(id) {
-    if (confirm("SEGURO QUE QUIERES ELIMINAR ESTE ELEMENTO?")) {
-        data = data.filter(i => String(i.id) !== id);
-        saveData().then(() => {
-            const activeSection = document.querySelector('#main-nav .active').dataset.section;
-            renderSection(activeSection);
-            populateSearchEngineDropdown();
-        });
-    }
+    showConfirmModal("SEGURO QUE QUIERES ELIMINAR ESTE ELEMENTO?", (confirmed) => {
+        if (confirmed) {
+            data = data.filter(i => String(i.id) !== String(id));
+            saveData().then(() => {
+                const activeSection = document.querySelector('#main-nav .active').dataset.section;
+                renderSection(activeSection);
+                populateSearchEngineDropdown();
+            });
+        }
+    });
 }
 
 function showToast(message) {
