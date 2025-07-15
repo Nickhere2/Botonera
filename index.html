@@ -396,11 +396,15 @@ const mockData = {
 async function loadData() {
     let gistId = localStorage.getItem('gist_id');
     if (!gistId) {
-        // Using mock data directly for demonstration as prompt is not ideal in this environment
-        showToast("USANDO DATOS DE EJEMPLO. La conexión con Gist está desactivada en este demo.");
-        data = mockData.items;
-        initializeUI();
-        return;
+        gistId = prompt("Para conectar tus datos, ingresa tu GITHUB GIST ID:");
+        if (gistId) {
+            localStorage.setItem('gist_id', gistId);
+        } else {
+            showToast("USANDO DATOS DE EJEMPLO. Para conectar, reinicia y provee un Gist ID.");
+            data = mockData.items;
+            initializeUI();
+            return;
+        }
     }
 
     showToast("CARGANDO DATOS...");
@@ -411,7 +415,7 @@ async function loadData() {
         const fileContent = gistData.files[FILENAME_IN_GIST]?.content;
         
         if (!fileContent) {
-            showToast("ARCHIVO NO ENCONTRADO EN GIST");
+            showToast("ARCHIVO NO ENCONTRADO EN GIST. USANDO DATOS DE EJEMPLO.");
             data = mockData.items;
         } else {
             let loadedJson = JSON.parse(fileContent);
@@ -436,9 +440,13 @@ async function saveData() {
     
     let token = localStorage.getItem('github_pat');
     if (!token) {
-        // Using a placeholder as prompt is not ideal.
-        showToast("NO GITHUB TOKEN. Se necesita para guardar.");
-        return;
+        token = prompt('Para guardar, ingresa tu GITHUB PERSONAL ACCESS TOKEN:');
+        if (token) {
+            localStorage.setItem('github_pat', token);
+        } else {
+            showToast("ACCION CANCELADA. SE NECESITA TOKEN.");
+            return;
+        }
     }
     
     showToast("GUARDANDO...");
