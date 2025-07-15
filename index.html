@@ -17,11 +17,24 @@
             --accent-color-hover: #fde047;
             --border-width: 3px;
         }
+        
+        .dark {
+            --bg-color: #1e293b;
+            --text-color: #fefce8;
+        }
+        
+        .theme-boca {
+            --bg-color: #003366; /* Azul Boca */
+            --text-color: #ffcc00; /* Amarillo Boca */
+            --accent-color: #ffcc00;
+            --accent-color-hover: #ffd633;
+        }
 
         body {
             font-family: 'Space Mono', monospace;
             background-color: var(--bg-color);
             color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
         }
 
         .brutalist-card {
@@ -35,6 +48,12 @@
             height: 380px; /* Altura fija para todas las tarjetas */
             overflow: hidden; /* Ocultar contenido que se desborde */
         }
+        .dark .brutalist-card, .theme-boca .brutalist-card {
+            background-color: #0d1117;
+        }
+        .theme-boca .brutalist-card {
+             background-color: #002244;
+        }
 
         .brutalist-card:hover {
             box-shadow: 4px 4px 0 var(--text-color);
@@ -44,20 +63,22 @@
         .brutalist-sidebar {
             background-color: var(--bg-color);
             border-right: var(--border-width) solid var(--text-color);
+            transition: background-color 0.3s;
         }
 
         .nav-link {
             border: var(--border-width) solid var(--text-color);
             font-weight: 700;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, color 0.2s;
             cursor: pointer;
         }
         .nav-link.active {
             background-color: var(--accent-color);
-            color: var(--text-color);
+            color: #1e293b;
         }
         .nav-link:hover:not(.active) {
              background-color: var(--accent-color-hover);
+             color: #1e293b;
         }
 
         .brutalist-button {
@@ -67,6 +88,7 @@
             font-weight: 700;
             transition: all 0.2s ease-in-out;
             text-transform: uppercase;
+            color: #1e293b;
         }
         .brutalist-button:hover {
             box-shadow: 2px 2px 0 var(--text-color);
@@ -84,6 +106,13 @@
             width: 100%;
             font-family: 'Space Mono', monospace;
         }
+        .dark .brutalist-input, .theme-boca .brutalist-input {
+             background-color: #0d1117;
+             color: var(--text-color);
+        }
+         .theme-boca .brutalist-input {
+            background-color: #002244;
+         }
         .brutalist-input:focus {
             outline: none;
             border-color: var(--accent-color);
@@ -93,120 +122,90 @@
              border-bottom: 4px solid var(--text-color);
         }
         
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 3rem;
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 3rem; }
+        .list-view { display: flex; flex-direction: column; gap: 1rem; }
+        .chip-view { display: flex; flex-wrap: wrap; gap: 1rem; }
+
+        .list-item, .chip-item {
+            border: var(--border-width) solid var(--text-color);
+            background: white;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .dark .list-item, .dark .chip-item, .theme-boca .list-item, .theme-boca .chip-item {
+            background-color: #0d1117;
+        }
+        .theme-boca .list-item, .theme-boca .chip-item {
+             background-color: #002244;
+        }
+        .list-item:hover, .chip-item:hover {
+            transform: translate(-4px, -4px);
+            box-shadow: 4px 4px 0 var(--text-color);
         }
         
-        .category-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            border-bottom: 3px solid var(--text-color);
-            padding-bottom: 0.5rem;
-            margin-bottom: 1.5rem;
-        }
+        .category-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--text-color); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+        .category-title { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; }
+        .view-switcher button { border: var(--border-width) solid transparent; padding: 0.25rem 0.5rem; }
+        .view-switcher button.active { border-color: var(--text-color); background-color: var(--accent-color); color: #1e293b;}
 
-        .card-actions {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            display: flex;
-            gap: 4px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            z-index: 20;
-        }
-        .brutalist-card:hover .card-actions {
-            opacity: 1;
-        }
-        .action-btn {
-            width: 32px;
-            height: 32px;
-            border: var(--border-width) solid var(--text-color);
-            background: var(--bg-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .action-btn:hover {
-            background: var(--accent-color);
-        }
-        .card-drag-handle {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            cursor: move;
-            padding: 4px;
-            opacity: 0;
-            transition: opacity 0.2s;
-            z-index: 20;
-        }
-        .brutalist-card:hover .card-drag-handle {
-            opacity: 1;
-        }
+
+        .card-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0; transition: opacity 0.2s; z-index: 20; }
+        .brutalist-card:hover .card-actions, .list-item:hover .card-actions, .chip-item:hover .card-actions { opacity: 1; }
+        .action-btn { width: 32px; height: 32px; border: var(--border-width) solid var(--text-color); background: var(--bg-color); display: flex; align-items: center; justify-content: center; }
+        .action-btn:hover { background: var(--accent-color); color: #1e293b; }
+        .card-drag-handle { position: absolute; top: 8px; left: 8px; cursor: move; padding: 4px; opacity: 0; transition: opacity 0.2s; z-index: 20; }
+        .brutalist-card:hover .card-drag-handle { opacity: 1; }
 
         /* --- Estilos de Vista Previa de Tarjeta --- */
-        .card-default-view {
-            transition: opacity 0.3s ease;
-        }
-        .card-preview-view {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: white;
-            padding: 1.5rem;
-            transform: translateY(100%);
-            transition: transform 0.4s ease;
-            z-index: 10;
-            overflow-y: hidden;
-        }
-        .brutalist-card:hover .card-preview-view {
-            transform: translateY(0);
-        }
-        .brutalist-card:hover .card-default-view {
-            opacity: 0;
-        }
-        .scrolling-text {
-            animation: none;
-        }
-        .brutalist-card:hover .scrolling-text {
-            animation: scroll-up 20s linear 1s infinite;
-        }
-        @keyframes scroll-up {
-            from { transform: translateY(0); }
-            to { transform: translateY(-100%); }
-        }
+        .card-default-view { transition: opacity 0.3s ease; }
+        .card-preview-view { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; background: white; padding: 1.5rem; transform: translateY(100%); transition: transform 0.4s ease; z-index: 10; overflow-y: hidden; background-size: cover; background-position: center; }
+        .dark .card-preview-view, .theme-boca .card-preview-view { background-color: #0d1117; }
+        .theme-boca .card-preview-view { background-color: #002244; }
+        .brutalist-card:hover .card-preview-view { transform: translateY(0); }
+        .brutalist-card:hover .card-default-view { opacity: 0; }
+        .scrolling-text { animation: none; }
+        .brutalist-card:hover .scrolling-text { animation: scroll-up 20s linear 1s infinite; }
+        @keyframes scroll-up { from { transform: translateY(0); } to { transform: translateY(-100%); } }
         
         /* --- PANEL DE EDICIÓN --- */
-        #editPanel {
-            background-color: rgba(254, 252, 232, 0.8);
-            backdrop-filter: blur(4px);
-        }
-        .edit-container {
-            background-color: white;
+        #editPanel { background-color: rgba(254, 252, 232, 0.8); backdrop-filter: blur(4px); }
+        .dark #editPanel, .theme-boca #editPanel { background-color: rgba(30, 41, 59, 0.8); }
+        .edit-container { background-color: white; border: var(--border-width) solid var(--text-color); box-shadow: 8px 8px 0px var(--text-color); max-height: 90vh; overflow-y: auto; }
+        .dark .edit-container, .theme-boca .edit-container { background-color: #0d1117; }
+        .theme-boca .edit-container { background-color: #002244; }
+        .type-btn { border: var(--border-width) solid var(--text-color); transition: all 0.2s; }
+        .type-btn.active { background-color: var(--accent-color); box-shadow: 4px 4px 0 var(--text-color); transform: translate(-4px, -4px); color: #1e293b; }
+        .rich-text-editor { border: var(--border-width) solid var(--text-color); min-height: 120px; padding: 0.5rem; }
+        .dark .rich-text-editor, .theme-boca .rich-text-editor { background-color: #1e293b; }
+        
+        /* --- ETIQUETAS --- */
+        .card-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: auto; padding-top: 1rem; }
+        .tag { background-color: var(--bg-color); border: 2px solid var(--text-color); padding: 2px 8px; font-size: 0.75rem; font-weight: 700; }
+
+        /* --- FAB MENU --- */
+        .fab-container { position: fixed; right: 2rem; bottom: 2rem; z-index: 1100; }
+        .fab-main { width: 60px; height: 60px; cursor: pointer; }
+        .fab-actions { position: absolute; bottom: 70px; right: 0; display: flex; flex-direction: column; gap: 1rem; align-items: center; list-style: none; margin: 0; padding: 0; }
+        .fab-action { transform: scale(0); transition: transform .2s ease-in-out; }
+        .fab-container.open .fab-action { transform: scale(1); }
+
+        /* --- SEARCH PALETTE --- */
+        #search-palette-overlay { background-color: rgba(0,0,0,0.7); backdrop-filter: blur(4px); z-index: 1200; }
+        #search-palette { background-color: var(--bg-color); border: var(--border-width) solid var(--text-color); }
+        .filter-tag { border: var(--border-width) solid var(--text-color); cursor: pointer; }
+        .filter-tag.active { background-color: var(--accent-color); color: #1e293b; }
+        
+        /* --- PREVIEW MODAL --- */
+        #preview-modal {
+            pointer-events: none; /* Allows clicking through the modal */
+            box-shadow: 8px 8px 0 var(--text-color);
             border: var(--border-width) solid var(--text-color);
-            box-shadow: 8px 8px 0px var(--text-color);
-            max-height: 90vh; /* Límite de altura */
-            overflow-y: auto; /* Scroll si el contenido excede */
         }
-        .type-btn {
-            border: var(--border-width) solid var(--text-color);
-            transition: all 0.2s;
+        #preview-modal-content {
+            background-size: cover;
+            background-position: center;
         }
-        .type-btn.active {
-            background-color: var(--accent-color);
-            box-shadow: 4px 4px 0 var(--text-color);
-            transform: translate(-4px, -4px);
-        }
-        .rich-text-editor {
-            border: var(--border-width) solid var(--text-color);
-            min-height: 120px;
-            padding: 0.5rem;
-        }
+
     </style>
 </head>
 <body>
@@ -230,9 +229,14 @@
         <!-- Contenido Principal -->
         <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
             <!-- Cabecera -->
-            <header class="main-header flex justify-between items-center mb-8 pb-4">
+            <header class="main-header flex justify-between items-center mb-8 pb-4 gap-4">
                 <h2 id="main-title" class="text-3xl sm:text-4xl font-bold tracking-tighter">BUSCADORES</h2>
                 <div class="flex items-center gap-4">
+                    <div id="global-view-switcher" class="view-switcher">
+                        <button data-view="grid" class="active"><i class="fas fa-th-large"></i></button>
+                        <button data-view="list"><i class="fas fa-bars"></i></button>
+                        <button data-view="chip"><i class="fas fa-grip-horizontal"></i></button>
+                    </div>
                     <button id="addNewButton" class="brutalist-button px-4 py-2">
                         <span>+ NUEVO</span>
                     </button>
@@ -330,13 +334,39 @@
         </div>
     </div>
     
-    <div id="toast" class="hidden fixed bottom-5 right-5 p-4 border-4 font-bold" style="border-color: var(--text-color); background-color: var(--accent-color);"></div>
+    <div id="toast" class="hidden fixed bottom-5 right-5 p-4 border-4 font-bold" style="border-color: var(--text-color); background-color: var(--accent-color); color: #1e293b;"></div>
+
+    <!-- FAB Menu -->
+    <div class="fab-container">
+        <ul class="fab-actions">
+            <li class="fab-action"><button id="fab-search" class="brutalist-button fab-main" title="Buscar"><i class="fas fa-search"></i></button></li>
+            <li class="fab-action"><button id="fab-theme" class="brutalist-button fab-main" title="Cambiar Tema"><i class="fas fa-palette"></i></button></li>
+        </ul>
+        <div class="fab-main brutalist-button"><i class="fas fa-bars"></i></div>
+    </div>
+    
+    <!-- Search Palette -->
+    <div id="search-palette-overlay" class="hidden fixed inset-0 flex items-center justify-center p-4">
+        <div id="search-palette" class="w-full max-w-2xl p-6">
+            <input type="text" id="search-palette-input" placeholder="BUSCAR POR TITULO O ETIQUETA..." class="brutalist-input w-full mb-4">
+            <div id="search-palette-tags" class="flex flex-wrap gap-2 mb-4"></div>
+            <div id="search-palette-results" class="max-h-[50vh] overflow-y-auto"></div>
+        </div>
+    </div>
+    
+    <!-- Preview Modal -->
+    <div id="preview-modal" class="hidden fixed top-0 left-0 z-[1300] w-80 h-96 p-2 bg-transparent">
+        <div id="preview-modal-content" class="w-full h-full bg-white overflow-hidden border-4" style="border-color: var(--text-color);"></div>
+    </div>
+
 
 <script>
 // --- CONFIG & GLOBAL STATE ---
 const FILENAME_IN_GIST = 'Botones.json';
 let data = [];
 let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
+let globalView = 'grid'; // Vista global para todo el sitio
+let activeSearchTags = [];
 
 // --- MOCK DATA (for when Gist is not available) ---
 const mockData = {
@@ -434,6 +464,7 @@ async function saveData() {
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
     setupEventListeners();
+    setupFabMenu();
 });
 
 function setupEventListeners() {
@@ -463,36 +494,57 @@ function setupEventListeners() {
     document.getElementById('dropdownToggle').addEventListener('click', () => {
         document.getElementById('searchEngineDropdown').classList.toggle('hidden');
     });
+
+    // Global View Switcher
+    document.getElementById('global-view-switcher').addEventListener('click', (e) => {
+        const button = e.target.closest('button');
+        if (button) {
+            globalView = button.dataset.view;
+            const activeSection = document.querySelector('#main-nav .active').dataset.section;
+            renderSection(activeSection);
+        }
+    });
+
+    // Search Palette Listeners
+    const searchPaletteOverlay = document.getElementById('search-palette-overlay');
+    searchPaletteOverlay.addEventListener('click', (e) => {
+        if (e.target === searchPaletteOverlay) closeSearchPalette();
+    });
+    document.getElementById('search-palette-input').addEventListener('input', applySearchPaletteFilters);
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && !searchPaletteOverlay.classList.contains('hidden')) {
+            closeSearchPalette();
+        }
+    });
 }
 
 function initializeUI() {
     if (!data) return;
+    globalView = localStorage.getItem('globalView') || 'grid';
     switchTab('buscadores'); // Start on the first tab
     populateSearchEngineDropdown();
 }
 
 function switchTab(tabName) {
-    // Update nav links
     document.querySelectorAll("#main-nav .nav-link").forEach(b => b.classList.remove("active"));
     document.querySelector(`#main-nav .nav-link[data-section="${tabName}"]`).classList.add("active");
-    
-    // Update main title
     document.getElementById('main-title').textContent = tabName.toUpperCase();
-
-    // Show/hide sections
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
     const activeSection = document.querySelector(`#section-${tabName}`);
     activeSection.classList.remove("hidden");
-    
-    // Show/hide search bar
     document.getElementById('main-search-bar').style.display = (tabName === 'buscadores') ? 'flex' : 'none';
-    
     renderSection(tabName);
     updateSearchSuggestions();
 }
 
 // --- RENDERING ---
 function renderSection(sectionName) {
+    // Update global view switcher UI
+    document.querySelectorAll('#global-view-switcher button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === globalView);
+    });
+    localStorage.setItem('globalView', globalView);
+
     const typeMap = {
         buscadores: 'Buscador', links: 'Link', prompts: 'Promp',
         notes: 'Nota', tasks: 'Tarea'
@@ -511,17 +563,24 @@ function renderSection(sectionName) {
 
     Object.keys(categorized).sort().forEach(cat => {
         const catDiv = document.createElement('div');
-        const grid = document.createElement('div');
-        grid.className = "card-grid";
-        grid.dataset.category = cat;
-
-        catDiv.innerHTML = `<h3 class="category-title">${cat}</h3>`;
+        catDiv.innerHTML = `<div class="category-header"><h3 class="category-title">${cat}</h3></div>`;
         
-        categorized[cat].forEach(item => grid.appendChild(createCard(item)));
-        catDiv.appendChild(grid);
+        const contentContainer = document.createElement('div');
+        contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
+        contentContainer.dataset.category = cat;
+        
+        categorized[cat].forEach(item => {
+            let element;
+            if (globalView === 'grid') element = createCard(item);
+            else if (globalView === 'list') element = createListItem(item);
+            else element = createChipItem(item);
+            contentContainer.appendChild(element);
+        });
+        
+        catDiv.appendChild(contentContainer);
         container.appendChild(catDiv);
 
-        new Sortable(grid, {
+        new Sortable(contentContainer, {
             animation: 150,
             handle: '.card-drag-handle',
             onEnd: function (evt) {
@@ -537,6 +596,22 @@ function renderSection(sectionName) {
     });
 }
 
+function getPreviewContent(item) {
+    if (item.type === 'Tarea' && Array.isArray(item.action)) {
+        return `<ul class="space-y-2 list-none w-full p-4">
+            ${item.action.map(task => `<li class="flex items-center gap-3">
+                <i class="fas ${task.status ? 'fa-check-square' : 'fa-square'}"></i>
+                <span class="${task.status ? 'line-through' : ''}">${task.text}</span>
+            </li>`).join('')}
+        </ul>`;
+    } else if (item.type === 'Nota' || item.type === 'Promp') {
+        return `<div class="p-4">${item.action}</div>`;
+    } else { // Link or Buscador
+        const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=400`;
+        return `<div class="w-full h-full bg-cover bg-center" style="background-image: url('${previewUrl}')"></div>`;
+    }
+}
+
 function createCard(item) {
     const card = document.createElement("div");
     card.className = 'brutalist-card p-6';
@@ -545,26 +620,20 @@ function createCard(item) {
     const iconHtml = `<i class="${item.icon || 'fas fa-question-circle'} text-4xl sm:text-6xl mb-3"></i>`;
     const titleHtml = `<h4 class="font-bold text-lg uppercase">${item.title}</h4>`;
     const categoryHtml = `<p class="text-sm">CATEGORIA: ${item.category}</p>`;
+    const tagsHtml = item.tags && item.tags.length > 0
+        ? `<div class="card-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
+        : '<div class="flex-grow"></div>';
     
     let contentHtml = '';
-    let previewHtml = '';
-
     if (item.type === 'Tarea' && Array.isArray(item.action)) {
-        contentHtml = `<div class="flex-grow"></div><ul class="space-y-2 list-none mt-4 w-full">
+        contentHtml = `<ul class="space-y-2 list-none mt-4 w-full">
             ${item.action.slice(0, 3).map(task => `<li class="flex items-center gap-3">
                 <i class="fas ${task.status ? 'fa-check-square' : 'fa-square'}"></i>
                 <span class="${task.status ? 'line-through' : ''}">${task.text}</span>
             </li>`).join('')}
         </ul>`;
-    } else if (item.type === 'Nota' || item.type === 'Promp') {
-        // Vista por defecto solo con icono y titulo
-        contentHtml = `<div class="flex-grow"></div>`;
-        // Vista previa con el texto que se anima
-        previewHtml = `<div class="card-preview-view">
-            <div class="scrolling-text">${item.action}</div>
-        </div>`;
-    } else { // Link or Buscador
-        contentHtml = `<div class="flex-grow"></div><button class="mt-4 brutalist-button w-full py-2" onclick="handleCardClick('${item.id}')">ABRIR</button>`;
+    } else if (item.type !== 'Nota' && item.type !== 'Promp') {
+        contentHtml = `<button class="mt-4 brutalist-button w-full py-2" onclick="handleCardClick('${item.id}')">ABRIR</button>`;
     }
 
     card.innerHTML = `
@@ -577,20 +646,60 @@ function createCard(item) {
             ${iconHtml}
             ${titleHtml}
             ${categoryHtml}
+            <div class="flex-grow"></div>
             ${contentHtml}
+            ${tagsHtml}
         </div>
-        ${previewHtml}
+        <div class="card-preview-view">${getPreviewContent(item)}</div>
     `;
     
-    if (item.type !== 'Link' && item.type !== 'Buscador') {
-        card.addEventListener('click', (e) => {
-            if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && !e.target.closest('.card-actions')) {
-                openEditPanel(item.id);
-            }
-        });
-    }
+    card.addEventListener('click', (e) => {
+        if (e.target.tagName !== 'BUTTON' && e.target.tagName !== 'INPUT' && !e.target.closest('.card-actions')) {
+            handleCardClick(item.id);
+        }
+    });
     
     return card;
+}
+
+function createListItem(item) {
+    const listItem = document.createElement("div");
+    listItem.className = 'list-item relative p-4 flex items-center gap-4';
+    listItem.dataset.id = item.id;
+    listItem.innerHTML = `
+        <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
+        <i class="${item.icon || 'fas fa-question-circle'} text-2xl w-8 text-center"></i>
+        <div class="flex-grow">
+            <h4 class="font-bold uppercase">${item.title}</h4>
+            <div class="flex flex-wrap gap-2 mt-1">
+                ${(item.tags || []).map(tag => `<span class="tag !text-xs !py-0">${tag}</span>`).join('')}
+            </div>
+        </div>
+        <div class="card-actions !static !opacity-100">
+            <button onclick="handleCardClick('${item.id}')" class="action-btn" title="Abrir/Activar"><i class="fas fa-play"></i></button>
+            <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+        </div>
+    `;
+    listItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
+    listItem.addEventListener('mouseleave', hidePreviewModal);
+    return listItem;
+}
+
+function createChipItem(item) {
+    const chipItem = document.createElement("div");
+    chipItem.className = 'chip-item relative p-2 pr-3 flex items-center gap-2';
+    chipItem.dataset.id = item.id;
+    chipItem.innerHTML = `
+        <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
+        <i class="${item.icon || 'fas fa-question-circle'}"></i>
+        <span class="font-bold uppercase">${item.title}</span>
+        <div class="card-actions !static !opacity-100 ml-2">
+            <button onclick="handleCardClick('${item.id}')" class="action-btn !w-6 !h-6" title="Abrir/Activar"><i class="fas fa-play text-xs"></i></button>
+        </div>
+    `;
+    chipItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
+    chipItem.addEventListener('mouseleave', hidePreviewModal);
+    return chipItem;
 }
 
 // --- ACTIONS & EVENT HANDLERS ---
@@ -605,27 +714,8 @@ function handleCardClick(id) {
         searchBar.querySelector('#search-bar-title').textContent = item.title.toUpperCase();
         searchBar.querySelector('#search-bar-icon').className = `${item.icon || 'fas fa-search'} text-2xl`;
         showToast(`MOTOR SELECCIONADO: ${item.title}`);
-    }
-}
-
-function copyAction(id) {
-    const item = data.find(i => String(i.id) === id);
-    if (item) {
-        navigator.clipboard.writeText(item.action).then(() => showToast("TEXTO COPIADO."));
-    }
-}
-
-function toggleTask(event, itemId, taskText) {
-    const item = data.find(i => String(i.id) === itemId);
-    if (item && Array.isArray(item.action)) {
-        const task = item.action.find(t => t.text === taskText);
-        if (task) {
-            task.status = event.target.checked;
-            saveData().then(() => {
-                const activeSection = document.querySelector('#main-nav .active').dataset.section;
-                renderSection(activeSection);
-            });
-        }
+    } else {
+        openEditPanel(id);
     }
 }
 
@@ -655,7 +745,12 @@ function performSearch() {
 function populateSearchEngineDropdown() {
     const dropdown = document.getElementById("searchEngineDropdown");
     dropdown.innerHTML = "";
-    data.filter(item => item.type === "Buscador").forEach(engine => {
+    const searchEngines = data.filter(item => item.type === "Buscador");
+    if (searchEngines.length === 0) {
+        dropdown.innerHTML = `<div class="p-2 text-gray-500">No hay buscadores</div>`;
+        return;
+    }
+    searchEngines.forEach(engine => {
         const itemEl = document.createElement("div");
         itemEl.className = "p-2 hover:bg-yellow-200 cursor-pointer flex items-center gap-2";
         itemEl.innerHTML = `<i class="${engine.icon}"></i><span>${engine.title}</span>`;
@@ -795,6 +890,136 @@ function showToast(message) {
     toast.textContent = message.toUpperCase();
     toast.classList.remove("hidden");
     setTimeout(() => toast.classList.add("hidden"), 3000);
+}
+
+// --- FAB MENU & THEME ---
+function setupFabMenu() {
+    const fabContainer = document.querySelector('.fab-container');
+    fabContainer.addEventListener('click', (e) => {
+        if (e.target.closest('.fab-main')) {
+            fabContainer.classList.toggle('open');
+        }
+    });
+
+    // Theme switcher
+    const themeBtn = document.getElementById('fab-theme');
+    const themes = ['light', 'dark', 'theme-boca'];
+    let currentThemeIndex = themes.indexOf(localStorage.getItem('theme') || 'light');
+    
+    const applyTheme = (themeName) => {
+        document.body.classList.remove(...themes);
+        if(themeName !== 'light') document.body.classList.add(themeName);
+        localStorage.setItem('theme', themeName);
+    };
+
+    themeBtn.addEventListener('click', () => {
+        currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+        applyTheme(themes[currentThemeIndex]);
+    });
+
+    // Apply saved theme
+    applyTheme(themes[currentThemeIndex]);
+    
+    // Search palette button
+    document.getElementById('fab-search').addEventListener('click', openSearchPalette);
+}
+
+// --- SEARCH PALETTE ---
+function openSearchPalette() {
+    populateSearchPaletteTags();
+    applySearchPaletteFilters();
+    document.getElementById('search-palette-overlay').classList.remove('hidden');
+    document.getElementById('search-palette-input').focus();
+}
+
+function closeSearchPalette() {
+    document.getElementById('search-palette-overlay').classList.add('hidden');
+}
+
+function populateSearchPaletteTags() {
+    const tagsContainer = document.getElementById('search-palette-tags');
+    tagsContainer.innerHTML = '';
+    const allTags = [...new Set(data.flatMap(card => card.tags || []))].sort();
+    
+    allTags.forEach(tag => {
+        if (!tag) return;
+        const tagEl = document.createElement('button');
+        tagEl.className = 'filter-tag p-2';
+        tagEl.textContent = tag;
+        tagEl.dataset.tag = tag;
+        tagEl.onclick = () => {
+            tagEl.classList.toggle('active');
+            if (activeSearchTags.includes(tag)) {
+                activeSearchTags = activeSearchTags.filter(t => t !== tag);
+            } else {
+                activeSearchTags.push(tag);
+            }
+            applySearchPaletteFilters();
+        };
+        tagsContainer.appendChild(tagEl);
+    });
+}
+
+function applySearchPaletteFilters() {
+    const searchTerm = document.getElementById('search-palette-input').value.toLowerCase();
+    const activeNavBtn = document.querySelector('.nav-link.active');
+    const activeType = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes': 'Nota', 'tasks': 'Tarea' }[activeNavBtn.dataset.section];
+
+    const itemsToSearch = data.filter(item => item.type === activeType);
+
+    const results = itemsToSearch.filter(card => {
+        const title = card.title.toLowerCase();
+        const cardTags = card.tags || [];
+        const searchMatch = title.includes(searchTerm);
+        const tagMatch = activeSearchTags.length === 0 || activeSearchTags.every(filterTag => cardTags.includes(filterTag));
+        return searchMatch && tagMatch;
+    });
+
+    renderSearchPaletteResults(results);
+}
+
+function renderSearchPaletteResults(results) {
+    const resultsContainer = document.getElementById('search-palette-results');
+    resultsContainer.innerHTML = '';
+    if (results.length === 0) {
+        resultsContainer.innerHTML = '<p>No se encontraron resultados.</p>';
+        return;
+    }
+    results.forEach(item => {
+        const resultItem = createListItem(item);
+        resultItem.onclick = () => {
+            handleCardClick(String(item.id));
+            closeSearchPalette();
+        };
+        resultsContainer.appendChild(resultItem);
+    });
+}
+
+// --- PREVIEW MODAL ---
+function showPreviewModal(item, event) {
+    const modal = document.getElementById('preview-modal');
+    const modalContent = document.getElementById('preview-modal-content');
+    modalContent.innerHTML = getPreviewContent(item);
+    
+    const rect = event.currentTarget.getBoundingClientRect();
+    let top = rect.bottom + window.scrollY;
+    let left = rect.left + window.scrollX;
+
+    // Adjust if modal goes off-screen
+    if (left + modal.offsetWidth > window.innerWidth) {
+        left = window.innerWidth - modal.offsetWidth - 20;
+    }
+    if (top + modal.offsetHeight > window.innerHeight) {
+        top = rect.top + window.scrollY - modal.offsetHeight;
+    }
+
+    modal.style.top = `${top}px`;
+    modal.style.left = `${left}px`;
+    modal.classList.remove('hidden');
+}
+
+function hidePreviewModal() {
+    document.getElementById('preview-modal').classList.add('hidden');
 }
 
 </script>
