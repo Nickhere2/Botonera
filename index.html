@@ -865,7 +865,7 @@ function createListItem(item) {
         </div>
     `;
     listItem.addEventListener('click', (e) => handleCardClick(item.id, e));
-    listItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e.currentTarget));
+    listItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
     listItem.addEventListener('mouseleave', hidePreviewModal);
     return listItem;
 }
@@ -880,7 +880,7 @@ function createChipItem(item) {
         <span class="font-bold uppercase">${item.title}</span>
     `;
     chipItem.addEventListener('click', (e) => handleCardClick(item.id, e));
-    chipItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e.currentTarget));
+    chipItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
     chipItem.addEventListener('mouseleave', hidePreviewModal);
     return chipItem;
 }
@@ -1255,25 +1255,37 @@ function applyGlobalFilter() {
 
 
 // --- PREVIEW MODAL ---
-function showPreviewModal(item, element) {
+function showPreviewModal(item, event) {
     const modal = document.getElementById('preview-modal');
     const modalContent = document.getElementById('preview-modal-content');
     modalContent.innerHTML = getPreviewContent(item);
     
-    const rect = element.getBoundingClientRect();
-    let top = rect.top;
-    let left = rect.right + 15; // 15px gap
+    const modalWidth = 320; // from w-80 class
+    const modalHeight = 384; // from h-96 class
+    const cursorX = event.clientX;
+    const cursorY = event.clientY;
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const offset = 20; // Gap from cursor
 
-    // Adjust if modal goes off-screen horizontally
-    if (left + modal.offsetWidth > window.innerWidth - 15) {
-        left = rect.left - modal.offsetWidth - 15;
+    // Default position: above and to the right
+    let top = cursorY - modalHeight;
+    let left = cursorX + offset;
+
+    // Adjust vertical position
+    if (top < offset) { // If it overflows the top
+        top = cursorY + offset; // Move it below the cursor
     }
-    // Adjust if modal goes off-screen vertically
-    if (top + modal.offsetHeight > window.innerHeight -15) {
-        top = window.innerHeight - modal.offsetHeight - 15;
+    if (top + modalHeight > viewportHeight - offset) { // If it overflows the bottom
+        top = viewportHeight - modalHeight - offset; // Stick to the bottom
     }
-    if (top < 15) {
-        top = 15;
+
+    // Adjust horizontal position
+    if (left + modalWidth > viewportWidth - offset) { // If it overflows the right
+        left = cursorX - modalWidth - offset; // Move it to the left of the cursor
+    }
+    if (left < offset) { // If it overflows the left
+        left = offset; // Stick to the left
     }
 
     modal.style.top = `${top}px`;
