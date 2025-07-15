@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v12 - Brutalist (Corregido)</title>
+    <title>Centro de Accesos v12 - Brutalist (Mejorado)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
@@ -143,8 +143,11 @@
             box-shadow: 4px 4px 0 var(--text-color);
         }
         
-        .category-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--text-color); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+        .category-header { position: relative; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid var(--text-color); padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
         .category-title { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; }
+        .category-actions { display: none; }
+        .category-header:hover .category-actions { display: flex; }
+        
         .view-switcher button { border: var(--border-width) solid transparent; padding: 0.25rem 0.5rem; }
         .view-switcher button.active { border-color: var(--text-color); background-color: var(--accent-color); color: #1e293b;}
 
@@ -206,6 +209,60 @@
         #preview-modal-content {
             background-size: cover;
             background-position: center;
+        }
+        
+        kbd {
+            background-color: #eee;
+            border-radius: 3px;
+            border: 1px solid #b4b4b4;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, .2), 0 2px 0 0 rgba(255, 255, 255, .7) inset;
+            color: #333;
+            display: inline-block;
+            font-family: 'Space Mono', monospace;
+            font-size: .85em;
+            font-weight: 700;
+            line-height: 1;
+            padding: 2px 4px;
+            white-space: nowrap;
+        }
+        
+        /* Styles for List View with background */
+        .list-item {
+            position: relative;
+            overflow: hidden;
+            color: white;
+        }
+        .list-item-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            filter: blur(2px);
+            transform: scale(1.1);
+            z-index: 0;
+        }
+        .list-item-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1;
+        }
+        .list-item-content {
+            position: relative;
+            z-index: 2;
+        }
+        .list-item .tag {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.8);
+            color: white;
+        }
+        .list-item .action-btn {
+            background-color: transparent;
+            border-color: white;
+        }
+        .list-item .action-btn:hover {
+            background-color: white;
+            color: black;
         }
 
     </style>
@@ -314,11 +371,11 @@
                   <label class="font-bold block mb-2">ICONO (fas fa-search)</label>
                   <input type="text" id="newIcon" class="brutalist-input" placeholder="ej: fas fa-search o fab fa-youtube">
                 </div>
-
-                <div>
-                  <label class="font-bold block mb-2">CATEGORIA</label>
-                  <input type="text" id="newCategory" class="brutalist-input" list="category-suggestions" placeholder="Escribe o selecciona una categoría">
-                  <datalist id="category-suggestions"></datalist>
+                
+                <div id="categoryFieldContainer">
+                    <label class="font-bold block mb-2">CATEGORIA</label>
+                    <input type="text" id="newCategory" class="brutalist-input" list="category-suggestions" placeholder="Escribe una categoría existente o nueva">
+                    <datalist id="category-suggestions"></datalist>
                 </div>
                  
                 <div>
@@ -338,6 +395,7 @@
     <!-- FAB Menu -->
     <div class="fab-container">
         <ul class="fab-actions">
+            <li class="fab-action"><button id="fab-help" class="brutalist-button fab-main" title="Ayuda"><i class="fas fa-question"></i></button></li>
             <li class="fab-action"><button id="fab-search" class="brutalist-button fab-main" title="Buscar"><i class="fas fa-search"></i></button></li>
             <li class="fab-action"><button id="fab-theme" class="brutalist-button fab-main" title="Cambiar Tema"><i class="fas fa-palette"></i></button></li>
         </ul>
@@ -369,6 +427,38 @@
             </div>
         </div>
     </div>
+    
+    <!-- Help Modal -->
+    <div id="helpModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
+        <div class="modal-container w-full max-w-2xl p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">AYUDA Y ATAJOS</h2>
+                <button id="closeHelpModal" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
+            </div>
+            <div class="space-y-6">
+                <div>
+                    <h3 class="font-bold text-lg mb-2 uppercase">Atajos de Teclado</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li><kbd>Ctrl</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>B</kbd> : Abrir paleta de búsqueda</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>T</kbd> : Cambiar tema visual</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
+                        <li><kbd>Esc</kbd> : Cerrar paneles y modales</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-2 uppercase">¿Cómo Funciona?</h3>
+                    <p class="mb-2">Este es un centro de accesos personalizable para organizar tus links, buscadores, notas y más, con una estética brutalista.</p>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Conexión de Datos:</strong> La aplicación se conecta a un Gist de GitHub para guardar tus datos. La primera vez, se te pedirá un Gist ID. Para guardar cambios, necesitarás un Personal Access Token (PAT) de GitHub con el permiso <code>gist</code>.</li>
+                        <li><strong>Gestión de Categorías:</strong> Usa los botones que aparecen al pasar el ratón sobre un título de categoría para editarla o eliminarla. Para añadir una nueva, haz clic en "Nueva Categoría" o asigna un nombre de categoría nuevo al crear o editar un elemento.</li>
+                        <li><strong>Búsqueda Rápida:</strong> En la sección de Buscadores, selecciona un motor de búsqueda del menú desplegable y realiza búsquedas rápidamente.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
@@ -376,7 +466,14 @@
 const FILENAME_IN_GIST = 'Botones.json';
 let data = [];
 let searchHistory = JSON.parse(localStorage.getItem("searchHistory") || "[]");
-let globalView = 'grid'; // Vista global para todo el sitio
+
+const views = ['grid', 'list', 'chip'];
+let currentViewIndex = views.indexOf(localStorage.getItem('globalView') || 'grid');
+let globalView = views[currentViewIndex];
+
+const themes = ['light', 'dark', 'theme-boca'];
+let currentThemeIndex = themes.indexOf(localStorage.getItem('theme') || 'light');
+
 let activeSearchTags = [];
 
 // --- MOCK DATA (for when Gist is not available) ---
@@ -512,6 +609,7 @@ function setupEventListeners() {
         const button = e.target.closest('button');
         if (button) {
             globalView = button.dataset.view;
+            currentViewIndex = views.indexOf(globalView);
             const activeSection = document.querySelector('#main-nav .active').dataset.section;
             renderSection(activeSection);
         }
@@ -523,20 +621,52 @@ function setupEventListeners() {
         if (e.target === searchPaletteOverlay) closeSearchPalette();
     });
     document.getElementById('search-palette-input').addEventListener('input', applySearchPaletteFilters);
+    
+    // Keyboard Shortcuts
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && !searchPaletteOverlay.classList.contains('hidden')) {
+        const isModalOpen = !document.getElementById('editPanel').classList.contains('hidden') ||
+                              !document.getElementById('search-palette-overlay').classList.contains('hidden') ||
+                              !document.getElementById('helpModal').classList.contains('hidden');
+
+        if (e.key === 'Escape' && isModalOpen) {
             closeSearchPalette();
+            document.getElementById('editPanel').classList.add('hidden');
+            document.getElementById('helpModal').classList.add('hidden');
         }
-        if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-            e.preventDefault();
-            openSearchPalette();
+        if (e.ctrlKey || e.metaKey) {
+            switch(e.key) {
+                case 'b':
+                    e.preventDefault();
+                    openSearchPalette();
+                    break;
+                case 'n':
+                    e.preventDefault();
+                    openEditPanel();
+                    break;
+                case 't':
+                    e.preventDefault();
+                    changeTheme();
+                    break;
+                case 'v':
+                    e.preventDefault();
+                    changeView();
+                    break;
+            }
         }
+    });
+    
+    // Help Modal Listeners
+    document.getElementById('fab-help').addEventListener('click', () => {
+        document.getElementById('helpModal').classList.remove('hidden');
+    });
+    document.getElementById('closeHelpModal').addEventListener('click', () => {
+        document.getElementById('helpModal').classList.add('hidden');
     });
 }
 
 function initializeUI() {
     if (!data) return;
-    globalView = localStorage.getItem('globalView') || 'grid';
+    applyTheme(themes[currentThemeIndex]);
     switchTab('buscadores'); // Start on the first tab
     populateSearchEngineDropdown();
 }
@@ -555,7 +685,6 @@ function switchTab(tabName) {
 
 // --- RENDERING ---
 function renderSection(sectionName) {
-    // Update global view switcher UI
     document.querySelectorAll('#global-view-switcher button').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.view === globalView);
     });
@@ -567,7 +696,7 @@ function renderSection(sectionName) {
     };
     const type = typeMap[sectionName];
     const container = document.getElementById(`section-${sectionName}`);
-    container.innerHTML = '';
+    container.innerHTML = `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`;
     
     const items = data.filter(item => item.type === type);
     
@@ -579,7 +708,18 @@ function renderSection(sectionName) {
 
     Object.keys(categorized).sort().forEach(cat => {
         const catDiv = document.createElement('div');
-        catDiv.innerHTML = `<div class="category-header"><h3 class="category-title">${cat}</h3></div>`;
+        
+        const categoryActionsHTML = cat !== 'SIN CATEGORIA' ? `
+            <div class="category-actions flex gap-2">
+                <button onclick="editCategory('${cat}')" class="action-btn !w-auto !h-auto px-2 py-1" title="Editar Nombre"><i class="fas fa-pencil-alt"></i></button>
+                <button onclick="deleteCategory('${cat}')" class="action-btn !w-auto !h-auto px-2 py-1" title="Eliminar Categoría"><i class="fas fa-trash-alt"></i></button>
+            </div>` : '';
+
+        catDiv.innerHTML = `
+            <div class="category-header">
+                <h3 class="category-title">${cat}</h3>
+                ${categoryActionsHTML}
+            </div>`;
         
         const contentContainer = document.createElement('div');
         contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
@@ -597,7 +737,7 @@ function renderSection(sectionName) {
         container.appendChild(catDiv);
 
         new Sortable(contentContainer, {
-            group: 'shared-cards', // Allow dragging between categories
+            group: 'shared-cards',
             animation: 150,
             handle: '.card-drag-handle',
             onEnd: function (evt) {
@@ -677,19 +817,30 @@ function createCard(item) {
 
 function createListItem(item) {
     const listItem = document.createElement("div");
-    listItem.className = 'list-item relative p-4 flex items-center gap-4';
+    listItem.className = 'list-item p-4';
     listItem.dataset.id = item.id;
+
+    let bgStyle = '';
+    if (item.type === 'Link' || item.type === 'Buscador') {
+        const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
+        bgStyle = `background-image: url('${previewUrl}')`;
+    }
+
     listItem.innerHTML = `
-        <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
-        <i class="${item.icon || 'fas fa-question-circle'} text-2xl w-8 text-center"></i>
-        <div class="flex-grow">
-            <h4 class="font-bold uppercase">${item.title}</h4>
-            <div class="flex flex-wrap gap-2 mt-1">
-                ${(item.tags || []).map(tag => `<span class="tag !text-xs !py-0">${tag}</span>`).join('')}
+        <div class="list-item-bg" style="${bgStyle}"></div>
+        <div class="list-item-overlay"></div>
+        <div class="list-item-content flex items-center gap-4 w-full">
+            <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
+            <i class="${item.icon || 'fas fa-question-circle'} text-2xl w-8 text-center"></i>
+            <div class="flex-grow">
+                <h4 class="font-bold uppercase">${item.title}</h4>
+                <div class="flex flex-wrap gap-2 mt-1">
+                    ${(item.tags || []).map(tag => `<span class="tag !text-xs !py-0">${tag}</span>`).join('')}
+                </div>
             </div>
-        </div>
-        <div class="card-actions !static !opacity-100">
-            <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+            <div class="card-actions !static !opacity-100">
+                <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+            </div>
         </div>
     `;
     listItem.addEventListener('click', (e) => handleCardClick(item.id, e));
@@ -715,7 +866,6 @@ function createChipItem(item) {
 
 // --- ACTIONS & EVENT HANDLERS ---
 function handleCardClick(id, event) {
-    // Stop if the click was on a button inside the card or other interactive elements
     if (event && event.target.closest('button, .card-actions, .card-drag-handle')) {
         event.stopPropagation();
         return;
@@ -727,11 +877,11 @@ function handleCardClick(id, event) {
     if (item.type === "Link") {
         window.open(item.action, "_blank");
     } else if (item.type === "Buscador") {
-        window.open(item.action.split('?')[0], "_blank");
+        selectSearchEngine(item);
     } else if (item.type === "Promp") {
         navigator.clipboard.writeText(item.action).then(() => showToast("PROMPT COPIADO."));
     } else {
-        openEditPanel(id); // Open edit panel for Notes and Tasks
+        openEditPanel(id);
     }
 }
 
@@ -748,7 +898,7 @@ function performSearch() {
     
     if (engine) {
         window.open(engine.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
-    } else { // Fallback to first engine if none selected
+    } else {
         const firstEngine = data.find(item => item.type === "Buscador");
         if (firstEngine) {
             window.open(firstEngine.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
@@ -756,6 +906,15 @@ function performSearch() {
             showToast("NO HAY BUSCADORES CONFIGURADOS");
         }
     }
+}
+
+function selectSearchEngine(engine) {
+    if (!engine || engine.type !== 'Buscador') return;
+    const searchBar = document.getElementById('main-search-bar');
+    searchBar.querySelector('#search-bar-title').textContent = engine.title.toUpperCase();
+    searchBar.querySelector('#search-bar-icon').className = `${engine.icon || 'fas fa-search'} text-2xl`;
+    showToast(`MOTOR SELECCIONADO: ${engine.title}`);
+    document.getElementById('searchEngineDropdown').classList.add("hidden");
 }
 
 function populateSearchEngineDropdown() {
@@ -771,11 +930,7 @@ function populateSearchEngineDropdown() {
         itemEl.className = "p-2 hover:bg-yellow-200 cursor-pointer flex items-center gap-2";
         itemEl.innerHTML = `<i class="${engine.icon}"></i><span>${engine.title}</span>`;
         itemEl.onclick = (e) => {
-            const searchBar = document.getElementById('main-search-bar');
-            searchBar.querySelector('#search-bar-title').textContent = engine.title.toUpperCase();
-            searchBar.querySelector('#search-bar-icon').className = `${engine.icon || 'fas fa-search'} text-2xl`;
-            showToast(`MOTOR SELECCIONADO: ${engine.title}`);
-            dropdown.classList.add("hidden");
+            selectSearchEngine(engine);
         };
         dropdown.appendChild(itemEl);
     });
@@ -791,9 +946,12 @@ function openEditPanel(itemId = null) {
     form.reset();
     document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
     
+    const categoryField = document.getElementById('categoryFieldContainer');
+    
     if (itemId) {
         const item = data.find(i => String(i.id) === String(itemId));
         if (item) {
+            categoryField.style.display = 'block';
             document.getElementById('editPanelTitle').textContent = 'EDITAR ELEMENTO';
             document.getElementById('editItemId').value = item.id;
             document.getElementById('newTitle').value = item.title;
@@ -815,6 +973,7 @@ function openEditPanel(itemId = null) {
             document.getElementById('newType').value = item.type;
         }
     } else {
+        categoryField.style.display = 'block';
         document.getElementById('editPanelTitle').textContent = 'AGREGAR ELEMENTO';
         document.getElementById('editItemId').value = '';
         const defaultTypeBtn = document.querySelector('.type-btn[data-type="Link"]');
@@ -847,14 +1006,16 @@ function handleSaveItem(event) {
         title: document.getElementById("newTitle").value.trim(),
         action: action,
         type: type,
-        category: document.getElementById("newCategory").value.trim(),
+        category: document.getElementById("newCategory").value.trim() || 'SIN CATEGORIA',
         icon: document.getElementById("newIcon").value.trim(),
         tags: document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(Boolean)
     };
   
     if (id) {
         const index = data.findIndex(i => String(i.id) === id);
-        if (index !== -1) data[index] = { ...data[index], ...newItemData };
+        if (index !== -1) {
+            data[index] = { ...data[index], ...newItemData };
+        }
     } else {
         newItemData.id = Date.now();
         data.push(newItemData);
@@ -886,12 +1047,71 @@ function updateEditFormFields(type) {
 
 function populateCategorySuggestions() {
     const dataList = document.getElementById("category-suggestions");
-    const categories = [...new Set(data.map(item => item.category))].sort();
+    const categories = [...new Set(data.map(item => item.category).filter(c => c && c !== 'SIN CATEGORIA'))].sort();
     dataList.innerHTML = '';
     categories.forEach(cat => {
-        if (cat) dataList.innerHTML += `<option value="${cat}"></option>`;
+        dataList.innerHTML += `<option value="${cat}"></option>`;
     });
 }
+
+// --- CATEGORY MANAGEMENT ---
+function addCategory() {
+    const name = prompt("Nombre de la nueva categoría:");
+    if (name && name.trim()) {
+        const trimmedName = name.trim();
+        const exists = data.some(item => item.category === trimmedName);
+        if (exists) {
+            showToast("Esa categoría ya existe.");
+            return;
+        }
+        // To create a category, we just need to re-render. The logic will pick it up if we add a dummy item.
+        // A better way is to just open the new item panel.
+        openEditPanel();
+        document.getElementById('newCategory').value = trimmedName;
+        showToast(`Creando nuevo elemento en categoría "${trimmedName}"`);
+    }
+}
+
+function editCategory(oldName) {
+    if (oldName === 'SIN CATEGORIA') {
+        showToast("No se puede editar esta categoría.");
+        return;
+    }
+    const newName = prompt(`Editar nombre de categoría "${oldName}":`, oldName);
+    if (newName && newName.trim() && newName.trim() !== oldName) {
+        const trimmedNewName = newName.trim();
+        data.forEach(item => {
+            if (item.category === oldName) {
+                item.category = trimmedNewName;
+            }
+        });
+        saveData().then(() => {
+            const activeSection = document.querySelector('#main-nav .active').dataset.section;
+            renderSection(activeSection);
+        });
+    }
+}
+
+function deleteCategory(categoryName) {
+     if (categoryName === 'SIN CATEGORIA') {
+        showToast("No se puede eliminar esta categoría.");
+        return;
+    }
+    showConfirmModal(`¿Seguro que quieres eliminar la categoría "${categoryName}"? Todos sus elementos se moverán a 'SIN CATEGORIA'.`, (confirmed) => {
+        if (confirmed) {
+            data.forEach(item => {
+                if (item.category === categoryName) {
+                    item.category = 'SIN CATEGORIA';
+                }
+            });
+            saveData().then(() => {
+                const activeSection = document.querySelector('#main-nav .active').dataset.section;
+                renderSection(activeSection);
+            });
+        }
+    });
+}
+
 
 function showConfirmModal(message, callback) {
     const confirmModal = document.getElementById('confirmModal');
@@ -938,7 +1158,25 @@ function showToast(message) {
     setTimeout(() => toast.classList.add("hidden"), 3000);
 }
 
-// --- FAB MENU & THEME ---
+// --- FAB MENU, THEME & VIEW ---
+function applyTheme(themeName) {
+    document.body.classList.remove(...themes);
+    if(themeName !== 'light') document.body.classList.add(themeName);
+    localStorage.setItem('theme', themeName);
+}
+
+function changeTheme() {
+    currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+    applyTheme(themes[currentThemeIndex]);
+}
+
+function changeView() {
+    currentViewIndex = (currentViewIndex + 1) % views.length;
+    globalView = views[currentViewIndex];
+    const activeSection = document.querySelector('#main-nav .active').dataset.section;
+    renderSection(activeSection);
+}
+
 function setupFabMenu() {
     const fabContainer = document.querySelector('.fab-container');
     fabContainer.addEventListener('click', (e) => {
@@ -946,27 +1184,8 @@ function setupFabMenu() {
             fabContainer.classList.toggle('open');
         }
     });
-
-    // Theme switcher
-    const themeBtn = document.getElementById('fab-theme');
-    const themes = ['light', 'dark', 'theme-boca'];
-    let currentThemeIndex = themes.indexOf(localStorage.getItem('theme') || 'light');
     
-    const applyTheme = (themeName) => {
-        document.body.classList.remove(...themes);
-        if(themeName !== 'light') document.body.classList.add(themeName);
-        localStorage.setItem('theme', themeName);
-    };
-
-    themeBtn.addEventListener('click', () => {
-        currentThemeIndex = (currentThemeIndex + 1) % themes.length;
-        applyTheme(themes[currentThemeIndex]);
-    });
-
-    // Apply saved theme
-    applyTheme(themes[currentThemeIndex]);
-    
-    // Search palette button
+    document.getElementById('fab-theme').addEventListener('click', changeTheme);
     document.getElementById('fab-search').addEventListener('click', openSearchPalette);
 }
 
@@ -1048,18 +1267,18 @@ function showPreviewModal(item, element) {
     modalContent.innerHTML = getPreviewContent(item);
     
     const rect = element.getBoundingClientRect();
-    let top = rect.top + window.scrollY;
-    let left = rect.right + window.scrollX + 15; // 15px gap
+    let top = rect.top;
+    let left = rect.right + 15; // 15px gap
 
     // Adjust if modal goes off-screen horizontally
-    if (left + modal.offsetWidth > window.innerWidth) {
-        left = rect.left + window.scrollX - modal.offsetWidth - 15;
+    if (left + modal.offsetWidth > window.innerWidth - 15) {
+        left = rect.left - modal.offsetWidth - 15;
     }
     // Adjust if modal goes off-screen vertically
-    if (top + modal.offsetHeight > window.innerHeight) {
+    if (top + modal.offsetHeight > window.innerHeight -15) {
         top = window.innerHeight - modal.offsetHeight - 15;
     }
-    if (top < 0) {
+    if (top < 15) {
         top = 15;
     }
 
