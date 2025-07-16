@@ -375,8 +375,8 @@
                 </div>
 
                 <div id="iconFieldContainer">
-                    <label class="font-bold block mb-2">ICONO (fas fa-search)</label>
-                    <input type="text" id="newIcon" class="brutalist-input" placeholder="ej: fas fa-search o fab fa-youtube">
+                    <label class="font-bold block mb-2">ICONO (URL o clase de FontAwesome)</label>
+                    <input type="text" id="newIcon" class="brutalist-input" placeholder="Dejar vacío para auto-detectar, o ej: https://.../logo.png, o fas fa-search">
                 </div>
                 
                 <div id="categoryFieldContainer">
@@ -695,15 +695,33 @@ function switchTab(tabName) {
 }
 
 // --- RENDERING ---
+
+/**
+ * Renders an icon, supporting FontAwesome classes and image URLs.
+ * @param {string} icon - The icon identifier (e.g., 'fas fa-search' or 'http://.../img.png').
+ * @param {string} [sizeClass='text-4xl'] - The TailwindCSS class for sizing.
+ * @returns {string} The HTML string for the icon.
+ */
 function getIconHtml(icon, sizeClass = 'text-4xl') {
     if (!icon) {
         return `<i class="fas fa-question-circle ${sizeClass}"></i>`;
     }
+    // 1. Check if the icon is a URL.
     if (icon.startsWith('http')) {
-        return `<img src="${icon}" class="w-10 h-10 object-contain" alt="Icon">`;
+        // Map text size classes to image width/height classes for consistency.
+        const sizeMap = {
+            'text-6xl mb-3': 'w-16 h-16 mb-3',
+            'text-2xl': 'w-8 h-8',
+            'text-base': 'w-5 h-5',
+            'text-xl': 'w-6 h-6'
+        };
+        const imgClass = sizeMap[sizeClass] || 'w-10 h-10'; // Default size
+        return `<img src="${icon}" class="${imgClass} object-contain" alt="Icono">`;
     }
+    // 2. Assume it's a FontAwesome class.
     return `<i class="${icon} ${sizeClass}"></i>`;
 }
+
 
 /**
  * Creates the main search bar component for the 'Buscadores' section.
@@ -1090,13 +1108,17 @@ function handleSaveItem(event) {
         action = document.getElementById('newActionText').value;
     }
 
+    // --- NEW ICON LOGIC ---
+    // If the icon field is empty and the type is Link or Buscador, try to get the favicon automatically.
     if (!icon && (type === 'Link' || type === 'Buscador')) {
         try {
+            // Use a reliable favicon service
             const url = new URL(action);
             const hostname = url.hostname;
             icon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${hostname}`;
         } catch (e) {
             console.error("URL inválida para obtener favicon:", action);
+            // Leave icon empty, getIconHtml will handle it
         }
     }
 
