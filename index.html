@@ -490,6 +490,26 @@ const mockData = {
 };
 
 // --- DATA HANDLING ---
+/**
+ * Ensures that all 'Link' and 'Buscador' items have an icon.
+ * If an icon is missing, it attempts to generate one from the item's URL.
+ */
+function ensureAllIcons() {
+    if (!data) return;
+    data.forEach(item => {
+        if ((item.type === 'Link' || item.type === 'Buscador') && !item.icon) {
+            try {
+                const url = new URL(item.action);
+                const hostname = url.hostname;
+                item.icon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${hostname}`;
+            } catch (e) {
+                console.error(`URL inválida para auto-generar favicon para "${item.title}":`, item.action);
+            }
+        }
+    });
+}
+
+
 async function loadData() {
     let gistId = localStorage.getItem('gist_id');
     if (!gistId) {
@@ -499,6 +519,7 @@ async function loadData() {
         } else {
             showToast("USANDO DATOS DE EJEMPLO. Para conectar, reinicia y provee un Gist ID.");
             data = mockData.items;
+            ensureAllIcons();
             initializeUI();
             return;
         }
@@ -525,6 +546,7 @@ async function loadData() {
         localStorage.removeItem('gist_id'); // Clear bad Gist ID
         data = mockData.items; // Fallback to mock data
     }
+    ensureAllIcons();
     initializeUI();
 }
 
@@ -624,10 +646,19 @@ function setupEventListeners() {
     });
 
     document.addEventListener('click', (e) => {
-        if (!globalSearchContainer.contains(e.target)) {
+        const wasVisible = !globalSearchContainer.classList.contains('hidden');
+        if (wasVisible && !globalSearchContainer.contains(e.target) && !sidebarLogo.contains(e.target)) {
             globalSearchContainer.classList.add('hidden');
             sidebarLogo.classList.remove('hidden');
             globalSearchContainer.classList.remove('expanded');
+
+            // Reset filters
+            globalSearchInput.value = '';
+            activeFilterTags = [];
+            document.querySelectorAll('#global-search-tags .filter-tag.active').forEach(tagEl => {
+                tagEl.classList.remove('active');
+            });
+            applyGlobalFilter();
         }
     });
     
