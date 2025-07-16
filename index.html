@@ -114,7 +114,7 @@
         }
          .theme-boca .brutalist-input {
             background-color: #002244;
-         }
+       }
         .brutalist-input:focus {
             outline: none;
             border-color: var(--accent-color);
@@ -338,45 +338,45 @@
     <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay">
         <div class="modal-container w-full max-w-2xl p-8">
             <div class="flex justify-between items-center mb-6">
-              <h2 id="editPanelTitle" class="text-2xl font-bold">AGREGAR ELEMENTO</h2>
-              <button id="closeEditButton" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
+                <h2 id="editPanelTitle" class="text-2xl font-bold">AGREGAR ELEMENTO</h2>
+                <button id="closeEditButton" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
             </div>
             
             <form id="editForm" class="space-y-6">
                 <input type="hidden" id="editItemId">
                 
                 <div>
-                  <label class="font-bold block mb-2">TIPO</label>
-                  <div class="type-selector grid grid-cols-3 sm:grid-cols-5 gap-2">
-                    <div class="type-btn text-center p-2" data-type="Buscador"><i class="fas fa-search"></i><span class="block text-xs">Buscador</span></div>
-                    <div class="type-btn text-center p-2" data-type="Link"><i class="fas fa-link"></i><span class="block text-xs">Link</span></div>
-                    <div class="type-btn text-center p-2" data-type="Promp"><i class="fas fa-brain"></i><span class="block text-xs">Prompt</span></div>
-                    <div class="type-btn text-center p-2" data-type="Nota"><i class="fas fa-sticky-note"></i><span class="block text-xs">Nota</span></div>
-                    <div class="type-btn text-center p-2" data-type="Tarea"><i class="fas fa-tasks"></i><span class="block text-xs">Tarea</span></div>
-                  </div>
-                  <select id="newType" class="hidden">
-                    <option value="Buscador">Buscador</option>
-                    <option value="Link">Link</option>
-                    <option value="Promp">Promp</option>
-                    <option value="Nota">Nota</option>
-                    <option value="Tarea">Tarea</option>
-                  </select>
+                    <label class="font-bold block mb-2">TIPO</label>
+                    <div class="type-selector grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <div class="type-btn text-center p-2" data-type="Buscador"><i class="fas fa-search"></i><span class="block text-xs">Buscador</span></div>
+                        <div class="type-btn text-center p-2" data-type="Link"><i class="fas fa-link"></i><span class="block text-xs">Link</span></div>
+                        <div class="type-btn text-center p-2" data-type="Promp"><i class="fas fa-brain"></i><span class="block text-xs">Prompt</span></div>
+                        <div class="type-btn text-center p-2" data-type="Nota"><i class="fas fa-sticky-note"></i><span class="block text-xs">Nota</span></div>
+                        <div class="type-btn text-center p-2" data-type="Tarea"><i class="fas fa-tasks"></i><span class="block text-xs">Tarea</span></div>
+                    </div>
+                    <select id="newType" class="hidden">
+                        <option value="Buscador">Buscador</option>
+                        <option value="Link">Link</option>
+                        <option value="Promp">Promp</option>
+                        <option value="Nota">Nota</option>
+                        <option value="Tarea">Tarea</option>
+                    </select>
                 </div>
 
                 <div>
-                  <label class="font-bold block mb-2">TITULO</label>
-                  <input type="text" id="newTitle" class="brutalist-input" placeholder="Nombre del elemento">
+                    <label class="font-bold block mb-2">TITULO</label>
+                    <input type="text" id="newTitle" class="brutalist-input" placeholder="Nombre del elemento">
                 </div>
 
                 <div id="actionFieldContainer">
-                  <label id="actionLabel" class="font-bold block mb-2">URL / ACCION</label>
-                  <textarea id="newActionText" class="brutalist-input" rows="3"></textarea>
-                  <div id="newActionRich" class="rich-text-editor hidden" contenteditable="true"></div>
+                    <label id="actionLabel" class="font-bold block mb-2">URL / ACCION</label>
+                    <textarea id="newActionText" class="brutalist-input" rows="3"></textarea>
+                    <div id="newActionRich" class="rich-text-editor hidden" contenteditable="true"></div>
                 </div>
 
                 <div id="iconFieldContainer">
-                  <label class="font-bold block mb-2">ICONO (fas fa-search)</label>
-                  <input type="text" id="newIcon" class="brutalist-input" placeholder="ej: fas fa-search o fab fa-youtube">
+                    <label class="font-bold block mb-2">ICONO (fas fa-search)</label>
+                    <input type="text" id="newIcon" class="brutalist-input" placeholder="ej: fas fa-search o fab fa-youtube">
                 </div>
                 
                 <div id="categoryFieldContainer">
@@ -384,14 +384,14 @@
                     <input type="text" id="newCategory" class="brutalist-input" list="category-suggestions" placeholder="Escribe una categoría existente o nueva">
                     <datalist id="category-suggestions"></datalist>
                 </div>
-                 
+                
                 <div>
-                  <label class="font-bold block mb-2">ETIQUETAS (separadas por coma)</label>
-                  <input type="text" id="newTags" class="brutalist-input" placeholder="trabajo, personal">
+                    <label class="font-bold block mb-2">ETIQUETAS (separadas por coma)</label>
+                    <input type="text" id="newTags" class="brutalist-input" placeholder="trabajo, personal">
                 </div>
                 
                 <button id="saveItemButton" type="submit" class="brutalist-button w-full py-3">
-                  GUARDAR
+                    GUARDAR
                 </button>
             </form>
         </div>
@@ -480,6 +480,7 @@ const mockData = {
     "items": [
         { id: 1, type: 'Buscador', title: 'Google', action: 'https://www.google.com/search?q={search_term}', category: 'General', icon: 'fab fa-google', tags: ['motor', 'busqueda'] },
         { id: 2, type: 'Buscador', title: 'YouTube', action: 'https://www.youtube.com/results?search_query={search_term}', category: 'Video', icon: 'fab fa-youtube', tags: ['videos', 'tutoriales'] },
+        { id: 7, type: 'Buscador', title: 'DuckDuckGo', action: 'https://duckduckgo.com/?q={search_term}', category: 'General', icon: 'fas fa-search', tags: ['privacidad'] },
         { id: 3, type: 'Link', title: 'GitHub', action: 'https://github.com', category: 'Desarrollo', icon: 'fab fa-github', tags: ['codigo', 'proyectos'] },
         { id: 31, type: 'Link', title: 'YouTube Video', action: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', category: 'Musica', icon: 'fab fa-youtube', tags: ['video', 'importante'] },
         { id: 4, type: 'Promp', title: 'Generar Idea', action: 'Crea una lista de 5 ideas para un video de YouTube sobre IA. Este texto es largo para demostrar el efecto de scroll. Debería poder leerse completo al pasar el mouse por encima de la tarjeta, ya que se animará de abajo hacia arriba.', category: 'Creatividad', icon: 'fas fa-lightbulb', tags: ['ideas'] },
@@ -556,8 +557,8 @@ async function saveData() {
         });
         if (!response.ok) {
              if(response.status === 401 || response.status === 404) {
-                localStorage.removeItem('github_pat');
-                showToast("TOKEN INVALIDO. VUELVE A INTENTAR GUARDAR.");
+                 localStorage.removeItem('github_pat');
+                 showToast("TOKEN INVALIDO. VUELVE A INTENTAR GUARDAR.");
              }
              throw new Error(`ERROR AL GUARDAR: ${response.status}`)
         };
@@ -704,6 +705,109 @@ function getIconHtml(icon, sizeClass = 'text-4xl') {
     return `<i class="${icon} ${sizeClass}"></i>`;
 }
 
+/**
+ * Creates the main search bar component for the 'Buscadores' section.
+ * @param {Array} buscadores - An array of 'Buscador' type items.
+ * @returns {HTMLElement|null} The search bar component element or null if no search engines are provided.
+ */
+function createBuscadorSearchComponent(buscadores) {
+    const componentWrapper = document.createElement('div');
+    componentWrapper.className = 'relative mb-8'; // Relative for dropdown positioning
+
+    const searchBarContainer = document.createElement('div');
+    searchBarContainer.id = 'main-search-bar';
+    searchBarContainer.className = 'flex items-center gap-0 p-0 brutalist-input !p-0 overflow-hidden';
+    
+    if (buscadores.length === 0) {
+        // Don't render anything if there are no search engines
+        return null;
+    }
+    
+    // Set the first buscador as default
+    let selectedBuscador = buscadores[0];
+    searchBarContainer.dataset.actionUrl = selectedBuscador.action;
+
+    // --- Dropdown Menu ---
+    const dropdown = document.createElement('div');
+    dropdown.id = 'search-engine-dropdown';
+    dropdown.className = 'hidden absolute top-full left-0 mt-2 w-72 modal-container z-50 max-h-80 overflow-y-auto';
+    
+    buscadores.forEach(buscador => {
+        const item = document.createElement('div');
+        item.className = 'p-4 hover:bg-yellow-300 dark:hover:bg-yellow-600 cursor-pointer flex items-center gap-3';
+        item.dataset.id = buscador.id;
+        item.innerHTML = `${getIconHtml(buscador.icon, 'text-xl')} <span class="font-bold">${buscador.title}</span>`;
+        item.addEventListener('click', () => {
+            selectedBuscador = buscador;
+            searchBarContainer.dataset.actionUrl = buscador.action;
+            selectorIcon.innerHTML = getIconHtml(buscador.icon, 'text-xl');
+            selectorTitle.textContent = buscador.title;
+            dropdown.classList.add('hidden');
+        });
+        dropdown.appendChild(item);
+    });
+
+    // --- Selector Button ---
+    const selector = document.createElement('div');
+    selector.id = 'search-engine-selector';
+    selector.className = 'flex items-center gap-3 p-3 cursor-pointer border-r-4 border-inherit';
+    const selectorIcon = document.createElement('span');
+    selectorIcon.innerHTML = getIconHtml(selectedBuscador.icon, 'text-xl');
+    const selectorTitle = document.createElement('span');
+    selectorTitle.className = 'font-bold';
+    selectorTitle.textContent = selectedBuscador.title;
+    const selectorArrow = document.createElement('i');
+    selectorArrow.className = 'fas fa-chevron-down text-xs ml-2';
+    selector.append(selectorIcon, selectorTitle, selectorArrow);
+    
+    selector.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+    });
+
+    // --- Search Input & Button ---
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.id = 'main-search-input';
+    searchInput.className = 'flex-grow bg-transparent focus:outline-none p-3';
+    searchInput.placeholder = 'Escribe tu búsqueda...';
+
+    const searchButton = document.createElement('button');
+    searchButton.id = 'main-search-button';
+    searchButton.className = 'brutalist-button !shadow-none !border-l-4 !border-y-0 !border-r-0 rounded-none px-6 py-4';
+    searchButton.textContent = 'BUSCAR';
+
+    const performSearch = () => {
+        const term = searchInput.value.trim();
+        if (term && searchBarContainer.dataset.actionUrl) {
+            const url = searchBarContainer.dataset.actionUrl.replace('{search_term}', encodeURIComponent(term));
+            window.open(url, '_blank');
+        } else if (!term) {
+            showToast("POR FAVOR INGRESA UN TÉRMINO DE BÚSQUEDA");
+        }
+    };
+    
+    searchButton.addEventListener('click', performSearch);
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            performSearch();
+        }
+    });
+
+    // Assemble the component
+    searchBarContainer.append(selector, searchInput, searchButton);
+    componentWrapper.append(searchBarContainer, dropdown);
+    
+    // Hide dropdown if clicked outside
+    document.addEventListener('click', (e) => {
+        if (!componentWrapper.contains(e.target)) {
+            dropdown.classList.add('hidden');
+        }
+    });
+
+    return componentWrapper;
+}
+
 function renderSection(sectionName, itemsToRender) {
     document.querySelectorAll('#global-view-switcher button').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.view === globalView);
@@ -716,7 +820,18 @@ function renderSection(sectionName, itemsToRender) {
     };
     const type = typeMap[sectionName];
     const container = document.getElementById(`section-${sectionName}`);
-    container.innerHTML = `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`;
+    container.innerHTML = ''; // Start fresh
+
+    // Add search component for the 'buscadores' section
+    if (sectionName === 'buscadores') {
+        const allBuscadores = data.filter(item => item.type === 'Buscador');
+        const searchComponent = createBuscadorSearchComponent(allBuscadores);
+        if (searchComponent) {
+            container.appendChild(searchComponent);
+        }
+    }
+
+    container.insertAdjacentHTML('beforeend', `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`);
     
     const items = itemsToRender || data.filter(item => item.type === type);
     
@@ -726,7 +841,7 @@ function renderSection(sectionName, itemsToRender) {
         return acc;
     }, {});
 
-    if (Object.keys(categorized).length === 0) {
+    if (items.length === 0) {
         container.innerHTML += '<p>No se encontraron resultados para el filtro actual.</p>';
     }
 
@@ -993,7 +1108,7 @@ function handleSaveItem(event) {
         icon: icon,
         tags: document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(Boolean)
     };
-  
+ 
     if (id) {
         const index = data.findIndex(i => String(i.id) === id);
         if (index !== -1) {
@@ -1003,7 +1118,7 @@ function handleSaveItem(event) {
         newItemData.id = Date.now();
         data.push(newItemData);
     }
-  
+ 
     saveData().then(() => {
         refreshUI();
         document.getElementById("editPanel").classList.add("hidden");
