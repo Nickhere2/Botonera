@@ -1207,7 +1207,7 @@ function renderSection(sectionName, itemsToRender) {
         contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
         contentContainer.dataset.category = cat;
         
-        categorized[cat].forEach(item => {
+        categorized[cat].sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(item => {
             let element;
             if (globalView === 'grid') element = createCard(item);
             else if (globalView === 'list') element = createListItem(item);
