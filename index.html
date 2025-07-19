@@ -619,7 +619,6 @@
     <!-- FAB Menu -->
     <div class="fab-container">
         <ul class="fab-actions">
-            <li class="fab-action"><button id="fab-settings" class="brutalist-button fab-main" title="Configuración"><i class="fas fa-cog"></i></button></li>
             <li class="fab-action"><button id="fab-help" class="brutalist-button fab-main" title="Ayuda"><i class="fas fa-question"></i></button></li>
             <li class="fab-action"><button id="fab-theme" class="brutalist-button fab-main" title="Cambiar Tema"><i class="fas fa-palette"></i></button></li>
         </ul>
@@ -647,10 +646,25 @@
     <div id="helpModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
         <div class="modal-container w-full max-w-2xl p-8">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">AYUDA Y ATAJOS</h2>
+                <h2 class="text-2xl font-bold">AYUDA Y "LA VENTANA INDISCRETA"</h2>
                 <button id="closeHelpModal" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
             </div>
             <div class="space-y-6">
+                 <div class="flex flex-col sm:flex-row items-center gap-6 mb-4 text-center sm:text-left">
+                    <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-32 w-32 object-contain">
+                    <div>
+                        <h3 class="font-bold text-lg mb-2 uppercase">¿Por qué "La Ventana Indiscreta"?</h3>
+                        <p>Esta aplicación es tu "ventana indiscreta" personal hacia tu mundo digital. Piensa en ella como tu propio sistema operativo, una versión única de Windows. Pero en lugar de ser solo una ventana a tus archivos, es una ventana a todo tu universo online. Es nuestro "Rear Window" (La Ventana Indiscreta) porque, en esencia, es un "Windows Indiscreto": un único lugar desde donde puedes observar y controlar discretamente todas las piezas de tu vida digital, desde tus proyectos y búsquedas hasta tus ideas más fugaces.</p>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg mb-2 uppercase">Primeros Pasos</h3>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><strong>Añade Favoritos:</strong> Haz clic en el ícono de estrella <i class="fas fa-star"></i> en cualquier tarjeta para añadirla a tu sección de "Favoritos" y tenerla siempre a mano.</li>
+                        <li><strong>Búsqueda Global:</strong> Usa la barra de búsqueda en el menú lateral. Activa el interruptor de "Búsqueda Global" para buscar en todas las secciones a la vez.</li>
+                        <li><strong>Personaliza Categorías:</strong> Pasa el ratón sobre el título de una categoría y haz clic en el lápiz <i class="fas fa-pencil-alt"></i> para cambiar su nombre y color de fondo.</li>
+                    </ul>
+                </div>
                 <div>
                     <h3 class="font-bold text-lg mb-2 uppercase">Atajos de Teclado</h3>
                     <ul class="list-disc list-inside space-y-1">
@@ -659,18 +673,6 @@
                         <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema visual</li>
                         <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
                         <li><kbd>Esc</kbd> : Cerrar paneles y modales</li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-bold text-lg mb-2 uppercase">¿Cómo Funciona?</h3>
-                     <div class="flex items-center gap-4 mb-2">
-                        <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-12 w-12 object-contain">
-                        <p>Este es un centro de accesos personalizable para organizar tus links, buscadores, notas y más.</p>
-                    </div>
-                    <ul class="list-disc list-inside space-y-2">
-                        <li><strong>Conexión de Datos:</strong> Usa el botón de <i class="fas fa-cog"></i> para conectar la app a un Gist de GitHub. Necesitarás un Gist ID y un Personal Access Token (PAT) con el permiso <code>gist</code>.</li>
-                        <li><strong>Gestión de Categorías:</strong> Usa los botones que aparecen al pasar el ratón sobre un título de categoría para editarla o eliminarla. Para añadir una nueva, haz clic en "Nueva Categoría" o asigna un nombre de categoría nuevo al crear o editar un elemento.</li>
-                        <li><strong>Filtro Global:</strong> Usa la barra de filtro en el menú lateral para buscar elementos por título o etiqueta en la sección actual. Haz clic para expandirla y ver los filtros de etiquetas.</li>
                     </ul>
                 </div>
             </div>
@@ -972,7 +974,6 @@ function setupEventListeners() {
     document.getElementById('fab-help').addEventListener('click', () => document.getElementById('helpModal').classList.remove('hidden'));
     document.getElementById('closeHelpModal').addEventListener('click', () => document.getElementById('helpModal').classList.add('hidden'));
     
-    document.getElementById('fab-settings').addEventListener('click', openSettingsModal);
     document.getElementById('closeSettingsModal').addEventListener('click', () => document.getElementById('settingsModal').classList.add('hidden'));
     document.getElementById('saveSettingsButton').addEventListener('click', saveSettings);
     document.getElementById('clearSettingsButton').addEventListener('click', useSampleData);
