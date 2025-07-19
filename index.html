@@ -74,6 +74,11 @@
              cursor: pointer;
         }
         
+        .brutalist-card.is-favorite {
+            border-color: var(--accent-color);
+            box-shadow: 8px 8px 0 var(--accent-color);
+        }
+        
         /* Contenedor del contenido de la tarjeta con gradiente */
         .card-content-wrapper {
             background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0) 100%);
@@ -1236,6 +1241,9 @@ function renderSection(sectionName, itemsToRender) {
 function createCard(item) {
     const card = document.createElement("div");
     card.className = 'brutalist-card';
+    if (item.isFavorite) {
+        card.classList.add('is-favorite');
+    }
     card.dataset.id = item.id;
 
     const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
@@ -1296,6 +1304,9 @@ function createCard(item) {
 function createListItem(item) {
     const listItem = document.createElement("div");
     listItem.className = 'list-item p-4';
+     if (item.isFavorite) {
+        listItem.classList.add('is-favorite');
+    }
     listItem.dataset.id = item.id;
     let bgStyle = '';
     if (item.type === 'Link' || item.type === 'Buscador') {
@@ -1332,6 +1343,9 @@ function createListItem(item) {
 function createChipItem(item) {
     const chipItem = document.createElement("div");
     chipItem.className = 'chip-item relative p-2 pr-3 flex items-center gap-2';
+     if (item.isFavorite) {
+        chipItem.classList.add('is-favorite');
+    }
     chipItem.dataset.id = item.id;
     const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
     chipItem.innerHTML = `
@@ -1861,7 +1875,7 @@ function renderNotesAndTasksSection(container, itemsToRender) {
     `;
     const notesContainer = document.getElementById('notes-container');
     if (notes.length > 0) {
-        notes.forEach(note => {
+        notes.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(note => {
             let element;
             if (globalView === 'grid') element = createNoteCard(note);
             else if (globalView === 'list') element = createListItem(note);
@@ -1873,7 +1887,7 @@ function renderNotesAndTasksSection(container, itemsToRender) {
     }
     const tasksContainer = document.getElementById('tasks-container');
     if (tasks.length > 0) {
-        tasks.forEach(task => {
+        tasks.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(task => {
             let element;
             if (globalView === 'grid') element = createTaskCard(task);
             else if (globalView === 'list') element = createListItem(task);
@@ -1888,6 +1902,9 @@ function renderNotesAndTasksSection(container, itemsToRender) {
 function createNoteCard(item) {
     const card = document.createElement("div");
     card.className = 'brutalist-card note-card p-6 flex flex-col';
+    if (item.isFavorite) {
+        card.classList.add('is-favorite');
+    }
     card.dataset.id = item.id;
     const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
     card.innerHTML = `
@@ -1907,6 +1924,9 @@ function createNoteCard(item) {
 function createTaskCard(item) {
     const card = document.createElement("div");
     card.className = 'brutalist-card task-card p-6 flex flex-col';
+    if (item.isFavorite) {
+        card.classList.add('is-favorite');
+    }
     card.dataset.id = item.id;
     const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
     const taskListHtml = Array.isArray(item.action) ? `
