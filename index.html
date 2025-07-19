@@ -435,6 +435,54 @@
             transform: translateY(var(--scroll-amount));
         }
 
+        /* --- GLOBAL SEARCH TOGGLE --- */
+        .global-search-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .global-search-toggle .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 24px;
+        }
+        .global-search-toggle .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .global-search-toggle .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border: 2px solid var(--text-color);
+        }
+        .global-search-toggle .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-color);
+            transition: .4s;
+        }
+        .global-search-toggle input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+        .global-search-toggle input:checked + .slider:before {
+            transform: translateX(16px);
+        }
+
     </style>
 </head>
 <body>
@@ -452,10 +500,18 @@
                 <div id="global-search-container" class="hidden w-full">
                     <input type="text" id="global-search-input" placeholder="FILTRAR..." class="brutalist-input w-full">
                     <div id="global-search-tags" class="flex flex-wrap gap-2"></div>
+                    <label class="global-search-toggle mt-3">
+                        <span class="switch">
+                            <input type="checkbox" id="global-search-switch">
+                            <span class="slider"></span>
+                        </span>
+                        <span>BÚSQUEDA GLOBAL</span>
+                    </label>
                 </div>
             </div>
 
             <nav id="main-nav" class="space-y-4">
+                <a href="#" data-section="favoritos" class="nav-link block px-4 py-3"><i class="fas fa-star w-5 mr-2"></i><span>FAVORITOS</span></a>
                 <a href="#" data-section="buscadores" class="nav-link active block px-4 py-3"><i class="fas fa-search w-5 mr-2"></i><span>BUSCADORES</span></a>
                 <a href="#" data-section="links" class="nav-link block px-4 py-3"><i class="fas fa-link w-5 mr-2"></i><span>LINKS</span></a>
                 <a href="#" data-section="prompts" class="nav-link block px-4 py-3"><i class="fas fa-brain w-5 mr-2"></i><span>PROMPTS</span></a>
@@ -481,6 +537,7 @@
             </header>
             
             <!-- Contenedores de Secciones -->
+            <div id="section-favoritos" class="section hidden space-y-8"></div>
             <div id="section-buscadores" class="section space-y-8"></div>
             <div id="section-links" class="section hidden space-y-8"></div>
             <div id="section-prompts" class="section hidden space-y-8"></div>
@@ -685,6 +742,7 @@ let data = {
     items: [],
     categories: {}
 };
+let isGlobalSearchActive = false;
 
 const colorPalette = ['#fecaca', '#fed7aa', '#fef08a', '#bbf7d0', '#bfdbfe', '#ddd6fe', '#fbcfe8', '#e5e7eb'];
 
@@ -700,14 +758,12 @@ let activeFilterTags = [];
 // --- MOCK DATA (for when Gist is not available) ---
 const mockData = {
     items: [
-        { id: 1, type: 'Buscador', title: 'Google', action: 'https://www.google.com/search?q={search_term}', category: 'General', icon: 'fab fa-google', tags: ['motor', 'busqueda'] },
-        { id: 2, type: 'Buscador', title: 'YouTube', action: 'https://www.youtube.com/results?search_query={search_term}', category: 'Video', icon: 'fab fa-youtube', tags: ['videos', 'tutoriales'] },
-        { id: 7, type: 'Buscador', title: 'DuckDuckGo', action: 'https://duckduckgo.com/?q={search_term}', category: 'General', icon: 'fas fa-search', tags: ['privacidad'] },
-        { id: 3, type: 'Link', title: 'GitHub', action: 'https://github.com', category: 'Desarrollo', icon: 'fab fa-github', tags: ['codigo', 'proyectos'] },
-        { id: 31, type: 'Link', title: 'YouTube Video', action: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', category: 'Musica', icon: 'fab fa-youtube', tags: ['video', 'importante'] },
-        { id: 4, type: 'Promp', title: 'Generar Idea', action: 'Crea una lista de 5 ideas para un video de YouTube sobre IA.', category: 'Creatividad', icon: 'fas fa-lightbulb', tags: ['ideas'] },
-        { id: 5, type: 'Nota', title: 'Reunión Lunes', action: '<div>Discutir presupuesto Q3.</div><div>Revisar métricas.</div><div>Asignar tareas.</div>', category: 'Trabajo', icon: 'fas fa-sticky-note', tags: ['reunion'] },
-        { id: 6, type: 'Tarea', title: 'Proyecto Web', action: [{text: 'Diseñar mockup', status: true}, {text: 'Desarrollar landing', status: false}], category: 'Proyectos', icon: 'fas fa-tasks', tags: ['web'] }
+        { id: 1, type: 'Buscador', title: 'Google', action: 'https://www.google.com/search?q={search_term}', category: 'General', icon: 'fab fa-google', tags: ['motor', 'busqueda'], isFavorite: true },
+        { id: 2, type: 'Buscador', title: 'YouTube', action: 'https://www.youtube.com/results?search_query={search_term}', category: 'Video', icon: 'fab fa-youtube', tags: ['videos', 'tutoriales'], isFavorite: false },
+        { id: 3, type: 'Link', title: 'GitHub', action: 'https://github.com', category: 'Desarrollo', icon: 'fab fa-github', tags: ['codigo', 'proyectos'], isFavorite: true },
+        { id: 4, type: 'Promp', title: 'Generar Idea', action: 'Crea una lista de 5 ideas para un video de YouTube sobre IA.', category: 'Creatividad', icon: 'fas fa-lightbulb', tags: ['ideas'], isFavorite: false },
+        { id: 5, type: 'Nota', title: 'Reunión Lunes', action: '<div>Discutir presupuesto Q3.</div><div>Revisar métricas.</div><div>Asignar tareas.</div>', category: 'Trabajo', icon: 'fas fa-sticky-note', tags: ['reunion'], isFavorite: false },
+        { id: 6, type: 'Tarea', title: 'Proyecto Web', action: [{text: 'Diseñar mockup', status: true}, {text: 'Desarrollar landing', status: false}], category: 'Proyectos', icon: 'fas fa-tasks', tags: ['web'], isFavorite: true }
     ],
     categories: {
         'Video': { color: '#fecaca' },
@@ -716,10 +772,6 @@ const mockData = {
 };
 
 // --- DATA HANDLING ---
-/**
- * Ensures that all 'Link' and 'Buscador' items have an icon.
- * If an icon is missing, it attempts to generate one from the item's URL.
- */
 function ensureAllIcons() {
     if (!data.items) return;
     data.items.forEach(item => {
@@ -764,11 +816,11 @@ async function loadData() {
             data = mockData;
         } else {
             let loadedJson = JSON.parse(fileContent);
-            // Backward compatibility for old data structure
             if (Array.isArray(loadedJson)) {
-                data = { items: loadedJson, categories: {} };
+                data = { items: loadedJson.map(i => ({...i, isFavorite: i.isFavorite || false})), categories: {} };
             } else {
                 data = { items: [], categories: {}, ...loadedJson };
+                data.items = data.items.map(i => ({...i, isFavorite: i.isFavorite || false}));
             }
             showToast("DATOS CARGADOS.");
         }
@@ -848,7 +900,6 @@ function setupEventListeners() {
         });
     });
 
-    // Global View Switcher
     document.getElementById('global-view-switcher').addEventListener('click', (e) => {
         const button = e.target.closest('button');
         if (button) {
@@ -858,7 +909,6 @@ function setupEventListeners() {
         }
     });
 
-    // Global Filter Listeners
     const globalSearchInput = document.getElementById('global-search-input');
     const globalSearchContainer = document.getElementById('global-search-container');
     const sidebarLogo = document.getElementById('sidebar-logo');
@@ -886,7 +936,11 @@ function setupEventListeners() {
         }
     });
     
-    // Keyboard Shortcuts
+    document.getElementById('global-search-switch').addEventListener('change', (e) => {
+        isGlobalSearchActive = e.target.checked;
+        applyGlobalFilter();
+    });
+
     document.addEventListener('keydown', (e) => {
         const isModalOpen = !document.getElementById('editPanel').classList.contains('hidden') ||
                                !document.getElementById('helpModal').classList.contains('hidden') ||
@@ -915,7 +969,6 @@ function setupEventListeners() {
         }
     });
     
-    // Modal Listeners
     document.getElementById('fab-help').addEventListener('click', () => document.getElementById('helpModal').classList.remove('hidden'));
     document.getElementById('closeHelpModal').addEventListener('click', () => document.getElementById('helpModal').classList.add('hidden'));
     
@@ -924,7 +977,6 @@ function setupEventListeners() {
     document.getElementById('saveSettingsButton').addEventListener('click', saveSettings);
     document.getElementById('clearSettingsButton').addEventListener('click', useSampleData);
 
-    // Category Edit Modal Listeners
     document.getElementById('categoryEditForm').addEventListener('submit', saveCategoryChanges);
     document.getElementById('categoryCancelButton').addEventListener('click', () => document.getElementById('categoryEditModal').classList.add('hidden'));
     const colorInput = document.getElementById('categoryColorInput');
@@ -940,7 +992,6 @@ function setupEventListeners() {
         });
     });
 
-    // Rich Text Editor Toolbar
     document.getElementById('richTextToolbar').addEventListener('click', (e) => {
         const button = e.target.closest('button');
         if (button) {
@@ -951,7 +1002,6 @@ function setupEventListeners() {
         }
     });
 
-    // Backdrop click listener
     document.getElementById('card-expansion-backdrop').addEventListener('click', () => {
         const expandedCard = document.querySelector('.note-card.expanded, .task-card.expanded');
         if (expandedCard) closeExpandedCard(expandedCard);
@@ -971,7 +1021,7 @@ function initializeUI() {
 
 function refreshUI(sectionName) {
     const activeSection = sectionName || document.querySelector('#main-nav .active')?.dataset.section || 'buscadores';
-    applyGlobalFilter(); // This will re-render the section with current filters
+    applyGlobalFilter();
     populateGlobalFilterTags();
 }
 
@@ -980,7 +1030,7 @@ function switchTab(tabName) {
     const newActiveLink = document.querySelector(`#main-nav .nav-link[data-section="${tabName}"]`);
     if (newActiveLink) newActiveLink.classList.add("active");
     
-    const titleMap = { 'buscadores': 'Buscadores', 'links': 'Links', 'prompts': 'Prompts', 'notes-tasks': 'Notas y Tareas' };
+    const titleMap = { 'favoritos': 'Favoritos', 'buscadores': 'Buscadores', 'links': 'Links', 'prompts': 'Prompts', 'notes-tasks': 'Notas y Tareas' };
     document.getElementById('main-title').textContent = (titleMap[tabName] || tabName).toUpperCase();
 
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
@@ -1115,9 +1165,13 @@ function renderSection(sectionName, itemsToRender) {
         if (searchComponent) container.appendChild(searchComponent);
     }
 
-    container.insertAdjacentHTML('beforeend', `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`);
+    if (sectionName !== 'favoritos') {
+        container.insertAdjacentHTML('beforeend', `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`);
+    }
     
-    const items = itemsToRender || data.items.filter(item => item.type === type);
+    const items = itemsToRender || (sectionName === 'favoritos' 
+        ? data.items.filter(item => item.isFavorite)
+        : data.items.filter(item => item.type === type));
     
     const categorized = items.reduce((acc, item) => {
         const category = item.category || 'SIN CATEGORIA';
@@ -1126,7 +1180,8 @@ function renderSection(sectionName, itemsToRender) {
     }, {});
 
     if (items.length === 0) {
-        container.insertAdjacentHTML('beforeend', '<p class="text-center opacity-70 mt-8">No se encontraron resultados.</p>');
+        const message = sectionName === 'favoritos' ? 'Aún no tienes favoritos. Haz clic en la estrella ★ de una tarjeta para agregarla.' : 'No se encontraron resultados.';
+        container.insertAdjacentHTML('beforeend', `<p class="text-center opacity-70 mt-8">${message}</p>`);
         return;
     }
 
@@ -1184,6 +1239,9 @@ function createCard(item) {
     card.className = 'brutalist-card';
     card.dataset.id = item.id;
 
+    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
+    const favoriteBtn = `<button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>`;
+
     if (item.type === 'Promp') {
         card.classList.add('prompt-card');
         card.style.color = 'var(--text-color)';
@@ -1192,6 +1250,7 @@ function createCard(item) {
         card.innerHTML = `
             <div class="card-drag-handle"><i class="fas fa-grip-vertical"></i></div>
             <div class="card-actions">
+                ${favoriteBtn}
                 <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
                 <button onclick="deleteItem('${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
             </div>
@@ -1217,6 +1276,7 @@ function createCard(item) {
         card.innerHTML = `
             <div class="card-drag-handle"><i class="fas fa-grip-vertical"></i></div>
             <div class="card-actions">
+                ${favoriteBtn}
                 <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
                 <button onclick="deleteItem('${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
             </div>
@@ -1243,6 +1303,9 @@ function createListItem(item) {
         const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
         bgStyle = `background-image: url('${previewUrl}')`;
     }
+    
+    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
+
     listItem.innerHTML = `
         <div class="list-item-bg" style="${bgStyle}"></div>
         <div class="list-item-overlay"></div>
@@ -1256,6 +1319,7 @@ function createListItem(item) {
                 </div>
             </div>
             <div class="card-actions !static !opacity-100">
+                <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>
                 <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
             </div>
         </div>
@@ -1270,7 +1334,9 @@ function createChipItem(item) {
     const chipItem = document.createElement("div");
     chipItem.className = 'chip-item relative p-2 pr-3 flex items-center gap-2';
     chipItem.dataset.id = item.id;
+    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
     chipItem.innerHTML = `
+        <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn !w-6 !h-6 !border-2" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400 text-xs"></i></button>
         <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
         ${getIconHtml(item.icon, 'text-base')}
         <span class="font-bold uppercase">${item.title}</span>
@@ -1394,6 +1460,7 @@ function handleSaveItem(event) {
         if (index !== -1) data.items[index] = { ...data.items[index], ...newItemData };
     } else {
         newItemData.id = Date.now();
+        newItemData.isFavorite = false;
         data.items.push(newItemData);
     }
     saveData().then(() => {
@@ -1670,10 +1737,22 @@ function applyGlobalFilter() {
     const searchTerm = document.getElementById('global-search-input').value.toLowerCase();
     const activeNavBtn = document.querySelector('.nav-link.active');
     if (!activeNavBtn) return;
-    const activeSectionName = activeNavBtn.dataset.section;
-    const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
-    const activeType = typeMap[activeSectionName];
-    const itemsToFilter = data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
+    let activeSectionName = activeNavBtn.dataset.section;
+    
+    let itemsToFilter;
+
+    if (isGlobalSearchActive) {
+        itemsToFilter = data.items;
+    } else {
+        const typeMap = { 'favoritos': 'Favorite', 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
+        const activeType = typeMap[activeSectionName];
+        if (activeType === 'Favorite') {
+            itemsToFilter = data.items.filter(item => item.isFavorite);
+        } else {
+            itemsToFilter = data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
+        }
+    }
+
     const results = itemsToFilter.filter(card => {
         const tagFilterMatch = activeFilterTags.length === 0 || activeFilterTags.every(filterTag => (card.tags || []).includes(filterTag));
         if (!searchTerm) return tagFilterMatch;
@@ -1690,7 +1769,53 @@ function applyGlobalFilter() {
         }
         return (titleMatch || tagListMatch || contentMatch) && tagFilterMatch;
     });
-    renderSection(activeSectionName, results);
+
+    if (isGlobalSearchActive) {
+        renderGlobalResults(results);
+    } else {
+        renderSection(activeSectionName, results);
+    }
+}
+
+function renderGlobalResults(results) {
+    const container = document.querySelector('.section:not(.hidden)');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (results.length === 0) {
+        container.innerHTML = '<p class="text-center opacity-70 mt-8">No se encontraron resultados en ninguna sección.</p>';
+        return;
+    }
+
+    const groupedByType = results.reduce((acc, item) => {
+        const type = item.type;
+        (acc[type] = acc[type] || []).push(item);
+        return acc;
+    }, {});
+
+    const typeToSectionMap = {
+        'Buscador': 'Buscadores', 'Link': 'Links', 'Promp': 'Prompts', 'Nota': 'Notas y Tareas', 'Tarea': 'Notas y Tareas'
+    };
+
+    Object.keys(groupedByType).forEach(type => {
+        const sectionTitle = typeToSectionMap[type] || 'Otros';
+        const groupDiv = document.createElement('div');
+        groupDiv.innerHTML = `<h3 class="category-title">${sectionTitle}</h3>`;
+        
+        const contentContainer = document.createElement('div');
+        contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
+        
+        groupedByType[type].forEach(item => {
+            let element;
+            if (globalView === 'grid') element = createCard(item);
+            else if (globalView === 'list') element = createListItem(item);
+            else element = createChipItem(item);
+            contentContainer.appendChild(element);
+        });
+
+        groupDiv.appendChild(contentContainer);
+        container.appendChild(groupDiv);
+    });
 }
 
 
@@ -1762,8 +1887,10 @@ function createNoteCard(item) {
     const card = document.createElement("div");
     card.className = 'brutalist-card note-card p-6 flex flex-col';
     card.dataset.id = item.id;
+    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
     card.innerHTML = `
         <div class="card-actions">
+            <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>
             <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
             <button onclick="deleteItem('${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
         </div>
@@ -1779,6 +1906,7 @@ function createTaskCard(item) {
     const card = document.createElement("div");
     card.className = 'brutalist-card task-card p-6 flex flex-col';
     card.dataset.id = item.id;
+    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
     const taskListHtml = Array.isArray(item.action) ? `
         <ul class="task-list mt-2">
             ${item.action.map((task, index) => `
@@ -1791,6 +1919,7 @@ function createTaskCard(item) {
     ` : '';
     card.innerHTML = `
          <div class="card-actions">
+            <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>
             <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
             <button onclick="deleteItem('${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
         </div>
@@ -1814,6 +1943,18 @@ function createTaskCard(item) {
         });
     });
     return card;
+}
+
+// --- FAVORITES ---
+function toggleFavorite(event, itemId) {
+    event.stopPropagation();
+    const item = data.items.find(i => String(i.id) === String(itemId));
+    if (item) {
+        item.isFavorite = !item.isFavorite;
+        saveData().then(() => {
+            refreshUI();
+        });
+    }
 }
 
 // --- SETTINGS MODAL ---
