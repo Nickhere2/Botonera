@@ -487,6 +487,39 @@
         .global-search-toggle input:checked + .slider:before {
             transform: translateX(16px);
         }
+        
+        /* --- FAVORITES BAR --- */
+        .favorites-bar {
+            border: var(--border-width) dashed var(--text-color);
+            padding: 1rem;
+            margin-bottom: 2rem;
+        }
+        .favorites-bar-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+        .favorites-bar-icons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .favorite-icon {
+            border: var(--border-width) solid var(--text-color);
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--bg-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .favorite-icon:hover {
+            background-color: var(--accent-color);
+            color: #1e293b;
+            box-shadow: 4px 4px 0 var(--text-color);
+            transform: translate(-2px, -2px);
+        }
 
     </style>
 </head>
