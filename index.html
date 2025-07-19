@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v12 - Brutalist (Mejorado)</title>
+    <title>Centro de Accesos v16 - Brutalist (Mejorado)</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,11 +17,15 @@
             --accent-color: #facc15; /* Amarillo brillante */
             --accent-color-hover: #fde047;
             --border-width: 3px;
+            --note-bg: #fef08a; /* Amarillo Post-it */
+            --task-bg: #e0e7ff; /* Azul Lavanda claro */
         }
         
         .dark {
             --bg-color: #1e293b;
             --text-color: #fefce8;
+            --note-bg: #4a4a2a;
+            --task-bg: #312e71;
         }
         
         .theme-boca {
@@ -29,6 +33,8 @@
             --text-color: #ffcc00; /* Amarillo Boca */
             --accent-color: #ffcc00;
             --accent-color-hover: #ffd633;
+            --note-bg: #4d4d00;
+            --task-bg: #001f3f;
         }
 
         body {
@@ -48,7 +54,6 @@
             position: relative;
             height: 380px; /* Altura fija para todas las tarjetas */
             overflow: hidden; /* Ocultar contenido que se desborde */
-            cursor: pointer;
         }
         .dark .brutalist-card, .theme-boca .brutalist-card {
             background-color: #0d1117;
@@ -57,10 +62,14 @@
              background-color: #002244;
         }
 
-        .brutalist-card:hover {
+        .brutalist-card:not(.note-card):not(.task-card):hover {
             box-shadow: 4px 4px 0 var(--text-color);
             transform: translate(4px, 4px);
         }
+        .brutalist-card:not(.note-card):not(.task-card) {
+             cursor: pointer;
+        }
+
 
         .brutalist-sidebar {
             background-color: var(--bg-color);
@@ -114,7 +123,7 @@
         }
          .theme-boca .brutalist-input {
             background-color: #002244;
-         }
+       }
         .brutalist-input:focus {
             outline: none;
             border-color: var(--accent-color);
@@ -173,15 +182,15 @@
         @keyframes scroll-up { from { transform: translateY(0); } to { transform: translateY(-100%); } }
         
         /* --- PANEL DE EDICIÓN Y MODALES --- */
-        .modal-overlay { background-color: rgba(254, 252, 232, 0.8); backdrop-filter: blur(4px); }
+        .modal-overlay { background-color: rgba(254, 252, 232, 0.8); backdrop-filter: blur(4px); transition: opacity 0.3s; }
         .dark .modal-overlay, .theme-boca .modal-overlay { background-color: rgba(30, 41, 59, 0.8); }
-        .modal-container { background-color: white; border: var(--border-width) solid var(--text-color); box-shadow: 8px 8px 0px var(--text-color); max-height: 90vh; overflow-y: auto; }
+        .modal-container { background-color: white; border: var(--border-width) solid var(--text-color); box-shadow: 8px 8px 0px var(--text-color); max-height: 90vh; overflow-y: auto; transition: transform 0.3s, opacity 0.3s; }
         .dark .modal-container, .theme-boca .modal-container { background-color: #0d1117; }
         .theme-boca .modal-container { background-color: #002244; }
         
         .type-btn { border: var(--border-width) solid var(--text-color); transition: all 0.2s; }
         .type-btn.active { background-color: var(--accent-color); box-shadow: 4px 4px 0 var(--text-color); transform: translate(-4px, -4px); color: #1e293b; }
-        .rich-text-editor { border: var(--border-width) solid var(--text-color); min-height: 120px; padding: 0.5rem; }
+        .rich-text-editor { border: var(--border-width) solid var(--text-color); min-height: 120px; padding: 0.5rem; background: white; }
         .dark .rich-text-editor, .theme-boca .rich-text-editor { background-color: #1e293b; }
         
         /* --- ETIQUETAS --- */
@@ -278,10 +287,72 @@
             background-color: white;
             color: black;
         }
+        
+        /* --- NOTAS Y TAREAS --- */
+        .note-card, .task-card {
+            height: auto;
+            min-height: 250px;
+            max-height: 380px;
+            cursor: pointer;
+        }
+        .note-card { background-color: var(--note-bg); }
+        .task-card { background-color: var(--task-bg); }
+
+        .note-card .card-content, .task-card .card-content {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .card-expansion-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1150;
+            display: none;
+        }
+        .dark .card-expansion-backdrop, .theme-boca .card-expansion-backdrop {
+            background-color: rgba(0,0,0,0.7);
+        }
+
+        .note-card.expanded, .task-card.expanded {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1.1);
+            width: 90vw;
+            max-width: 500px;
+            height: 70vh;
+            z-index: 1200;
+            box-shadow: 12px 12px 0 var(--text-color);
+        }
+        .note-card.expanded .card-content, .task-card.expanded .card-content {
+            max-height: calc(70vh - 80px);
+        }
+
+        .task-list { list-style: none; padding: 0; }
+        .task-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 2px solid var(--text-color);
+        }
+         .task-list li:last-child { border-bottom: none; }
+        .task-list input[type="checkbox"] {
+            width: 20px; height: 20px;
+            border: var(--border-width) solid var(--text-color);
+            appearance: none;
+            background-color: var(--bg-color);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .task-list input[type="checkbox"]:checked { background-color: var(--accent-color); }
+        .task-list label.completed { text-decoration: line-through; opacity: 0.6; }
 
     </style>
 </head>
 <body>
+    <div id="card-expansion-backdrop" class="card-expansion-backdrop"></div>
 
     <div class="flex h-screen">
         <!-- Barra Lateral de Navegación -->
@@ -302,8 +373,7 @@
                 <a href="#" data-section="buscadores" class="nav-link active block px-4 py-3"><i class="fas fa-search w-5 mr-2"></i><span>BUSCADORES</span></a>
                 <a href="#" data-section="links" class="nav-link block px-4 py-3"><i class="fas fa-link w-5 mr-2"></i><span>LINKS</span></a>
                 <a href="#" data-section="prompts" class="nav-link block px-4 py-3"><i class="fas fa-brain w-5 mr-2"></i><span>PROMPTS</span></a>
-                <a href="#" data-section="notes" class="nav-link block px-4 py-3"><i class="fas fa-sticky-note w-5 mr-2"></i><span>NOTAS</span></a>
-                <a href="#" data-section="tasks" class="nav-link block px-4 py-3"><i class="fas fa-tasks w-5 mr-2"></i><span>TAREAS</span></a>
+                <a href="#" data-section="notes-tasks" class="nav-link block px-4 py-3"><i class="fas fa-check-double w-5 mr-2"></i><span>Notas y Tareas</span></a>
             </nav>
         </aside>
 
@@ -328,9 +398,7 @@
             <div id="section-buscadores" class="section space-y-8"></div>
             <div id="section-links" class="section hidden space-y-8"></div>
             <div id="section-prompts" class="section hidden space-y-8"></div>
-            <div id="section-notes" class="section hidden space-y-8"></div>
-            <div id="section-tasks" class="section hidden space-y-8"></div>
-
+            <div id="section-notes-tasks" class="section hidden space-y-8"></div>
         </main>
     </div>
     
@@ -338,45 +406,51 @@
     <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay">
         <div class="modal-container w-full max-w-2xl p-8">
             <div class="flex justify-between items-center mb-6">
-              <h2 id="editPanelTitle" class="text-2xl font-bold">AGREGAR ELEMENTO</h2>
-              <button id="closeEditButton" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
+                <h2 id="editPanelTitle" class="text-2xl font-bold">AGREGAR ELEMENTO</h2>
+                <button id="closeEditButton" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
             </div>
             
             <form id="editForm" class="space-y-6">
                 <input type="hidden" id="editItemId">
                 
                 <div>
-                  <label class="font-bold block mb-2">TIPO</label>
-                  <div class="type-selector grid grid-cols-3 sm:grid-cols-5 gap-2">
-                    <div class="type-btn text-center p-2" data-type="Buscador"><i class="fas fa-search"></i><span class="block text-xs">Buscador</span></div>
-                    <div class="type-btn text-center p-2" data-type="Link"><i class="fas fa-link"></i><span class="block text-xs">Link</span></div>
-                    <div class="type-btn text-center p-2" data-type="Promp"><i class="fas fa-brain"></i><span class="block text-xs">Prompt</span></div>
-                    <div class="type-btn text-center p-2" data-type="Nota"><i class="fas fa-sticky-note"></i><span class="block text-xs">Nota</span></div>
-                    <div class="type-btn text-center p-2" data-type="Tarea"><i class="fas fa-tasks"></i><span class="block text-xs">Tarea</span></div>
-                  </div>
-                  <select id="newType" class="hidden">
-                    <option value="Buscador">Buscador</option>
-                    <option value="Link">Link</option>
-                    <option value="Promp">Promp</option>
-                    <option value="Nota">Nota</option>
-                    <option value="Tarea">Tarea</option>
-                  </select>
+                    <label class="font-bold block mb-2">TIPO</label>
+                    <div class="type-selector grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <div class="type-btn text-center p-2" data-type="Buscador"><i class="fas fa-search"></i><span class="block text-xs">Buscador</span></div>
+                        <div class="type-btn text-center p-2" data-type="Link"><i class="fas fa-link"></i><span class="block text-xs">Link</span></div>
+                        <div class="type-btn text-center p-2" data-type="Promp"><i class="fas fa-brain"></i><span class="block text-xs">Prompt</span></div>
+                        <div class="type-btn text-center p-2" data-type="Nota"><i class="fas fa-sticky-note"></i><span class="block text-xs">Nota</span></div>
+                        <div class="type-btn text-center p-2" data-type="Tarea"><i class="fas fa-tasks"></i><span class="block text-xs">Tarea</span></div>
+                    </div>
+                    <select id="newType" class="hidden">
+                        <option value="Buscador">Buscador</option>
+                        <option value="Link">Link</option>
+                        <option value="Promp">Promp</option>
+                        <option value="Nota">Nota</option>
+                        <option value="Tarea">Tarea</option>
+                    </select>
                 </div>
 
                 <div>
-                  <label class="font-bold block mb-2">TITULO</label>
-                  <input type="text" id="newTitle" class="brutalist-input" placeholder="Nombre del elemento">
+                    <label class="font-bold block mb-2">TITULO</label>
+                    <input type="text" id="newTitle" class="brutalist-input" placeholder="Nombre del elemento">
                 </div>
 
                 <div id="actionFieldContainer">
-                  <label id="actionLabel" class="font-bold block mb-2">URL / ACCION</label>
-                  <textarea id="newActionText" class="brutalist-input" rows="3"></textarea>
-                  <div id="newActionRich" class="rich-text-editor hidden" contenteditable="true"></div>
+                    <label id="actionLabel" class="font-bold block mb-2">URL / ACCION</label>
+                    <div id="richTextToolbar" class="hidden flex items-center gap-1 mb-2 p-1" style="border: var(--border-width) solid var(--text-color);">
+                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1" data-command="bold" title="Negrita"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1" data-command="italic" title="Cursiva"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1" data-command="underline" title="Subrayado"><i class="fas fa-underline"></i></button>
+                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1" data-command="insertUnorderedList" title="Lista"><i class="fas fa-list-ul"></i></button>
+                    </div>
+                    <textarea id="newActionText" class="brutalist-input" rows="3"></textarea>
+                    <div id="newActionRich" class="rich-text-editor hidden" contenteditable="true"></div>
                 </div>
 
                 <div id="iconFieldContainer">
-                  <label class="font-bold block mb-2">ICONO (fas fa-search)</label>
-                  <input type="text" id="newIcon" class="brutalist-input" placeholder="ej: fas fa-search o fab fa-youtube">
+                    <label class="font-bold block mb-2">ICONO (URL o clase de FontAwesome)</label>
+                    <input type="text" id="newIcon" class="brutalist-input" placeholder="Dejar vacío para auto-detectar, o ej: https://.../logo.png, o fas fa-search">
                 </div>
                 
                 <div id="categoryFieldContainer">
@@ -384,24 +458,25 @@
                     <input type="text" id="newCategory" class="brutalist-input" list="category-suggestions" placeholder="Escribe una categoría existente o nueva">
                     <datalist id="category-suggestions"></datalist>
                 </div>
-                 
+                
                 <div>
-                  <label class="font-bold block mb-2">ETIQUETAS (separadas por coma)</label>
-                  <input type="text" id="newTags" class="brutalist-input" placeholder="trabajo, personal">
+                    <label class="font-bold block mb-2">ETIQUETAS (separadas por coma)</label>
+                    <input type="text" id="newTags" class="brutalist-input" placeholder="trabajo, personal">
                 </div>
                 
                 <button id="saveItemButton" type="submit" class="brutalist-button w-full py-3">
-                  GUARDAR
+                    GUARDAR
                 </button>
             </form>
         </div>
     </div>
     
-    <div id="toast" class="hidden fixed bottom-5 right-5 p-4 border-4 font-bold" style="border-color: var(--text-color); background-color: var(--accent-color); color: #1e293b;"></div>
+    <div id="toast" class="hidden fixed bottom-5 right-5 p-4 border-4 font-bold z-[2000]" style="border-color: var(--text-color); background-color: var(--accent-color); color: #1e293b;"></div>
 
     <!-- FAB Menu -->
     <div class="fab-container">
         <ul class="fab-actions">
+            <li class="fab-action"><button id="fab-settings" class="brutalist-button fab-main" title="Configuración"><i class="fas fa-cog"></i></button></li>
             <li class="fab-action"><button id="fab-help" class="brutalist-button fab-main" title="Ayuda"><i class="fas fa-question"></i></button></li>
             <li class="fab-action"><button id="fab-theme" class="brutalist-button fab-main" title="Cambiar Tema"><i class="fas fa-palette"></i></button></li>
         </ul>
@@ -450,10 +525,37 @@
                         <p>Este es un centro de accesos personalizable para organizar tus links, buscadores, notas y más.</p>
                     </div>
                     <ul class="list-disc list-inside space-y-2">
-                        <li><strong>Conexión de Datos:</strong> La aplicación se conecta a un Gist de GitHub para guardar tus datos. La primera vez, se te pedirá un Gist ID. Para guardar cambios, necesitarás un Personal Access Token (PAT) de GitHub con el permiso <code>gist</code>.</li>
+                        <li><strong>Conexión de Datos:</strong> Usa el botón de <i class="fas fa-cog"></i> para conectar la app a un Gist de GitHub. Necesitarás un Gist ID y un Personal Access Token (PAT) con el permiso <code>gist</code>.</li>
                         <li><strong>Gestión de Categorías:</strong> Usa los botones que aparecen al pasar el ratón sobre un título de categoría para editarla o eliminarla. Para añadir una nueva, haz clic en "Nueva Categoría" o asigna un nombre de categoría nuevo al crear o editar un elemento.</li>
                         <li><strong>Filtro Global:</strong> Usa la barra de filtro en el menú lateral para buscar elementos por título o etiqueta en la sección actual. Haz clic para expandirla y ver los filtros de etiquetas.</li>
                     </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
+        <div class="modal-container w-full max-w-lg p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">CONFIGURACIÓN DE GIST</h2>
+                <button id="closeSettingsModal" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
+            </div>
+            <div class="space-y-4">
+                <p>Guarda tus datos en un <a href="https://gist.github.com/" target="_blank" class="underline font-bold">Gist de GitHub</a> secreto para sincronizar entre dispositivos.</p>
+                <div>
+                    <label for="gistIdInput" class="font-bold block mb-2">Gist ID</label>
+                    <input type="text" id="gistIdInput" class="brutalist-input" placeholder="El ID de tu Gist de GitHub">
+                    <p class="text-xs mt-1 opacity-70">Lo encuentras en la URL de tu Gist: gist.github.com/username/<strong>gist_id</strong></p>
+                </div>
+                <div>
+                    <label for="githubPatInput" class="font-bold block mb-2">Personal Access Token (Clásico)</label>
+                    <input type="password" id="githubPatInput" class="brutalist-input" placeholder="Token con permiso 'gist'">
+                     <p class="text-xs mt-1 opacity-70">Crea uno <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank" class="underline font-bold">aquí</a>. Se guarda localmente en tu navegador.</p>
+                </div>
+                <div class="flex justify-between items-center gap-4 pt-4">
+                     <button id="clearSettingsButton" class="brutalist-button !bg-transparent text-current">USAR DATOS DE EJEMPLO</button>
+                     <button id="saveSettingsButton" class="brutalist-button py-3 px-6">GUARDAR Y RECARGAR</button>
                 </div>
             </div>
         </div>
@@ -480,33 +582,57 @@ const mockData = {
     "items": [
         { id: 1, type: 'Buscador', title: 'Google', action: 'https://www.google.com/search?q={search_term}', category: 'General', icon: 'fab fa-google', tags: ['motor', 'busqueda'] },
         { id: 2, type: 'Buscador', title: 'YouTube', action: 'https://www.youtube.com/results?search_query={search_term}', category: 'Video', icon: 'fab fa-youtube', tags: ['videos', 'tutoriales'] },
+        { id: 7, type: 'Buscador', title: 'DuckDuckGo', action: 'https://duckduckgo.com/?q={search_term}', category: 'General', icon: 'fas fa-search', tags: ['privacidad'] },
         { id: 3, type: 'Link', title: 'GitHub', action: 'https://github.com', category: 'Desarrollo', icon: 'fab fa-github', tags: ['codigo', 'proyectos'] },
         { id: 31, type: 'Link', title: 'YouTube Video', action: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', category: 'Musica', icon: 'fab fa-youtube', tags: ['video', 'importante'] },
         { id: 4, type: 'Promp', title: 'Generar Idea', action: 'Crea una lista de 5 ideas para un video de YouTube sobre IA. Este texto es largo para demostrar el efecto de scroll. Debería poder leerse completo al pasar el mouse por encima de la tarjeta, ya que se animará de abajo hacia arriba.', category: 'Creatividad', icon: 'fas fa-lightbulb', tags: ['ideas'] },
-        { id: 5, type: 'Nota', title: 'Reunión Lunes', action: 'Discutir presupuesto Q3. Revisar métricas. Asignar tareas.', category: 'Trabajo', icon: 'fas fa-sticky-note', tags: ['reunion'] },
+        { id: 5, type: 'Nota', title: 'Reunión Lunes', action: '<div>Discutir presupuesto Q3.</div><div>Revisar métricas.</div><div>Asignar tareas.</div>', category: 'Trabajo', icon: 'fas fa-sticky-note', tags: ['reunion'] },
         { id: 6, type: 'Tarea', title: 'Proyecto Web', action: [{text: 'Diseñar mockup', status: true}, {text: 'Desarrollar landing', status: false}], category: 'Proyectos', icon: 'fas fa-tasks', tags: ['web'] }
     ]
 };
 
 // --- DATA HANDLING ---
+/**
+ * Ensures that all 'Link' and 'Buscador' items have an icon.
+ * If an icon is missing, it attempts to generate one from the item's URL.
+ */
+function ensureAllIcons() {
+    if (!data) return;
+    data.forEach(item => {
+        if ((item.type === 'Link' || item.type === 'Buscador') && !item.icon) {
+            try {
+                const url = new URL(item.action);
+                const hostname = url.hostname;
+                item.icon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${hostname}`;
+            } catch (e) {
+                console.error(`URL inválida para auto-generar favicon para "${item.title}":`, item.action);
+            }
+        }
+    });
+}
+
+
 async function loadData() {
     let gistId = localStorage.getItem('gist_id');
     if (!gistId) {
-        gistId = prompt("Para conectar tus datos, ingresa tu GITHUB GIST ID:");
-        if (gistId) {
-            localStorage.setItem('gist_id', gistId);
-        } else {
-            showToast("USANDO DATOS DE EJEMPLO. Para conectar, reinicia y provee un Gist ID.");
-            data = mockData.items;
-            initializeUI();
-            return;
-        }
+        // If no Gist ID, open settings but also load mock data so the UI isn't blank.
+        openSettingsModal();
+        data = mockData.items;
+        ensureAllIcons();
+        initializeUI(); // Initialize UI with mock data
+        return;
     }
 
     showToast("CARGANDO DATOS...");
     try {
         const response = await fetch(`https://api.github.com/gists/${gistId}`);
-        if (!response.ok) throw new Error(`GIST NO ENCONTRADO: ${response.status}`);
+        if (!response.ok) {
+            if (response.status === 404) {
+                 showToast("GIST NO ENCONTRADO. REVISA LA CONFIGURACIÓN.");
+                 openSettingsModal();
+            }
+            throw new Error(`GIST NO ENCONTRADO: ${response.status}`);
+        }
         const gistData = await response.json();
         const fileContent = gistData.files[FILENAME_IN_GIST]?.content;
         
@@ -521,28 +647,25 @@ async function loadData() {
     } catch (error) {
         console.error("Fallo al cargar datos:", error);
         showToast(`ERROR: ${error.message}`);
-        localStorage.removeItem('gist_id'); // Clear bad Gist ID
         data = mockData.items; // Fallback to mock data
     }
+    ensureAllIcons();
     initializeUI();
 }
 
 async function saveData() {
     const gistId = localStorage.getItem('gist_id');
     if (!gistId) {
-        showToast("NO GIST ID. CAMBIOS NO GUARDADOS.");
+        showToast("NO HAY GIST ID. ABRE LA CONFIGURACIÓN.");
+        openSettingsModal();
         return;
     }
     
     let token = localStorage.getItem('github_pat');
     if (!token) {
-        token = prompt('Para guardar, ingresa tu GITHUB PERSONAL ACCESS TOKEN:');
-        if (token) {
-            localStorage.setItem('github_pat', token);
-        } else {
-            showToast("ACCION CANCELADA. SE NECESITA TOKEN.");
-            return;
-        }
+        showToast("NO HAY TOKEN DE GITHUB. ABRE LA CONFIGURACIÓN.");
+        openSettingsModal();
+        return;
     }
     
     showToast("GUARDANDO...");
@@ -556,8 +679,9 @@ async function saveData() {
         });
         if (!response.ok) {
              if(response.status === 401 || response.status === 404) {
-                localStorage.removeItem('github_pat');
-                showToast("TOKEN INVALIDO. VUELVE A INTENTAR GUARDAR.");
+                 localStorage.removeItem('github_pat');
+                 showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
+                 openSettingsModal();
              }
              throw new Error(`ERROR AL GUARDAR: ${response.status}`)
         };
@@ -570,6 +694,7 @@ async function saveData() {
 
 // --- UI INITIALIZATION & EVENT LISTENERS ---
 document.addEventListener("DOMContentLoaded", () => {
+    // This is the main entry point. It will handle data loading and UI setup.
     loadData();
     setupEventListeners();
     setupFabMenu();
@@ -623,21 +748,38 @@ function setupEventListeners() {
     });
 
     document.addEventListener('click', (e) => {
-        if (!globalSearchContainer.contains(e.target)) {
+        const wasVisible = !globalSearchContainer.classList.contains('hidden');
+        if (wasVisible && !globalSearchContainer.contains(e.target) && !sidebarLogo.contains(e.target)) {
             globalSearchContainer.classList.add('hidden');
             sidebarLogo.classList.remove('hidden');
             globalSearchContainer.classList.remove('expanded');
+
+            // Reset filters
+            globalSearchInput.value = '';
+            activeFilterTags = [];
+            document.querySelectorAll('#global-search-tags .filter-tag.active').forEach(tagEl => {
+                tagEl.classList.remove('active');
+            });
+            applyGlobalFilter();
         }
     });
     
     // Keyboard Shortcuts
     document.addEventListener('keydown', (e) => {
         const isModalOpen = !document.getElementById('editPanel').classList.contains('hidden') ||
-                              !document.getElementById('helpModal').classList.contains('hidden');
+                               !document.getElementById('helpModal').classList.contains('hidden') ||
+                               !document.getElementById('settingsModal').classList.contains('hidden');
+        
+        const expandedCard = document.querySelector('.note-card.expanded, .task-card.expanded');
 
-        if (e.key === 'Escape' && isModalOpen) {
-            document.getElementById('editPanel').classList.add('hidden');
-            document.getElementById('helpModal').classList.add('hidden');
+        if (e.key === 'Escape') {
+             if(expandedCard) {
+                closeExpandedCard(expandedCard);
+             } else if (isModalOpen) {
+                 document.getElementById('editPanel').classList.add('hidden');
+                 document.getElementById('helpModal').classList.add('hidden');
+                 document.getElementById('settingsModal').classList.add('hidden');
+             }
         }
         if ((e.ctrlKey || e.metaKey) && e.altKey) {
             switch(e.key) {
@@ -661,62 +803,215 @@ function setupEventListeners() {
         }
     });
     
-    // Help Modal Listeners
-    document.getElementById('fab-help').addEventListener('click', () => {
-        document.getElementById('helpModal').classList.remove('hidden');
+    // Modal Listeners
+    document.getElementById('fab-help').addEventListener('click', () => document.getElementById('helpModal').classList.remove('hidden'));
+    document.getElementById('closeHelpModal').addEventListener('click', () => document.getElementById('helpModal').classList.add('hidden'));
+    
+    document.getElementById('fab-settings').addEventListener('click', openSettingsModal);
+    document.getElementById('closeSettingsModal').addEventListener('click', () => document.getElementById('settingsModal').classList.add('hidden'));
+    document.getElementById('saveSettingsButton').addEventListener('click', saveSettings);
+    document.getElementById('clearSettingsButton').addEventListener('click', useSampleData);
+
+    // Rich Text Editor Toolbar
+    document.getElementById('richTextToolbar').addEventListener('click', (e) => {
+        const button = e.target.closest('button');
+        if (button) {
+            e.preventDefault();
+            const command = button.dataset.command;
+            document.execCommand(command, false, null);
+            document.getElementById('newActionRich').focus();
+        }
     });
-    document.getElementById('closeHelpModal').addEventListener('click', () => {
-        document.getElementById('helpModal').classList.add('hidden');
+
+    // Backdrop click listener
+    document.getElementById('card-expansion-backdrop').addEventListener('click', () => {
+        const expandedCard = document.querySelector('.note-card.expanded, .task-card.expanded');
+        if (expandedCard) closeExpandedCard(expandedCard);
     });
 }
 
 function initializeUI() {
-    if (!data) return;
+    if (!data || data.length === 0) {
+        console.log("No data available to initialize UI.");
+        // Optionally show a message to the user in the main content area
+        const mainContent = document.querySelector('main');
+        mainContent.innerHTML = '<div class="text-center p-8"><h2 class="text-2xl font-bold">Bienvenido</h2><p>Parece que no hay datos. Abre la configuración <i class="fas fa-cog"></i> para conectar tu Gist de GitHub o usar datos de ejemplo.</p></div>';
+        return;
+    };
     applyTheme(themes[currentThemeIndex]);
     switchTab('buscadores'); 
 }
 
 function refreshUI(sectionName) {
-    const activeSection = sectionName || document.querySelector('#main-nav .active').dataset.section;
+    const activeSection = sectionName || document.querySelector('#main-nav .active')?.dataset.section || 'buscadores';
     applyGlobalFilter(); // This will re-render the section with current filters
     populateGlobalFilterTags();
 }
 
 function switchTab(tabName) {
     document.querySelectorAll("#main-nav .nav-link").forEach(b => b.classList.remove("active"));
-    document.querySelector(`#main-nav .nav-link[data-section="${tabName}"]`).classList.add("active");
-    document.getElementById('main-title').textContent = tabName.toUpperCase();
+    const newActiveLink = document.querySelector(`#main-nav .nav-link[data-section="${tabName}"]`);
+    if (newActiveLink) {
+        newActiveLink.classList.add("active");
+    }
+    
+    const titleMap = {
+        'buscadores': 'Buscadores',
+        'links': 'Links',
+        'prompts': 'Prompts',
+        'notes-tasks': 'Notas y Tareas'
+    };
+    document.getElementById('main-title').textContent = (titleMap[tabName] || tabName).toUpperCase();
+
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
     const activeSection = document.querySelector(`#section-${tabName}`);
-    activeSection.classList.remove("hidden");
+    if (activeSection) {
+        activeSection.classList.remove("hidden");
+    }
     
+    document.getElementById('global-view-switcher').classList.remove('hidden');
+
     refreshUI(tabName);
 }
 
 // --- RENDERING ---
+
+/**
+ * Renders an icon, supporting FontAwesome classes and image URLs.
+ * @param {string} icon - The icon identifier (e.g., 'fas fa-search' or 'http://.../img.png').
+ * @param {string} [sizeClass='text-4xl'] - The TailwindCSS class for sizing.
+ * @returns {string} The HTML string for the icon.
+ */
 function getIconHtml(icon, sizeClass = 'text-4xl') {
     if (!icon) {
         return `<i class="fas fa-question-circle ${sizeClass}"></i>`;
     }
     if (icon.startsWith('http')) {
-        return `<img src="${icon}" class="w-10 h-10 object-contain" alt="Icon">`;
+        const sizeMap = {
+            'text-6xl mb-3': 'w-16 h-16 mb-3', 'text-2xl': 'w-8 h-8',
+            'text-base': 'w-5 h-5', 'text-xl': 'w-6 h-6'
+        };
+        const imgClass = sizeMap[sizeClass] || 'w-10 h-10';
+        return `<img src="${icon}" class="${imgClass} object-contain" alt="Icono" onerror="this.onerror=null;this.src='https://placehold.co/64x64/fefce8/1e293b?text=?';">`;
     }
     return `<i class="${icon} ${sizeClass}"></i>`;
 }
 
+
+/**
+ * Creates the main search bar component for the 'Buscadores' section.
+ * @param {Array} buscadores - An array of 'Buscador' type items.
+ * @returns {HTMLElement|null} The search bar component element or null if no search engines are provided.
+ */
+function createBuscadorSearchComponent(buscadores) {
+    const componentWrapper = document.createElement('div');
+    componentWrapper.className = 'relative mb-8';
+
+    const searchBarContainer = document.createElement('div');
+    searchBarContainer.id = 'main-search-bar';
+    searchBarContainer.className = 'flex items-center gap-0 p-0 brutalist-input !p-0 overflow-hidden';
+    
+    if (buscadores.length === 0) return null;
+    
+    let selectedBuscador = buscadores[0];
+    searchBarContainer.dataset.actionUrl = selectedBuscador.action;
+
+    const dropdown = document.createElement('div');
+    dropdown.id = 'search-engine-dropdown';
+    dropdown.className = 'hidden absolute top-full left-0 mt-2 w-72 modal-container z-50 max-h-80 overflow-y-auto';
+    
+    buscadores.forEach(buscador => {
+        const item = document.createElement('div');
+        item.className = 'p-4 hover:bg-yellow-300 dark:hover:bg-yellow-600 cursor-pointer flex items-center gap-3';
+        item.dataset.id = buscador.id;
+        item.innerHTML = `${getIconHtml(buscador.icon, 'text-xl')} <span class="font-bold">${buscador.title}</span>`;
+        item.addEventListener('click', () => {
+            selectedBuscador = buscador;
+            searchBarContainer.dataset.actionUrl = buscador.action;
+            selectorIcon.innerHTML = getIconHtml(buscador.icon, 'text-xl');
+            selectorTitle.textContent = buscador.title;
+            dropdown.classList.add('hidden');
+        });
+        dropdown.appendChild(item);
+    });
+
+    const selector = document.createElement('div');
+    selector.id = 'search-engine-selector';
+    selector.className = 'flex items-center gap-3 p-3 cursor-pointer border-r-4 border-inherit';
+    const selectorIcon = document.createElement('span');
+    selectorIcon.innerHTML = getIconHtml(selectedBuscador.icon, 'text-xl');
+    const selectorTitle = document.createElement('span');
+    selectorTitle.className = 'font-bold';
+    selectorTitle.textContent = selectedBuscador.title;
+    const selectorArrow = document.createElement('i');
+    selectorArrow.className = 'fas fa-chevron-down text-xs ml-2';
+    selector.append(selectorIcon, selectorTitle, selectorArrow);
+    
+    selector.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('hidden');
+    });
+
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.id = 'main-search-input';
+    searchInput.className = 'flex-grow bg-transparent focus:outline-none p-3';
+    searchInput.placeholder = 'Escribe tu búsqueda...';
+
+    const searchButton = document.createElement('button');
+    searchButton.id = 'main-search-button';
+    searchButton.className = 'brutalist-button !shadow-none !border-l-4 !border-y-0 !border-r-0 rounded-none px-6 py-4';
+    searchButton.textContent = 'BUSCAR';
+
+    const performSearch = () => {
+        const term = searchInput.value.trim();
+        if (term && searchBarContainer.dataset.actionUrl) {
+            window.open(searchBarContainer.dataset.actionUrl.replace('{search_term}', encodeURIComponent(term)), '_blank');
+        } else if (!term) {
+            showToast("POR FAVOR INGRESA UN TÉRMINO DE BÚSQUEDA");
+        }
+    };
+    
+    searchButton.addEventListener('click', performSearch);
+    searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') performSearch(); });
+
+    searchBarContainer.append(selector, searchInput, searchButton);
+    componentWrapper.append(searchBarContainer, dropdown);
+    
+    document.addEventListener('click', (e) => {
+        if (!componentWrapper.contains(e.target)) dropdown.classList.add('hidden');
+    });
+
+    return componentWrapper;
+}
+
 function renderSection(sectionName, itemsToRender) {
+    const container = document.getElementById(`section-${sectionName}`);
+    if (!container) return;
+    container.innerHTML = '';
+    
     document.querySelectorAll('#global-view-switcher button').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.view === globalView);
     });
     localStorage.setItem('globalView', globalView);
 
+    if (sectionName === 'notes-tasks') {
+        renderNotesAndTasksSection(container, itemsToRender);
+        return;
+    }
+    
     const typeMap = {
-        buscadores: 'Buscador', links: 'Link', prompts: 'Promp',
-        notes: 'Nota', tasks: 'Tarea'
+        buscadores: 'Buscador', links: 'Link', prompts: 'Promp'
     };
     const type = typeMap[sectionName];
-    const container = document.getElementById(`section-${sectionName}`);
-    container.innerHTML = `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`;
+    
+    if (sectionName === 'buscadores') {
+        const allBuscadores = data.filter(item => item.type === 'Buscador');
+        const searchComponent = createBuscadorSearchComponent(allBuscadores);
+        if (searchComponent) container.appendChild(searchComponent);
+    }
+
+    container.insertAdjacentHTML('beforeend', `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`);
     
     const items = itemsToRender || data.filter(item => item.type === type);
     
@@ -726,24 +1021,21 @@ function renderSection(sectionName, itemsToRender) {
         return acc;
     }, {});
 
-    if (Object.keys(categorized).length === 0) {
-        container.innerHTML += '<p>No se encontraron resultados para el filtro actual.</p>';
+    if (items.length === 0) {
+        container.insertAdjacentHTML('beforeend', '<p class="text-center opacity-70 mt-8">No se encontraron resultados para el filtro actual.</p>');
+        return;
     }
 
     Object.keys(categorized).sort().forEach(cat => {
         const catDiv = document.createElement('div');
-        
         const categoryActionsHTML = cat !== 'SIN CATEGORIA' ? `
             <div class="category-actions flex gap-2">
-                <button onclick="editCategory('${cat}')" class="action-btn !w-auto !h-auto px-2 py-1" title="Editar Nombre"><i class="fas fa-pencil-alt"></i></button>
-                <button onclick="deleteCategory('${cat}')" class="action-btn !w-auto !h-auto px-2 py-1" title="Eliminar Categoría"><i class="fas fa-trash-alt"></i></button>
-            </div>` : '';
+                <button onclick="editCategory('${cat}')" class="action-btn !w-8 !h-8" title="Editar Categoría"><i class="fas fa-pencil-alt"></i></button>
+                <button onclick="deleteCategory('${cat}')" class="action-btn !w-8 !h-8" title="Eliminar Categoría"><i class="fas fa-trash-alt"></i></button>
+            </div>
+        ` : '';
 
-        catDiv.innerHTML = `
-            <div class="category-header">
-                <h3 class="category-title">${cat}</h3>
-                ${categoryActionsHTML}
-            </div>`;
+        catDiv.innerHTML = `<div class="category-header"><h3 class="category-title">${cat}</h3>${categoryActionsHTML}</div>`;
         
         const contentContainer = document.createElement('div');
         contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
@@ -761,12 +1053,12 @@ function renderSection(sectionName, itemsToRender) {
         container.appendChild(catDiv);
 
         new Sortable(contentContainer, {
-            group: 'shared-cards',
-            animation: 150,
-            handle: '.card-drag-handle',
+            group: 'shared-cards', animation: 150, handle: '.card-drag-handle',
             onEnd: function (evt) {
-                const itemId = evt.item.dataset.id;
+                const itemEl = evt.item;
+                const itemId = itemEl.dataset.id;
                 const newCategory = evt.to.dataset.category;
+                
                 const item = data.find(d => String(d.id) === itemId);
                 if (item && item.category !== newCategory) {
                     item.category = newCategory;
@@ -832,10 +1124,7 @@ function createCard(item) {
         <div class="card-preview-view">${getPreviewContent(item)}</div>
     `;
     
-    card.addEventListener('click', (e) => {
-        handleCardClick(item.id, e);
-    });
-    
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
     return card;
 }
 
@@ -890,26 +1179,41 @@ function createChipItem(item) {
 
 // --- ACTIONS & EVENT HANDLERS ---
 function handleCardClick(id, event) {
-    if (event && event.target.closest('button, .card-actions, .card-drag-handle')) {
+    const item = data.find(i => String(i.id) === String(id));
+    if (!item) return;
+
+    const card = event.target.closest('.brutalist-card');
+    if (item.type === 'Nota' || item.type === 'Tarea') {
+        if (card && !card.classList.contains('expanded')) {
+            card.classList.add('expanded');
+            document.getElementById('card-expansion-backdrop').style.display = 'block';
+        }
+        return;
+    }
+
+    if (event.target.closest('button, .card-actions, .card-drag-handle, input, label, a')) {
         event.stopPropagation();
         return;
     }
 
-    const item = data.find(i => String(i.id) === String(id));
-    if (!item) return;
-
     if (item.type === "Link") {
         window.open(item.action, "_blank");
     } else if (item.type === "Buscador") {
-        const searchTerm = prompt(`Buscar en ${item.title}:`);
-        if (searchTerm) {
-             window.open(item.action.replace("{search_term}", encodeURIComponent(searchTerm)), "_blank");
+        const mainSearchInput = document.getElementById('main-search-input');
+        if (mainSearchInput) {
+            mainSearchInput.focus();
+            showToast(`Listo para buscar en ${item.title}. Escribe en la barra principal.`);
         }
     } else if (item.type === "Promp") {
         navigator.clipboard.writeText(item.action).then(() => showToast("PROMPT COPIADO."));
     } else {
         openEditPanel(id);
     }
+}
+
+function closeExpandedCard(card) {
+    card.classList.remove('expanded');
+    document.getElementById('card-expansion-backdrop').style.display = 'none';
 }
 
 // --- EDIT PANEL ---
@@ -945,12 +1249,16 @@ function openEditPanel(itemId = null) {
             document.getElementById('newType').value = item.type;
         }
     } else {
+        const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'links';
+        const defaultTypeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': 'Nota' };
+        const defaultType = defaultTypeMap[activeSection] || 'Link';
+
         categoryField.style.display = 'block';
         document.getElementById('editPanelTitle').textContent = 'AGREGAR ELEMENTO';
         document.getElementById('editItemId').value = '';
-        const defaultTypeBtn = document.querySelector('.type-btn[data-type="Link"]');
+        const defaultTypeBtn = document.querySelector(`.type-btn[data-type="${defaultType}"]`);
         if(defaultTypeBtn) defaultTypeBtn.classList.add('active');
-        document.getElementById('newType').value = 'Link';
+        document.getElementById('newType').value = defaultType;
     }
     
     updateEditFormFields(document.getElementById('newType').value);
@@ -970,7 +1278,11 @@ function handleSaveItem(event) {
     } else if (type === 'Tarea') {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = document.getElementById('newActionRich').innerHTML;
-        action = Array.from(tempDiv.children).map(child => ({ text: child.textContent, status: false }));
+        const existingTasks = id ? (data.find(i => String(i.id) === id)?.action || []) : [];
+        action = Array.from(tempDiv.children).map((child, index) => {
+            const existing = existingTasks[index];
+            return { text: child.textContent || child.innerText, status: existing ? existing.status : false };
+        }).filter(t => t.text.trim() !== '');
     } else {
         action = document.getElementById('newActionText').value;
     }
@@ -978,32 +1290,26 @@ function handleSaveItem(event) {
     if (!icon && (type === 'Link' || type === 'Buscador')) {
         try {
             const url = new URL(action);
-            const hostname = url.hostname;
-            icon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${hostname}`;
-        } catch (e) {
-            console.error("URL inválida para obtener favicon:", action);
-        }
+            icon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${url.hostname}`;
+        } catch (e) { console.error("URL inválida para obtener favicon:", action); }
     }
 
     const newItemData = {
         title: document.getElementById("newTitle").value.trim(),
-        action: action,
-        type: type,
+        action: action, type: type,
         category: document.getElementById("newCategory").value.trim() || 'SIN CATEGORIA',
         icon: icon,
         tags: document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(Boolean)
     };
-  
+
     if (id) {
         const index = data.findIndex(i => String(i.id) === id);
-        if (index !== -1) {
-            data[index] = { ...data[index], ...newItemData };
-        }
+        if (index !== -1) data[index] = { ...data[index], ...newItemData };
     } else {
         newItemData.id = Date.now();
         data.push(newItemData);
     }
-  
+
     saveData().then(() => {
         refreshUI();
         document.getElementById("editPanel").classList.add("hidden");
@@ -1012,15 +1318,26 @@ function handleSaveItem(event) {
 
 function updateEditFormFields(type) {
     const richTextEditor = document.getElementById('newActionRich');
+    const richTextToolbar = document.getElementById('richTextToolbar');
     const plainTextEditor = document.getElementById('newActionText');
     const actionLabel = document.getElementById('actionLabel');
+    const iconField = document.getElementById('iconFieldContainer');
 
-    if (type === 'Nota' || type === 'Tarea' || type === 'Promp') {
+    richTextEditor.classList.add('hidden');
+    richTextToolbar.classList.add('hidden');
+    plainTextEditor.classList.add('hidden');
+    iconField.style.display = 'block';
+
+    if (type === 'Nota' || type === 'Promp') {
         richTextEditor.classList.remove('hidden');
-        plainTextEditor.classList.add('hidden');
-        actionLabel.textContent = (type === 'Tarea') ? 'TAREAS (una por linea)' : 'CONTENIDO';
+        richTextToolbar.classList.remove('hidden');
+        actionLabel.textContent = 'CONTENIDO';
+        iconField.style.display = 'none';
+    } else if (type === 'Tarea') {
+        richTextEditor.classList.remove('hidden');
+        actionLabel.textContent = 'TAREAS (una por linea)';
+        iconField.style.display = 'none';
     } else {
-        richTextEditor.classList.add('hidden');
         plainTextEditor.classList.remove('hidden');
         actionLabel.textContent = 'URL / ACCION';
     }
@@ -1040,8 +1357,7 @@ function addCategory() {
     const name = prompt("Nombre de la nueva categoría:");
     if (name && name.trim()) {
         const trimmedName = name.trim();
-        const exists = data.some(item => item.category === trimmedName);
-        if (exists) {
+        if (data.some(item => item.category === trimmedName)) {
             showToast("Esa categoría ya existe.");
             return;
         }
@@ -1053,38 +1369,28 @@ function addCategory() {
 
 function editCategory(oldName) {
     if (oldName === 'SIN CATEGORIA') {
-        showToast("No se puede editar esta categoría.");
-        return;
+        showToast("No se puede editar esta categoría."); return;
     }
     const newName = prompt(`Editar nombre de categoría "${oldName}":`, oldName);
     if (newName && newName.trim() && newName.trim() !== oldName) {
         const trimmedNewName = newName.trim();
         data.forEach(item => {
-            if (item.category === oldName) {
-                item.category = trimmedNewName;
-            }
+            if (item.category === oldName) item.category = trimmedNewName;
         });
-        saveData().then(() => {
-            refreshUI();
-        });
+        saveData().then(() => refreshUI());
     }
 }
 
 function deleteCategory(categoryName) {
      if (categoryName === 'SIN CATEGORIA') {
-        showToast("No se puede eliminar esta categoría.");
-        return;
+        showToast("No se puede eliminar esta categoría."); return;
     }
     showConfirmModal(`¿Seguro que quieres eliminar la categoría "${categoryName}"? Todos sus elementos se moverán a 'SIN CATEGORIA'.`, (confirmed) => {
         if (confirmed) {
             data.forEach(item => {
-                if (item.category === categoryName) {
-                    item.category = 'SIN CATEGORIA';
-                }
+                if (item.category === categoryName) item.category = 'SIN CATEGORIA';
             });
-            saveData().then(() => {
-                refreshUI();
-            });
+            saveData().then(() => refreshUI());
         }
     });
 }
@@ -1104,24 +1410,15 @@ function showConfirmModal(message, callback) {
         confirmCancel.replaceWith(confirmCancel.cloneNode(true));
     };
 
-    document.getElementById('confirmOk').onclick = () => {
-        callback(true);
-        close();
-    };
-    
-    document.getElementById('confirmCancel').onclick = () => {
-        callback(false);
-        close();
-    };
+    document.getElementById('confirmOk').onclick = () => { callback(true); close(); };
+    document.getElementById('confirmCancel').onclick = () => { callback(false); close(); };
 }
 
 function deleteItem(id) {
     showConfirmModal("SEGURO QUE QUIERES ELIMINAR ESTE ELEMENTO?", (confirmed) => {
         if (confirmed) {
             data = data.filter(i => String(i.id) !== String(id));
-            saveData().then(() => {
-                refreshUI();
-            });
+            saveData().then(() => refreshUI());
         }
     });
 }
@@ -1154,7 +1451,9 @@ function changeView() {
 function setupFabMenu() {
     const fabContainer = document.querySelector('.fab-container');
     fabContainer.addEventListener('click', (e) => {
-        if (e.target.closest('.fab-main')) {
+        const mainFab = e.target.closest('.fab-main');
+        const actionFab = e.target.closest('.fab-action');
+        if (mainFab && !actionFab) { // Only toggle if the main button is clicked
             fabContainer.classList.toggle('open');
         }
     });
@@ -1167,10 +1466,12 @@ function populateGlobalFilterTags() {
     const tagsContainer = document.getElementById('global-search-tags');
     tagsContainer.innerHTML = '';
     const activeNavBtn = document.querySelector('.nav-link.active');
+    if (!activeNavBtn) return;
     const activeSectionName = activeNavBtn.dataset.section;
-    const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes': 'Nota', 'tasks': 'Tarea' };
+    const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
     const activeType = typeMap[activeSectionName];
-    const itemsInView = data.filter(item => item.type === activeType);
+    
+    const itemsInView = data.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
 
     const allTags = [...new Set(itemsInView.flatMap(card => card.tags || []))].sort();
     
@@ -1180,17 +1481,11 @@ function populateGlobalFilterTags() {
         tagEl.className = 'filter-tag p-1 text-xs';
         tagEl.textContent = tag;
         tagEl.dataset.tag = tag;
-        if (activeFilterTags.includes(tag)) {
-            tagEl.classList.add('active');
-        }
+        if (activeFilterTags.includes(tag)) tagEl.classList.add('active');
         tagEl.onclick = (e) => {
             e.stopPropagation();
             tagEl.classList.toggle('active');
-            if (activeFilterTags.includes(tag)) {
-                activeFilterTags = activeFilterTags.filter(t => t !== tag);
-            } else {
-                activeFilterTags.push(tag);
-            }
+            activeFilterTags = activeFilterTags.includes(tag) ? activeFilterTags.filter(t => t !== tag) : [...activeFilterTags, tag];
             applyGlobalFilter();
         };
         tagsContainer.appendChild(tagEl);
@@ -1200,16 +1495,35 @@ function populateGlobalFilterTags() {
 function applyGlobalFilter() {
     const searchTerm = document.getElementById('global-search-input').value.toLowerCase();
     const activeNavBtn = document.querySelector('.nav-link.active');
+    if (!activeNavBtn) return;
     const activeSectionName = activeNavBtn.dataset.section;
-    const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes': 'Nota', 'tasks': 'Tarea' };
+    const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
     const activeType = typeMap[activeSectionName];
 
-    const itemsToFilter = data.filter(item => item.type === activeType);
+    const itemsToFilter = data.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
 
     const results = itemsToFilter.filter(card => {
+        const tagFilterMatch = activeFilterTags.length === 0 || activeFilterTags.every(filterTag => (card.tags || []).includes(filterTag));
+
+        if (!searchTerm) {
+            return tagFilterMatch; // Only apply tag filter if no search term
+        }
+
+        // Search term is present, check all fields
         const titleMatch = card.title.toLowerCase().includes(searchTerm);
-        const tagMatch = activeFilterTags.length === 0 || activeFilterTags.every(filterTag => (card.tags || []).includes(filterTag));
-        return (titleMatch || (card.tags || []).join(' ').toLowerCase().includes(searchTerm)) && tagMatch;
+        const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(searchTerm);
+
+        let contentMatch = false;
+        if (typeof card.action === 'string') {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = card.action;
+            const contentText = tempDiv.textContent || "";
+            contentMatch = contentText.toLowerCase().includes(searchTerm);
+        } else if (Array.isArray(card.action)) {
+            contentMatch = card.action.some(task => task.text.toLowerCase().includes(searchTerm));
+        }
+
+        return (titleMatch || tagListMatch || contentMatch) && tagFilterMatch;
     });
 
     renderSection(activeSectionName, results);
@@ -1222,33 +1536,16 @@ function showPreviewModal(item, event) {
     const modalContent = document.getElementById('preview-modal-content');
     modalContent.innerHTML = getPreviewContent(item);
     
-    const modalWidth = 320; // from w-80 class
-    const modalHeight = 384; // from h-96 class
-    const cursorX = event.clientX;
-    const cursorY = event.clientY;
-    const viewportWidth = window.innerWidth;
-    const viewportHeight = window.innerHeight;
-    const offset = 20; // Gap from cursor
+    const modalWidth = 320; const modalHeight = 384;
+    const cursorX = event.clientX; const cursorY = event.clientY;
+    const viewportWidth = window.innerWidth; const viewportHeight = window.innerHeight;
+    const offset = 20;
 
-    // Default position: above and to the right
-    let top = cursorY - modalHeight;
-    let left = cursorX + offset;
-
-    // Adjust vertical position
-    if (top < offset) { // If it overflows the top
-        top = cursorY + offset; // Move it below the cursor
-    }
-    if (top + modalHeight > viewportHeight - offset) { // If it overflows the bottom
-        top = viewportHeight - modalHeight - offset; // Stick to the bottom
-    }
-
-    // Adjust horizontal position
-    if (left + modalWidth > viewportWidth - offset) { // If it overflows the right
-        left = cursorX - modalWidth - offset; // Move it to the left of the cursor
-    }
-    if (left < offset) { // If it overflows the left
-        left = offset; // Stick to the left
-    }
+    let top = cursorY - modalHeight; let left = cursorX + offset;
+    if (top < offset) top = cursorY + offset;
+    if (top + modalHeight > viewportHeight - offset) top = viewportHeight - modalHeight - offset;
+    if (left + modalWidth > viewportWidth - offset) left = cursorX - modalWidth - offset;
+    if (left < offset) left = offset;
 
     modal.style.top = `${top}px`;
     modal.style.left = `${left}px`;
@@ -1257,6 +1554,148 @@ function showPreviewModal(item, event) {
 
 function hidePreviewModal() {
     document.getElementById('preview-modal').classList.add('hidden');
+}
+
+// --- NOTES & TASKS SECTION ---
+function renderNotesAndTasksSection(container, itemsToRender) {
+    const items = itemsToRender || data.filter(item => item.type === 'Nota' || item.type === 'Tarea');
+    const notes = items.filter(item => item.type === 'Nota');
+    const tasks = items.filter(item => item.type === 'Tarea');
+
+    container.innerHTML = `
+        <div>
+            <h3 class="category-title">Notas</h3>
+            <div id="notes-container" class="${globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view')}"></div>
+        </div>
+        <div>
+            <h3 class="category-title mt-8">Tareas</h3>
+            <div id="tasks-container" class="${globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view')}"></div>
+        </div>
+    `;
+
+    const notesContainer = document.getElementById('notes-container');
+    if (notes.length > 0) {
+        notes.forEach(note => {
+            let element;
+            if (globalView === 'grid') element = createNoteCard(note);
+            else if (globalView === 'list') element = createListItem(note);
+            else element = createChipItem(note);
+            notesContainer.appendChild(element);
+        });
+    } else {
+        notesContainer.innerHTML = '<p class="opacity-70">No hay notas.</p>';
+    }
+
+    const tasksContainer = document.getElementById('tasks-container');
+    if (tasks.length > 0) {
+        tasks.forEach(task => {
+            let element;
+            if (globalView === 'grid') element = createTaskCard(task);
+            else if (globalView === 'list') element = createListItem(task);
+            else element = createChipItem(task);
+            tasksContainer.appendChild(element);
+        });
+    } else {
+        tasksContainer.innerHTML = '<p class="opacity-70">No hay tareas.</p>';
+    }
+}
+
+function createNoteCard(item) {
+    const card = document.createElement("div");
+    card.className = 'brutalist-card note-card p-6 flex flex-col';
+    card.dataset.id = item.id;
+    card.innerHTML = `
+        <div class="card-actions">
+            <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+            <button onclick="deleteItem('${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+        </div>
+        <h4 class="font-bold text-lg uppercase mb-2">${item.title}</h4>
+        <div class="card-content flex-grow overflow-y-auto">${item.action}</div>
+        ${item.tags && item.tags.length > 0 ? `<div class="card-tags mt-4">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}
+    `;
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+    return card;
+}
+
+function createTaskCard(item) {
+    const card = document.createElement("div");
+    card.className = 'brutalist-card task-card p-6 flex flex-col';
+    card.dataset.id = item.id;
+
+    const taskListHtml = Array.isArray(item.action) ? `
+        <ul class="task-list mt-2">
+            ${item.action.map((task, index) => `
+                <li>
+                    <input type="checkbox" id="task-${item.id}-${index}" data-item-id="${item.id}" data-task-index="${index}" ${task.status ? 'checked' : ''}>
+                    <label for="task-${item.id}-${index}" class="${task.status ? 'completed' : ''}">${task.text}</label>
+                </li>
+            `).join('')}
+        </ul>
+    ` : '';
+
+    card.innerHTML = `
+         <div class="card-actions">
+            <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+            <button onclick="deleteItem('${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+        </div>
+        <h4 class="font-bold text-lg uppercase">${item.title}</h4>
+        <div class="card-content flex-grow overflow-y-auto">${taskListHtml}</div>
+        ${item.tags && item.tags.length > 0 ? `<div class="card-tags mt-4">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>` : ''}
+    `;
+    
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+
+    card.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            e.stopPropagation(); // Prevent card expansion when clicking checkbox
+            const label = checkbox.nextElementSibling;
+            if (label) label.classList.toggle('completed', checkbox.checked);
+
+            const itemId = e.target.dataset.itemId;
+            const taskIndex = parseInt(e.target.dataset.taskIndex, 10);
+            const dataItem = data.find(d => String(d.id) === itemId);
+            if (dataItem && dataItem.action[taskIndex]) {
+                dataItem.action[taskIndex].status = e.target.checked;
+                saveData(); // Save in the background
+            }
+        });
+    });
+
+    return card;
+}
+
+// --- SETTINGS MODAL ---
+function openSettingsModal() {
+    const settingsModal = document.getElementById('settingsModal');
+    document.getElementById('gistIdInput').value = localStorage.getItem('gist_id') || '';
+    document.getElementById('githubPatInput').value = localStorage.getItem('github_pat') || '';
+    settingsModal.classList.remove('hidden');
+}
+
+function saveSettings() {
+    const gistId = document.getElementById('gistIdInput').value.trim();
+    const pat = document.getElementById('githubPatInput').value.trim();
+
+    if (!gistId) {
+        showToast("EL GIST ID ES NECESARIO.");
+        return;
+    }
+    localStorage.setItem('gist_id', gistId);
+    if(pat) localStorage.setItem('github_pat', pat);
+    
+    document.getElementById('settingsModal').classList.add('hidden');
+    showToast("CONFIGURACIÓN GUARDADA. RECARGANDO DATOS...");
+    loadData();
+}
+
+function useSampleData() {
+    localStorage.removeItem('gist_id');
+    localStorage.removeItem('github_pat');
+    data = mockData.items;
+    ensureAllIcons();
+    initializeUI();
+    document.getElementById('settingsModal').classList.add('hidden');
+    showToast("USANDO DATOS DE EJEMPLO.");
 }
 
 </script>
