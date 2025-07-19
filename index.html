@@ -511,7 +511,6 @@
             </div>
 
             <nav id="main-nav" class="space-y-4">
-                <a href="#" data-section="favoritos" class="nav-link block px-4 py-3"><i class="fas fa-star w-5 mr-2"></i><span>FAVORITOS</span></a>
                 <a href="#" data-section="buscadores" class="nav-link active block px-4 py-3"><i class="fas fa-search w-5 mr-2"></i><span>BUSCADORES</span></a>
                 <a href="#" data-section="links" class="nav-link block px-4 py-3"><i class="fas fa-link w-5 mr-2"></i><span>LINKS</span></a>
                 <a href="#" data-section="prompts" class="nav-link block px-4 py-3"><i class="fas fa-brain w-5 mr-2"></i><span>PROMPTS</span></a>
@@ -537,7 +536,6 @@
             </header>
             
             <!-- Contenedores de Secciones -->
-            <div id="section-favoritos" class="section hidden space-y-8"></div>
             <div id="section-buscadores" class="section space-y-8"></div>
             <div id="section-links" class="section hidden space-y-8"></div>
             <div id="section-prompts" class="section hidden space-y-8"></div>
@@ -1354,7 +1352,6 @@ function handleCardClick(id, event) {
     if (!item) return;
 
     if (event.target.closest('button, .card-actions, .card-drag-handle, input, label, a')) {
-        event.stopPropagation();
         return;
     }
 
@@ -1381,6 +1378,7 @@ function handleCardClick(id, event) {
         openEditPanel(id);
     }
 }
+
 
 function closeExpandedCard(card) {
     card.classList.remove('expanded');
