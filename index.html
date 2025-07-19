@@ -1352,6 +1352,12 @@ function createChipItem(item) {
 function handleCardClick(id, event) {
     const item = data.items.find(i => String(i.id) === String(id));
     if (!item) return;
+
+    if (event.target.closest('button, .card-actions, .card-drag-handle, input, label, a')) {
+        event.stopPropagation();
+        return;
+    }
+
     const card = event.target.closest('.brutalist-card');
     if (item.type === 'Nota' || item.type === 'Tarea') {
         if (card && !card.classList.contains('expanded')) {
@@ -1360,10 +1366,7 @@ function handleCardClick(id, event) {
         }
         return;
     }
-    if (event.target.closest('button, .card-actions, .card-drag-handle, input, label, a')) {
-        event.stopPropagation();
-        return;
-    }
+    
     if (item.type === "Link") {
         window.open(item.action, "_blank");
     } else if (item.type === "Buscador") {
