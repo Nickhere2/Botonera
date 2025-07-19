@@ -404,6 +404,37 @@
             transform: scale(1.1);
         }
 
+        /* --- PROMPT CARD --- */
+        .prompt-card {
+            justify-content: flex-start;
+            padding: 0;
+        }
+        .prompt-card .card-drag-handle {
+            color: var(--text-color);
+            opacity: 0.5;
+        }
+        .prompt-card .card-actions .action-btn {
+            color: var(--text-color);
+            border-color: var(--text-color);
+        }
+        .prompt-card .card-actions .action-btn:hover {
+            background: var(--accent-color);
+            color: #1e293b;
+        }
+        .prompt-content-wrapper {
+            overflow: hidden;
+            position: relative;
+        }
+        .prompt-text {
+            padding: 0 1rem 1rem 1rem;
+            transition: transform 0.5s ease-out;
+            transform: translateY(0);
+        }
+        .prompt-card:hover .prompt-text.is-overflowing {
+            transition: transform 10s linear;
+            transform: translateY(var(--scroll-amount));
+        }
+
     </style>
 </head>
 <body>
@@ -1046,6 +1077,22 @@ function createBuscadorSearchComponent(buscadores) {
     return componentWrapper;
 }
 
+function setupPromptCardAnimations(container) {
+    const promptCards = container.querySelectorAll('.prompt-card');
+    promptCards.forEach(card => {
+        const textWrapper = card.querySelector('.prompt-content-wrapper');
+        const textElement = card.querySelector('.prompt-text');
+        
+        setTimeout(() => {
+            if (textElement.scrollHeight > textWrapper.clientHeight) {
+                textElement.classList.add('is-overflowing');
+                const scrollAmount = textWrapper.clientHeight - textElement.scrollHeight;
+                textElement.style.setProperty('--scroll-amount', `${scrollAmount}px`);
+            }
+        }, 50);
+    });
+}
+
 function renderSection(sectionName, itemsToRender) {
     const container = document.getElementById(`section-${sectionName}`);
     if (!container) return;
@@ -1117,6 +1164,8 @@ function renderSection(sectionName, itemsToRender) {
         catDiv.appendChild(contentContainer);
         container.appendChild(catDiv);
 
+        setupPromptCardAnimations(contentContainer);
+
         new Sortable(contentContainer, {
             group: 'shared-cards', animation: 150, handle: '.card-drag-handle',
             onEnd: function (evt) {
@@ -1135,34 +1184,51 @@ function createCard(item) {
     card.className = 'brutalist-card';
     card.dataset.id = item.id;
 
-    if (item.type === 'Link' || item.type === 'Buscador') {
+    if (item.type === 'Promp') {
+        card.classList.add('prompt-card');
+        card.style.color = 'var(--text-color)';
+        card.style.backgroundColor = 'var(--note-bg)';
+        
+        card.innerHTML = `
+            <div class="card-drag-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="card-actions">
+                <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                <button onclick="deleteItem('${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <div class="p-4 overflow-hidden h-full flex flex-col">
+                <h4 class="font-bold uppercase mb-2 flex-shrink-0">${item.title}</h4>
+                <div class="prompt-content-wrapper flex-grow">
+                    <div class="prompt-text">
+                        ${item.action}
+                    </div>
+                </div>
+            </div>
+        `;
+    } 
+    else if (item.type === 'Link' || item.type === 'Buscador') {
         const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
         card.style.backgroundImage = `url('${previewUrl}')`;
-    } else {
-        card.style.backgroundColor = 'var(--bg-color)';
-        card.style.color = 'var(--text-color)';
-    }
-    
-    const iconHtml = getIconHtml(item.icon, 'text-2xl');
-    const titleHtml = `<h4 class="font-bold text-lg uppercase truncate" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">${item.title}</h4>`;
-    const tagsHtml = item.tags && item.tags.length > 0
-        ? `<div class="card-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
-        : '';
+        const iconHtml = getIconHtml(item.icon, 'text-2xl');
+        const titleHtml = `<h4 class="font-bold text-lg uppercase truncate" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">${item.title}</h4>`;
+        const tagsHtml = item.tags && item.tags.length > 0
+            ? `<div class="card-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
+            : '';
 
-    card.innerHTML = `
-        <div class="card-drag-handle"><i class="fas fa-grip-vertical"></i></div>
-        <div class="card-actions">
-            <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-            <button onclick="deleteItem('${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-        </div>
-        <div class="card-content-wrapper mt-auto">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="flex-shrink-0">${iconHtml}</div>
-                ${titleHtml}
+        card.innerHTML = `
+            <div class="card-drag-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="card-actions">
+                <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                <button onclick="deleteItem('${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
             </div>
-            ${tagsHtml}
-        </div>
-    `;
+            <div class="card-content-wrapper mt-auto">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="flex-shrink-0">${iconHtml}</div>
+                    ${titleHtml}
+                </div>
+                ${tagsHtml}
+            </div>
+        `;
+    }
     
     card.addEventListener('click', (e) => handleCardClick(item.id, e));
     return card;
@@ -1785,3 +1851,10 @@ function useSampleData() {
 </script>
 </body>
 </html>
+"
+I would like you to make the following changes to the selected code:
+1. Make the prompt cards look like post-it notes, with a slight rotation and a different font.
+2. Add a subtle shadow to the prompt cards to give them a bit of depth.
+3. Change the background color of the prompt cards to a more yellowish, post-it-like color.
+4. Make the font of the prompt cards a handwritten-style font.
+5. Add a slight, random rotation to each prompt card to make them look more like scattered post-it not
