@@ -1067,7 +1067,7 @@ function switchTab(tabName) {
     const newActiveLink = document.querySelector(`#main-nav .nav-link[data-section="${tabName}"]`);
     if (newActiveLink) newActiveLink.classList.add("active");
     
-    const titleMap = { 'favoritos': 'Favoritos', 'buscadores': 'Buscadores', 'links': 'Links', 'prompts': 'Prompts', 'notes-tasks': 'Notas y Tareas' };
+    const titleMap = { 'buscadores': 'Buscadores', 'links': 'Links', 'prompts': 'Prompts', 'notes-tasks': 'Notas y Tareas' };
     document.getElementById('main-title').textContent = (titleMap[tabName] || tabName).toUpperCase();
 
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
@@ -1180,6 +1180,41 @@ function setupPromptCardAnimations(container) {
     });
 }
 
+function renderFavoritesBar(container, items) {
+    const favorites = items.filter(item => item.isFavorite);
+    if (favorites.length === 0) return;
+
+    const bar = document.createElement('div');
+    bar.className = 'favorites-bar';
+
+    let iconsHtml = '';
+    favorites.forEach(item => {
+        iconsHtml += `
+            <div class="favorite-icon" data-id="${item.id}" title="${item.title}">
+                ${getIconHtml(item.icon, 'text-base')}
+                <span class="font-bold text-xs">${item.title}</span>
+            </div>
+        `;
+    });
+
+    bar.innerHTML = `
+        <h4 class="favorites-bar-title">Destacados</h4>
+        <div class="favorites-bar-icons">${iconsHtml}</div>
+    `;
+
+    const newCatButton = container.querySelector('.mb-6');
+    if (newCatButton) {
+        newCatButton.insertAdjacentElement('afterend', bar);
+    } else {
+        container.prepend(bar);
+    }
+    
+
+    bar.querySelectorAll('.favorite-icon').forEach(icon => {
+        icon.addEventListener('click', (e) => handleCardClick(icon.dataset.id, e));
+    });
+}
+
 function renderSection(sectionName, itemsToRender) {
     const container = document.getElementById(`section-${sectionName}`);
     if (!container) return;
@@ -1202,14 +1237,12 @@ function renderSection(sectionName, itemsToRender) {
         if (searchComponent) container.appendChild(searchComponent);
     }
 
-    if (sectionName !== 'favoritos') {
-        container.insertAdjacentHTML('beforeend', `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`);
-    }
+    container.insertAdjacentHTML('beforeend', `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`);
     
-    const items = itemsToRender || (sectionName === 'favoritos' 
-        ? data.items.filter(item => item.isFavorite)
-        : data.items.filter(item => item.type === type));
+    const items = itemsToRender || data.items.filter(item => item.type === type);
     
+    renderFavoritesBar(container, items);
+
     const categorized = items.reduce((acc, item) => {
         const category = item.category || 'SIN CATEGORIA';
         (acc[category] = acc[category] || []).push(item);
@@ -1217,8 +1250,7 @@ function renderSection(sectionName, itemsToRender) {
     }, {});
 
     if (items.length === 0) {
-        const message = sectionName === 'favoritos' ? 'Aún no tienes favoritos. Haz clic en la estrella ★ de una tarjeta para agregarla.' : 'No se encontraron resultados.';
-        container.insertAdjacentHTML('beforeend', `<p class="text-center opacity-70 mt-8">${message}</p>`);
+        container.insertAdjacentHTML('beforeend', `<p class="text-center opacity-70 mt-8">No se encontraron resultados.</p>`);
         return;
     }
 
