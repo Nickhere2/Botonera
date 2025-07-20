@@ -526,9 +526,9 @@
 <body>
     <div id="card-expansion-backdrop" class="card-expansion-backdrop"></div>
 
-    <div class="flex h-screen">
-        <!-- Barra Lateral de Navegación -->
-        <aside class="w-64 brutalist-sidebar p-6 flex-shrink-0 flex flex-col">
+    <div class="relative min-h-screen lg:flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 brutalist-sidebar p-6 flex-shrink-0 flex flex-col transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
             <!-- Contenedor de Logo y Búsqueda -->
             <div id="logo-search-wrapper" class="mb-8 flex flex-col items-center justify-center" style="min-height: 8rem;">
                 <!-- Logo Principal -->
@@ -555,20 +555,27 @@
                 <a href="#" data-section="notes-tasks" class="nav-link block px-4 py-3"><i class="fas fa-check-double w-5 mr-2"></i><span>Notas y Tareas</span></a>
             </nav>
         </aside>
+        
+        <!-- Mobile Overlay -->
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
 
         <!-- Contenido Principal -->
         <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
             <!-- Cabecera -->
             <header class="main-header flex justify-between items-center mb-8 pb-4 gap-4">
-                <h2 id="main-title" class="text-3xl sm:text-4xl font-bold tracking-tighter">BUSCADORES</h2>
-                <div class="flex items-center gap-4">
+                 <button id="menu-toggle" class="lg:hidden brutalist-button !p-2 !shadow-none">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <h2 id="main-title" class="text-xl sm:text-4xl font-bold tracking-tighter">BUSCADORES</h2>
+                <div class="flex items-center gap-2 sm:gap-4">
                     <div id="global-view-switcher" class="view-switcher">
                         <button data-view="grid" class="active"><i class="fas fa-th-large"></i></button>
                         <button data-view="list"><i class="fas fa-bars"></i></button>
                         <button data-view="chip"><i class="fas fa-grip-horizontal"></i></button>
                     </div>
-                    <button id="addNewButton" class="brutalist-button px-4 py-2">
-                        <span>+ NUEVO</span>
+                    <button id="addNewButton" class="brutalist-button px-2 py-2 sm:px-4">
+                        <span class="hidden sm:inline">+ NUEVO</span>
+                        <i class="fas fa-plus sm:hidden"></i>
                     </button>
                 </div>
             </header>
@@ -583,7 +590,7 @@
     
     <!-- Panel de Edición -->
     <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay">
-        <div class="modal-container w-full max-w-2xl p-8">
+        <div class="modal-container w-11/12 max-w-2xl p-6 sm:p-8">
             <div class="flex justify-between items-center mb-6">
                 <h2 id="editPanelTitle" class="text-2xl font-bold">AGREGAR ELEMENTO</h2>
                 <button id="closeEditButton" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
@@ -680,7 +687,7 @@
     
     <!-- Help Modal -->
     <div id="helpModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
-        <div class="modal-container w-full max-w-2xl p-8">
+        <div class="modal-container w-11/12 max-w-2xl p-6 sm:p-8">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">AYUDA Y "LA VENTANA INDISCRETA"</h2>
                 <button id="closeHelpModal" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
@@ -717,7 +724,7 @@
 
     <!-- Settings Modal -->
     <div id="settingsModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
-        <div class="modal-container w-full max-w-lg p-8">
+        <div class="modal-container w-11/12 max-w-lg p-6 sm:p-8">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">CONFIGURACIÓN DE GIST</h2>
                 <button id="closeSettingsModal" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
@@ -744,7 +751,7 @@
 
     <!-- Category Edit Modal -->
     <div id="categoryEditModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
-        <div class="modal-container w-full max-w-md p-8">
+        <div class="modal-container w-11/12 max-w-md p-6 sm:p-8">
             <h2 class="text-xl font-bold mb-4">EDITAR CATEGORÍA</h2>
             <form id="categoryEditForm" class="space-y-4">
                 <input type="hidden" id="originalCategoryName">
@@ -917,11 +924,29 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function setupEventListeners() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const menuToggle = document.getElementById('menu-toggle');
+
+    const toggleSidebar = () => {
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+    };
+
+    menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSidebar();
+    });
+    overlay.addEventListener('click', toggleSidebar);
+
     document.getElementById('main-nav').addEventListener('click', (e) => {
         if (e.target.closest('.nav-link')) {
             e.preventDefault();
             const section = e.target.closest('.nav-link').dataset.section;
             switchTab(section);
+            if (window.innerWidth < 1024) { 
+                toggleSidebar();
+            }
         }
     });
     
