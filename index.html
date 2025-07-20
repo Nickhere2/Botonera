@@ -1894,9 +1894,12 @@ function hidePreviewModal() {
 // --- NOTES & TASKS SECTION ---
 function renderNotesAndTasksSection(container, itemsToRender) {
     const items = itemsToRender || data.items.filter(item => item.type === 'Nota' || item.type === 'Tarea');
+    
+    renderFavoritesBar(container, items);
+
     const notes = items.filter(item => item.type === 'Nota');
     const tasks = items.filter(item => item.type === 'Tarea');
-    container.innerHTML = `
+    container.insertAdjacentHTML('beforeend', `
         <div>
             <h3 class="category-title">Notas</h3>
             <div id="notes-container" class="${globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view')}"></div>
@@ -1905,7 +1908,7 @@ function renderNotesAndTasksSection(container, itemsToRender) {
             <h3 class="category-title mt-8">Tareas</h3>
             <div id="tasks-container" class="${globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view')}"></div>
         </div>
-    `;
+    `);
     const notesContainer = document.getElementById('notes-container');
     if (notes.length > 0) {
         notes.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(note => {
