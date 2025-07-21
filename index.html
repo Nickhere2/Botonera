@@ -778,12 +778,16 @@
                 <button id="closeHelpModal" class="absolute top-2 right-2 brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold text-white">X</button>
             </div>
             <div class="p-6 sm:p-8 overflow-y-auto">
-                <div class="text-center mb-6">
-                     <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-32 w-32 object-contain inline-block">
-                     <p class="text-xl font-bold">a Rear Window</p>
-                     <p class="text-sm opacity-80 -mt-1">La ventana indiscreta, el terror de Microsoft</p>
+                <div id="help-animation-container" class="text-center mb-6">
+                    <div id="help-logo-container">
+                        <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-32 w-32 object-contain inline-block">
+                    </div>
                 </div>
-                <div class="space-y-6">
+                <div id="help-main-content" class="space-y-6">
+                    <div class="text-center">
+                         <p class="text-xl font-bold">a Rear Window</p>
+                         <p class="text-sm opacity-80 -mt-1">La ventana indiscreta, el terror de Microsoft</p>
+                    </div>
                     <div>
                         <h3 class="font-bold text-lg mb-2 uppercase">Primeros Pasos</h3>
                         <ul class="list-disc list-inside space-y-2">
@@ -1591,8 +1595,20 @@ function handleCardClick(id, event) {
     if (item.type === "Link") {
         window.open(item.action, "_blank");
     } else if (item.type === "Buscador") {
+        const searchBarContainer = document.getElementById('main-search-bar');
+        const selector = document.getElementById('search-engine-selector');
         const mainSearchInput = document.getElementById('main-search-input');
-        if (mainSearchInput) {
+
+        if (searchBarContainer && selector && mainSearchInput) {
+            const selectorIcon = selector.querySelector('span:first-child');
+            const selectorTitle = selector.querySelector('span:nth-child(2)');
+
+            // Update the search bar
+            searchBarContainer.dataset.actionUrl = item.action;
+            selectorIcon.innerHTML = getIconHtml(item.icon, 'text-xl');
+            selectorTitle.textContent = item.title;
+
+            // Focus and notify
             mainSearchInput.focus();
             showToast(`Listo para buscar en ${item.title}.`);
         }
