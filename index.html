@@ -9,6 +9,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         /* --- ESTILO BRUTALISTA --- */
         :root {
@@ -522,23 +523,82 @@
         }
 
         /* --- LOADING BAR --- */
-        #loading-container {
+        .loading-container-xp {
             width: 150px;
-            height: 8px;
-            border: 2px solid var(--text-color);
-            overflow: hidden;
+            height: 12px;
+            border: 2px solid #7E7E7E;
+            background-color: #3B3B3B;
+            padding: 2px;
+            box-shadow: inset 2px 2px 0 #000, inset -2px -2px 0 #C1C1C1;
         }
-        #loading-bar {
+
+        .loading-bar-xp {
             width: 100%;
             height: 100%;
-            background-color: var(--accent-color);
-            transform: translateX(-100%);
-            animation: loading 1.5s linear forwards;
+            overflow: hidden;
+            position: relative;
         }
-        @keyframes loading {
-            to {
-                transform: translateX(0);
+
+        .loading-bar-xp::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 48px; /* Width for 3 blocks + gaps */
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    90deg, 
+                    #3A6BBD 0px, #3A6BBD 12px, /* Block 1 */
+                    transparent 12px, transparent 16px, /* Gap 1 */
+                    #3A6BBD 16px, #3A6BBD 28px, /* Block 2 */
+                    transparent 28px, transparent 32px, /* Gap 2 */
+                    #3A6BBD 32px, #3A6BBD 44px /* Block 3 */
+                );
+        }
+
+        .loading-bar-xp.loading::before {
+            animation: loading-xp 1.5s linear 3;
+        }
+        
+        #helpModal .loading-bar-xp.loading::before {
+            animation: loading-xp 1.5s linear infinite;
+        }
+
+        @keyframes loading-xp {
+            0% {
+                transform: translateX(-50px); /* Start off-screen left */
             }
+            100% {
+                transform: translateX(150px); /* End off-screen right */
+            }
+        }
+
+        /* --- WELCOME HEADER --- */
+        .winxp-header {
+            background: #3d80f2; /* Fallback */
+            background: linear-gradient(to bottom, #0055E1, #00358E);
+            position: relative;
+            padding: 2rem 1rem;
+            text-align: center;
+            color: white;
+            border-bottom: var(--border-width) solid var(--text-color);
+        }
+        .winxp-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.25), transparent 50%);
+            pointer-events: none;
+        }
+        .winxp-header h2 {
+            font-family: 'Tahoma', sans-serif;
+            font-style: italic;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
         }
 
     </style>
@@ -554,8 +614,8 @@
                 <!-- Logo Principal -->
                 <div id="logo-container" class="text-center">
                     <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" id="sidebar-logo" class="w-32 h-32 object-contain cursor-pointer">
-                    <div id="loading-container" class="mx-auto mt-2 hidden">
-                        <div id="loading-bar"></div>
+                    <div id="loading-container" class="loading-container-xp mx-auto mt-2 hidden">
+                        <div id="loading-bar" class="loading-bar-xp"></div>
                     </div>
                 </div>
                 
@@ -712,36 +772,36 @@
     
     <!-- Help Modal -->
     <div id="helpModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
-        <div class="modal-container w-11/12 max-w-2xl p-6 sm:p-8">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">AYUDA Y "LA VENTANA INDISCRETA"</h2>
-                <button id="closeHelpModal" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
+        <div class="modal-container w-11/12 max-w-2xl p-0 overflow-hidden flex flex-col">
+             <div class="winxp-header relative flex-shrink-0">
+                <h2 class="text-4xl italic font-bold text-white" style="font-family: Tahoma, sans-serif; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">Bienvenido</h2>
+                <button id="closeHelpModal" class="absolute top-2 right-2 brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold text-white">X</button>
             </div>
-            <div class="space-y-6">
-                 <div class="flex flex-col sm:flex-row items-center gap-6 mb-4 text-center sm:text-left">
-                    <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-32 w-32 object-contain">
+            <div class="p-6 sm:p-8 overflow-y-auto">
+                <div class="text-center mb-6">
+                     <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-32 w-32 object-contain inline-block">
+                     <p class="text-xl font-bold">a Rear Window</p>
+                     <p class="text-sm opacity-80 -mt-1">La ventana indiscreta, el terror de Microsoft</p>
+                </div>
+                <div class="space-y-6">
                     <div>
-                        <h3 class="font-bold text-lg mb-2 uppercase">¿Por qué "La Ventana Indiscreta"?</h3>
-                        <p>Esta aplicación es tu "ventana indiscreta" personal hacia tu mundo digital. Piensa en ella como tu propio sistema operativo, una versión única de Windows. Pero en lugar de ser solo una ventana a tus archivos, es una ventana a todo tu universo online. Es nuestro "Rear Window" (La Ventana Indiscreta) porque, en esencia, es un "Windows Indiscreto": un único lugar desde donde puedes observar y controlar discretamente todas las piezas de tu vida digital, desde tus proyectos y búsquedas hasta tus ideas más fugaces.</p>
+                        <h3 class="font-bold text-lg mb-2 uppercase">Primeros Pasos</h3>
+                        <ul class="list-disc list-inside space-y-2">
+                            <li><strong>Añade Favoritos:</strong> Haz clic en el ícono de estrella <i class="fas fa-star"></i> en cualquier tarjeta para añadirla a tu sección de "Favoritos" y tenerla siempre a mano.</li>
+                            <li><strong>Búsqueda Global:</strong> Usa la barra de búsqueda en el menú lateral. Activa el interruptor de "Búsqueda Global" para buscar en todas las secciones a la vez.</li>
+                            <li><strong>Personaliza Categorías:</strong> Pasa el ratón sobre el título de una categoría y haz clic en el lápiz <i class="fas fa-pencil-alt"></i> para cambiar su nombre y color de fondo.</li>
+                        </ul>
                     </div>
-                </div>
-                <div>
-                    <h3 class="font-bold text-lg mb-2 uppercase">Primeros Pasos</h3>
-                    <ul class="list-disc list-inside space-y-2">
-                        <li><strong>Añade Favoritos:</strong> Haz clic en el ícono de estrella <i class="fas fa-star"></i> en cualquier tarjeta para añadirla a tu sección de "Favoritos" y tenerla siempre a mano.</li>
-                        <li><strong>Búsqueda Global:</strong> Usa la barra de búsqueda en el menú lateral. Activa el interruptor de "Búsqueda Global" para buscar en todas las secciones a la vez.</li>
-                        <li><strong>Personaliza Categorías:</strong> Pasa el ratón sobre el título de una categoría y haz clic en el lápiz <i class="fas fa-pencil-alt"></i> para cambiar su nombre y color de fondo.</li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="font-bold text-lg mb-2 uppercase">Atajos de Teclado</h3>
-                    <ul class="list-disc list-inside space-y-1">
-                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
-                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>B</kbd> : Activar barra de búsqueda</li>
-                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema visual</li>
-                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
-                        <li><kbd>Esc</kbd> : Cerrar paneles y modales</li>
-                    </ul>
+                    <div>
+                        <h3 class="font-bold text-lg mb-2 uppercase">Atajos de Teclado</h3>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
+                            <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>B</kbd> : Activar barra de búsqueda</li>
+                            <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema visual</li>
+                            <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
+                            <li><kbd>Esc</kbd> : Cerrar paneles y modales</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -804,7 +864,6 @@
     </div>
 
 
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 <script>
 // --- CONFIG & GLOBAL STATE ---
 const FILENAME_IN_GIST = 'Botones.json';
@@ -1002,31 +1061,33 @@ function setupEventListeners() {
 
     const globalSearchInput = document.getElementById('global-search-input');
     const globalSearchContainer = document.getElementById('global-search-container');
-    const sidebarLogo = document.getElementById('sidebar-logo');
+    const logoContainer = document.getElementById('logo-container');
     
     globalSearchInput.addEventListener('input', applyGlobalFilter);
     
-    sidebarLogo.addEventListener('click', (e) => {
+    logoContainer.addEventListener('click', (e) => {
         e.stopPropagation();
-        sidebarLogo.classList.add('hidden');
-        globalSearchContainer.classList.remove('hidden');
-        globalSearchInput.focus();
-        globalSearchContainer.classList.add('expanded');
+        if (globalSearchContainer.classList.contains('hidden')) {
+            logoContainer.classList.add('hidden');
+            globalSearchContainer.classList.remove('hidden');
+            globalSearchInput.focus();
+            globalSearchContainer.classList.add('expanded');
+        }
     });
 
     document.addEventListener('click', (e) => {
         const wasVisible = !globalSearchContainer.classList.contains('hidden');
-        if (wasVisible && !globalSearchContainer.contains(e.target) && !sidebarLogo.contains(e.target)) {
+        if (wasVisible && !globalSearchContainer.contains(e.target) && !logoContainer.contains(e.target)) {
             globalSearchContainer.classList.add('hidden');
-            sidebarLogo.classList.remove('hidden');
             globalSearchContainer.classList.remove('expanded');
-            // Don't reset filters when clicking outside on mobile
-            if (window.innerWidth >= 1024) {
-                globalSearchInput.value = '';
-                activeFilterTags = [];
-                document.querySelectorAll('#global-search-tags .filter-tag.active').forEach(tagEl => tagEl.classList.remove('active'));
-                applyGlobalFilter();
-            }
+            showLoadingAnimation(() => {
+                if (window.innerWidth >= 1024) {
+                    globalSearchInput.value = '';
+                    activeFilterTags = [];
+                    document.querySelectorAll('#global-search-tags .filter-tag.active').forEach(tagEl => tagEl.classList.remove('active'));
+                    applyGlobalFilter();
+                }
+            });
         }
     });
     
@@ -1055,7 +1116,7 @@ function setupEventListeners() {
         }
         if ((e.ctrlKey || e.metaKey) && e.altKey) {
             switch(e.key) {
-                case 'b': e.preventDefault(); sidebarLogo.click(); break;
+                case 'b': e.preventDefault(); logoContainer.click(); break;
                 case 'n': e.preventDefault(); openEditPanel(); break;
                 case 't': e.preventDefault(); changeTheme(); break;
                 case 'v': e.preventDefault(); changeView(); break;
@@ -1063,8 +1124,12 @@ function setupEventListeners() {
         }
     });
     
-    document.getElementById('fab-help').addEventListener('click', () => document.getElementById('helpModal').classList.remove('hidden'));
-    document.getElementById('closeHelpModal').addEventListener('click', () => document.getElementById('helpModal').classList.add('hidden'));
+    document.getElementById('fab-help').addEventListener('click', () => {
+        document.getElementById('helpModal').classList.remove('hidden');
+    });
+    document.getElementById('closeHelpModal').addEventListener('click', () => {
+        document.getElementById('helpModal').classList.add('hidden');
+    });
     
     document.getElementById('closeSettingsModal').addEventListener('click', () => document.getElementById('settingsModal').classList.add('hidden'));
     document.getElementById('saveSettingsButton').addEventListener('click', saveSettings);
@@ -1101,15 +1166,39 @@ function setupEventListeners() {
     });
 }
 
+function showLoadingAnimation(callback) {
+    const logoContainer = document.getElementById('logo-container');
+    const loadingContainer = document.getElementById('loading-container');
+    const loadingBar = document.getElementById('loading-bar');
+
+    logoContainer.classList.remove('hidden');
+    loadingContainer.classList.remove('hidden');
+    
+    // Reset animation
+    loadingBar.classList.remove('loading');
+    void loadingBar.offsetWidth; // Trigger reflow
+    loadingBar.classList.add('loading');
+
+    setTimeout(() => {
+        loadingContainer.classList.add('hidden');
+        loadingBar.classList.remove('loading');
+        if (callback) {
+            callback();
+        }
+    }, 4500); // Match animation duration (1.5s * 3 iterations)
+}
+
 function initializeUI() {
-    if (!data.items || data.items.length === 0) {
-        console.log("No data available to initialize UI.");
-        const mainContent = document.querySelector('main');
-        mainContent.innerHTML = '<div class="text-center p-8"><h2 class="text-2xl font-bold">Bienvenido</h2><p>Parece que no hay datos. Abre la configuración <i class="fas fa-cog"></i> para conectar tu Gist de GitHub o usar datos de ejemplo.</p></div>';
-        return;
-    };
-    applyTheme(themes[currentThemeIndex]);
-    switchTab('buscadores'); 
+    showLoadingAnimation(() => {
+        if (!data.items || data.items.length === 0) {
+            console.log("No data available to initialize UI.");
+            const mainContent = document.querySelector('main');
+            mainContent.innerHTML = '<div class="text-center p-8"><h2 class="text-2xl font-bold">Bienvenido</h2><p>Parece que no hay datos. Abre la configuración para conectar tu Gist de GitHub o usar datos de ejemplo.</p></div>';
+            return;
+        };
+        applyTheme(themes[currentThemeIndex]);
+        switchTab('buscadores'); 
+    });
 }
 
 function refreshUI(sectionName) {
