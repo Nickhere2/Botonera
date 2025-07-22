@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v16 - Brutalist (Mejorado)</title>
+    <title>Centro de Accesos v17 - Brutalist (Drag & Drop)</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -72,7 +72,7 @@
             transform: translate(4px, 4px);
         }
         .brutalist-card {
-             cursor: pointer;
+            cursor: pointer;
         }
         
         .brutalist-card.is-favorite {
@@ -138,7 +138,7 @@
              color: var(--text-color);
         }
          .theme-boca .brutalist-input {
-            background-color: #002244;
+             background-color: #002244;
        }
         .brutalist-input:focus {
             outline: none;
@@ -181,7 +181,7 @@
         .category-title { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; }
         .category-actions { display: none; }
         .category-header:hover .category-actions { display: flex; }
-        .category-drag-handle { cursor: move; padding: 0.5rem; margin-left: -0.5rem; }
+        .category-drag-handle { cursor: move; padding: 0.5rem; margin-right: 0.5rem; }
         
         .view-switcher button { border: var(--border-width) solid transparent; padding: 0.25rem 0.5rem; }
         .view-switcher button.active { border-color: var(--text-color); background-color: var(--accent-color); color: #1e293b;}
@@ -650,8 +650,8 @@
             <!-- Cabecera -->
             <header class="main-header flex justify-between items-center mb-8 pb-4 gap-4">
                  <button id="menu-toggle" class="lg:hidden brutalist-button !p-2 !shadow-none">
-                    <i class="fas fa-bars text-xl"></i>
-                </button>
+                     <i class="fas fa-bars text-xl"></i>
+                 </button>
                 <h2 id="main-title" class="text-xl sm:text-4xl font-bold tracking-tighter">BUSCADORES</h2>
                 <div class="flex items-center gap-2 sm:gap-4">
                     <div id="global-view-switcher" class="view-switcher flex items-center">
@@ -667,10 +667,10 @@
             </header>
             
             <!-- Contenedores de Secciones -->
-            <div id="section-buscadores" class="section space-y-8"></div>
-            <div id="section-links" class="section hidden space-y-8"></div>
-            <div id="section-prompts" class="section hidden space-y-8"></div>
-            <div id="section-notes-tasks" class="section hidden space-y-8"></div>
+            <div id="section-buscadores" class="section"></div>
+            <div id="section-links" class="section hidden"></div>
+            <div id="section-prompts" class="section hidden"></div>
+            <div id="section-notes-tasks" class="section hidden"></div>
         </main>
     </div>
     
@@ -755,7 +755,7 @@
     </div>
     
     <!-- Preview Modal -->
-    <div id="preview-modal" class="hidden fixed top-0 left-0 z-[1300] w-80 h-96 p-2 bg-transparent">
+    <div id="preview-modal" class="hidden fixed top-0 left-0 z-[1300] w-80 h-60 p-2 bg-transparent">
         <div id="preview-modal-content" class="w-full h-full bg-white overflow-hidden border-4" style="border-color: var(--text-color);"></div>
     </div>
 
@@ -870,7 +870,8 @@
 const FILENAME_IN_GIST = 'Botones.json';
 let data = {
     items: [],
-    categories: {}
+    categories: {},
+    categoryOrders: {} // ADDED: To store the order of categories per section
 };
 let isGlobalSearchActive = false;
 
@@ -898,6 +899,13 @@ const mockData = {
     categories: {
         'Video': { color: '#fecaca' },
         'Desarrollo': { color: '#bfdbfe' }
+    },
+    // ADDED: Default order for mock data categories
+    categoryOrders: {
+        buscadores: ["General", "Video"],
+        links: ["Desarrollo"],
+        prompts: ["Creatividad"],
+        "notes-tasks": [] // This section is handled differently
     }
 };
 
@@ -922,7 +930,7 @@ async function loadData() {
     let gistId = localStorage.getItem('gist_id');
     if (!gistId) {
         openSettingsModal();
-        data = mockData;
+        data = JSON.parse(JSON.stringify(mockData)); // Deep copy to avoid mutation issues
         ensureAllIcons();
         initializeUI();
         return;
@@ -943,13 +951,15 @@ async function loadData() {
         
         if (!fileContent) {
             showToast("ARCHIVO NO ENCONTRADO EN GIST. USANDO DATOS DE EJEMPLO.");
-            data = mockData;
+            data = JSON.parse(JSON.stringify(mockData)); // Deep copy
         } else {
             let loadedJson = JSON.parse(fileContent);
-            if (Array.isArray(loadedJson)) {
-                data = { items: loadedJson.map(i => ({...i, isFavorite: i.isFavorite || false})), categories: {} };
+            // Ensure compatibility with old and new data structures
+            const defaults = { items: [], categories: {}, categoryOrders: {} };
+            if (Array.isArray(loadedJson)) { // Old format was just an array of items
+                data = { ...defaults, items: loadedJson.map(i => ({...i, isFavorite: i.isFavorite || false})) };
             } else {
-                data = { items: [], categories: {}, ...loadedJson };
+                data = { ...defaults, ...loadedJson };
                 data.items = data.items.map(i => ({...i, isFavorite: i.isFavorite || false}));
             }
             showToast("DATOS CARGADOS.");
@@ -957,7 +967,7 @@ async function loadData() {
     } catch (error) {
         console.error("Fallo al cargar datos:", error);
         showToast(`ERROR: ${error.message}`);
-        data = mockData; // Fallback to mock data
+        data = JSON.parse(JSON.stringify(mockData)); // Fallback to mock data
     }
     ensureAllIcons();
     initializeUI();
@@ -984,13 +994,19 @@ async function saveData() {
         const response = await fetch(`https://api.github.com/gists/${gistId}`, {
             method: 'PATCH',
             headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
-            body: JSON.stringify(data, null, 2)
+            body: JSON.stringify({
+                files: {
+                    [FILENAME_IN_GIST]: {
+                        content: JSON.stringify(data, null, 2)
+                    }
+                }
+            })
         });
         if (!response.ok) {
              if(response.status === 401 || response.status === 404) {
-                 localStorage.removeItem('github_pat');
-                 showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
-                 openSettingsModal();
+                  localStorage.removeItem('github_pat');
+                  showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
+                  openSettingsModal();
              }
              throw new Error(`ERROR AL GUARDAR: ${response.status}`)
         };
@@ -1099,15 +1115,15 @@ function setupEventListeners() {
 
     document.addEventListener('keydown', (e) => {
         const isModalOpen = !document.getElementById('editPanel').classList.contains('hidden') ||
-                               !document.getElementById('helpModal').classList.contains('hidden') ||
-                               !document.getElementById('settingsModal').classList.contains('hidden') ||
-                               !document.getElementById('categoryEditModal').classList.contains('hidden');
+                                  !document.getElementById('helpModal').classList.contains('hidden') ||
+                                  !document.getElementById('settingsModal').classList.contains('hidden') ||
+                                  !document.getElementById('categoryEditModal').classList.contains('hidden');
         
         const expandedCard = document.querySelector('.note-card.expanded, .task-card.expanded');
 
         if (e.key === 'Escape') {
              if(expandedCard) {
-                closeExpandedCard(expandedCard);
+                 closeExpandedCard(expandedCard);
              } else if (isModalOpen) {
                  document.getElementById('editPanel').classList.add('hidden');
                  document.getElementById('helpModal').classList.add('hidden');
@@ -1395,20 +1411,46 @@ function renderSection(sectionName, itemsToRender) {
         return acc;
     }, {});
 
-    if (items.length === 0) {
-        container.insertAdjacentHTML('beforeend', `<p class="text-center opacity-70 mt-8">No se encontraron resultados.</p>`);
-        return;
+    const sectionOrders = (data.categoryOrders && data.categoryOrders[sectionName]) || [];
+    
+    // --- Logic for ordering and rendering categories ---
+    const categoryContainer = document.createElement('div');
+    categoryContainer.className = 'category-container-sortable';
+    container.appendChild(categoryContainer);
+
+    let allCategoryNames = [...sectionOrders];
+    Object.keys(categorized).forEach(cat => {
+        if (!allCategoryNames.includes(cat)) {
+            allCategoryNames.push(cat);
+        }
+    });
+
+    if (allCategoryNames.length === 0 && items.length > 0) {
+        allCategoryNames.push('SIN CATEGORIA');
+    }
+    
+    if (allCategoryNames.length === 0) {
+         container.insertAdjacentHTML('beforeend', `<p class="text-center opacity-70 mt-8">No se encontraron resultados.</p>`);
+         return;
     }
 
-    Object.keys(categorized).sort().forEach(cat => {
+    allCategoryNames.forEach(cat => {
+        const itemsForThisCat = categorized[cat] || [];
+        // Do not render "SIN CATEGORIA" if it is empty, unless it's the only category available
+        if (cat === 'SIN CATEGORIA' && itemsForThisCat.length === 0 && allCategoryNames.filter(c => c !== 'SIN CATEGORIA').length > 0) {
+            return;
+        }
+
         const categorySettings = data.categories[cat] || {};
         const catDiv = document.createElement('div');
         catDiv.className = 'category-wrapper';
+        catDiv.dataset.categoryName = cat;
         if (categorySettings.color) {
             catDiv.style.backgroundColor = categorySettings.color;
         }
 
         const textColor = getContrastingTextColor(categorySettings.color);
+        const dragHandleHTML = `<span class="category-drag-handle" style="color: ${textColor};"><i class="fas fa-grip-vertical"></i></span>`;
 
         const categoryActionsHTML = cat !== 'SIN CATEGORIA' ? `
             <div class="category-actions flex gap-2">
@@ -1417,22 +1459,26 @@ function renderSection(sectionName, itemsToRender) {
             </div>
         ` : '';
 
-        catDiv.innerHTML = `<div class="category-header" style="color: ${textColor}; border-color: ${textColor};"><h3 class="category-title">${cat}</h3>${categoryActionsHTML}</div>`;
+        catDiv.innerHTML = `<div class="category-header flex items-center" style="color: ${textColor}; border-color: ${textColor};">${dragHandleHTML}<h3 class="category-title flex-grow">${cat}</h3>${categoryActionsHTML}</div>`;
         
         const contentContainer = document.createElement('div');
         contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
         contentContainer.dataset.category = cat;
         
-        categorized[cat].sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(item => {
-            let element;
-            if (globalView === 'grid') element = createCard(item);
-            else if (globalView === 'list') element = createListItem(item);
-            else element = createChipItem(item);
-            contentContainer.appendChild(element);
-        });
+        if (itemsForThisCat.length > 0) {
+            itemsForThisCat.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(item => {
+                let element;
+                if (globalView === 'grid') element = createCard(item);
+                else if (globalView === 'list') element = createListItem(item);
+                else element = createChipItem(item);
+                contentContainer.appendChild(element);
+            });
+        } else {
+            contentContainer.innerHTML = `<p class="opacity-70 p-4 text-center" style="color: ${textColor};">Arrastra elementos aquí o crea uno nuevo en esta categoría.</p>`;
+        }
         
         catDiv.appendChild(contentContainer);
-        container.appendChild(catDiv);
+        categoryContainer.appendChild(catDiv);
 
         setupPromptCardAnimations(contentContainer);
 
@@ -1441,44 +1487,31 @@ function renderSection(sectionName, itemsToRender) {
             onEnd: function (evt) {
                 const itemId = evt.item.dataset.id;
                 const newCategory = evt.to.dataset.category;
-
-                // 1. Find and remove the item from its original position in the data array.
-                const movedItemIndex = data.items.findIndex(i => String(i.id) === itemId);
-                if (movedItemIndex === -1) return;
-                const [movedItem] = data.items.splice(movedItemIndex, 1);
-
-                // 2. Update its category.
-                movedItem.category = newCategory;
-
-                // 3. Find its new position and re-insert it.
-                const itemsInNewCat = Array.from(evt.to.children);
-                const newIndexInList = itemsInNewCat.findIndex(el => el.dataset.id === itemId);
-
-                if (newIndexInList === itemsInNewCat.length - 1) {
-                    // Dropped at the end. Find the last item of this category in the main array and insert after it.
-                    let lastIndexOfCategory = -1;
-                    for (let i = data.items.length - 1; i >= 0; i--) {
-                        if (data.items[i].category === newCategory) {
-                            lastIndexOfCategory = i;
-                            break;
-                        }
-                    }
-                    data.items.splice(lastIndexOfCategory + 1, 0, movedItem);
-                } else {
-                    // Dropped before another item. Find that item in the main array and insert before it.
-                    const referenceItemId = itemsInNewCat[newIndexInList + 1].dataset.id;
-                    const referenceItemIndex = data.items.findIndex(i => String(i.id) === referenceItemId);
-                    if (referenceItemIndex !== -1) {
-                        data.items.splice(referenceItemIndex, 0, movedItem);
-                    } else {
-                        // Failsafe: add to the end
-                        data.items.push(movedItem);
-                    }
+                const movedItem = data.items.find(i => String(i.id) === itemId);
+                if (movedItem) {
+                    movedItem.category = newCategory;
+                    saveData(); // Save on card move
                 }
-                
-                saveData(); // Save the new order
             }
         });
+    });
+
+    // --- Sortable instance for categories themselves ---
+    new Sortable(categoryContainer, {
+        animation: 150,
+        handle: '.category-drag-handle',
+        onEnd: (evt) => {
+            const activeSection = document.querySelector('#main-nav .active')?.dataset.section;
+            if (!activeSection) return;
+
+            const newOrder = Array.from(evt.target.children)
+                .map(child => child.dataset.categoryName)
+                .filter(Boolean);
+
+            if (!data.categoryOrders) data.categoryOrders = {};
+            data.categoryOrders[activeSection] = newOrder;
+            saveData();
+        }
     });
 }
 
@@ -1549,7 +1582,7 @@ function createListItem(item) {
     const listItem = document.createElement("div");
     listItem.className = 'list-item p-4';
      if (item.isFavorite) {
-        listItem.classList.add('is-favorite');
+         listItem.classList.add('is-favorite');
     }
     listItem.dataset.id = item.id;
     let bgStyle = '';
@@ -1588,7 +1621,7 @@ function createChipItem(item) {
     const chipItem = document.createElement("div");
     chipItem.className = 'chip-item relative p-2 pr-3 flex items-center gap-2';
      if (item.isFavorite) {
-        chipItem.classList.add('is-favorite');
+         chipItem.classList.add('is-favorite');
     }
     chipItem.dataset.id = item.id;
     const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
@@ -1839,11 +1872,17 @@ function saveCategoryChanges(event) {
     if (!data.categories) data.categories = {};
 
     if (originalName !== newName) {
+        // Update items
         data.items.forEach(item => {
             if (item.category === originalName) {
                 item.category = newName;
             }
         });
+        // Update category orders
+        Object.keys(data.categoryOrders).forEach(section => {
+            data.categoryOrders[section] = data.categoryOrders[section].map(cat => cat === originalName ? newName : cat);
+        });
+        // Move settings
         if (data.categories[originalName]) {
             data.categories[newName] = data.categories[originalName];
             delete data.categories[originalName];
@@ -1859,29 +1898,58 @@ function saveCategoryChanges(event) {
     saveData().then(() => refreshUI());
 }
 
+// MODIFIED: This function now creates a new category block immediately.
 function addCategory() {
-    const name = prompt("Nombre de la nueva categoría:");
-    if (name && name.trim()) {
-        const trimmedName = name.trim();
-        if (data.items.some(item => item.category === trimmedName)) {
-            showToast("Esa categoría ya existe.");
-            return;
-        }
-        openEditPanel();
-        document.getElementById('newCategory').value = trimmedName;
-        showToast(`Creando nuevo elemento en categoría "${trimmedName}"`);
+    const activeSectionName = document.querySelector('#main-nav .active')?.dataset.section;
+    if (!activeSectionName || activeSectionName === 'notes-tasks') {
+        showToast("No se puede agregar una categoría a esta sección.");
+        return;
     }
+
+    const name = prompt("Nombre de la nueva categoría:");
+    if (!name || !name.trim()) return;
+    const newCategoryName = name.trim();
+
+    if (!data.categoryOrders) data.categoryOrders = {};
+    if (!data.categoryOrders[activeSectionName]) data.categoryOrders[activeSectionName] = [];
+    
+    const allCategoriesForSection = new Set(data.categoryOrders[activeSectionName]);
+    data.items.forEach(item => {
+        const typeMap = { buscadores: 'Buscador', links: 'Link', prompts: 'Promp' };
+        if (item.type === typeMap[activeSectionName]) {
+            allCategoriesForSection.add(item.category);
+        }
+    });
+
+    if (allCategoriesForSection.has(newCategoryName)) {
+        showToast("Esa categoría ya existe.");
+        return;
+    }
+
+    data.categoryOrders[activeSectionName].push(newCategoryName);
+    saveData().then(() => {
+        refreshUI();
+        showToast(`Categoría "${newCategoryName}" creada.`);
+    });
 }
 
 function deleteCategory(categoryName) {
      if (categoryName === 'SIN CATEGORIA') {
-        showToast("No se puede eliminar esta categoría."); return;
+         showToast("No se puede eliminar esta categoría."); return;
     }
     showConfirmModal(`¿Seguro que quieres eliminar la categoría "${categoryName}"? Todos sus elementos se moverán a 'SIN CATEGORIA'.`, (confirmed) => {
         if (confirmed) {
+            // Remove from orders
+            Object.keys(data.categoryOrders).forEach(section => {
+                if(data.categoryOrders[section]) {
+                    data.categoryOrders[section] = data.categoryOrders[section].filter(cat => cat !== categoryName);
+                }
+            });
+            // Re-assign items
             data.items.forEach(item => {
                 if (item.category === categoryName) item.category = 'SIN CATEGORIA';
             });
+            // Delete settings
             delete data.categories[categoryName];
             saveData().then(() => refreshUI());
         }
@@ -2095,16 +2163,31 @@ function renderGlobalResults(results) {
 function showPreviewModal(item, event) {
     const modal = document.getElementById('preview-modal');
     const modalContent = document.getElementById('preview-modal-content');
-    modalContent.innerHTML = getPreviewContent(item);
-    const modalWidth = 320; const modalHeight = 384;
-    const cursorX = event.clientX; const cursorY = event.clientY;
-    const viewportWidth = window.innerWidth; const viewportHeight = window.innerHeight;
+    
+    // Only show preview for links and search engines
+    if (item.type !== 'Link' && item.type !== 'Buscador') return;
+
+    const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
+    modalContent.style.backgroundImage = `url('${previewUrl}')`;
+    
+    const modalWidth = 320; 
+    const modalHeight = 240;
+    const cursorX = event.clientX; 
+    const cursorY = event.clientY;
+    const viewportWidth = window.innerWidth; 
+    const viewportHeight = window.innerHeight;
     const offset = 20;
-    let top = cursorY - modalHeight; let left = cursorX + offset;
-    if (top < offset) top = cursorY + offset;
-    if (top + modalHeight > viewportHeight - offset) top = viewportHeight - modalHeight - offset;
-    if (left + modalWidth > viewportWidth - offset) left = cursorX - modalWidth - offset;
-    if (left < offset) left = offset;
+
+    let top = cursorY - modalHeight - offset; 
+    let left = cursorX + offset;
+
+    if (top < offset) {
+        top = cursorY + offset;
+    }
+    if (left + modalWidth > viewportWidth - offset) {
+        left = cursorX - modalWidth - offset;
+    }
+    
     modal.style.top = `${top}px`;
     modal.style.left = `${left}px`;
     modal.classList.remove('hidden');
@@ -2263,7 +2346,7 @@ function saveSettings() {
 function useSampleData() {
     localStorage.removeItem('gist_id');
     localStorage.removeItem('github_pat');
-    data = mockData;
+    data = JSON.parse(JSON.stringify(mockData)); // Deep copy
     ensureAllIcons();
     initializeUI();
     document.getElementById('settingsModal').classList.add('hidden');
