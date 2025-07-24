@@ -1004,9 +1004,9 @@ async function saveData() {
         });
         if (!response.ok) {
              if(response.status === 401 || response.status === 404) {
-                  localStorage.removeItem('github_pat');
-                  showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
-                  openSettingsModal();
+                   localStorage.removeItem('github_pat');
+                   showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
+                   openSettingsModal();
              }
              throw new Error(`ERROR AL GUARDAR: ${response.status}`)
         };
@@ -1483,15 +1483,43 @@ function renderSection(sectionName, itemsToRender) {
         setupPromptCardAnimations(contentContainer);
 
         new Sortable(contentContainer, {
-            group: 'shared-cards', animation: 150, handle: '.card-drag-handle',
-            onEnd: function (evt) {
-                const itemId = evt.item.dataset.id;
-                const newCategory = evt.to.dataset.category;
-                const movedItem = data.items.find(i => String(i.id) === itemId);
-                if (movedItem) {
-                    movedItem.category = newCategory;
-                    saveData(); // Save on card move
-                }
+            group: 'shared-cards',
+            animation: 150,
+            handle: '.card-drag-handle',
+            onEnd: function(evt) {
+                // --- FIX START: This is the corrected logic ---
+                const sectionContainer = evt.target.closest('.section');
+                if (!sectionContainer) return;
+
+                // Get all item elements from the DOM in their new visual order
+                const allItemElements = Array.from(sectionContainer.querySelectorAll('[data-id]'));
+                
+                // Create a map of all items for efficient lookup
+                const itemMap = new Map(data.items.map(item => [String(item.id), item]));
+                
+                // Rebuild the data.items array based on the new DOM order
+                const reorderedItems = [];
+                const seenIds = new Set();
+
+                allItemElements.forEach(el => {
+                    const itemId = el.dataset.id;
+                    const item = itemMap.get(itemId);
+                    if (item) {
+                        // Update the item's category based on its new parent container
+                        const newCategory = el.closest('[data-category]').dataset.category;
+                        item.category = newCategory;
+                        reorderedItems.push(item);
+                        seenIds.add(itemId);
+                    }
+                });
+                
+                // Add back any items that are not in the current view (e.g., from other sections)
+                const itemsNotInView = data.items.filter(item => !seenIds.has(String(item.id)));
+                
+                data.items = [...itemsNotInView, ...reorderedItems];
+                
+                saveData();
+                // --- FIX END ---
             }
         });
     });
