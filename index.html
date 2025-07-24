@@ -494,7 +494,7 @@
         .favorites-bar {
             border: var(--border-width) dashed var(--text-color);
             padding: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem; /* Reduced margin */
         }
         .favorites-bar-title {
             font-weight: bold;
@@ -521,6 +521,32 @@
             color: #1e293b;
             box-shadow: 4px 4px 0 var(--text-color);
             transform: translate(-2px, -2px);
+        }
+
+        /* --- CATEGORY NAVIGATION --- */
+        .category-nav {
+            display: flex;
+            justify-content: center;
+            gap: 0.75rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+        }
+        .category-nav-dot {
+            width: 12px;
+            height: 12px;
+            background-color: transparent;
+            border: var(--border-width) solid var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            padding: 0;
+            border-radius: 50%;
+        }
+        .category-nav-dot:hover {
+            background-color: var(--accent-color-hover);
+        }
+        .category-nav-dot.active {
+            background-color: var(--accent-color);
+            transform: scale(1.2);
         }
 
         /* --- LOADING BAR --- */
@@ -1181,6 +1207,28 @@ function setupEventListeners() {
         const expandedCard = document.querySelector('.note-card.expanded, .task-card.expanded');
         if (expandedCard) closeExpandedCard(expandedCard);
     });
+
+    // Scroll listener for category navigation dots
+    const mainContent = document.querySelector('main');
+    mainContent.addEventListener('scroll', () => {
+        const dots = mainContent.querySelectorAll('.category-nav-dot');
+        if (dots.length === 0) return;
+
+        let activeCategory = null;
+        const threshold = window.innerHeight / 3; // Activation point at 1/3 of the screen
+
+        mainContent.querySelectorAll('.category-wrapper').forEach(wrapper => {
+            const rect = wrapper.getBoundingClientRect();
+            // If the top of the category wrapper is above the threshold, it's a candidate
+            if (rect.top < threshold) {
+                activeCategory = wrapper.dataset.categoryName;
+            }
+        });
+        
+        dots.forEach(dot => {
+            dot.classList.toggle('active', dot.dataset.targetCategory === activeCategory);
+        });
+    });
 }
 
 function showLoadingAnimation(callback) {
@@ -1377,6 +1425,40 @@ function renderFavoritesBar(container, items) {
     });
 }
 
+function renderCategoryNavigation(mainContainer, categoryWrappers) {
+    const existingNav = mainContainer.querySelector('.category-nav');
+    if (existingNav) existingNav.remove();
+
+    if (categoryWrappers.length <= 1) return;
+
+    const navContainer = document.createElement('div');
+    navContainer.className = 'category-nav';
+
+    categoryWrappers.forEach(wrapper => {
+        const categoryName = wrapper.dataset.categoryName;
+        const dot = document.createElement('button');
+        dot.className = 'category-nav-dot';
+        dot.dataset.targetCategory = categoryName;
+        dot.title = `Ir a ${categoryName}`;
+        dot.addEventListener('click', () => {
+            wrapper.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+        navContainer.appendChild(dot);
+    });
+
+    const favoritesBar = mainContainer.querySelector('.favorites-bar');
+    if (favoritesBar) {
+        favoritesBar.insertAdjacentElement('afterend', navContainer);
+    } else {
+        const newCatButtonWrapper = mainContainer.querySelector('.mb-6');
+        if (newCatButtonWrapper) {
+             newCatButtonWrapper.insertAdjacentElement('beforebegin', navContainer);
+        } else {
+            mainContainer.prepend(navContainer);
+        }
+    }
+}
+
 function renderSection(sectionName, itemsToRender) {
     const container = document.getElementById(`section-${sectionName}`);
     if (!container) return;
@@ -1413,7 +1495,6 @@ function renderSection(sectionName, itemsToRender) {
 
     const sectionOrders = (data.categoryOrders && data.categoryOrders[sectionName]) || [];
     
-    // --- Logic for ordering and rendering categories ---
     const categoryContainer = document.createElement('div');
     categoryContainer.className = 'category-container-sortable';
     container.appendChild(categoryContainer);
@@ -1436,7 +1517,6 @@ function renderSection(sectionName, itemsToRender) {
 
     allCategoryNames.forEach(cat => {
         const itemsForThisCat = categorized[cat] || [];
-        // Do not render "SIN CATEGORIA" if it is empty, unless it's the only category available
         if (cat === 'SIN CATEGORIA' && itemsForThisCat.length === 0 && allCategoryNames.filter(c => c !== 'SIN CATEGORIA').length > 0) {
             return;
         }
@@ -1487,55 +1567,41 @@ function renderSection(sectionName, itemsToRender) {
             animation: 150,
             handle: '.card-drag-handle',
             onEnd: function(evt) {
-                // --- FIX START: This is the corrected logic ---
                 const sectionContainer = evt.target.closest('.section');
                 if (!sectionContainer) return;
-
-                // Get all item elements from the DOM in their new visual order
-                const allItemElements = Array.from(sectionContainer.querySelectorAll('[data-id]'));
-                
-                // Create a map of all items for efficient lookup
+                const allItemElements = Array.from(sectionContainer.querySelectorAll('.brutalist-card[data-id], .list-item[data-id], .chip-item[data-id]'));
                 const itemMap = new Map(data.items.map(item => [String(item.id), item]));
-                
-                // Rebuild the data.items array based on the new DOM order
                 const reorderedItems = [];
                 const seenIds = new Set();
-
                 allItemElements.forEach(el => {
                     const itemId = el.dataset.id;
                     const item = itemMap.get(itemId);
                     if (item) {
-                        // Update the item's category based on its new parent container
                         const newCategory = el.closest('[data-category]').dataset.category;
                         item.category = newCategory;
                         reorderedItems.push(item);
                         seenIds.add(itemId);
                     }
                 });
-                
-                // Add back any items that are not in the current view (e.g., from other sections)
                 const itemsNotInView = data.items.filter(item => !seenIds.has(String(item.id)));
-                
                 data.items = [...itemsNotInView, ...reorderedItems];
-                
                 saveData();
-                // --- FIX END ---
             }
         });
     });
 
-    // --- Sortable instance for categories themselves ---
+    const categoryWrappers = categoryContainer.querySelectorAll('.category-wrapper');
+    renderCategoryNavigation(container, categoryWrappers);
+
     new Sortable(categoryContainer, {
         animation: 150,
         handle: '.category-drag-handle',
         onEnd: (evt) => {
             const activeSection = document.querySelector('#main-nav .active')?.dataset.section;
             if (!activeSection) return;
-
             const newOrder = Array.from(evt.target.children)
                 .map(child => child.dataset.categoryName)
                 .filter(Boolean);
-
             if (!data.categoryOrders) data.categoryOrders = {};
             data.categoryOrders[activeSection] = newOrder;
             saveData();
