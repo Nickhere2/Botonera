@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v17 - Brutalist (Drag & Drop)</title>
+    <title>Centro de Accesos v18 - Brutalist (Drag & Drop)</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -806,7 +806,7 @@
              <div class="winxp-header relative flex-shrink-0">
                 <h2 class="text-4xl italic font-bold text-white" style="font-family: Tahoma, sans-serif; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">Bienvenido</h2>
                 <button id="closeHelpModal" class="absolute top-2 right-2 brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold text-white">X</button>
-            </div>
+             </div>
             <div class="p-6 sm:p-8 overflow-y-auto">
                 <div class="text-center mb-6">
                      <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-32 w-32 object-contain inline-block">
@@ -1034,9 +1034,9 @@ async function saveData() {
         });
         if (!response.ok) {
              if(response.status === 401 || response.status === 404) {
-                   localStorage.removeItem('github_pat');
-                   showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
-                   openSettingsModal();
+                 localStorage.removeItem('github_pat');
+                 showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
+                 openSettingsModal();
              }
              throw new Error(`ERROR AL GUARDAR: ${response.status}`)
         };
@@ -1466,7 +1466,12 @@ function renderCategoryFilters(mainContainer, allCategories, categorizedItems) {
     }
 }
 
-
+/**
+ * Renders a main content section (Buscadores, Links, Prompts).
+ * This function has been updated to hide empty categories when a filter is active.
+ * @param {string} sectionName - The name of the section to render.
+ * @param {Array} [itemsToRender] - A pre-filtered list of items to render. If not provided, it filters the main data.
+ */
 function renderSection(sectionName, itemsToRender) {
     const container = document.getElementById(`section-${sectionName}`);
     if (!container) return;
@@ -1520,46 +1525,37 @@ function renderSection(sectionName, itemsToRender) {
         ? allCategoryNames
         : allCategoryNames.filter(cat => cat === activeCategoryFilter);
 
-    if (filteredCategoryNames.length === 0 && items.length > 0) {
-        filteredCategoryNames.push('SIN CATEGORIA');
-    }
-    
-    if (filteredCategoryNames.length === 0) {
-         container.insertAdjacentHTML('beforeend', `<p class="text-center opacity-70 mt-8">No se encontraron resultados.</p>`);
-         return;
-    }
-
     filteredCategoryNames.forEach(cat => {
         const itemsForThisCat = categorized[cat] || [];
-        if (cat === 'SIN CATEGORIA' && itemsForThisCat.length === 0 && filteredCategoryNames.filter(c => c !== 'SIN CATEGORIA').length > 0) {
-            return;
-        }
 
-        const categorySettings = data.categories[cat] || {};
-        const catDiv = document.createElement('div');
-        catDiv.className = 'category-wrapper';
-        catDiv.dataset.categoryName = cat;
-        if (categorySettings.color) {
-            catDiv.style.backgroundColor = categorySettings.color;
-        }
-
-        const textColor = getContrastingTextColor(categorySettings.color);
-        const dragHandleHTML = `<span class="category-drag-handle" style="color: ${textColor};"><i class="fas fa-grip-vertical"></i></span>`;
-
-        const categoryActionsHTML = cat !== 'SIN CATEGORIA' ? `
-            <div class="category-actions flex gap-2">
-                <button onclick="openCategoryEditModal('${cat}')" class="action-btn !w-8 !h-8" title="Editar Categoría" style="color: ${textColor}; border-color: ${textColor}"><i class="fas fa-pencil-alt"></i></button>
-                <button onclick="deleteCategory('${cat}')" class="action-btn !w-8 !h-8" title="Eliminar Categoría" style="color: ${textColor}; border-color: ${textColor}"><i class="fas fa-trash-alt"></i></button>
-            </div>
-        ` : '';
-
-        catDiv.innerHTML = `<div class="category-header flex items-center" style="color: ${textColor}; border-color: ${textColor};">${dragHandleHTML}<h3 class="category-title flex-grow">${cat}</h3>${categoryActionsHTML}</div>`;
-        
-        const contentContainer = document.createElement('div');
-        contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
-        contentContainer.dataset.category = cat;
-        
+        // --- KEY IMPROVEMENT ---
+        // Only render the category wrapper if it actually contains items after filtering.
+        // This prevents empty categories from showing up during a search.
         if (itemsForThisCat.length > 0) {
+            const categorySettings = data.categories[cat] || {};
+            const catDiv = document.createElement('div');
+            catDiv.className = 'category-wrapper';
+            catDiv.dataset.categoryName = cat;
+            if (categorySettings.color) {
+                catDiv.style.backgroundColor = categorySettings.color;
+            }
+
+            const textColor = getContrastingTextColor(categorySettings.color);
+            const dragHandleHTML = `<span class="category-drag-handle" style="color: ${textColor};"><i class="fas fa-grip-vertical"></i></span>`;
+
+            const categoryActionsHTML = cat !== 'SIN CATEGORIA' ? `
+                <div class="category-actions flex gap-2">
+                    <button onclick="openCategoryEditModal('${cat}')" class="action-btn !w-8 !h-8" title="Editar Categoría" style="color: ${textColor}; border-color: ${textColor}"><i class="fas fa-pencil-alt"></i></button>
+                    <button onclick="deleteCategory('${cat}')" class="action-btn !w-8 !h-8" title="Eliminar Categoría" style="color: ${textColor}; border-color: ${textColor}"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            ` : '';
+
+            catDiv.innerHTML = `<div class="category-header flex items-center" style="color: ${textColor}; border-color: ${textColor};">${dragHandleHTML}<h3 class="category-title flex-grow">${cat}</h3>${categoryActionsHTML}</div>`;
+            
+            const contentContainer = document.createElement('div');
+            contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
+            contentContainer.dataset.category = cat;
+            
             itemsForThisCat.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(item => {
                 let element;
                 if (globalView === 'grid') element = createCard(item);
@@ -1567,42 +1563,51 @@ function renderSection(sectionName, itemsToRender) {
                 else element = createChipItem(item);
                 contentContainer.appendChild(element);
             });
-        } else {
-            contentContainer.innerHTML = `<p class="opacity-70 p-4 text-center" style="color: ${textColor};">Arrastra elementos aquí o crea uno nuevo en esta categoría.</p>`;
+            
+            catDiv.appendChild(contentContainer);
+            categoryContainer.appendChild(catDiv);
+
+            setupPromptCardAnimations(contentContainer);
+
+            new Sortable(contentContainer, {
+                group: 'shared-cards',
+                animation: 150,
+                handle: '.card-drag-handle',
+                onEnd: function(evt) {
+                    const sectionContainer = evt.target.closest('.section');
+                    if (!sectionContainer) return;
+                    const allItemElements = Array.from(sectionContainer.querySelectorAll('.brutalist-card[data-id], .list-item[data-id], .chip-item[data-id]'));
+                    const itemMap = new Map(data.items.map(item => [String(item.id), item]));
+                    const reorderedItems = [];
+                    const seenIds = new Set();
+                    allItemElements.forEach(el => {
+                        const itemId = el.dataset.id;
+                        const item = itemMap.get(itemId);
+                        if (item) {
+                            const newCategory = el.closest('[data-category]').dataset.category;
+                            item.category = newCategory;
+                            reorderedItems.push(item);
+                            seenIds.add(itemId);
+                        }
+                    });
+                    const itemsNotInView = data.items.filter(item => !seenIds.has(String(item.id)));
+                    data.items = [...itemsNotInView, ...reorderedItems];
+                    saveData();
+                }
+            });
         }
-        
-        catDiv.appendChild(contentContainer);
-        categoryContainer.appendChild(catDiv);
-
-        setupPromptCardAnimations(contentContainer);
-
-        new Sortable(contentContainer, {
-            group: 'shared-cards',
-            animation: 150,
-            handle: '.card-drag-handle',
-            onEnd: function(evt) {
-                const sectionContainer = evt.target.closest('.section');
-                if (!sectionContainer) return;
-                const allItemElements = Array.from(sectionContainer.querySelectorAll('.brutalist-card[data-id], .list-item[data-id], .chip-item[data-id]'));
-                const itemMap = new Map(data.items.map(item => [String(item.id), item]));
-                const reorderedItems = [];
-                const seenIds = new Set();
-                allItemElements.forEach(el => {
-                    const itemId = el.dataset.id;
-                    const item = itemMap.get(itemId);
-                    if (item) {
-                        const newCategory = el.closest('[data-category]').dataset.category;
-                        item.category = newCategory;
-                        reorderedItems.push(item);
-                        seenIds.add(itemId);
-                    }
-                });
-                const itemsNotInView = data.items.filter(item => !seenIds.has(String(item.id)));
-                data.items = [...itemsNotInView, ...reorderedItems];
-                saveData();
-            }
-        });
     });
+
+    // After the loop, check if any categories were rendered. If not, display a message.
+    if (categoryContainer.children.length === 0) {
+        if (items.length > 0) {
+            // The section has items, but the current filter combination yields no results.
+            container.insertAdjacentHTML('beforeend', `<p class="text-center opacity-70 mt-8">No se encontraron resultados para los filtros seleccionados.</p>`);
+        } else if (sectionName !== 'notes-tasks') {
+            // The section is genuinely empty, not just filtered to empty.
+            categoryContainer.innerHTML = `<p class="opacity-70 p-4 text-center">No hay elementos en esta sección. ¡Crea una categoría y añade algo!</p>`;
+        }
+    }
 
     new Sortable(categoryContainer, {
         animation: 150,
@@ -1619,6 +1624,7 @@ function renderSection(sectionName, itemsToRender) {
         }
     });
 }
+
 
 function createCard(item) {
     const card = document.createElement("div");
