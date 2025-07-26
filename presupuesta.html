@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ImpresionesVCP</title>
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            /* New Improved Color Palette */
+            --primary-color: #00796B; /* Teal */
+            --secondary-color: #34495E; /* Dark Slate Gray */
+            --background-light: #F4F6F7; /* Lighter Gray */
+            --background-white: #ffffff;
+            --border-color: #E0E0E0;
+            --text-dark: #2C3E50;
+            --text-light: #7F8C8D;
+            --danger-color: #E74C3C; /* Red */
+            --success-color: #2ECC71; /* Green */
+            --whatsapp-color: #25D366;
+            --font-family: 'Poppins', sans-serif;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); }
+
+        /* Animations */
+        @keyframes slide-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes toast-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .order-item-enter { animation: slide-in 0.3s ease-out forwards; }
+        .modal.is-opening { animation: fade-in 0.2s ease-out forwards; }
+
+        html, body { height: 100vh; overflow: hidden; background-color: var(--background-light); display: flex; justify-content: center; align-items: center; }
+
+        .container {
+            width: 100%; height: 100%; max-width: 1000px; background: var(--background-white);
+            border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); display: flex;
+            flex-direction: column; overflow: hidden; margin: 15px; max-height: 95vh;
+        }
+
+        .app-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid var(--border-color); background: #fcfdff; flex-shrink: 0; }
+        .header-left { display: flex; align-items: center; gap: 15px; }
+        .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--primary-color); font-size: 18px; }
+        .logo i { font-size: 24px; }
+
+        .controls { display: flex; align-items: center; gap: 8px; }
+        .input-group { display: flex; align-items: center; gap: 5px; }
+        .input-group label { font-size: 13px; color: var(--text-light); font-weight: 500; }
+
+        .input-field { width: 60px; padding: 8px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; text-align: center; font-weight: 600; transition: all 0.2s; }
+        .input-field:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 121, 107, 0.1); }
+        .input-field.error { border-color: var(--danger-color); }
+
+        .total-display { background: var(--secondary-color); color: white; padding: 8px 16px; border-radius: 8px; font-size: 16px; font-weight: 700; min-width: 120px; text-align: right; cursor: pointer; transition: all 0.2s; }
+        .total-display:hover { background-color: #2C3E50; transform: scale(1.02); }
+
+        .app-content { display: flex; flex-grow: 1; overflow: hidden; }
+
+        .panel { flex: 1; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
+        .services-panel { border-right: 1px solid var(--border-color); }
+
+        .panel-header { font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .panel-header-actions { display: flex; gap: 8px; }
+
+        .services-grid { flex-grow: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; padding: 5px; }
+
+        .service-btn { border: 1px solid var(--border-color); padding: 8px 5px; font-size: 11px; font-weight: 500; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: var(--background-white); }
+        .service-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.07); border-color: var(--primary-color); }
+        .service-btn i { font-size: 18px; }
+        .service-price { font-size: 10px; font-weight: 600; color: var(--text-light); }
+        
+        /* Button colors updated */
+        .color-btn { color: #C0392B; } .color2-btn { color: #2980B9; } .byn-btn { color: #2C3E50; }
+        .byn2-btn { color: #7F8C8D; } .foto-btn { color: #F39C12; } .sticker-btn { color: #27AE60; }
+        .anillado-btn { color: #8E44AD; }
+        
+        .action-btn { padding: 10px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; transition: all 0.2s; }
+        .action-btn:hover { opacity: 0.9; }
+        .reset-btn { background: var(--danger-color); margin-top: 15px; }
+        
+        .icon-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-light); width: 32px; height: 32px; border-radius: 50%; font-size: 14px; }
+        .icon-btn:hover { background: #E8F5E9; color: var(--primary-color); }
+        
+        .order-panel { display: flex; flex-direction: column; }
+        .order-items { flex-grow: 1; overflow-y: auto; }
+        
+        .empty-order { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-light); text-align: center; padding: 15px; font-size: 14px; }
+        .empty-order i { font-size: 36px; margin-bottom: 10px; opacity: 0.4; }
+
+        .order-item { display: flex; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f0f2f5; font-size: 14px; }
+        .order-item.is-removing { transition: opacity 0.3s, transform 0.3s; opacity: 0; transform: translateX(-20px); }
+        
+        .item-icon { font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-right: 12px; }
+        .item-details { flex-grow: 1; }
+        .item-name { font-weight: 600; color: var(--text-dark); }
+        .item-meta { font-size: 12px; color: var(--text-light); }
+        .item-price { font-weight: 600; margin: 0 10px; }
+        
+        .delete-btn { background: transparent; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; padding: 5px; border-radius: 50%; transition: all 0.2s; }
+        .delete-btn:hover { background: #ffecec; color: var(--danger-color); }
+        
+        .order-summary { padding-top: 15px; margin-top: 15px; border-top: 2px dashed var(--border-color); font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
+        .summary-row { display: flex; justify-content: space-between; }
+        .summary-row span:first-child { color: var(--text-light); }
+        .summary-row span:last-child { font-weight: 600; }
+        .summary-row.discount { color: var(--danger-color); }
+        .summary-row.total { font-size: 16px; color: var(--text-dark); margin-top: 5px; }
+
+        /* Modal Styles */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal.is-visible { display: flex; }
+        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 600px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .modal-title { font-size: 18px; font-weight: 600; }
+        .modal-close-btn { background: transparent; border: none; font-size: 24px; cursor: pointer; color: #aaa; }
+        .modal-body { max-height: 60vh; overflow-y: auto; }
+        .saved-quote-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color); }
+        .saved-quote-list li:last-child { border-bottom: none; }
+        .quote-actions button { margin-left: 8px; }
+        .comparison-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .comparison-col h4 { margin-bottom: 10px; }
+        .comparison-col ul { list-style: none; padding-left: 0; font-size: 13px; }
+        .prompt-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 10px; }
+        .prompt-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+
+        /* Toast Notification */
+        .toast-notification { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--secondary-color); color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 2000; animation: toast-in 0.3s ease-out; }
+
+        @media (max-width: 600px) {
+            .container { margin: 0; border-radius: 0; max-height: 100vh; }
+            .app-header { flex-wrap: wrap; gap: 10px; }
+            .controls { order: 1; width: 100%; justify-content: space-between; }
+            .total-display { order: 2; flex-grow: 1; }
+            .header-left { order: 3; }
+            .app-content { flex-direction: column; }
+            .services-panel { border-right: none; border-bottom: 1px solid var(--border-color); }
+            .services-grid { grid-template-columns: 1fr 1fr; }
+            .comparison-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <header class="app-header">
+            <div class="header-left">
+                <div class="logo"><i class="fas fa-print"></i><span>ImpresionesVCP</span></div>
+                <button class="action-btn icon-btn" onclick="showHistoryModal()" title="Historial de presupuestos"><i class="fa-solid fa-clock-rotate-left"></i></button>
+            </div>
+            <div class="controls">
+                <div class="input-group"><label for="num-pages">Págs:</label><input class="input-field" type="number" id="num-pages" min="1" placeholder="0" autofocus></div>
+                <div class="input-group"><label for="num-copias">x</label><input class="input-field" type="number" id="num-copias" min="1" value="1" placeholder="1"></div>
+            </div>
+            <div id="total-display" class="total-display" onclick="sendTotalOnWhatsApp()" title="Enviar total por WhatsApp">$<span id="final-total">0</span></div>
+        </header>
+
+        <!-- CONTENT -->
+        <main class="app-content">
+            <!-- Left Panel: Services -->
+            <div class="panel services-panel">
+                <div class="panel-header"><div><i class="fas fa-print"></i> <span>Servicios de Impresión</span></div></div>
+                <div class="services-grid">
+                    <button class="service-btn color-btn" onclick="addService('color', 'Color Simple Faz', 160)"><i class="fas fa-print"></i><span>Color Simple</span><div class="service-price">$160/pág</div></button>
+                    <button class="service-btn color2-btn" onclick="addService('color2', 'Color Doble Faz', 120)"><i class="fas fa-copy"></i><span>Color Doble</span><div class="service-price">$120/pág</div></button>
+                    <button class="service-btn byn-btn" onclick="addService('byn', 'BYN Simple Faz', 120)"><i class="fas fa-file-alt"></i><span>BYN Simple</span><div class="service-price">$120/pág</div></button>
+                    <button class="service-btn byn2-btn" onclick="addService('byn2', 'BYN Doble Faz', 60)"><i class="fas fa-file-invoice"></i><span>BYN Doble</span><div class="service-price">$60/pág</div></button>
+                    <button class="service-btn foto-btn" onclick="addService('foto', 'Fotos', 1200)"><i class="fas fa-camera"></i><span>Fotos</span><div class="service-price">$1,200/pág</div></button>
+                    <button class="service-btn sticker-btn" onclick="addService('sticker', 'Stickers', 1800)"><i class="fas fa-tag"></i><span>Stickers</span><div class="service-price">$1,800/pág</div></button>
+                    <button class="service-btn anillado-btn" onclick="addAnillado()"><i class="fas fa-book"></i><span>Anillado</span><div class="service-price">$1,800/unid</div></button>
+                </div>
+                <button class="action-btn reset-btn" onclick="resetOrder()"><i class="fas fa-trash-alt"></i> Reiniciar Pedido</button>
+            </div>
+
+            <!-- Right Panel: Order Details -->
+            <div class="panel order-panel">
+                <div class="panel-header">
+                    <div><i class="fas fa-clipboard-list"></i> <span>Detalle del Pedido</span></div>
+                    <div class="panel-header-actions">
+                        <button class="action-btn icon-btn" onclick="showAdvancedComparisonModal()" title="Comparativa Avanzada"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                        <button class="action-btn icon-btn" onclick="promptForDiscount()" title="Aplicar descuento"><i class="fas fa-percent"></i></button>
+                        <button class="action-btn icon-btn" onclick="promptToSaveQuote()" title="Guardar presupuesto"><i class="fa-solid fa-floppy-disk"></i></button>
+                    </div>
+                </div>
+                <div class="order-items" id="order-items">
+                    <div class="empty-order" id="empty-order"><i class="fas fa-shopping-cart"></i><h3>Tu pedido está vacío</h3><p>Agrega servicios para empezar</p></div>
+                </div>
+                <div class="order-summary" id="order-summary" style="display: none;"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="history-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3 class="modal-title">Historial de Presupuestos</h3><button class="modal-close-btn" onclick="closeModal('history-modal')">&times;</button></div><div class="modal-body"><ul class="saved-quote-list" id="saved-quote-list"></ul></div></div></div>
+    <div id="comparison-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3 class="modal-title">Comparativa Avanzada</h3><button class="modal-close-btn" onclick="closeModal('comparison-modal')">&times;</button></div><div class="modal-body" id="comparison-body"></div><button class="action-btn" style="background: var(--whatsapp-color); margin-top: 20px;" onclick="sendComparisonOnWhatsApp()"><i class="fab fa-whatsapp"></i> Enviar Comparativa</button></div></div>
+    <div id="prompt-modal" class="modal"><div class="modal-content" id="prompt-modal-content"></div></div>
+    <div id="toast-container"></div>
+
+    <script>
+        let subtotal = 0;
+        let finalTotal = 0;
+        let discountPercent = 0;
+        let orderItems = [];
+
+        const ALL_SERVICES = {
+            'color': { name: 'Color Simple Faz', price: 160 }, 'color2': { name: 'Color Doble Faz', price: 120 },
+            'byn': { name: 'BYN Simple Faz', price: 120 }, 'byn2': { name: 'BYN Doble Faz', price: 60 },
+            'foto': { name: 'Fotos', price: 1200 }, 'sticker': { name: 'Stickers', price: 1800 },
+            'anillado': { name: 'Anillado', price: 1800 }
+        };
+
+        const orderContainer = document.getElementById('order-items');
+        const finalTotalEl = document.getElementById('final-total');
+        const orderSummaryEl = document.getElementById('order-summary');
+        const numPagesInput = document.getElementById('num-pages');
+        const numCopiasInput = document.getElementById('num-copias');
+        const totalDisplayEl = document.getElementById('total-display');
+
+        document.addEventListener('DOMContentLoaded', () => numPagesInput.focus());
+
+        function showInputError(el) { el.classList.add('error'); setTimeout(() => el.classList.remove('error'), 1500); el.focus(); }
+
+        function addService(type, name, price) {
+            const numPages = parseInt(numPagesInput.value) || 0;
+            const numCopias = parseInt(numCopiasInput.value) || 1;
+            if (numPages < 1) { showInputError(numPagesInput); return; }
+            const item = { id: Date.now(), type, name, pages: numPages, copies: numCopias, price: numPages * price * numCopias, icon: getIconForService(type), color: getColorForService(type) };
+            addToOrder(item);
+        }
+
+        function addAnillado() {
+            const numAnillados = parseInt(numPagesInput.value) || 0;
+            if (numAnillados < 1) { showInputError(numPagesInput); return; }
+            const item = { id: Date.now(), type: "anillado", name: "Anillado", pages: numAnillados, copies: 1, price: numAnillados * 1800, icon: "fas fa-book", color: "#8E44AD" };
+            addToOrder(item);
+        }
+
+        function getIconForService(type) { return { 'color': 'fas fa-print', 'color2': 'fas fa-copy', 'byn': 'fas fa-file-alt', 'byn2': 'fas fa-file-invoice', 'foto': 'fas fa-camera', 'sticker': 'fas fa-tag', 'anillado': 'fas fa-book' }[type] || 'fas fa-question'; }
+        function getColorForService(type) { return { 'color': '#C0392B', 'color2': '#2980B9', 'byn': '#2C3E50', 'byn2': '#7F8C8D', 'foto': '#F39C12', 'sticker': '#27AE60', 'anillado': '#8E44AD' }[type] || '#7f8c8d'; }
+
+        function addToOrder(item) {
+            orderItems.push(item);
+            renderOrder();
+            updateTotals();
+            numPagesInput.value = "";
+            numCopiasInput.value = "1";
+            numPagesInput.focus();
+        }
+        
+        function applyDiscount(newDiscountValue) {
+            if (!isNaN(newDiscountValue) && newDiscountValue >= 0 && newDiscountValue <= 100) {
+                discountPercent = newDiscountValue;
+                updateTotals();
+                showToast(`Descuento del ${newDiscountValue}% aplicado.`);
+            } else {
+                showToast("Error: Por favor, ingresa un número válido.", 'error');
+            }
+        }
+
+        function updateTotals() {
+            subtotal = orderItems.reduce((sum, item) => sum + item.price, 0);
+            const discountAmount = subtotal * (discountPercent / 100);
+            finalTotal = subtotal - discountAmount;
+            finalTotalEl.textContent = finalTotal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+            
+            orderSummaryEl.style.display = orderItems.length > 0 ? 'block' : 'none';
+            if (orderItems.length > 0) {
+                let summaryHTML = `<div class="summary-row"><span>Subtotal</span><span>$${subtotal.toLocaleString()}</span></div>`;
+                if (discountPercent > 0) {
+                    summaryHTML += `<div class="summary-row discount"><span>Descuento (${discountPercent}%)</span><span>-$${discountAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span></div>`;
+                }
+                summaryHTML += `<div class="summary-row total"><span>Total</span><span>$${finalTotal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</span></div>`;
+                orderSummaryEl.innerHTML = summaryHTML;
+            }
+        }
+
+        function renderOrder() {
+            orderContainer.innerHTML = '';
+            if (orderItems.length === 0) {
+                orderContainer.innerHTML = `<div class="empty-order" id="empty-order"><i class="fas fa-shopping-cart"></i><h3>Tu pedido está vacío</h3><p>Agrega servicios para empezar</p></div>`;
+                return;
+            }
+            orderItems.forEach(item => {
+                const itemEl = document.createElement('div');
+                itemEl.className = 'order-item order-item-enter';
+                itemEl.id = `item-${item.id}`;
+                let meta = (item.type !== "anillado") ? `${item.pages} pág × ${item.copies} copia${item.copies > 1 ? 's' : ''}` : `${item.pages} unidad${item.pages > 1 ? 'es' : ''}`;
+                itemEl.innerHTML = `<div class="item-icon" style="background: ${item.color}20; color: ${item.color};"><i class="${item.icon}"></i></div><div class="item-details"><div class="item-name">${item.name}</div><div class="item-meta">${meta}</div></div><div class="item-price">$${item.price.toLocaleString()}</div><button class="delete-btn" onclick="removeItem(${item.id})" title="Eliminar ítem"><i class="fas fa-trash"></i></button>`;
+                orderContainer.appendChild(itemEl);
+            });
+        }
+
+        function removeItem(itemId) {
+            const itemEl = document.getElementById(`item-${itemId}`);
+            if (itemEl) {
+                itemEl.classList.add('is-removing');
+                setTimeout(() => {
+                    orderItems = orderItems.filter(i => i.id !== itemId);
+                    renderOrder();
+                    updateTotals();
+                }, 300);
+            }
+        }
+
+        function resetOrder() {
+            if (orderItems.length === 0) return;
+            orderItems = [];
+            discountPercent = 0;
+            renderOrder();
+            updateTotals();
+            numPagesInput.value = "";
+            numCopiasInput.value = "1";
+            numPagesInput.focus();
+        }
+
+        function sendOnWhatsApp(text) {
+            const encodedText = encodeURIComponent(text);
+            const url = `https://api.whatsapp.com/send?text=${encodedText}`;
+            window.open(url, '_blank');
+        }
+
+        function sendTotalOnWhatsApp() {
+            if(orderItems.length === 0) return;
+            const textToSend = `El total es: $${finalTotal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+            sendOnWhatsApp(textToSend);
+        }
+
+        // --- LocalStorage and History ---
+        function getSavedQuotes() { return JSON.parse(localStorage.getItem('savedQuotesVCP') || '[]'); }
+
+        function saveQuote(title) {
+            if (orderItems.length === 0) { showToast("No hay nada para guardar.", 'error'); return; }
+            if (title) {
+                const quotes = getSavedQuotes();
+                const newQuote = { id: Date.now(), title, items: orderItems, discount: discountPercent, date: new Date().toLocaleString() };
+                quotes.push(newQuote);
+                localStorage.setItem('savedQuotesVCP', JSON.stringify(quotes));
+                showToast(`"${title}" guardado con éxito.`);
+            }
+        }
+        
+        function showHistoryModal() {
+            const quotes = getSavedQuotes();
+            const listEl = document.getElementById('saved-quote-list');
+            listEl.innerHTML = quotes.length === 0 ? '<li>No hay presupuestos guardados.</li>' : '';
+            quotes.reverse().forEach(quote => {
+                const li = document.createElement('li');
+                li.innerHTML = `<div><strong>${quote.title}</strong><div style="font-size: 12px; color: #777;">${quote.date}</div></div><div class="quote-actions"><button class="action-btn icon-btn" onclick="loadQuote(${quote.id})"><i class="fa-solid fa-upload"></i></button><button class="action-btn icon-btn" style="background: var(--danger-color);" onclick="deleteQuote(${quote.id})"><i class="fa-solid fa-trash"></i></button></div>`;
+                listEl.appendChild(li);
+            });
+            openModal('history-modal');
+        }
+
+        function loadQuote(quoteId) {
+            const quoteToLoad = getSavedQuotes().find(q => q.id === quoteId);
+            if (quoteToLoad) {
+                orderItems = quoteToLoad.items;
+                discountPercent = quoteToLoad.discount;
+                renderOrder();
+                updateTotals();
+                closeModal('history-modal');
+                showToast(`Presupuesto "${quoteToLoad.title}" cargado.`);
+            }
+        }
+
+        function deleteQuote(quoteId) {
+            showPromptModal({
+                title: 'Confirmar Eliminación',
+                label: '¿Estás seguro de que quieres eliminar este presupuesto? Esta acción no se puede deshacer.',
+                inputType: 'none',
+                onConfirm: () => {
+                    let quotes = getSavedQuotes().filter(q => q.id !== quoteId);
+                    localStorage.setItem('savedQuotesVCP', JSON.stringify(quotes));
+                    showHistoryModal();
+                    showToast("Presupuesto eliminado.");
+                }
+            });
+        }
+
+        // --- Advanced Comparison ---
+        function showAdvancedComparisonModal() {
+            if (orderItems.length === 0) { showToast("Agrega ítems para comparar.", 'error'); return; }
+            const comparisonBody = document.getElementById('comparison-body');
+            const options = Object.keys(ALL_SERVICES).map(key => `<option value="${key}">${ALL_SERVICES[key].name}</option>`).join('');
+            comparisonBody.innerHTML = `<div class="comparison-container"><div class="comparison-col" id="comparison-original"></div><div class="comparison-col" id="comparison-target"><select id="comparison-select" class="prompt-input" onchange="generateComparison()"><option value="">Selecciona un servicio para comparar</option>${options}</select><div id="comparison-target-details"></div></div></div>`;
+            generateComparison();
+            openModal('comparison-modal');
+        }
+
+        function generateComparison() {
+            const originalCol = document.getElementById('comparison-original');
+            const targetDetails = document.getElementById('comparison-target-details');
+            const selectedType = document.getElementById('comparison-select').value;
+
+            originalCol.innerHTML = `<h4>Presupuesto Actual: $${finalTotal.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0})}</h4><ul>${orderItems.map(i => `<li>- ${i.name} (${i.pages}p x ${i.copies})</li>`).join('')}</ul>`;
+
+            if (!selectedType) {
+                targetDetails.innerHTML = '';
+                return;
+            }
+
+            const targetItems = orderItems.map(item => {
+                const newInfo = ALL_SERVICES[selectedType];
+                if (item.type === 'anillado' || item.type === 'foto' || item.type === 'sticker') return item;
+                return { ...item, type: selectedType, name: newInfo.name, price: item.pages * item.copies * newInfo.price };
+            });
+            
+            const targetSubtotal = targetItems.reduce((sum, i) => sum + i.price, 0);
+            const targetTotal = targetSubtotal * (1 - (discountPercent / 100));
+            
+            targetDetails.innerHTML = `<h4>Opción ${ALL_SERVICES[selectedType].name}: $${targetTotal.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0})}</h4><ul>${targetItems.map(i => `<li>- ${i.name} (${i.pages}p x ${i.copies})</li>`).join('')}</ul>`;
+        }
+        
+        function getSummaryText(items) {
+            if (items.length === 0) return "";
+            const mainService = items.find(i => i.type !== 'anillado');
+            const hasAnillado = items.some(i => i.type === 'anillado');
+            let text = mainService ? mainService.name.toLowerCase() : "";
+            if (hasAnillado) text += " y anillado";
+            return text;
+        }
+
+        function sendComparisonOnWhatsApp() {
+            const selectedType = document.getElementById('comparison-select').value;
+            if (!selectedType) { showToast("Selecciona un servicio para comparar.", "error"); return; }
+            
+            const originalSummary = getSummaryText(orderItems);
+            
+            const targetItems = orderItems.map(item => {
+                 if (item.type === 'anillado' || item.type === 'foto' || item.type === 'sticker') return item;
+                 const newInfo = ALL_SERVICES[selectedType];
+                 return { ...item, type: selectedType, name: newInfo.name, price: item.pages * item.copies * newInfo.price };
+            });
+            const targetSubtotal = targetItems.reduce((sum, i) => sum + i.price, 0);
+            const targetTotal = targetSubtotal * (1 - (discountPercent / 100));
+            const targetSummary = getSummaryText(targetItems);
+
+            const textToSend = `a) ${originalSummary} $${finalTotal.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0})}\nb) ${targetSummary} $${targetTotal.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0})}`;
+            sendOnWhatsApp(textToSend);
+        }
+
+        // --- Modal & Prompt ---
+        function openModal(modalId) { document.getElementById(modalId).classList.add('is-visible', 'is-opening'); setTimeout(() => document.getElementById(modalId).classList.remove('is-opening'), 200); }
+        function closeModal(modalId) { document.getElementById(modalId).classList.remove('is-visible'); }
+        
+        function showPromptModal({ title, label, inputType = 'text', defaultValue = '', onConfirm }) {
+            const promptContent = document.getElementById('prompt-modal-content');
+            promptContent.innerHTML = `<div class="modal-header"><h3 class="modal-title">${title}</h3><button class="modal-close-btn" onclick="closeModal('prompt-modal')">&times;</button></div><div class="modal-body"><label>${label}</label>${inputType !== 'none' ? `<input type="${inputType}" id="prompt-input" class="prompt-input" value="${defaultValue}">` : ''}</div><div class="prompt-buttons"><button id="prompt-cancel" class="action-btn" style="background: var(--text-light);">Cancelar</button><button id="prompt-confirm" class="action-btn" style="background: var(--primary-color);">Confirmar</button></div>`;
+            openModal('prompt-modal');
+            const input = document.getElementById('prompt-input');
+            if(input) input.focus();
+            document.getElementById('prompt-confirm').onclick = () => { if (onConfirm) onConfirm(input ? input.value : true); closeModal('prompt-modal'); };
+            document.getElementById('prompt-cancel').onclick = () => closeModal('prompt-modal');
+        }
+
+        function promptForDiscount() {
+            showPromptModal({ title: 'Aplicar Descuento', label: 'Ingresa el porcentaje de descuento:', inputType: 'number', defaultValue: discountPercent > 0 ? discountPercent : 20, onConfirm: (value) => applyDiscount(parseFloat(value)) });
+        }
+
+        function promptToSaveQuote() {
+            if (orderItems.length === 0) { showToast("No hay nada para guardar.", 'error'); return; }
+            const defaultName = `Presupuesto ${getSavedQuotes().length + 1}`;
+            showPromptModal({ title: 'Guardar Presupuesto', label: 'Ingresa un nombre para el presupuesto:', defaultValue: defaultName, onConfirm: (value) => saveQuote(value) });
+        }
+
+        // --- Toast Notification ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container') || document.body;
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification';
+            toast.textContent = message;
+            if (type === 'error') toast.style.backgroundColor = 'var(--danger-color)';
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+    </script>
+</body>
+</html>
