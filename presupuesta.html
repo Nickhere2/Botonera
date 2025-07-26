@@ -319,7 +319,17 @@
 
         function sendOnWhatsApp(text) {
             const encodedText = encodeURIComponent(text);
-            const url = `https://api.whatsapp.com/send?text=${encodedText}`;
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+            
+            let url;
+            if (isMobile) {
+                // Use the API link for mobile to open the app directly
+                url = `https://api.whatsapp.com/send?text=${encodedText}`;
+            } else {
+                // Use the web link for desktop
+                url = `https://web.whatsapp.com/send?text=${encodedText}`;
+            }
+            
             window.open(url, '_blank');
         }
 
