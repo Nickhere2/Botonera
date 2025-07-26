@@ -156,7 +156,7 @@
                 <div class="input-group"><label for="num-pages">Págs:</label><input class="input-field" type="number" id="num-pages" min="1" placeholder="0" autofocus></div>
                 <div class="input-group"><label for="num-copias">x</label><input class="input-field" type="number" id="num-copias" min="1" value="1" placeholder="1"></div>
             </div>
-            <div id="total-display" class="total-display" onclick="sendTotalOnWhatsApp()" title="Enviar total por WhatsApp">$<span id="final-total">0</span></div>
+            <div id="total-display" class="total-display" onclick="shareTotal()" title="Compartir total">$<span id="final-total">0</span></div>
         </header>
 
         <!-- CONTENT -->
@@ -196,7 +196,7 @@
 
     <!-- Modals -->
     <div id="history-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3 class="modal-title">Historial de Presupuestos</h3><button class="modal-close-btn" onclick="closeModal('history-modal')">&times;</button></div><div class="modal-body"><ul class="saved-quote-list" id="saved-quote-list"></ul></div></div></div>
-    <div id="comparison-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3 class="modal-title">Comparativa Avanzada</h3><button class="modal-close-btn" onclick="closeModal('comparison-modal')">&times;</button></div><div class="modal-body" id="comparison-body"></div><button class="action-btn" style="background: var(--whatsapp-color); margin-top: 20px;" onclick="sendComparisonOnWhatsApp()"><i class="fab fa-whatsapp"></i> Enviar Comparativa</button></div></div>
+    <div id="comparison-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3 class="modal-title">Comparativa Avanzada</h3><button class="modal-close-btn" onclick="closeModal('comparison-modal')">&times;</button></div><div class="modal-body" id="comparison-body"></div><button class="action-btn" style="background: var(--primary-color); margin-top: 20px;" onclick="shareComparison()"><i class="fas fa-share-alt"></i> Compartir Comparativa</button></div></div>
     <div id="prompt-modal" class="modal"><div class="modal-content" id="prompt-modal-content"></div></div>
     <div id="toast-container"></div>
 
@@ -317,26 +317,28 @@
             numPagesInput.focus();
         }
 
-        function sendOnWhatsApp(text) {
-            const encodedText = encodeURIComponent(text);
-            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-            
-            let url;
-            if (isMobile) {
-                // Use the API link for mobile to open the app directly
-                url = `https://api.whatsapp.com/send?text=${encodedText}`;
+        async function shareText(text, title = 'Presupuesto ImpresionesVCP') {
+            const shareData = { title, text };
+            if (navigator.share) {
+                try {
+                    await navigator.share(shareData);
+                } catch (err) {
+                    if (err.name !== 'AbortError') {
+                        showToast('Error al compartir.', 'error');
+                    }
+                }
             } else {
-                // Use the web link for desktop with the requested format
-                url = `https://web.whatsapp.com/send/?text=${encodedText}`;
+                // Fallback for desktop
+                const encodedText = encodeURIComponent(text);
+                const url = `https://web.whatsapp.com/send/?text=${encodedText}`;
+                window.open(url, '_blank');
             }
-            
-            window.open(url, '_blank');
         }
 
-        function sendTotalOnWhatsApp() {
+        function shareTotal() {
             if(orderItems.length === 0) return;
             const textToSend = `El total es: $${finalTotal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-            sendOnWhatsApp(textToSend);
+            shareText(textToSend, 'Total del Presupuesto');
         }
 
         // --- LocalStorage and History ---
@@ -434,7 +436,7 @@
             return text;
         }
 
-        function sendComparisonOnWhatsApp() {
+        function shareComparison() {
             const selectedType = document.getElementById('comparison-select').value;
             if (!selectedType) { showToast("Selecciona un servicio para comparar.", "error"); return; }
             
@@ -450,7 +452,7 @@
             const targetSummary = getSummaryText(targetItems);
 
             const textToSend = `a) ${originalSummary} $${finalTotal.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0})}\nb) ${targetSummary} $${targetTotal.toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0})}`;
-            sendOnWhatsApp(textToSend);
+            shareText(textToSend, 'Comparativa de Presupuesto');
         }
 
         // --- Modal & Prompt ---
