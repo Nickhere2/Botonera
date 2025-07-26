@@ -138,19 +138,24 @@
             .total-display { order: 2; flex-grow: 1; }
             .header-left { order: 3; }
             
+            /* Changed mobile layout to be side-by-side */
             .app-content {
-                flex-direction: column;
-                flex: 1; /* Make sure content area takes up remaining space */
-                min-height: 0; /* Allow content area to shrink if needed */
+                flex-direction: row; /* Ensure side-by-side layout */
+                flex: 1;
+                min-height: 0;
             }
             
             .panel {
-                flex: 1; /* Distribute space equally */
-                min-height: 0; /* CRITICAL: Allows panels to shrink below their content size */
+                flex: 1;
+                min-height: 0;
+                padding: 10px; /* Reduce padding on mobile */
             }
 
-            .services-panel { border-right: none; border-bottom: 1px solid var(--border-color); }
-            .services-grid { grid-template-columns: 1fr 1fr; }
+            .services-panel {
+                border-bottom: none; /* Remove bottom border */
+                border-right: 1px solid var(--border-color); /* Ensure right border exists */
+            }
+            .services-grid { grid-template-columns: 1fr; } /* Force single column for buttons */
             .comparison-container { grid-template-columns: 1fr; }
         }
     </style>
