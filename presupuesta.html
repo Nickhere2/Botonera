@@ -326,8 +326,8 @@
                 // Use the API link for mobile to open the app directly
                 url = `https://api.whatsapp.com/send?text=${encodedText}`;
             } else {
-                // Use the web link for desktop
-                url = `https://web.whatsapp.com/send?text=${encodedText}`;
+                // Use the web link for desktop with the requested format
+                url = `https://web.whatsapp.com/send/?text=${encodedText}`;
             }
             
             window.open(url, '_blank');
