@@ -132,17 +132,23 @@
         .toast-notification { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--secondary-color); color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 2000; animation: toast-in 0.3s ease-out; }
 
         @media (max-width: 600px) {
-            .container { margin: 0; border-radius: 0; max-height: 100vh; }
+            .container { margin: 0; border-radius: 0; height: 100vh; max-height: 100vh; }
             .app-header { flex-wrap: wrap; gap: 10px; }
             .controls { order: 1; width: 100%; justify-content: space-between; }
             .total-display { order: 2; flex-grow: 1; }
             .header-left { order: 3; }
-            .app-content { flex-direction: column; }
-            /* Fix added to prevent main page scrolling on mobile */
-            /* This allows flex items (the panels) to shrink below their content size */
-            .panel {
-                min-height: 0;
+            
+            .app-content {
+                flex-direction: column;
+                flex: 1; /* Make sure content area takes up remaining space */
+                min-height: 0; /* Allow content area to shrink if needed */
             }
+            
+            .panel {
+                flex: 1; /* Distribute space equally */
+                min-height: 0; /* CRITICAL: Allows panels to shrink below their content size */
+            }
+
             .services-panel { border-right: none; border-bottom: 1px solid var(--border-color); }
             .services-grid { grid-template-columns: 1fr 1fr; }
             .comparison-container { grid-template-columns: 1fr; }
