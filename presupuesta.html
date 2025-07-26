@@ -138,6 +138,11 @@
             .total-display { order: 2; flex-grow: 1; }
             .header-left { order: 3; }
             .app-content { flex-direction: column; }
+            /* Fix added to prevent main page scrolling on mobile */
+            /* This allows flex items (the panels) to shrink below their content size */
+            .panel {
+                min-height: 0;
+            }
             .services-panel { border-right: none; border-bottom: 1px solid var(--border-color); }
             .services-grid { grid-template-columns: 1fr 1fr; }
             .comparison-container { grid-template-columns: 1fr; }
