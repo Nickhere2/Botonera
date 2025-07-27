@@ -344,7 +344,9 @@
 
         async function shareText(text, title = 'Presupuesto ImpresionesVCP') {
             const shareData = { title, text };
-            if (navigator.share) {
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+            if (navigator.share && isMobile) {
                 try {
                     await navigator.share(shareData);
                 } catch (err) {
@@ -353,7 +355,7 @@
                     }
                 }
             } else {
-                // Fallback for desktop
+                // Fallback for desktop or browsers without mobile share
                 const encodedText = encodeURIComponent(text);
                 const url = `https://web.whatsapp.com/send/?text=${encodedText}`;
                 window.open(url, '_blank');
