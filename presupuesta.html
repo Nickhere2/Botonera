@@ -78,6 +78,8 @@
         .color-btn { color: #C0392B; } .color2-btn { color: #2980B9; } .byn-btn { color: #2C3E50; }
         .byn2-btn { color: #7F8C8D; } .foto-btn { color: #F39C12; } .sticker-btn { color: #27AE60; }
         .anillado-btn { color: #8E44AD; }
+        .full-btn { color: #D35400; } /* Orange for Full color */
+        .full2-btn { color: #8E44AD; } /* Purple for Full color 2 */
         
         .action-btn { padding: 10px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; transition: all 0.2s; }
         .action-btn:hover { opacity: 0.9; }
@@ -181,13 +183,19 @@
             <div class="panel services-panel">
                 <div class="panel-header"><div><i class="fas fa-print"></i> <span>Servicios de Impresión</span></div></div>
                 <div class="services-grid">
-                    <button class="service-btn color-btn" onclick="addService('color', 'Color Simple Faz', 160)"><i class="fas fa-print"></i><span>Color Simple</span><div class="service-price">$160/pág</div></button>
-                    <button class="service-btn color2-btn" onclick="addService('color2', 'Color Doble Faz', 120)"><i class="fas fa-copy"></i><span>Color Doble</span><div class="service-price">$120/pág</div></button>
-                    <button class="service-btn byn-btn" onclick="addService('byn', 'BYN Simple Faz', 120)"><i class="fas fa-file-alt"></i><span>BYN Simple</span><div class="service-price">$120/pág</div></button>
+                    <!-- B&N Buttons -->
+                    <button class="service-btn byn-btn" onclick="addService('byn', 'BYN Simple Faz', 90)"><i class="fas fa-file-alt"></i><span>BYN Simple</span><div class="service-price">$90/pág</div></button>
                     <button class="service-btn byn2-btn" onclick="addService('byn2', 'BYN Doble Faz', 60)"><i class="fas fa-file-invoice"></i><span>BYN Doble</span><div class="service-price">$60/pág</div></button>
-                    <button class="service-btn foto-btn" onclick="addService('foto', 'Fotos', 1200)"><i class="fas fa-camera"></i><span>Fotos</span><div class="service-price">$1,200/pág</div></button>
-                    <button class="service-btn sticker-btn" onclick="addService('sticker', 'Stickers', 1800)"><i class="fas fa-tag"></i><span>Stickers</span><div class="service-price">$1,800/pág</div></button>
-                    <button class="service-btn anillado-btn" onclick="addAnillado()"><i class="fas fa-book"></i><span>Anillado</span><div class="service-price">$1,800/unid</div></button>
+                    <!-- Color Buttons -->
+                    <button class="service-btn color-btn" onclick="addService('color', 'Color Simple Faz', 120)"><i class="fas fa-print"></i><span>Color Simple</span><div class="service-price">$120/pág</div></button>
+                    <button class="service-btn color2-btn" onclick="addService('color2', 'Color Doble Faz', 80)"><i class="fas fa-copy"></i><span>Color Doble</span><div class="service-price">$80/pág</div></button>
+                    <!-- Full Color Buttons -->
+                    <button class="service-btn full-btn" onclick="addService('full', 'Full Simple Faz', 200)"><i class="fas fa-palette"></i><span>Full Simple</span><div class="service-price">$200/pág</div></button>
+                    <button class="service-btn full2-btn" onclick="addService('full2', 'Full Doble Faz', 150)"><i class="fas fa-brush"></i><span>Full Doble</span><div class="service-price">$150/pág</div></button>
+                    <!-- Other Buttons -->
+                    <button class="service-btn foto-btn" onclick="addService('foto', 'Fotos', 1200)"><i class="fas fa-camera"></i><span>Fotos</span><div class="service-price">$1.200/pág</div></button>
+                    <button class="service-btn sticker-btn" onclick="addService('sticker', 'Stickers', 1800)"><i class="fas fa-tag"></i><span>Stickers</span><div class="service-price">$1.800/pág</div></button>
+                    <button class="service-btn anillado-btn" onclick="addAnillado()"><i class="fas fa-book"></i><span>Anillado</span><div class="service-price">$1.800/unid</div></button>
                 </div>
                 <button class="action-btn reset-btn" onclick="resetOrder()"><i class="fas fa-trash-alt"></i> Reiniciar Pedido</button>
             </div>
@@ -223,8 +231,9 @@
         let orderItems = [];
 
         const ALL_SERVICES = {
-            'color': { name: 'Color Simple Faz', price: 160 }, 'color2': { name: 'Color Doble Faz', price: 120 },
-            'byn': { name: 'BYN Simple Faz', price: 120 }, 'byn2': { name: 'BYN Doble Faz', price: 60 },
+            'byn': { name: 'BYN Simple Faz', price: 90 }, 'byn2': { name: 'BYN Doble Faz', price: 60 },
+            'color': { name: 'Color Simple Faz', price: 120 }, 'color2': { name: 'Color Doble Faz', price: 80 },
+            'full': { name: 'Full Simple Faz', price: 200 }, 'full2': { name: 'Full Doble Faz', price: 150 },
             'foto': { name: 'Fotos', price: 1200 }, 'sticker': { name: 'Stickers', price: 1800 },
             'anillado': { name: 'Anillado', price: 1800 }
         };
@@ -255,8 +264,8 @@
             addToOrder(item);
         }
 
-        function getIconForService(type) { return { 'color': 'fas fa-print', 'color2': 'fas fa-copy', 'byn': 'fas fa-file-alt', 'byn2': 'fas fa-file-invoice', 'foto': 'fas fa-camera', 'sticker': 'fas fa-tag', 'anillado': 'fas fa-book' }[type] || 'fas fa-question'; }
-        function getColorForService(type) { return { 'color': '#C0392B', 'color2': '#2980B9', 'byn': '#2C3E50', 'byn2': '#7F8C8D', 'foto': '#F39C12', 'sticker': '#27AE60', 'anillado': '#8E44AD' }[type] || '#7f8c8d'; }
+        function getIconForService(type) { return { 'color': 'fas fa-print', 'color2': 'fas fa-copy', 'byn': 'fas fa-file-alt', 'byn2': 'fas fa-file-invoice', 'full': 'fas fa-palette', 'full2': 'fas fa-brush', 'foto': 'fas fa-camera', 'sticker': 'fas fa-tag', 'anillado': 'fas fa-book' }[type] || 'fas fa-question'; }
+        function getColorForService(type) { return { 'color': '#C0392B', 'color2': '#2980B9', 'byn': '#2C3E50', 'byn2': '#7F8C8D', 'full': '#D35400', 'full2': '#8E44AD', 'foto': '#F39C12', 'sticker': '#27AE60', 'anillado': '#8E44AD' }[type] || '#7f8c8d'; }
 
         function addToOrder(item) {
             orderItems.push(item);
