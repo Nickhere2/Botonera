@@ -552,58 +552,6 @@
             transform: translate(-4px, -4px);
         }
 
-        /* --- LOADING BAR --- */
-        .loading-container-xp {
-            width: 150px;
-            height: 12px;
-            border: 2px solid #7E7E7E;
-            background-color: #3B3B3B;
-            padding: 2px;
-            box-shadow: inset 2px 2px 0 #000, inset -2px -2px 0 #C1C1C1;
-        }
-
-        .loading-bar-xp {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .loading-bar-xp::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 48px; /* Width for 3 blocks + gaps */
-            height: 100%;
-            background: 
-                repeating-linear-gradient(
-                    90deg, 
-                    #3A6BBD 0px, #3A6BBD 12px, /* Block 1 */
-                    transparent 12px, transparent 16px, /* Gap 1 */
-                    #3A6BBD 16px, #3A6BBD 28px, /* Block 2 */
-                    transparent 28px, transparent 32px, /* Gap 2 */
-                    #3A6BBD 32px, #3A6BBD 44px /* Block 3 */
-                );
-        }
-
-        .loading-bar-xp.loading::before {
-            animation: loading-xp 1.5s linear 3;
-        }
-        
-        #helpModal .loading-bar-xp.loading::before {
-            animation: loading-xp 1.5s linear infinite;
-        }
-
-        @keyframes loading-xp {
-            0% {
-                transform: translateX(-50px); /* Start off-screen left */
-            }
-            100% {
-                transform: translateX(150px); /* End off-screen right */
-            }
-        }
-
         /* --- WELCOME HEADER --- */
         .winxp-header {
             background: #3d80f2; /* Fallback */
@@ -644,9 +592,6 @@
                 <!-- Logo Principal -->
                 <div id="logo-container" class="text-center">
                     <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" id="sidebar-logo" class="w-32 h-32 object-contain cursor-pointer">
-                    <div id="loading-container" class="loading-container-xp mx-auto mt-2 hidden">
-                        <div id="loading-bar" class="loading-bar-xp"></div>
-                    </div>
                 </div>
                 
                 <!-- Barra de Filtro Global (inicialmente oculta) -->
@@ -1129,14 +1074,12 @@ function setupEventListeners() {
         if (wasVisible && !globalSearchContainer.contains(e.target) && !logoContainer.contains(e.target)) {
             globalSearchContainer.classList.add('hidden');
             globalSearchContainer.classList.remove('expanded');
-            showLoadingAnimation(() => {
-                if (window.innerWidth >= 1024) {
-                    globalSearchInput.value = '';
-                    activeFilterTags = [];
-                    document.querySelectorAll('#global-search-tags .filter-tag.active').forEach(tagEl => tagEl.classList.remove('active'));
-                    applyGlobalFilter();
-                }
-            });
+            if (window.innerWidth >= 1024) {
+                globalSearchInput.value = '';
+                activeFilterTags = [];
+                document.querySelectorAll('#global-search-tags .filter-tag.active').forEach(tagEl => tagEl.classList.remove('active'));
+                applyGlobalFilter();
+            }
         }
     });
     
@@ -1215,39 +1158,15 @@ function setupEventListeners() {
     });
 }
 
-function showLoadingAnimation(callback) {
-    const logoContainer = document.getElementById('logo-container');
-    const loadingContainer = document.getElementById('loading-container');
-    const loadingBar = document.getElementById('loading-bar');
-
-    logoContainer.classList.remove('hidden');
-    loadingContainer.classList.remove('hidden');
-    
-    // Reset animation
-    loadingBar.classList.remove('loading');
-    void loadingBar.offsetWidth; // Trigger reflow
-    loadingBar.classList.add('loading');
-
-    setTimeout(() => {
-        loadingContainer.classList.add('hidden');
-        loadingBar.classList.remove('loading');
-        if (callback) {
-            callback();
-        }
-    }, 4500); // Match animation duration (1.5s * 3 iterations)
-}
-
 function initializeUI() {
-    showLoadingAnimation(() => {
-        if (!data.items || data.items.length === 0) {
-            console.log("No data available to initialize UI.");
-            const mainContent = document.querySelector('main');
-            mainContent.innerHTML = '<div class="text-center p-8"><h2 class="text-2xl font-bold">Bienvenido</h2><p>Parece que no hay datos. Abre la configuración para conectar tu Gist de GitHub o usar datos de ejemplo.</p></div>';
-            return;
-        };
-        applyTheme(themes[currentThemeIndex]);
-        switchTab('buscadores'); 
-    });
+    if (!data.items || data.items.length === 0) {
+        console.log("No data available to initialize UI.");
+        const mainContent = document.querySelector('main');
+        mainContent.innerHTML = '<div class="text-center p-8"><h2 class="text-2xl font-bold">Bienvenido</h2><p>Parece que no hay datos. Abre la configuración para conectar tu Gist de GitHub o usar datos de ejemplo.</p></div>';
+        return;
+    };
+    applyTheme(themes[currentThemeIndex]);
+    switchTab('buscadores'); 
 }
 
 function refreshUI(sectionName) {
@@ -2095,7 +2014,7 @@ function showConfirmModal(message, callback) {
 function deleteItem(id) {
     showConfirmModal("SEGURO QUE QUIERES ELIMINAR ESTE ELEMENTO?", (confirmed) => {
         if (confirmed) {
-            data.items = data.items.filter(i => String(i.id) !== String(id));
+            data.items = data.items.filter(i => String(i.id) === String(id));
             saveData().then(() => refreshUI());
         }
     });
