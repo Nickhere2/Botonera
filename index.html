@@ -749,14 +749,14 @@
     <div id="helpModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
         <div class="modal-container w-11/12 max-w-2xl p-0 overflow-hidden flex flex-col">
              <div class="winxp-header relative flex-shrink-0">
-                <h2 class="text-4xl italic font-bold text-white" style="font-family: Tahoma, sans-serif; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">Bienvenido</h2>
-                <button id="closeHelpModal" class="absolute top-2 right-2 brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold text-white">X</button>
+                 <h2 class="text-4xl italic font-bold text-white" style="font-family: Tahoma, sans-serif; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">Bienvenido</h2>
+                 <button id="closeHelpModal" class="absolute top-2 right-2 brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold text-white">X</button>
              </div>
             <div class="p-6 sm:p-8 overflow-y-auto">
                 <div class="text-center mb-6">
-                     <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-32 w-32 object-contain inline-block">
-                     <p class="text-xl font-bold">a Rear Window</p>
-                     <p class="text-sm opacity-80 -mt-1">La ventana indiscreta, el terror de Microsoft</p>
+                      <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-32 w-32 object-contain inline-block">
+                      <p class="text-xl font-bold">a Rear Window</p>
+                      <p class="text-sm opacity-80 -mt-1">La ventana indiscreta, el terror de Microsoft</p>
                 </div>
                 <div class="space-y-6">
                     <div>
@@ -979,9 +979,9 @@ async function saveData() {
         });
         if (!response.ok) {
              if(response.status === 401 || response.status === 404) {
-                 localStorage.removeItem('github_pat');
-                 showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
-                 openSettingsModal();
+                  localStorage.removeItem('github_pat');
+                  showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
+                  openSettingsModal();
              }
              throw new Error(`ERROR AL GUARDAR: ${response.status}`)
         };
@@ -1074,6 +1074,7 @@ function setupEventListeners() {
         if (wasVisible && !globalSearchContainer.contains(e.target) && !logoContainer.contains(e.target)) {
             globalSearchContainer.classList.add('hidden');
             globalSearchContainer.classList.remove('expanded');
+            logoContainer.classList.remove('hidden'); // CORRECCIÓN: Mostrar el logo de nuevo
             if (window.innerWidth >= 1024) {
                 globalSearchInput.value = '';
                 activeFilterTags = [];
@@ -2014,7 +2015,7 @@ function showConfirmModal(message, callback) {
 function deleteItem(id) {
     showConfirmModal("SEGURO QUE QUIERES ELIMINAR ESTE ELEMENTO?", (confirmed) => {
         if (confirmed) {
-            data.items = data.items.filter(i => String(i.id) === String(id));
+            data.items = data.items.filter(i => String(i.id) !== String(id));
             saveData().then(() => refreshUI());
         }
     });
