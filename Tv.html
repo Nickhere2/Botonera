@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Argentina en Vivo</title>
+    <!-- Incluimos Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilo para una barra de scroll más sutil */
+        .custom-scroll::-webkit-scrollbar { width: 8px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #1e293b; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
+        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #64748b; }
+
+        .favorite-star.favorited { color: #facc15; /* yellow-400 */ }
+        
+        .channel-card {
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+        .channel-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); /* Sombra azul al pasar el mouse */
+        }
+        
+        /* --- Estilos de TV --- */
+        .tv-bezel {
+            background: #0f172a; /* slate-900 */
+            padding: 1.5rem;
+            border-radius: 1.5rem;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.7), 0 0 30px rgba(0,0,0,0.5);
+        }
+
+        #video-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(rgba(255,255,255,0.03) 50%, rgba(0,0,0,0.05) 50%), linear-gradient(90deg, rgba(0,0,0,0.05) 50%, rgba(255,255,255,0.03) 50%);
+            background-size: 100% 3px, 3px 100%;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* --- Fin Estilos de TV --- */
+        
+        /* Controles flotantes */
+        #floating-controls {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        #video-container:hover #floating-controls {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+    </style>
+</head>
+<body class="bg-slate-900 text-white font-sans antialiased">
+    <div id="app" class="flex flex-col md:flex-row h-screen">
+        
+        <!-- Barra Lateral de Canales y Herramientas -->
+        <aside class="w-full md:w-80 bg-slate-800 flex flex-col p-4 border-r border-slate-700">
+            <header class="mb-4 flex justify-between items-center">
+                <h1 class="text-3xl font-bold text-white tracking-wider">TV Argentina</h1>
+                <button id="help-button" title="Ayuda" class="p-2 rounded-full hover:bg-slate-700 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </button>
+            </header>
+            
+            <!-- Buscador de YouTube -->
+            <form id="search-form" class="mb-2">
+                <div class="relative">
+                    <input type="search" id="search-input" placeholder="Buscar en YouTube..." class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <button type="submit" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </button>
+                </div>
+                <div class="mt-2 flex items-center justify-center">
+                    <input type="checkbox" id="live-filter" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2">
+                    <label for="live-filter" class="ml-2 text-sm font-medium text-gray-300">Sólo "En Vivo"</label>
+                </div>
+            </form>
+
+            <!-- Ver Después -->
+            <form id="watch-later-form" class="mb-4">
+                 <div class="relative">
+                    <input type="url" id="watch-later-input" placeholder="Pegar URL de YouTube para ver después" class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                    <button type="submit" title="Guardar video" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
+            </form>
+
+            <!-- Filtros -->
+            <div id="filter-container" class="mb-4 flex justify-center bg-slate-700 rounded-lg p-1">
+                <button data-filter="all" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Todos</button>
+                <button data-filter="favorites" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Favoritos</button>
+                <button data-filter="watchLater" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Ver Después</button>
+            </div>
+            
+            <nav id="channel-list" class="flex-grow overflow-y-auto custom-scroll grid grid-cols-2 gap-2 pr-2">
+                <!-- Las tarjetas de los canales se insertarán aquí -->
+            </nav>
+
+            <div class="mt-4">
+                <button id="add-channel-button" class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors text-sm font-semibold">+ Agregar Canal</button>
+            </div>
+        </aside>
+
+        <!-- Área Principal del Video -->
+        <main class="flex-1 flex flex-col p-4 md:p-6 lg:p-8 bg-gradient-to-br from-slate-900 to-slate-800 justify-center">
+             <div class="tv-bezel w-full flex-1 flex">
+                <div id="video-container" class="w-full flex-1 bg-black rounded-lg shadow-2xl flex items-center justify-center relative overflow-hidden">
+                    <div id="placeholder" class="text-center text-slate-400 p-4 w-full h-full flex flex-col justify-center items-center">
+                        <p class="z-10 font-mono">SELECCIONE UN CANAL</p>
+                    </div>
+                     <div id="help-screen" class="hidden p-8 text-slate-300 overflow-y-auto custom-scroll w-full h-full z-20 bg-slate-900/90 backdrop-blur-sm">
+                        <h3 class="text-2xl font-bold text-center mb-4 text-white">Guía de Uso</h3>
+                        <div class="space-y-4 text-sm">
+                            <div>
+                                <h4 class="font-semibold text-blue-400">📺 Zapping</h4>
+                                <p>Puedes cambiar de canal usando los botones <span class="font-mono text-white">&lt;</span> y <span class="font-mono text-white">&gt;</span> que aparecen al lado del video, o con las <span class="font-semibold text-white">flechas arriba y abajo</span> del teclado.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-yellow-400">★ Favoritos</h4>
+                                <p>Haz clic en la estrella de un canal para agregarlo a tus favoritos. Luego, puedes filtrar la lista para hacer zapping solo entre tus canales preferidos. Presiona la tecla <span class="font-mono font-semibold text-white">F</span> para marcar como favorito el canal que estás viendo.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-green-400">🕒 Ver Después</h4>
+                                <p>Pega la URL de cualquier video de YouTube en el campo "Ver después" para guardarlo. Lo encontrarás en su propia sección para verlo cuando quieras.</p>
+                            </div>
+                             <div>
+                                <h4 class="font-semibold text-purple-400">➕ Agregar Canales</h4>
+                                <p>Usa el botón "+ Agregar Canal" para añadir tus propios canales, ya sea un directo de YouTube o un enlace a una página externa.</p>
+                            </div>
+                             <div>
+                                <h4 class="font-semibold text-red-400">⏻ Apagar</h4>
+                                <p>Usa el botón de encendido/apagado o presiona la tecla <span class="font-mono font-semibold text-white">P</span> para detener la reproducción y volver a la pantalla de inicio.</p>
+                            </div>
+                        </div>
+                        <button id="close-help-button" class="mt-6 mx-auto block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Entendido</button>
+                    </div>
+                    <iframe id="video-player" class="hidden absolute top-0 left-0 w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    
+                    <!-- Controles de Zapping Flotantes -->
+                    <div id="floating-controls" class="absolute top-1/2 right-4 -translate-y-1/2 flex flex-col space-y-3 z-20">
+                        <button id="zap-prev" title="Canal anterior" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        </button>
+                        <button id="zap-next" title="Canal siguiente" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controles Inferiores -->
+            <div id="controls-container" class="mt-4 flex flex-col items-center space-y-2">
+                <h2 id="channel-title" class="text-xl h-7 font-semibold text-slate-300 text-center truncate"></h2>
+                <div class="flex items-center space-x-3 md:space-x-4">
+                     <button id="power-button" title="Apagar TV" class="p-2 rounded-full bg-slate-700 hover:bg-red-600/50 transition-colors">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal para Agregar Canal -->
+    <div id="add-channel-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div class="bg-slate-800 rounded-lg p-6 w-full max-w-md shadow-xl border border-slate-700">
+            <h3 class="text-xl font-bold mb-4">Agregar Nuevo Canal</h3>
+            <form id="add-channel-form">
+                <div class="mb-4">
+                    <label for="channel-name" class="block mb-2 text-sm font-medium text-slate-300">Nombre del Canal</label>
+                    <input type="text" id="channel-name" class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="mb-4">
+                     <label class="block mb-2 text-sm font-medium text-slate-300">Tipo de Canal</label>
+                     <div class="flex gap-4">
+                        <div>
+                            <input type="radio" id="type-embed" name="channel-type" value="youtube-embed" checked class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 ring-offset-gray-800 focus:ring-2">
+                            <label for="type-embed" class="ml-2 text-sm font-medium text-gray-300">En Vivo (YouTube)</label>
+                        </div>
+                         <div>
+                            <input type="radio" id="type-external" name="channel-type" value="external-link" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 focus:ring-blue-600 ring-offset-gray-800 focus:ring-2">
+                            <label for="type-external" class="ml-2 text-sm font-medium text-gray-300">Enlace Externo</label>
+                        </div>
+                     </div>
+                </div>
+                <div class="mb-6">
+                    <label for="channel-url" class="block mb-2 text-sm font-medium text-slate-300">URL del Canal</label>
+                    <input type="url" id="channel-url" placeholder="https://www.youtube.com/watch?v=..." class="w-full bg-slate-700 border border-slate-600 rounded-lg p-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                </div>
+                <div class="flex justify-end gap-3">
+                     <button type="button" id="cancel-add-channel" class="py-2 px-4 bg-slate-600 hover:bg-slate-500 rounded-lg transition-colors">Cancelar</button>
+                     <button type="submit" class="py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors">Guardar Canal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const initialChannels = [
+                { name: "C5N", id: "jTDk5CswBVk", type: "youtube-embed" },
+                { name: "Crónica TV", id: "avly0uwZzOE", type: "youtube-embed" },
+                { name: "TN", id: "cb12KmMMDJA", type: "youtube-embed" },
+                { name: "LN+", id: "5f__Ls4_VYQ", type: "youtube-embed" },
+                { name: "Telefe Noticias", id: "xo8GkZXtNV0", type: "youtube-embed"},
+                { name: "Telefe", url: "https://mitelefe.com/vivo/", type: "external-link" },
+                { name: "El Trece", url: "https://www.eltrecetv.com.ar/vivo/", type: "external-link" },
+                { name: "América TV", url: "https://www.americatv.com.ar/vivo", type: "external-link" },
+                { name: "TV Pública", url: "https://www.tvpublica.com.ar/vivo", type: "external-link" },
+                { name: "Canal 9", url: "https://www.elnueve.com.ar/en-vivo", type: "external-link" },
+                { name: "Urbana Play", query: "Urbana Play", type: "youtube-search" }
+            ];
+
+            const channelListEl = document.getElementById('channel-list');
+            const videoPlayer = document.getElementById('video-player');
+            const placeholder = document.getElementById('placeholder');
+            const channelTitle = document.getElementById('channel-title');
+            const searchForm = document.getElementById('search-form');
+            const searchInput = document.getElementById('search-input');
+            const powerButton = document.getElementById('power-button');
+            const watchLaterForm = document.getElementById('watch-later-form');
+            const watchLaterInput = document.getElementById('watch-later-input');
+            const helpButton = document.getElementById('help-button');
+            const helpScreen = document.getElementById('help-screen');
+            const closeHelpButton = document.getElementById('close-help-button');
+            const addChannelModal = document.getElementById('add-channel-modal');
+            const addChannelButton = document.getElementById('add-channel-button');
+            const cancelAddChannel = document.getElementById('cancel-add-channel');
+            const addChannelForm = document.getElementById('add-channel-form');
+
+            let currentChannelIndex = -1;
+            let activeChannelButton = null;
+            let favorites = JSON.parse(localStorage.getItem('tv_favorites')) || [];
+            let watchLaterList = JSON.parse(localStorage.getItem('tv_watch_later')) || [];
+            let userChannels = JSON.parse(localStorage.getItem('tv_user_channels')) || [];
+            let allChannels = [...initialChannels, ...userChannels];
+            let currentFilter = 'all';
+            let messageTimeout = null;
+
+            function saveFavorites() { localStorage.setItem('tv_favorites', JSON.stringify(favorites)); }
+            function saveWatchLater() { localStorage.setItem('tv_watch_later', JSON.stringify(watchLaterList)); }
+            function saveUserChannels() { localStorage.setItem('tv_user_channels', JSON.stringify(userChannels)); }
+
+            function updateAllChannelsList() { allChannels = [...initialChannels, ...userChannels]; }
+            
+            function extractYouTubeID(url) {
+                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                const match = url.match(regExp);
+                return (match && match[2].length === 11) ? match[2] : null;
+            }
+
+            function generateLogoSvg(channel) {
+                let svgContent;
+                switch(channel.name) {
+                    case 'Telefe': svgContent = `<rect width="320" height="180" fill="#00529C"/><circle cx="55" cy="90" r="22" fill="#3EADEB"/><circle cx="115" cy="90" r="22" fill="#93C13E"/><circle cx="175" cy="90" r="22" fill="#E21C21"/><text fill="white" font-family="'Trebuchet MS', sans-serif" font-size="30" font-weight="bold" x="205" y="102">telefe</text>`; break;
+                    case 'América TV': svgContent = `<rect width="320" height="180" fill="white"/><g transform="translate(160, 75)"><rect x="-40" y="-40" width="40" height="40" fill="#4285F4"/><rect x="0" y="-40" width="40" height="40" fill="#34A853"/><rect x="-40" y="0" width="40" height="40" fill="#FBBC05"/><rect x="0" y="0" width="40" height="40" fill="#EA4335"/></g><text x="160" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#333" font-weight="bold">am&#233;rica</text>`; break;
+                    case 'TV Pública': svgContent = `<rect width="320" height="180" fill="white"/><g transform="translate(160, 90)"><circle cx="0" cy="0" r="45" fill="#3EADEB" /><circle cx="0" cy="0" r="40" fill="white" /><circle cx="0" cy="0" r="35" fill="#3EADEB" /><circle cx="0" cy="0" r="15" fill="#F7B32B" /></g><text x="160" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" fill="#333" font-weight="bold">TV P&#218;BLICA</text>`; break;
+                    case 'Urbana Play': svgContent = `<rect width="320" height="180" fill="black" /><g transform="translate(80, 90)"><circle cx="0" cy="0" r="40" stroke-width="8" stroke="#333"/><path d="M -20,-28 L 20,0 L -20,28 Z" fill="white"/><text x="-5" y="4" text-anchor="middle" font-family="Arial Black, sans-serif" font-weight="900" font-size="16">urb</text></g><text x="140" y="85" font-family="Arial, sans-serif" font-size="24" fill="white" font-weight="bold">urbana</text><text x="140" y="115" font-family="Arial, sans-serif" font-size="24" fill="white" font-weight="bold">104.3 play</text>`; break;
+                    case 'Canal 9': svgContent = `<rect width="320" height="180" fill="white"/><g transform="translate(160, 90)"><circle cx="0" cy="0" r="50" fill="#E3007E"/><circle cx="0" cy="0" r="25" fill="white"/><text x="0" y="15" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#E3007E" font-weight="bold">9</text></g><text x="160" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" fill="#333" font-weight="bold">elnueve</text>`; break;
+                    case 'El Trece': svgContent = `<rect width="320" height="180" fill="white"/><g transform="translate(160, 80) scale(1.4)"><defs><linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:#EC008C" /><stop offset="100%" style="stop-color:#FCB913" /></linearGradient><linearGradient id="grad2" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" style="stop-color:#D71921" /><stop offset="100%" style="stop-color:#F7931E" /></linearGradient></defs><path d="M0 -30L8 -8.8L28.5 -8.8L12 8.8L17.5 29L0 15L-17.5 29L-12 8.8L-28.5 -8.8L-8 -8.8Z" fill="url(#grad1)"/><path transform="rotate(30)" d="M0 -30L8 -8.8L28.5 -8.8L12 8.8L17.5 29L0 15L-17.5 29L-12 8.8L-28.5 -8.8L-8 -8.8Z" fill="url(#grad2)"/><circle cx="0" cy="0" r="9" fill="white"/></g><text x="160" y="165" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" fill="#888" font-weight="bold">el trece</text>`; break;
+                    default: svgContent = `<rect width="320" height="180" fill="#1e293b"/><text fill="white" font-family="sans-serif" font-size="24" x="50%" y="50%" dominant-baseline="middle" text-anchor="middle">${channel.name}</text>`;
+                }
+                const fullSvg = `<svg width="320" height="180" viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg">${svgContent}</svg>`;
+                return `data:image/svg+xml;base64,${btoa(fullSvg)}`;
+            }
+
+            function renderChannelList() {
+                channelListEl.innerHTML = '';
+                let itemsToRender = [];
+                let message = '';
+
+                if (currentFilter === 'all') { itemsToRender = allChannels; } 
+                else if (currentFilter === 'favorites') {
+                    itemsToRender = allChannels.filter(c => c.type === 'youtube-embed' && favorites.includes(c.id));
+                    message = 'No has agregado canales a favoritos. Haz clic en la estrella ★ para agregarlos.';
+                } else if (currentFilter === 'watchLater') {
+                    itemsToRender = watchLaterList.map(item => ({...item, name: `Video guardado...`}));
+                    message = 'No tienes videos para ver después.';
+                }
+
+                if (itemsToRender.length === 0 && currentFilter !== 'all') {
+                    channelListEl.innerHTML = `<p class="text-center text-slate-400 text-sm p-4 col-span-2">${message}</p>`;
+                    return;
+                }
+
+                itemsToRender.forEach(item => {
+                    const isWatchLater = currentFilter === 'watchLater';
+                    const channel = isWatchLater ? { id: item.id, name: item.name, type: 'youtube-embed' } : item;
+                    
+                    const isFavorite = channel.type === 'youtube-embed' && favorites.includes(channel.id);
+                    const isEmbeddable = channel.type === 'youtube-embed';
+
+                    const button = document.createElement('div');
+                    button.className = "channel-card w-full group rounded-lg transition-all duration-200 bg-slate-700/50 hover:bg-slate-700 focus:outline-none cursor-pointer relative aspect-[16/9]";
+                    button.dataset.id = channel.id || channel.name;
+                    
+                    const logo = document.createElement('img');
+                    if (isEmbeddable) { logo.src = `https://img.youtube.com/vi/${channel.id}/mqdefault.jpg`; } 
+                    else { logo.src = generateLogoSvg(channel); }
+                    logo.alt = channel.name;
+                    logo.className = "w-full h-full object-cover rounded-lg";
+                    
+                    const overlay = document.createElement('div');
+                    overlay.className = "absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-lg";
+                    
+                    const nameEl = document.createElement('span');
+                    nameEl.textContent = channel.name;
+                    nameEl.className = "absolute bottom-1 left-2 text-white text-xs font-semibold";
+                    
+                    button.append(logo, overlay, nameEl);
+
+                    if (isWatchLater) {
+                        const deleteBtn = document.createElement('span');
+                        deleteBtn.innerHTML = '×';
+                        deleteBtn.title = 'Eliminar video';
+                        deleteBtn.className = 'absolute top-0 right-1.5 text-2xl text-white/70 hover:text-red-500 transition-colors';
+                        deleteBtn.style.textShadow = '0 0 5px black';
+                        deleteBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            watchLaterList = watchLaterList.filter(v => v.id !== channel.id);
+                            saveWatchLater();
+                            renderChannelList();
+                        });
+                        button.appendChild(deleteBtn);
+                    } else if (channel.userAdded) {
+                        const deleteBtn = document.createElement('span');
+                        deleteBtn.innerHTML = '×';
+                        deleteBtn.title = 'Eliminar canal';
+                        deleteBtn.className = 'absolute top-0 right-1.5 text-2xl text-white/70 hover:text-red-500 transition-colors';
+                        deleteBtn.style.textShadow = '0 0 5px black';
+                        deleteBtn.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            userChannels = userChannels.filter(c => (c.id || c.url) !== (channel.id || channel.url));
+                            saveUserChannels();
+                            updateAllChannelsList();
+                            renderChannelList();
+                        });
+                        button.appendChild(deleteBtn);
+                    } else if (isEmbeddable) {
+                        const star = document.createElement('span');
+                        star.innerHTML = '★';
+                        star.className = `favorite-star absolute top-1 right-1.5 text-xl text-white/70 hover:text-yellow-300 transition-colors ${isFavorite ? 'favorited' : ''}`;
+                        star.style.textShadow = '0 0 5px black';
+                        star.addEventListener('click', (e) => {
+                            e.stopPropagation();
+                            toggleFavorite(channel.id, star);
+                        });
+                        button.appendChild(star);
+                    } else if (channel.type === 'external-link') {
+                         const externalIcon = document.createElement('span');
+                         externalIcon.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>`;
+                         externalIcon.className = 'absolute top-1.5 right-1.5 text-white/70';
+                         button.appendChild(externalIcon);
+                    }
+                    
+                    button.addEventListener('click', () => handleChannelClick(channel));
+                    channelListEl.appendChild(button);
+                });
+                updateActiveButtonState();
+            }
+            
+            function handleChannelClick(channel) {
+                switch(channel.type) {
+                    case 'youtube-embed': switchChannel(channel); break;
+                    case 'external-link': window.open(channel.url, '_blank'); break;
+                    case 'youtube-search': window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(channel.query)}&sp=EgJAAQ%253D%253D`, '_blank'); break;
+                }
+            }
+
+            function toggleFavorite(channelId, starEl) {
+                const index = favorites.indexOf(channelId);
+                if (index > -1) { favorites.splice(index, 1); starEl.classList.remove('favorited'); } 
+                else { favorites.push(channelId); starEl.classList.add('favorited'); }
+                saveFavorites();
+                if(currentFilter === 'favorites') renderChannelList();
+            }
+
+            function switchChannel(channel) {
+                if(!channel || channel.type !== 'youtube-embed') return;
+                if (messageTimeout) clearTimeout(messageTimeout);
+                
+                placeholder.classList.add('hidden');
+                helpScreen.classList.add('hidden');
+                videoPlayer.classList.remove('hidden');
+                const embedUrl = `https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=0`;
+                
+                if (videoPlayer.src !== embedUrl) videoPlayer.src = embedUrl;
+                
+                channelTitle.textContent = channel.name;
+                currentChannelIndex = allChannels.findIndex(c => c.id === channel.id);
+                updateActiveButtonState();
+            }
+            
+            function updateActiveButtonState() {
+                if (activeChannelButton) activeChannelButton.classList.remove('ring-2', 'ring-blue-500');
+                if (currentChannelIndex > -1 && allChannels[currentChannelIndex].type === 'youtube-embed') {
+                    const currentChannelId = allChannels[currentChannelIndex].id;
+                    activeChannelButton = channelListEl.querySelector(`[data-id="${currentChannelId}"]`);
+                    if (activeChannelButton) activeChannelButton.classList.add('ring-2', 'ring-blue-500');
+                }
+            }
+
+            function getZappableChannels() {
+                const embeddableChannels = allChannels.filter(c => c.type === 'youtube-embed');
+                if (currentFilter === 'favorites') {
+                    const favoriteEmbeddable = embeddableChannels.filter(c => favorites.includes(c.id));
+                    return favoriteEmbeddable.length > 0 ? favoriteEmbeddable : embeddableChannels;
+                }
+                return embeddableChannels;
+            }
+            
+            function showTemporaryMessage(message, duration = 2000) {
+                const targetEl = searchInput;
+                const originalPlaceholder = targetEl.placeholder;
+                targetEl.placeholder = message;
+                if(messageTimeout) clearTimeout(messageTimeout);
+                messageTimeout = setTimeout(() => { targetEl.placeholder = originalPlaceholder; }, duration);
+            }
+
+            function turnOffTv() {
+                videoPlayer.src = 'about:blank';
+                videoPlayer.classList.add('hidden');
+                helpScreen.classList.add('hidden');
+                placeholder.classList.remove('hidden');
+                channelTitle.textContent = '';
+                if (activeChannelButton) activeChannelButton.classList.remove('ring-2', 'ring-blue-500');
+                currentChannelIndex = -1;
+                activeChannelButton = null;
+            }
+            
+            function showHelp() {
+                turnOffTv();
+                placeholder.classList.add('hidden');
+                helpScreen.classList.remove('hidden');
+            }
+
+            // --- Event Listeners ---
+            powerButton.addEventListener('click', turnOffTv);
+            helpButton.addEventListener('click', showHelp);
+            closeHelpButton.addEventListener('click', turnOffTv);
+            addChannelButton.addEventListener('click', () => addChannelModal.classList.remove('hidden'));
+            cancelAddChannel.addEventListener('click', () => addChannelModal.classList.add('hidden'));
+            addChannelModal.addEventListener('click', (e) => {
+                if (e.target === addChannelModal) addChannelModal.classList.add('hidden');
+            });
+
+
+            const zapPrev = () => {
+                const channelsToZap = getZappableChannels();
+                if(channelsToZap.length === 0) return;
+                const currentId = allChannels[currentChannelIndex]?.id;
+                let currentIndexInZapList = channelsToZap.findIndex(c => c.id === currentId);
+                if (currentIndexInZapList === -1) currentIndexInZapList = 0;
+                let nextIndex = (currentIndexInZapList - 1 + channelsToZap.length) % channelsToZap.length;
+                switchChannel(channelsToZap[nextIndex]);
+            };
+
+            const zapNext = () => {
+                const channelsToZap = getZappableChannels();
+                if(channelsToZap.length === 0) return;
+                const currentId = allChannels[currentChannelIndex]?.id;
+                let currentIndexInZapList = channelsToZap.findIndex(c => c.id === currentId);
+                 if (currentIndexInZapList === -1) currentIndexInZapList = 0;
+                let nextIndex = (currentIndexInZapList + 1) % channelsToZap.length;
+                switchChannel(channelsToZap[nextIndex]);
+            };
+
+            document.getElementById('zap-prev').addEventListener('click', zapPrev);
+            document.getElementById('zap-next').addEventListener('click', zapNext);
+
+            searchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const query = searchInput.value.trim();
+                if (!query) return;
+                const liveFilter = document.getElementById('live-filter');
+                let url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+                if (liveFilter.checked) url += '&sp=EgJAAQ%253D%253D';
+                window.open(url, '_blank');
+            });
+
+            watchLaterForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const url = watchLaterInput.value.trim();
+                if (!url) return;
+                const videoId = extractYouTubeID(url);
+                if (videoId) {
+                    if (!watchLaterList.some(item => item.id === videoId)) {
+                        watchLaterList.push({ id: videoId, added: new Date().toISOString() });
+                        saveWatchLater();
+                        showTemporaryMessage('Video guardado');
+                        if (currentFilter === 'watchLater') renderChannelList();
+                    } else { showTemporaryMessage('Ese video ya está en la lista'); }
+                    watchLaterInput.value = '';
+                } else { showTemporaryMessage('URL de YouTube no válida'); }
+            });
+            
+            addChannelForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const name = document.getElementById('channel-name').value.trim();
+                const type = document.querySelector('input[name="channel-type"]:checked').value;
+                const url = document.getElementById('channel-url').value.trim();
+                
+                if (!name || !url) return;
+
+                let newChannel = null;
+                if (type === 'youtube-embed') {
+                    const videoId = extractYouTubeID(url);
+                    if(videoId) {
+                        newChannel = { name, id: videoId, type, userAdded: true };
+                    } else {
+                        alert('La URL de YouTube no es válida.');
+                        return;
+                    }
+                } else {
+                    newChannel = { name, url, type, userAdded: true };
+                }
+
+                if(newChannel) {
+                    userChannels.push(newChannel);
+                    saveUserChannels();
+                    updateAllChannelsList();
+                    renderChannelList();
+                    addChannelModal.classList.add('hidden');
+                    addChannelForm.reset();
+                }
+            });
+
+            const filterButtons = document.querySelectorAll('.filter-btn');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    currentFilter = button.dataset.filter;
+                    updateFilterButtons();
+                    renderChannelList();
+                });
+            });
+
+            function updateFilterButtons() {
+                filterButtons.forEach(btn => {
+                    if (btn.dataset.filter === currentFilter) {
+                        btn.classList.add('bg-blue-600', 'text-white');
+                        btn.classList.remove('hover:bg-slate-600');
+                    } else {
+                        btn.classList.remove('bg-blue-600', 'text-white');
+                        btn.classList.add('hover:bg-slate-600');
+                    }
+                });
+            }
+
+            document.addEventListener('keydown', (e) => {
+                if (document.activeElement === searchInput || document.activeElement === watchLaterInput || !addChannelModal.classList.contains('hidden')) {
+                    if (e.key === 'Escape') addChannelModal.classList.add('hidden');
+                    return;
+                }
+                switch(e.key) {
+                    case 'ArrowUp': e.preventDefault(); zapPrev(); break;
+                    case 'ArrowDown': e.preventDefault(); zapNext(); break;
+                    case 'p': case 'P': powerButton.click(); break;
+                    case 'f': case 'F':
+                        if (currentChannelIndex > -1 && activeChannelButton) {
+                            const star = activeChannelButton.querySelector('.favorite-star');
+                            if (star) star.click();
+                        }
+                        break;
+                }
+            });
+
+            // --- Inicialización ---
+            updateFilterButtons();
+            renderChannelList();
+        });
+    </script>
+</body>
+</html>
+
