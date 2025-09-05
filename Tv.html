@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TV Argentina en Vivo</title>
+    <title>Dumb Box</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -64,11 +64,18 @@
         body.fullscreen-active .scanline-overlay, body.fullscreen-active .retro-details { display: none; }
     </style>
 </head>
-<body class="bg-slate-900 text-white font-sans antialiased">
+<body class="font-sans antialiased">
     <div id="app" class="flex flex-col md:flex-row h-screen">
         <aside class="w-full md:w-80 flex flex-col p-4 border-r border-slate-700">
             <header class="mb-4 flex justify-between items-center">
-                <h1 class="text-3xl font-bold tracking-wider">TV Argentina</h1>
+                <div class="flex items-center space-x-2">
+                    <svg class="w-10 h-10" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20 3H4C2.89543 3 2 3.89543 2 5V17C2 18.1046 2.89543 19 4 19H8V21H16V19H20C21.1046 19 22 18.1046 22 17V5C22 3.89543 21.1046 3 20 3ZM20 17H4V5H20V17Z"/>
+                        <path d="M8 7L11 10L8 13V7Z"/>
+                        <path d="M13 7L16 10L13 13V7Z"/>
+                    </svg>
+                    <span class="text-2xl font-bold tracking-wider" style="font-family: 'Orbitron', sans-serif;">Dumb Box</span>
+                </div>
                 <div class="flex items-center space-x-2">
                     <button id="settings-button" title="Ajustes" class="p-2 rounded-full hover:bg-slate-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></button>
                     <button id="help-button" title="Ayuda" class="p-2 rounded-full hover:bg-slate-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
@@ -129,7 +136,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             // DOM Elements
             const body = document.body;
-            const appEl = document.getElementById('app');
             const channelListEl = document.getElementById('channel-list');
             const videoPlayer = document.getElementById('video-player');
             const placeholder = document.getElementById('placeholder');
@@ -175,7 +181,11 @@
 
             // --- Theme Functions ---
             function applyTheme(theme) {
-                appEl.className = `flex flex-col md:flex-row h-screen theme-${theme}`;
+                const themes = ['theme-retro', 'theme-light', 'theme-neon', 'theme-scifi'];
+                body.classList.remove(...themes);
+                if (theme !== 'modern') {
+                    body.classList.add(`theme-${theme}`);
+                }
             }
 
             function initializeTheme() {
@@ -410,6 +420,11 @@
             }
 
             // Event Listeners
+            themeSelect.addEventListener('change', (e) => {
+                const selectedTheme = e.target.value;
+                applyTheme(selectedTheme);
+                localStorage.setItem('tv_theme', selectedTheme);
+            });
             powerButton.addEventListener('click', turnOffTv);
             fullscreenButton.addEventListener('click', () => {
                 if (!document.fullscreenElement) {
