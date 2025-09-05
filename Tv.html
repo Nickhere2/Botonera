@@ -13,7 +13,7 @@
         .custom-scroll::-webkit-scrollbar-track { background: #1e293b; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #475569; border-radius: 4px; }
         .favorite-star.favorited { color: #facc15; }
-        .channel-card { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out; }
+        .channel-card { transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out, opacity 0.2s; }
         .channel-card:hover { transform: scale(1.05); }
         .tv-bezel { background: #0f172a; padding: 1.5rem; border-radius: 1.5rem; box-shadow: inset 0 0 15px rgba(0,0,0,0.7), 0 0 30px rgba(0,0,0,0.5); transition: all 0.3s ease-in-out; }
         #video-container .scanline-overlay { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(255,255,255,0.03) 50%, rgba(0,0,0,0.05) 50%), linear-gradient(90deg, rgba(0,0,0,0.05) 50%, rgba(255,255,255,0.03) 50%); background-size: 100% 3px, 3px 100%; pointer-events: none; z-index: 10; transition: opacity 0.3s ease-in-out; opacity: 1;}
@@ -21,6 +21,8 @@
         #video-container:hover #floating-controls { opacity: 1; pointer-events: auto; }
         #loading-overlay span { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .channel-card.dragging { opacity: 0.5; }
+        .channel-card.drag-over-active { border: 2px dashed var(--accent-color, #3b82f6); }
 
         /* --- Global Theme Styles --- */
         .theme-retro, .theme-light, .theme-neon, .theme-scifi { --main-bg: #fff; --secondary-bg: #f0f0f0; --accent-color: #3b82f6; --text-color: #000; }
@@ -72,11 +74,12 @@
                     <button id="help-button" title="Ayuda" class="p-2 rounded-full hover:bg-slate-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
                 </div>
             </header>
-            <form id="search-form" class="mb-2"><div class="relative"><input type="search" id="search-input" placeholder="Buscar en YouTube..." class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2"><button type="submit" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></button></div><div class="mt-2 flex items-center justify-center"><input type="checkbox" id="live-filter" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2"><label for="live-filter" class="ml-2 text-sm font-medium">Sólo "En Vivo"</label></div></form>
-            <form id="watch-later-form" class="mb-4"><div class="relative"><input type="url" id="watch-later-input" placeholder="Pegar URL de YouTube para ver después" class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 text-sm"><button type="submit" title="Guardar video" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg></button></div></form>
-            <div id="filter-container" class="mb-4 flex justify-center bg-slate-700 rounded-lg p-1"><button data-filter="all" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Todos</button><button data-filter="favorites" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Favoritos</button><button data-filter="watchLater" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Ver Después</button></div>
+            <form id="youtube-search-form" class="mb-2"><div class="relative"><input type="search" id="youtube-search-input" placeholder="Buscar en YouTube..." class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2"><button type="submit" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></button></div><div class="mt-2 flex items-center justify-center"><input type="checkbox" id="live-filter" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2"><label for="live-filter" class="ml-2 text-sm font-medium">Sólo "En Vivo"</label></div></form>
+            <div id="filter-container" class="my-4 flex justify-center bg-slate-700 rounded-lg p-1"><button data-filter="all" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Todos</button><button data-filter="favorites" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Favoritos</button><button data-filter="watchLater" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Ver Después</button></div>
+            <form id="watch-later-form" class="mb-4 hidden"><div class="relative"><input type="url" id="watch-later-input" placeholder="Pegar URL de YouTube para ver después" class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 text-sm"><button type="submit" title="Guardar video" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg></button></div></form>
+            <div class="relative mb-2"><input type="search" id="channel-search-input" placeholder="Buscar en la lista..." class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 text-sm"></div>
             <nav id="channel-list" class="flex-grow overflow-y-auto custom-scroll grid grid-cols-2 gap-2 pr-2"></nav>
-            <div class="mt-4"><button id="add-channel-button" class="w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold">+ Agregar Canal</button></div>
+            <div id="add-channel-container" class="mt-4"><button id="add-channel-button" class="w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold">+ Agregar Canal</button></div>
         </aside>
 
         <main class="flex-1 flex flex-col p-4 md:p-6 lg:p-8 justify-center">
@@ -91,7 +94,7 @@
                 <div id="video-container" class="w-full flex-1 bg-black rounded-lg shadow-2xl flex items-center justify-center relative overflow-hidden">
                     <div class="scanline-overlay"></div>
                     <div id="placeholder" class="text-center text-slate-400 p-4 w-full h-full flex flex-col justify-center items-center"><p class="z-10 font-mono">SELECCIONE UN CANAL</p></div>
-                    <div id="help-screen" class="hidden p-8 text-slate-300 overflow-y-auto custom-scroll w-full h-full z-20 bg-slate-900/90 backdrop-blur-sm"><h3 class="text-2xl font-bold text-center mb-4">Guía de Uso</h3><div class="space-y-4 text-sm"><div><h4 class="font-semibold text-blue-400">🎨 Temas Visuales</h4><p>Cambia la apariencia de la app desde el menú de ajustes ⚙️. Elige entre varios diseños, incluyendo un modo retro mejorado. En pantalla completa, los efectos se desactivan para una visión limpia.</p></div><div><h4 class="font-semibold text-blue-400">☁️ Sincronización (Opcional)</h4><p>Usa la app en modo local o conéctala a tu Gist de GitHub (en ajustes ⚙️) para sincronizar tus canales y favoritos entre dispositivos.</p></div><div><h4 class="font-semibold text-cyan-400">🖥️ Pantalla Completa</h4><p>Usa el botón <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" /></svg> para que los atajos de teclado sigan funcionando.</p></div></div><button id="close-help-button" class="mt-6 mx-auto block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Entendido</button></div>
+                    <div id="help-screen" class="hidden p-8 text-slate-300 overflow-y-auto custom-scroll w-full h-full z-20 bg-slate-900/90 backdrop-blur-sm"><h3 class="text-2xl font-bold text-center mb-4">Guía de Uso</h3><div class="space-y-4 text-sm"><div><h4 class="font-semibold text-blue-400">✨ Nuevas Funciones</h4><p>Ahora puedes reordenar tu lista de 'Ver Después' arrastrando los videos. La app también recordará y sintonizará el último canal que viste.</p></div><div><h4 class="font-semibold text-blue-400">🎨 Temas Visuales</h4><p>Cambia la apariencia de la app desde el menú de ajustes ⚙️. En pantalla completa, los efectos se desactivan para una visión limpia.</p></div><div><h4 class="font-semibold text-blue-400">☁️ Sincronización (Opcional)</h4><p>Usa la app en modo local o conéctala a tu Gist de GitHub (en ajustes ⚙️) para sincronizar tus datos.</p></div></div><button id="close-help-button" class="mt-6 mx-auto block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Entendido</button></div>
                     <iframe id="video-player" class="hidden absolute top-0 left-0 w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                     <div id="floating-controls" class="absolute top-1/2 right-4 -translate-y-1/2 flex flex-col space-y-3 z-20"><button id="zap-prev" title="Canal anterior" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><button id="zap-next" title="Canal siguiente" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div>
                 </div>
@@ -127,7 +130,6 @@
             // DOM Elements
             const body = document.body;
             const appEl = document.getElementById('app');
-            // ... (all other DOM element selections remain the same)
             const channelListEl = document.getElementById('channel-list');
             const videoPlayer = document.getElementById('video-player');
             const placeholder = document.getElementById('placeholder');
@@ -139,6 +141,7 @@
             const closeHelpButton = document.getElementById('close-help-button');
             const channelModal = document.getElementById('channel-modal');
             const addChannelButton = document.getElementById('add-channel-button');
+            const addChannelContainer = document.getElementById('add-channel-container');
             const cancelChannelModal = document.getElementById('cancel-channel-modal');
             const channelForm = document.getElementById('channel-form');
             const modalTitle = document.getElementById('modal-title');
@@ -151,11 +154,17 @@
             const loadingOverlay = document.getElementById('loading-overlay');
             const loadingText = document.getElementById('loading-text');
             const themeSelect = document.getElementById('theme-select');
+            const youtubeSearchForm = document.getElementById('youtube-search-form');
+            const youtubeSearchInput = document.getElementById('youtube-search-input');
+            const liveFilter = document.getElementById('live-filter');
+            const watchLaterForm = document.getElementById('watch-later-form');
+            const channelSearchInput = document.getElementById('channel-search-input');
 
             // App State
             let allChannels = [], favorites = [], watchLaterList = [];
             let currentChannelIndex = -1, currentFilter = 'all';
             let saveDataTimeout = null;
+            let dragStartIndex;
             
             // Gist State
             let gistId = null, gistToken = null;
@@ -174,17 +183,8 @@
                 themeSelect.value = savedTheme;
                 applyTheme(savedTheme);
             }
-
-            themeSelect.addEventListener('change', (e) => {
-                const selectedTheme = e.target.value;
-                applyTheme(selectedTheme);
-                localStorage.setItem('tv_theme', selectedTheme);
-            });
             
-            // --- The rest of the script remains largely the same ---
-            // Data Handling, Core App Functions, UI Rendering, Event Listeners...
-
-            // Data Handling
+            // --- Data Handling ---
             const showLoading = (text = 'Cargando...') => { loadingOverlay.classList.remove('hidden'); loadingText.textContent = text; };
             const hideLoading = () => loadingOverlay.classList.add('hidden');
 
@@ -253,37 +253,40 @@
                 return `data:image/svg+xml;base64,${btoa(`<svg width="320" height="180" viewBox="0 0 320 180" xmlns="http://www.w3.org/2000/svg">${svgContent}</svg>`)}`;
             }
             
-            // ... (rest of functions: renderChannelList, handleChannelClick, etc are identical to previous version, just copy them)
+            // --- Drag and Drop Functions ---
+            function handleDragStart(e) { dragStartIndex = parseInt(this.dataset.index); e.dataTransfer.effectAllowed = 'move'; this.classList.add('dragging'); }
+            function handleDragOver(e) { e.preventDefault(); this.classList.add('drag-over-active'); }
+            function handleDragLeave() { this.classList.remove('drag-over-active'); }
+            function handleDrop(e) { e.stopPropagation(); const dragEndIndex = parseInt(this.dataset.index); swapItems(dragStartIndex, dragEndIndex); this.classList.remove('drag-over-active'); }
+            function handleDragEnd() { this.classList.remove('dragging'); document.querySelectorAll('.drag-over-active').forEach(el => el.classList.remove('drag-over-active')); }
+            function swapItems(fromIndex, toIndex) { const item = watchLaterList.splice(fromIndex, 1)[0]; watchLaterList.splice(toIndex, 0, item); debouncedSave(); renderChannelList(); }
+
             function renderChannelList() {
                 channelListEl.innerHTML = '';
                 let itemsToRender = [];
                 let message = '';
+                const searchTerm = channelSearchInput.value.toLowerCase();
 
                 if (currentFilter === 'all') { itemsToRender = allChannels; } 
-                else if (currentFilter === 'favorites') {
-                    itemsToRender = allChannels.filter(c => c.type === 'youtube-embed' && favorites.includes(c.id));
-                    message = 'No has agregado canales a favoritos. Haz clic en la estrella ★ para agregarlos.';
-                } else if (currentFilter === 'watchLater') {
-                    itemsToRender = watchLaterList.map(item => ({...item, name: `Video guardado...`, isWatchLater: true}));
-                    message = 'No tienes videos para ver después.';
-                }
+                else if (currentFilter === 'favorites') { itemsToRender = allChannels.filter(c => c.type === 'youtube-embed' && favorites.includes(c.id)); message = 'No has agregado canales a favoritos.'; } 
+                else if (currentFilter === 'watchLater') { itemsToRender = watchLaterList.map((item, index) => ({...item, name: `Video ${index + 1}`, isWatchLater: true})); message = 'No tienes videos para ver después.'; }
+                
+                if (searchTerm) { itemsToRender = itemsToRender.filter(item => item.name.toLowerCase().includes(searchTerm)); }
 
-                if (itemsToRender.length === 0 && currentFilter !== 'all') {
+                if (itemsToRender.length === 0) {
                     channelListEl.innerHTML = `<p class="text-center text-slate-400 text-sm p-4 col-span-2">${message}</p>`;
                     return;
                 }
 
-                itemsToRender.forEach((item) => {
+                itemsToRender.forEach((item, renderIndex) => {
                     const channel = item.isWatchLater ? { id: item.id, name: item.name, type: 'youtube-embed' } : item;
                     const realIndex = item.isWatchLater ? -1 : allChannels.findIndex(c => (c.id || c.url) === (item.id || item.url));
                     const isFavorite = channel.type === 'youtube-embed' && favorites.includes(channel.id);
-                    const isEmbeddable = channel.type === 'youtube-embed';
                     const button = document.createElement('div');
                     button.className = "channel-card w-full group rounded-lg transition-all duration-200 bg-slate-700/50 focus:outline-none cursor-pointer relative aspect-[16/9]";
                     button.dataset.id = channel.id || channel.name;
                     const logo = document.createElement('img');
-                    if (isEmbeddable) { logo.src = `https://img.youtube.com/vi/${channel.id}/mqdefault.jpg`; } 
-                    else { logo.src = generateLogoSvg(channel); }
+                    logo.src = channel.type === 'youtube-embed' ? `https://img.youtube.com/vi/${channel.id}/mqdefault.jpg` : generateLogoSvg(channel);
                     logo.alt = channel.name;
                     logo.className = "w-full h-full object-cover rounded-lg";
                     const overlay = document.createElement('div');
@@ -294,14 +297,22 @@
                     button.append(logo, nameEl, overlay);
                     
                     if (item.isWatchLater) {
+                        button.draggable = true;
+                        button.dataset.index = watchLaterList.findIndex(v => v.id === channel.id);
+                        button.addEventListener('dragstart', handleDragStart);
+                        button.addEventListener('dragover', handleDragOver);
+                        button.addEventListener('dragleave', handleDragLeave);
+                        button.addEventListener('drop', handleDrop);
+                        button.addEventListener('dragend', handleDragEnd);
+
                         const deleteBtn = document.createElement('span');
                         deleteBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>`;
                         deleteBtn.title = 'Eliminar video';
                         deleteBtn.className = 'cursor-pointer text-white/70 hover:text-red-500 transition-colors z-10';
-                        deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); watchLaterList.splice(watchLaterList.findIndex(v => v.id === channel.id), 1); debouncedSave(); renderChannelList(); });
+                        deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); watchLaterList.splice(parseInt(button.dataset.index), 1); debouncedSave(); renderChannelList(); });
                         overlay.appendChild(deleteBtn);
                     } else {
-                        if (isEmbeddable) {
+                        if (channel.type === 'youtube-embed') {
                             const star = document.createElement('span');
                             star.innerHTML = '★';
                             star.className = `favorite-star cursor-pointer text-xl text-white/70 hover:text-yellow-300 transition-colors z-10 ${isFavorite ? 'favorited' : ''}`;
@@ -352,6 +363,7 @@
                 if (videoPlayer.src !== embedUrl) videoPlayer.src = embedUrl;
                 channelTitle.textContent = channel.name;
                 currentChannelIndex = allChannels.findIndex(c => c.id === channel.id);
+                localStorage.setItem('tv_last_watched_id', channel.id);
                 updateActiveButtonState();
             }
             function updateActiveButtonState() {
@@ -422,6 +434,18 @@
                 location.reload();
             });
             closeSettingsButton.addEventListener('click', () => gistModal.classList.add('hidden'));
+            
+            youtubeSearchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const query = youtubeSearchInput.value.trim();
+                if (!query) return;
+                let url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+                if (liveFilter.checked) { url += '&sp=EgJAAQ%253D%253D'; }
+                window.open(url, '_blank');
+            });
+
+            channelSearchInput.addEventListener('input', () => renderChannelList());
+
             channelForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const name = document.getElementById('channel-name').value.trim();
@@ -452,8 +476,13 @@
                 location.reload();
             });
             document.querySelectorAll('.filter-btn').forEach(button => { button.addEventListener('click', (e) => { currentFilter = e.target.dataset.filter; updateFilterButtons(); renderChannelList(); }); });
-            function updateFilterButtons() { document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active-filter', btn.dataset.filter === currentFilter); });}
-            document.getElementById('watch-later-form').addEventListener('submit', (e) => {
+            function updateFilterButtons() { 
+                document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active-filter', btn.dataset.filter === currentFilter); });
+                const isWatchLater = currentFilter === 'watchLater';
+                watchLaterForm.classList.toggle('hidden', !isWatchLater);
+                addChannelContainer.classList.toggle('hidden', isWatchLater);
+            }
+            watchLaterForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const url = document.getElementById('watch-later-input').value.trim();
                 if (!url) return;
@@ -514,8 +543,17 @@
                         await saveDataToGist(); // Seed the Gist
                     }
                 } else { loadDataFromLocalStorage(); }
+                
                 updateFilterButtons();
                 renderChannelList();
+
+                const lastWatchedId = localStorage.getItem('tv_last_watched_id');
+                if(lastWatchedId) {
+                    const lastChannel = allChannels.find(c => c.id === lastWatchedId && c.type === 'youtube-embed');
+                    if(lastChannel) {
+                        setTimeout(() => switchChannel(lastChannel), 500);
+                    }
+                }
             }
             initializeApp();
         });
