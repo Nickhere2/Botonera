@@ -64,9 +64,21 @@
             position: fixed;
             top: 0;
             left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1000;
+        }
+        #app.pseudo-fullscreen > aside {
+            display: none;
+        }
+        #app.pseudo-fullscreen > main {
             width: 100%;
             height: 100%;
-            z-index: 1000;
+            padding: 0;
+            margin: 0;
+        }
+        #app.pseudo-fullscreen #controls-container {
+            display: none;
         }
         body.fullscreen-active .tv-bezel { padding: 0 !important; border-radius: 0; box-shadow: none; border: none; background: #000; clip-path: none !important; }
         body.fullscreen-active .scanline-overlay, body.fullscreen-active .retro-details { display: none; }
@@ -445,7 +457,12 @@
                     body.classList.remove('fullscreen-active');
                 }
             });
-            document.addEventListener('fullscreenchange', () => { body.classList.toggle('fullscreen-active', !!document.fullscreenElement); });
+            document.addEventListener('fullscreenchange', () => { 
+                if (!document.fullscreenElement) {
+                    appEl.classList.remove('pseudo-fullscreen');
+                    body.classList.remove('fullscreen-active');
+                }
+            });
             helpButton.addEventListener('click', () => { turnOffTv(); placeholder.classList.add('hidden'); helpScreen.classList.remove('hidden'); });
             closeHelpButton.addEventListener('click', turnOffTv);
             addChannelButton.addEventListener('click', openAddModal);
