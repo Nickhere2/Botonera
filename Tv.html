@@ -59,7 +59,15 @@
         .theme-scifi { font-family: 'Orbitron', sans-serif; --main-bg: #031027; --secondary-bg: #071f48; --accent-color: #00d9ff; --text-color: #a7dfff; }
         .theme-scifi .tv-bezel { padding: 0.5rem; background: transparent; border: 2px solid var(--accent-color); border-radius: 0; clip-path: polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px)); }
         
-        /* --- Pantalla Completa Limpia --- */
+        /* --- Pantalla Completa --- */
+        #app.pseudo-fullscreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1000;
+        }
         body.fullscreen-active .tv-bezel { padding: 0 !important; border-radius: 0; box-shadow: none; border: none; background: #000; clip-path: none !important; }
         body.fullscreen-active .scanline-overlay, body.fullscreen-active .retro-details { display: none; }
     </style>
@@ -102,7 +110,7 @@
                     <div class="scanline-overlay"></div>
                     <div id="placeholder" class="text-center text-slate-400 p-4 w-full h-full flex flex-col justify-center items-center"><p class="z-10 font-mono">SELECCIONE UN CANAL</p></div>
                     <div id="help-screen" class="hidden p-8 text-slate-300 overflow-y-auto custom-scroll w-full h-full z-20 bg-slate-900/90 backdrop-blur-sm"><h3 class="text-2xl font-bold text-center mb-4">Guía de Uso</h3><div class="space-y-4 text-sm"><div><h4 class="font-semibold text-blue-400">✨ Nuevas Funciones</h4><p>Ahora puedes reordenar tu lista de 'Ver Después' arrastrando los videos. La app también recordará y sintonizará el último canal que viste.</p></div><div><h4 class="font-semibold text-blue-400">🎨 Temas Visuales</h4><p>Cambia la apariencia de la app desde el menú de ajustes ⚙️. En pantalla completa, los efectos se desactivan para una visión limpia.</p></div><div><h4 class="font-semibold text-blue-400">☁️ Sincronización (Opcional)</h4><p>Usa la app en modo local o conéctala a tu Gist de GitHub (en ajustes ⚙️) para sincronizar tus datos.</p></div></div><button id="close-help-button" class="mt-6 mx-auto block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Entendido</button></div>
-                    <iframe id="video-player" class="hidden absolute top-0 left-0 w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    <iframe id="video-player" class="hidden absolute top-0 left-0 w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
                     <div id="floating-controls" class="absolute top-1/2 right-4 -translate-y-1/2 flex flex-col space-y-3 z-20"><button id="zap-prev" title="Canal anterior" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><button id="zap-next" title="Canal siguiente" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div>
                 </div>
             </div>
@@ -136,6 +144,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             // DOM Elements
             const body = document.body;
+            const appEl = document.getElementById('app');
             const channelListEl = document.getElementById('channel-list');
             const videoPlayer = document.getElementById('video-player');
             const placeholder = document.getElementById('placeholder');
@@ -427,9 +436,14 @@
             });
             powerButton.addEventListener('click', turnOffTv);
             fullscreenButton.addEventListener('click', () => {
-                if (!document.fullscreenElement) {
-                    document.documentElement.requestFullscreen().catch(err => alert(`Error: ${err.message}`));
-                } else { document.exitFullscreen(); }
+                const isFullscreen = body.classList.contains('fullscreen-active');
+                if (!isFullscreen) {
+                    appEl.classList.add('pseudo-fullscreen');
+                    body.classList.add('fullscreen-active');
+                } else { 
+                    appEl.classList.remove('pseudo-fullscreen');
+                    body.classList.remove('fullscreen-active');
+                }
             });
             document.addEventListener('fullscreenchange', () => { body.classList.toggle('fullscreen-active', !!document.fullscreenElement); });
             helpButton.addEventListener('click', () => { turnOffTv(); placeholder.classList.add('hidden'); helpScreen.classList.remove('hidden'); });
@@ -519,6 +533,12 @@
             });
             document.addEventListener('keydown', (e) => {
                 if (document.activeElement.tagName === 'INPUT' || !channelModal.classList.contains('hidden') || !gistModal.classList.contains('hidden')) return;
+                
+                if (e.key === 'Escape' && body.classList.contains('fullscreen-active')) {
+                    appEl.classList.remove('pseudo-fullscreen');
+                    body.classList.remove('fullscreen-active');
+                }
+
                 const zap = (direction) => {
                     const channelsToZap = getZappableChannels();
                     if(channelsToZap.length === 0) return;
