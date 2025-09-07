@@ -442,21 +442,21 @@
             
             const cursorMoveHandler = () => {
                 if (cursorTimeout) clearTimeout(cursorTimeout);
-                body.classList.remove('hide-cursor');
+                appEl.classList.remove('hide-cursor');
                 cursorTimeout = setTimeout(() => {
                     if (document.fullscreenElement) {
-                        body.classList.add('hide-cursor');
+                        appEl.classList.add('hide-cursor');
                     }
                 }, 3000); 
             };
             function handleCursorInactivity() {
-                body.addEventListener('mousemove', cursorMoveHandler);
+                appEl.addEventListener('mousemove', cursorMoveHandler);
                 cursorMoveHandler(); 
             }
             function clearCursorInactivity() {
-                body.removeEventListener('mousemove', cursorMoveHandler);
+                appEl.removeEventListener('mousemove', cursorMoveHandler);
                 if (cursorTimeout) clearTimeout(cursorTimeout);
-                body.classList.remove('hide-cursor');
+                appEl.classList.remove('hide-cursor');
             }
 
             // Event Listeners
@@ -478,6 +478,7 @@
 
             document.addEventListener('fullscreenchange', () => {
                 const isFullscreen = !!document.fullscreenElement;
+                body.classList.toggle('fullscreen-active', isFullscreen);
                 if (isFullscreen) {
                     handleCursorInactivity();
                 } else {
