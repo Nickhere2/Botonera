@@ -29,8 +29,8 @@
         body { background-color: var(--main-bg, #020617); color: var(--text-color, #fff); transition: background-color 0.3s; }
         aside { background-color: var(--secondary-bg, #1e293b); }
         main { background: var(--main-bg, linear-gradient(to bottom right, #020617, #1e293b)); }
-        #add-channel-button, .filter-btn.active-filter, #sync-button { background-color: var(--accent-color, #2563eb); }
-        #add-channel-button:hover, #sync-button:hover { filter: brightness(1.1); }
+        #add-channel-button, .filter-btn.active-filter, #sync-button, #add-from-clipboard-btn { background-color: var(--accent-color, #2563eb); }
+        #add-channel-button:hover, #sync-button:hover, #add-from-clipboard-btn:hover { filter: brightness(1.1); }
         .channel-card:hover { box-shadow: 0 0 15px var(--accent-color); }
         .modal-content, input, select { background-color: var(--secondary-bg, #1e293b); }
         input:focus { ring-color: var(--accent-color, #3b82f6) !important; }
@@ -97,7 +97,13 @@
             </header>
             <form id="youtube-search-form" class="mb-2"><div class="relative"><input type="search" id="youtube-search-input" placeholder="Buscar en YouTube..." class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2"><button type="submit" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></button></div><div class="mt-2 flex items-center justify-center"><input type="checkbox" id="live-filter" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2"><label for="live-filter" class="ml-2 text-sm font-medium">Sólo "En Vivo"</label></div></form>
             <div id="filter-container" class="my-4 flex justify-center bg-slate-700 rounded-lg p-1"><button data-filter="all" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Todos</button><button data-filter="favorites" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Favoritos</button><button data-filter="watchLater" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Ver Después</button></div>
-            <form id="watch-later-form" class="mb-4 hidden"><div class="relative"><input type="url" id="watch-later-input" placeholder="Pegar URL de YouTube para ver después" class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 text-sm"><button type="submit" title="Guardar video" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg></button></div></form>
+            <div id="watch-later-container" class="mb-4 hidden">
+                <button id="add-from-clipboard-btn" class="w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold flex items-center justify-center space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" /></svg>
+                    <span>Agregar desde Portapapeles</span>
+                </button>
+                <p id="clipboard-status" class="text-xs text-center mt-2 h-4"></p>
+            </div>
             <div class="relative mb-2"><input type="search" id="channel-search-input" placeholder="Buscar en la lista..." class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 text-sm"></div>
             <nav id="channel-list" class="flex-grow overflow-y-auto custom-scroll grid grid-cols-2 gap-2 pr-2"></nav>
             <div id="add-channel-container" class="mt-4"><button id="add-channel-button" class="w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold">+ Agregar Canal</button></div>
@@ -186,6 +192,9 @@
             const watchLaterForm = document.getElementById('watch-later-form');
             const channelSearchInput = document.getElementById('channel-search-input');
             const syncButton = document.getElementById('sync-button');
+            const addFromClipboardBtn = document.getElementById('add-from-clipboard-btn');
+            const clipboardStatus = document.getElementById('clipboard-status');
+            const watchLaterContainer = document.getElementById('watch-later-container');
 
             // App State
             let allChannels = [], favorites = [], watchLaterList = [];
@@ -226,14 +235,15 @@
                 try {
                     const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers: { 'Authorization': `token ${gistToken}`, 'Cache-Control': 'no-cache' }});
                     if (!response.ok) {
-                        if(response.status === 404) return null;
+                        if (response.status === 404) return { error: true, message: 'Gist ID no encontrado.' };
+                        if (response.status === 401 || response.status === 403) return { error: true, message: 'Token inválido o sin permisos.' };
                         throw new Error(`[${response.status}] ${response.statusText}`);
                     }
                     const data = await response.json();
                     return data.files && data.files[GIST_FILENAME] ? JSON.parse(data.files[GIST_FILENAME].content) : null;
                 } catch (error) {
                     console.error('Error fetching Gist:', error);
-                    return { error: true, message: `Error al cargar. Revisa credenciales.` };
+                    return { error: true, message: 'Error de red. Inténtalo de nuevo.' };
                 } finally { hideLoading(); }
             }
 
@@ -478,7 +488,6 @@
 
             document.addEventListener('fullscreenchange', () => {
                 const isFullscreen = !!document.fullscreenElement;
-                body.classList.toggle('fullscreen-active', isFullscreen);
                 if (isFullscreen) {
                     handleCursorInactivity();
                 } else {
@@ -548,29 +557,43 @@
             function updateFilterButtons() { 
                 document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active-filter', btn.dataset.filter === currentFilter); });
                 const isWatchLater = currentFilter === 'watchLater';
-                watchLaterForm.classList.toggle('hidden', !isWatchLater);
+                watchLaterContainer.classList.toggle('hidden', !isWatchLater);
                 addChannelContainer.classList.toggle('hidden', isWatchLater);
             }
-            watchLaterForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const url = document.getElementById('watch-later-input').value.trim();
-                if (!url) return;
-                const videoId = extractYouTubeID(url);
-                const inputEl = document.getElementById('watch-later-input');
-                if (videoId) {
-                    if (!watchLaterList.some(item => item.id === videoId)) {
-                        watchLaterList.push({ id: videoId, added: new Date().toISOString() });
-                        debouncedSave();
-                        inputEl.placeholder = '¡Video guardado!';
-                        if (currentFilter === 'watchLater') renderChannelList();
-                    } else { inputEl.placeholder = 'Ese video ya está en la lista'; }
-                    inputEl.value = '';
-                    setTimeout(() => { inputEl.placeholder = 'Pegar URL de YouTube para ver después'; }, 2000);
-                } else { 
-                    inputEl.placeholder = 'URL de YouTube no válida'; 
-                    setTimeout(() => { inputEl.placeholder = 'Pegar URL de YouTube para ver después'; }, 2000);
+            
+            addFromClipboardBtn.addEventListener('click', async () => {
+                clipboardStatus.textContent = ''; // Clear previous message
+                if (!navigator.clipboard?.readText) {
+                    clipboardStatus.textContent = 'Función no soportada por el navegador.';
+                    return;
+                }
+                try {
+                    const text = await navigator.clipboard.readText();
+                    const videoId = extractYouTubeID(text);
+
+                    if (videoId) {
+                        if (!watchLaterList.some(item => item.id === videoId)) {
+                            watchLaterList.push({ id: videoId, added: new Date().toISOString() });
+                            debouncedSave();
+                            clipboardStatus.textContent = '¡Video guardado!';
+                            if (currentFilter === 'watchLater') renderChannelList();
+                        } else {
+                            clipboardStatus.textContent = 'Ese video ya está en la lista.';
+                        }
+                    } else {
+                        clipboardStatus.textContent = 'No se encontró una URL de YouTube válida.';
+                    }
+                } catch (err) {
+                    console.error('Failed to read clipboard:', err);
+                    clipboardStatus.textContent = 'No se pudo leer el portapapeles.';
+                    if (err.name === 'NotAllowedError') {
+                         clipboardStatus.textContent = 'Permiso para leer portapapeles denegado.';
+                    }
+                } finally {
+                    setTimeout(() => { clipboardStatus.textContent = ''; }, 3000);
                 }
             });
+
             document.addEventListener('keydown', (e) => {
                 if (document.activeElement.tagName === 'INPUT' || !channelModal.classList.contains('hidden') || !gistModal.classList.contains('hidden')) return;
                 
