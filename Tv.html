@@ -29,8 +29,8 @@
         body { background-color: var(--main-bg, #020617); color: var(--text-color, #fff); transition: background-color 0.3s; }
         aside { background-color: var(--secondary-bg, #1e293b); }
         main { background: var(--main-bg, linear-gradient(to bottom right, #020617, #1e293b)); }
-        #add-channel-button, .filter-btn.active-filter, #sync-button { background-color: var(--accent-color, #2563eb); }
-        #add-channel-button:hover, #sync-button:hover { filter: brightness(1.1); }
+        #add-channel-button, .filter-btn.active-filter { background-color: var(--accent-color, #2563eb); }
+        #add-channel-button:hover { filter: brightness(1.1); }
         .channel-card:hover { box-shadow: 0 0 15px var(--accent-color); }
         .modal-content, input, select { background-color: var(--secondary-bg, #1e293b); }
         input:focus { ring-color: var(--accent-color, #3b82f6) !important; }
@@ -67,9 +67,6 @@
             width: 100vw;
             height: 100vh;
             z-index: 1000;
-        }
-        #app.pseudo-fullscreen.hide-cursor {
-            cursor: none;
         }
         #app.pseudo-fullscreen > aside {
             display: none;
@@ -150,11 +147,7 @@
         <div>
             <h4 class="text-lg font-semibold mb-2">Sincronización con GitHub Gist</h4>
             <p class="text-sm text-slate-400 mb-4">Conectar es opcional. Te permite sincronizar datos entre dispositivos. <a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens" target="_blank" class="text-blue-400 hover:underline">Crea un token</a> con permiso de "gist".</p>
-            <form id="gist-form"><div class="mb-4"><label for="gist-id" class="block mb-2 text-sm font-medium">Gist ID</label><input type="text" id="gist-id" class="w-full border border-slate-600 rounded-lg p-2.5"></div><div class="mb-4"><label for="gist-token" class="block mb-2 text-sm font-medium">GitHub Token</label><input type="password" id="gist-token" class="w-full border border-slate-600 rounded-lg p-2.5"></div>
-                <p id="gist-error" class="text-red-400 text-sm mb-4 h-5"></p>
-                <p id="sync-status" class="text-green-400 text-sm text-center mb-2 h-5"></p>
-                <div class="flex justify-between items-center"><button type="button" id="disconnect-button" class="py-2 px-4 text-slate-400 hover:text-white text-sm">Usar Modo Local</button><div><button type="button" id="close-settings-button" class="py-2 px-4 bg-slate-600 hover:bg-slate-500 rounded-lg mr-2">Cerrar</button><button type="submit" class="py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg">Conectar</button></div></div></form>
-            <button id="sync-button" class="w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold mt-4">Sincronizar Ahora</button>
+            <form id="gist-form"><div class="mb-4"><label for="gist-id" class="block mb-2 text-sm font-medium">Gist ID</label><input type="text" id="gist-id" class="w-full border border-slate-600 rounded-lg p-2.5"></div><div class="mb-4"><label for="gist-token" class="block mb-2 text-sm font-medium">GitHub Token</label><input type="password" id="gist-token" class="w-full border border-slate-600 rounded-lg p-2.5"></div><p id="gist-error" class="text-red-400 text-sm mb-4 h-5"></p><div class="flex justify-between items-center"><button type="button" id="disconnect-button" class="py-2 px-4 text-slate-400 hover:text-white text-sm">Usar Modo Local</button><div><button type="button" id="close-settings-button" class="py-2 px-4 bg-slate-600 hover:bg-slate-500 rounded-lg mr-2">Cerrar</button><button type="submit" class="py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg">Conectar</button></div></div></form>
         </div>
     </div></div>
     <div id="loading-overlay" class="hidden fixed inset-0 bg-black/70 flex-col flex items-center justify-center z-[60] text-white"><span class="block w-12 h-12 border-4 border-slate-500 border-t-white rounded-full mb-4"></span><p id="loading-text">Cargando...</p></div>
@@ -183,7 +176,6 @@
             const gistModal = document.getElementById('gist-modal');
             const gistForm = document.getElementById('gist-form');
             const gistError = document.getElementById('gist-error');
-            const syncStatus = document.getElementById('sync-status');
             const disconnectButton = document.getElementById('disconnect-button');
             const closeSettingsButton = document.getElementById('close-settings-button');
             const loadingOverlay = document.getElementById('loading-overlay');
@@ -194,14 +186,12 @@
             const liveFilter = document.getElementById('live-filter');
             const watchLaterForm = document.getElementById('watch-later-form');
             const channelSearchInput = document.getElementById('channel-search-input');
-            const syncButton = document.getElementById('sync-button');
 
             // App State
             let allChannels = [], favorites = [], watchLaterList = [];
             let currentChannelIndex = -1, currentFilter = 'all';
             let saveDataTimeout = null;
             let dragStartIndex;
-            let cursorTimeout = null;
             
             // Gist State
             let gistId = null, gistToken = null;
@@ -233,16 +223,17 @@
                 if (!gistId || !gistToken) return null;
                 showLoading('Sincronizando...');
                 try {
-                    const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers: { 'Authorization': `token ${gistToken}`, 'Cache-Control': 'no-cache' }});
+                    const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers: { 'Authorization': `token ${gistToken}` }});
                     if (!response.ok) {
                         if(response.status === 404) return null;
-                        throw new Error(`[${response.status}] ${response.statusText}`);
+                        throw new Error(`Error: ${response.statusText}`);
                     }
                     const data = await response.json();
                     return data.files && data.files[GIST_FILENAME] ? JSON.parse(data.files[GIST_FILENAME].content) : null;
                 } catch (error) {
                     console.error('Error fetching Gist:', error);
-                    return { error: true, message: `Error al cargar. Revisa credenciales.` };
+                    gistError.textContent = 'Error al cargar. Revisa credenciales.';
+                    return { error: true };
                 } finally { hideLoading(); }
             }
 
@@ -448,23 +439,6 @@
                 document.getElementById('edit-channel-index').value = '';
                 channelModal.classList.remove('hidden');
             }
-            
-            const cursorMoveHandler = () => {
-                if (cursorTimeout) clearTimeout(cursorTimeout);
-                appEl.classList.remove('hide-cursor');
-                cursorTimeout = setTimeout(() => {
-                    appEl.classList.add('hide-cursor');
-                }, 3000); 
-            };
-            function handleCursorInactivity() {
-                appEl.addEventListener('mousemove', cursorMoveHandler);
-                cursorMoveHandler(); 
-            }
-            function clearCursorInactivity() {
-                appEl.removeEventListener('mousemove', cursorMoveHandler);
-                if (cursorTimeout) clearTimeout(cursorTimeout);
-                appEl.classList.remove('hide-cursor');
-            }
 
             // Event Listeners
             themeSelect.addEventListener('change', (e) => {
@@ -478,14 +452,17 @@
                 if (!isFullscreen) {
                     appEl.classList.add('pseudo-fullscreen');
                     body.classList.add('fullscreen-active');
-                    handleCursorInactivity();
                 } else { 
                     appEl.classList.remove('pseudo-fullscreen');
                     body.classList.remove('fullscreen-active');
-                    clearCursorInactivity();
                 }
             });
-
+            document.addEventListener('fullscreenchange', () => { 
+                if (!document.fullscreenElement) {
+                    appEl.classList.remove('pseudo-fullscreen');
+                    body.classList.remove('fullscreen-active');
+                }
+            });
             helpButton.addEventListener('click', () => { turnOffTv(); placeholder.classList.add('hidden'); helpScreen.classList.remove('hidden'); });
             closeHelpButton.addEventListener('click', turnOffTv);
             addChannelButton.addEventListener('click', openAddModal);
@@ -577,7 +554,6 @@
                 if (e.key === 'Escape' && body.classList.contains('fullscreen-active')) {
                     appEl.classList.remove('pseudo-fullscreen');
                     body.classList.remove('fullscreen-active');
-                    clearCursorInactivity();
                 }
 
                 const zap = (direction) => {
@@ -603,68 +579,22 @@
                         break;
                 }
             });
-            
-            async function forceSync() {
-                if (gistId && gistToken) {
-                    gistError.textContent = '';
-                    syncStatus.textContent = '';
-                    const gistData = await fetchDataFromGist();
-                     if (gistData && !gistData.error) {
-                        if (gistData.tvArgentinaApp) {
-                            allChannels = gistData.tvArgentinaApp.channels || initialChannels;
-                            favorites = gistData.tvArgentinaApp.favorites || [];
-                            watchLaterList = gistData.tvArgentinaApp.watchLater || [];
-                            saveDataToLocalStorage(); // Update local backup
-                            renderChannelList();
-                            syncStatus.textContent = 'Sincronización completada.';
-                        } else {
-                             gistError.textContent = 'No se encontraron datos en Gist.';
-                        }
-                    } else if (!gistData) {
-                        gistError.textContent = 'Gist o archivo no encontrado.';
-                    } else if (gistData.error) {
-                        gistError.textContent = gistData.message;
-                    }
-                } else {
-                    gistError.textContent = 'Conecta tu Gist primero.';
-                }
-                 setTimeout(() => { 
-                    gistError.textContent = '';
-                    syncStatus.textContent = '';
-                }, 3000);
-            }
-            syncButton.addEventListener('click', forceSync);
-
             async function initializeApp() {
                 initializeTheme();
                 gistId = localStorage.getItem('gist_id');
                 gistToken = localStorage.getItem('gist_token');
-                
-                let loadLocalData = true;
-
                 if (gistId && gistToken) {
                     const gistData = await fetchDataFromGist();
-                    if (gistData && !gistData.error) {
-                        loadLocalData = false; // Found Gist data, don't load from local
-                        if (gistData.tvArgentinaApp) {
-                            allChannels = gistData.tvArgentinaApp.channels || initialChannels;
-                            favorites = gistData.tvArgentinaApp.favorites || [];
-                            watchLaterList = gistData.tvArgentinaApp.watchLater || [];
-                        } else {
-                            // Gist exists but is empty/malformed, load local and try to seed the Gist
-                            loadDataFromLocalStorage();
-                            await saveDataToGist(); 
-                        }
-                    } else if (gistData && gistData.error) {
-                       // Gist fetch failed, show modal with error and fallback to local
-                       settingsButton.click();
-                       gistError.textContent = gistData.message;
+                    if (gistData?.error) { settingsButton.click(); return; }
+                    if (gistData?.tvArgentinaApp) {
+                        allChannels = gistData.tvArgentinaApp.channels || initialChannels;
+                        favorites = gistData.tvArgentinaApp.favorites || [];
+                        watchLaterList = gistData.tvArgentinaApp.watchLater || [];
+                    } else {
+                        allChannels = initialChannels; favorites = []; watchLaterList = [];
+                        await saveDataToGist(); // Seed the Gist
                     }
-                }
-                
-                if (loadLocalData) {
-                    loadDataFromLocalStorage();
-                }
+                } else { loadDataFromLocalStorage(); }
                 
                 updateFilterButtons();
                 renderChannelList();
@@ -682,4 +612,3 @@
     </script>
 </body>
 </html>
-
