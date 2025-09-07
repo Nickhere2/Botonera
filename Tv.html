@@ -68,6 +68,9 @@
             height: 100vh;
             z-index: 1000;
         }
+        #app.pseudo-fullscreen.hide-cursor {
+            cursor: none;
+        }
         #app.pseudo-fullscreen > aside {
             display: none;
         }
@@ -192,6 +195,7 @@
             let currentChannelIndex = -1, currentFilter = 'all';
             let saveDataTimeout = null;
             let dragStartIndex;
+            let cursorTimeout = null;
             
             // Gist State
             let gistId = null, gistToken = null;
@@ -439,6 +443,23 @@
                 document.getElementById('edit-channel-index').value = '';
                 channelModal.classList.remove('hidden');
             }
+            
+            const cursorMoveHandler = () => {
+                if (cursorTimeout) clearTimeout(cursorTimeout);
+                appEl.classList.remove('hide-cursor');
+                cursorTimeout = setTimeout(() => {
+                    appEl.classList.add('hide-cursor');
+                }, 3000); 
+            };
+            function handleCursorInactivity() {
+                appEl.addEventListener('mousemove', cursorMoveHandler);
+                cursorMoveHandler(); 
+            }
+            function clearCursorInactivity() {
+                appEl.removeEventListener('mousemove', cursorMoveHandler);
+                if (cursorTimeout) clearTimeout(cursorTimeout);
+                appEl.classList.remove('hide-cursor');
+            }
 
             // Event Listeners
             themeSelect.addEventListener('change', (e) => {
@@ -452,17 +473,14 @@
                 if (!isFullscreen) {
                     appEl.classList.add('pseudo-fullscreen');
                     body.classList.add('fullscreen-active');
+                    handleCursorInactivity();
                 } else { 
                     appEl.classList.remove('pseudo-fullscreen');
                     body.classList.remove('fullscreen-active');
+                    clearCursorInactivity();
                 }
             });
-            document.addEventListener('fullscreenchange', () => { 
-                if (!document.fullscreenElement) {
-                    appEl.classList.remove('pseudo-fullscreen');
-                    body.classList.remove('fullscreen-active');
-                }
-            });
+
             helpButton.addEventListener('click', () => { turnOffTv(); placeholder.classList.add('hidden'); helpScreen.classList.remove('hidden'); });
             closeHelpButton.addEventListener('click', turnOffTv);
             addChannelButton.addEventListener('click', openAddModal);
@@ -554,6 +572,7 @@
                 if (e.key === 'Escape' && body.classList.contains('fullscreen-active')) {
                     appEl.classList.remove('pseudo-fullscreen');
                     body.classList.remove('fullscreen-active');
+                    clearCursorInactivity();
                 }
 
                 const zap = (direction) => {
