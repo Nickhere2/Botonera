@@ -242,8 +242,7 @@
                     return data.files && data.files[GIST_FILENAME] ? JSON.parse(data.files[GIST_FILENAME].content) : null;
                 } catch (error) {
                     console.error('Error fetching Gist:', error);
-                    gistError.textContent = 'Error al cargar. Revisa credenciales.';
-                    return { error: true };
+                    return { error: true, message: 'Error al cargar. Revisa credenciales.' };
                 } finally { hideLoading(); }
             }
 
@@ -642,21 +641,25 @@
                 if (gistId && gistToken) {
                     const gistData = await fetchDataFromGist();
                     if (gistData && !gistData.error) {
+                        // Success: data was fetched from Gist
                         if (gistData.tvArgentinaApp) {
                             allChannels = gistData.tvArgentinaApp.channels || initialChannels;
                             favorites = gistData.tvArgentinaApp.favorites || [];
                             watchLaterList = gistData.tvArgentinaApp.watchLater || [];
                         } else {
+                            // Gist exists but is empty/malformed, load local and try to seed the Gist
                             loadDataFromLocalStorage();
-                            saveDataToGist(); 
+                            await saveDataToGist(); 
                         }
                     } else {
+                        // Gist fetch failed (e.g., bad token) or Gist not found
                         if (gistData && gistData.error) {
-                           settingsButton.click();
+                           settingsButton.click(); // Show modal with error message
                         }
-                        loadDataFromLocalStorage();
+                        loadDataFromLocalStorage(); // Always fallback to local data
                     }
                 } else { 
+                    // Not configured for Gist, just load from local storage
                     loadDataFromLocalStorage();
                 }
                 
