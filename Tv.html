@@ -60,32 +60,22 @@
         .theme-scifi .tv-bezel { padding: 0.5rem; background: transparent; border: 2px solid var(--accent-color); border-radius: 0; clip-path: polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px)); }
         
         /* --- Pantalla Completa --- */
-        #app.pseudo-fullscreen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 1000;
+        #app:fullscreen {
+            background-color: black;
         }
-        #app.pseudo-fullscreen.hide-cursor {
-            cursor: none;
-        }
-        #app.pseudo-fullscreen > aside {
+        #app:fullscreen > aside,
+        #app:fullscreen > main #controls-container {
             display: none;
         }
-        #app.pseudo-fullscreen > main {
-            width: 100%;
-            height: 100%;
+        #app:fullscreen > main {
             padding: 0;
             margin: 0;
+            height: 100vh;
         }
-        #app.pseudo-fullscreen #controls-container {
-            display: none;
-        }
-        body.fullscreen-active .tv-bezel { padding: 0 !important; border-radius: 0; box-shadow: none; border: none; background: #000; clip-path: none !important; }
-        body.fullscreen-active .scanline-overlay, 
-        body.fullscreen-active .retro-details { display: none; }
+        #app:fullscreen .tv-bezel { padding: 0 !important; border-radius: 0; box-shadow: none; border: none; background: #000; clip-path: none !important; }
+        #app:fullscreen .scanline-overlay, 
+        #app:fullscreen .retro-details { display: none; }
+        #app:fullscreen.hide-cursor { cursor: none; }
     </style>
 </head>
 <body class="font-sans antialiased">
@@ -478,7 +468,7 @@
             powerButton.addEventListener('click', turnOffTv);
             fullscreenButton.addEventListener('click', () => {
                 if (!document.fullscreenElement) {
-                    body.requestFullscreen().catch(err => {
+                    appEl.requestFullscreen().catch(err => {
                         console.error("Native fullscreen failed:", err);
                     });
                 } else { 
