@@ -102,8 +102,15 @@
             <div id="filter-container" class="my-4 flex justify-center bg-slate-700 rounded-lg p-1"><button data-filter="all" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Todos</button><button data-filter="favorites" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Favoritos</button><button data-filter="watchLater" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Ver Después</button></div>
             <div id="watch-later-container" class="mb-4 hidden">
                 <button id="add-from-clipboard-btn" class="w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold flex items-center justify-center space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" /><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" /></svg>
-                    <span>Agregar desde Portapapeles</span>
+                    <svg class="w-6 h-6 shrink-0" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M28.462 3.42773C28.1885 2.44336 27.3828 1.6377 26.4023 1.36328C23.957 1 16 1 16 1C16 1 8.04297 1 5.59766 1.36328C4.61719 1.6377 3.81152 2.44336 3.53809 3.42773C3.17188 5.875 3.17188 10.875 3.17188 10.875C3.17188 10.875 3.17188 15.875 3.53809 18.3223C3.81152 19.3066 4.61719 20.1123 5.59766 20.3867C8.04297 20.75 16 20.75 16 20.75C16 20.75 23.957 20.75 26.4023 20.3867C27.3828 20.1123 28.1885 19.3066 28.462 18.3223C28.8281 15.875 28.8281 10.875 28.8281 10.875C28.8281 10.875 28.8281 5.875 28.462 3.42773Z" fill="#FF0000"/>
+                        <path d="M13.1992 14.999V6.75L20.2793 10.875L13.1992 14.999Z" fill="white"/>
+                        <g>
+                            <circle cx="24" cy="18" r="7" fill="var(--accent-color, #2563eb)" stroke="var(--secondary-bg, #1e293b)" stroke-width="2"/>
+                            <path d="M24 15V21M21 18H27" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+                        </g>
+                    </svg>
+                    <span>Pegar Enlace de YouTube</span>
                 </button>
                 <p id="clipboard-status" class="text-xs text-center mt-2 h-4"></p>
             </div>
