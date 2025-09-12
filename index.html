@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v24 - Carga de Gist Mejorada</title>
+    <title>Centro de Accesos v27 - Buscador Integrado</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -17,6 +17,7 @@
             --text-color: #1e293b; /* Azul oscuro/negro */
             --accent-color: #facc15; /* Amarillo brillante */
             --accent-color-hover: #fde047;
+            --accent-text-color: #1e293b;
             --border-width: 2px;
             --note-bg: #fef08a; /* Amarillo Post-it */
             --task-bg: #e0e7ff; /* Azul Lavanda claro */
@@ -31,6 +32,7 @@
             --text-color: #fefce8;
             --note-bg: #4a4a2a;
             --task-bg: #312e71;
+            --accent-text-color: #1e293b;
         }
         
         .theme-boca {
@@ -40,6 +42,7 @@
             --accent-color-hover: #ffd633;
             --note-bg: #4d4d00;
             --task-bg: #001f3f;
+            --accent-text-color: #003366;
         }
 
         body {
@@ -106,11 +109,11 @@
         }
         .nav-link.active {
             background-color: var(--accent-color);
-            color: #1e293b;
+            color: var(--accent-text-color);
         }
         .nav-link:hover:not(.active) {
              background-color: var(--accent-color-hover);
-             color: #1e293b;
+             color: var(--accent-text-color);
         }
 
         .brutalist-button {
@@ -120,7 +123,7 @@
             font-weight: 700;
             transition: all 0.2s ease-in-out;
             text-transform: uppercase;
-            color: #1e293b;
+            color: var(--accent-text-color);
         }
         .brutalist-button:hover {
             box-shadow: 2px 2px 0 var(--text-color);
@@ -176,19 +179,32 @@
         }
         
         .category-wrapper {
-            background-color: rgba(0,0,0,0.03);
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1rem;
+            padding: 0;
+            margin-bottom: 2.5rem;
             border: none;
-            transition: background-color 0.3s;
+            background-color: transparent;
+            border-radius: 0;
+            transition: none;
         }
         .dark .category-wrapper, .theme-boca .category-wrapper {
-            background-color: rgba(255,255,255,0.03);
+            background-color: transparent;
         }
 
-        .category-header { position: relative; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid; padding-bottom: 0.75rem; margin-bottom: 1rem; }
-        .category-title { font-size: 1.25rem; font-weight: 700; text-transform: none; }
+        .category-header { 
+            position: relative; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: none;
+            padding-bottom: 0.5rem; 
+            margin-bottom: 1rem; 
+        }
+        .category-title { 
+            font-size: 1.125rem; 
+            font-weight: 700; 
+            text-transform: none; 
+            opacity: 0.8;
+        }
         
         .category-actions { position: relative; }
         .category-options-btn { background: transparent; border: none; cursor: pointer; padding: 0.5rem; }
@@ -214,17 +230,17 @@
             border-bottom: var(--border-width) solid var(--text-color);
         }
         .category-options-menu button:last-child { border-bottom: none; }
-        .category-options-menu button:hover { background-color: var(--accent-color); color: #1e293b; }
+        .category-options-menu button:hover { background-color: var(--accent-color); color: var(--accent-text-color); }
         
         .category-drag-handle { cursor: move; padding: 0.5rem; margin-right: 0.5rem; }
         
         .view-switcher button { border: var(--border-width) solid transparent; padding: 0.25rem 0.5rem; }
-        .view-switcher button.active { border-color: var(--text-color); background-color: var(--accent-color); color: #1e293b;}
+        .view-switcher button.active { border-color: var(--text-color); background-color: var(--accent-color); color: var(--accent-text-color);}
 
         .card-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0.2; transition: opacity 0.2s; z-index: 20; }
         .brutalist-card:hover .card-actions, .list-item:hover .card-actions, .chip-item:hover .card-actions { opacity: 1; }
         .action-btn { width: 32px; height: 32px; border: var(--border-width) solid var(--text-color); background: var(--bg-color); display: flex; align-items: center; justify-content: center; }
-        .action-btn:hover { background: var(--accent-color); color: #1e293b; }
+        .action-btn:hover { background: var(--accent-color); color: var(--accent-text-color); }
         .card-drag-handle { position: absolute; top: 8px; left: 8px; cursor: move; padding: 4px; opacity: 0.2; transition: opacity 0.2s; z-index: 20; color: white; }
         .brutalist-card:hover .card-drag-handle { opacity: 1; }
 
@@ -235,7 +251,7 @@
         .theme-boca .modal-container { background-color: #002244; }
         
         .type-btn { border: var(--border-width) solid var(--text-color); transition: all 0.2s; }
-        .type-btn.active { background-color: var(--accent-color); box-shadow: 4px 4px 0 var(--text-color); transform: translate(-4px, -4px); color: #1e293b; }
+        .type-btn.active { background-color: var(--accent-color); box-shadow: 4px 4px 0 var(--text-color); transform: translate(-4px, -4px); color: var(--accent-text-color); }
         .rich-text-editor { border: var(--border-width) solid var(--text-color); min-height: 120px; padding: 0.5rem; background: white; }
         .dark .rich-text-editor, .theme-boca .rich-text-editor { background-color: #1e293b; }
         
@@ -260,17 +276,26 @@
             padding: 1rem;
             transition: all 0.3s ease;
         }
-        #global-search-tags {
+        #sidebar-tags-filter {
             max-height: 0;
             overflow: hidden;
             transition: max-height 0.3s ease-in-out, margin-top 0.3s ease-in-out;
         }
-        #global-search-container.expanded #global-search-tags {
+        #global-search-container.expanded #sidebar-tags-filter,
+        #global-search-container.expanded #sidebar-category-filter {
             max-height: 200px;
             margin-top: 1rem;
         }
+        #global-search-container.expanded #sidebar-category-filter {
+            display: block;
+        }
+        #sidebar-category-filter {
+            display: none;
+            transition: max-height 0.3s ease-in-out, margin-top 0.3s ease-in-out;
+        }
+        
         .filter-tag { border: var(--border-width) solid var(--text-color); cursor: pointer; }
-        .filter-tag.active { background-color: var(--accent-color); color: #1e293b; }
+        .filter-tag.active { background-color: var(--accent-color); color: var(--accent-text-color); }
         
         #preview-modal {
             pointer-events: none;
@@ -451,7 +476,7 @@
         }
         .prompt-card .card-actions .action-btn:hover {
             background: var(--accent-color);
-            color: #1e293b;
+            color: var(--accent-text-color);
         }
         .prompt-content-wrapper {
             overflow: hidden;
@@ -546,7 +571,7 @@
         }
         .favorite-icon:hover {
             background-color: var(--accent-color);
-            color: #1e293b;
+            color: var(--accent-text-color);
             transform: translateY(-2px);
         }
         .favorite-icon img, .favorite-icon i {
@@ -558,30 +583,33 @@
         .category-filter-nav {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
             gap: 0.75rem;
-            margin-bottom: 2rem;
         }
         .category-filter-btn {
-            border: var(--border-width) solid var(--text-color);
+            border: var(--border-width) dashed var(--text-color);
+            opacity: 0.7;
             padding: 0.5rem 1rem;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.2s ease-in-out;
-            background-color: var(--bg-color);
+            background-color: transparent;
             border-radius: 9999px;
             box-shadow: none;
             transform: none;
+            color: var(--text-color);
         }
         .category-filter-btn:hover {
             background-color: var(--accent-color-hover);
-            color: #1e293b;
+            color: var(--accent-text-color);
             transform: translateY(-2px);
             box-shadow: none;
+            opacity: 1;
         }
         .category-filter-btn.active {
             background-color: var(--accent-color);
-            color: #1e293b;
+            color: var(--accent-text-color);
+            border-style: solid;
+            opacity: 1;
             box-shadow: none;
             transform: none;
         }
@@ -751,7 +779,8 @@
                 </div>
                 <div id="global-search-container" class="hidden w-full">
                     <input type="text" id="global-search-input" placeholder="FILTRAR..." class="brutalist-input w-full">
-                    <div id="global-search-tags" class="flex flex-wrap gap-2"></div>
+                    <select id="sidebar-category-filter" class="brutalist-input w-full mt-2"></select>
+                    <div id="sidebar-tags-filter" class="flex flex-wrap gap-2"></div>
                     <label class="global-search-toggle mt-3">
                         <span class="switch">
                             <input type="checkbox" id="global-search-switch">
@@ -1006,7 +1035,8 @@ const FILENAME_IN_GIST = 'Botones.json';
 let data = {
     items: [],
     categories: {},
-    categoryOrders: {}
+    categoryOrders: {},
+    favoriteOrder: [] // Ensure this exists
 };
 let isGlobalSearchActive = false;
 let activeCategoryFilter = 'all';
@@ -1041,7 +1071,8 @@ const mockData = {
         links: ["Desarrollo"],
         prompts: ["Creatividad"],
         "notes-tasks": []
-    }
+    },
+    favoriteOrder: [1, 3]
 };
 
 // --- DATA HANDLING ---
@@ -1094,19 +1125,21 @@ async function loadData() {
             data = JSON.parse(JSON.stringify(mockData));
         } else {
             let loadedJson = JSON.parse(fileContent);
-            const defaults = { items: [], categories: {}, categoryOrders: {} };
+            const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrder: [] };
             if (Array.isArray(loadedJson)) {
                 data = { ...defaults, items: loadedJson.map(i => ({...i, isFavorite: i.isFavorite || false})) };
             } else {
                 data = { ...defaults, ...loadedJson };
                 data.items = data.items.map(i => ({...i, isFavorite: i.isFavorite || false}));
             }
+            if (!data.favoriteOrder) {
+                data.favoriteOrder = data.items.filter(i => i.isFavorite).map(i => i.id);
+            }
             showToast("DATOS CARGADOS.");
         }
         updateSyncStatus('synced');
     } catch (error) {
         console.error("Fallo al cargar datos:", error);
-        // The check for specific messages is to avoid showing a generic error after a specific one.
         if (!error.message.includes("GIST NO ENCONTRADO") && !error.message.includes("LÍMITE")) {
             showToast(`ERROR AL CARGAR DATOS. VERIFICA EL JSON O TU CONEXIÓN.`);
         }
@@ -1348,7 +1381,7 @@ function initializeUI() {
 function refreshUI(sectionName) {
     const activeSection = sectionName || document.querySelector('#main-nav .active')?.dataset.section || 'buscadores';
     applyGlobalFilter();
-    populateGlobalFilterTags();
+    populateSidebarFilters();
 }
 
 function switchTab(tabName) {
@@ -1356,8 +1389,7 @@ function switchTab(tabName) {
     const newActiveLink = document.querySelector(`#main-nav .nav-link[data-section="${tabName}"]`);
     if (newActiveLink) newActiveLink.classList.add("active");
     
-    const titleMap = { 'buscadores': 'Buscadores', 'links': 'Links', 'prompts': 'Prompts', 'notes-tasks': 'Notas y Tareas' };
-    document.getElementById('main-title').textContent = (titleMap[tabName] || tabName).toUpperCase();
+    document.getElementById('main-title').textContent = (newActiveLink.querySelector('span').textContent || '').toUpperCase();
 
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
     const activeSection = document.querySelector(`#section-${tabName}`);
@@ -1374,7 +1406,9 @@ function switchTab(tabName) {
     }
 
     document.getElementById('global-view-switcher').classList.remove('hidden');
-    refreshUI(tabName);
+    
+    populateSidebarFilters();
+    applyGlobalFilter();
 }
 
 // --- RENDERING ---
@@ -1480,7 +1514,18 @@ function setupPromptCardAnimations(container) {
 }
 
 function renderFavoritesBar(container, items) {
-    const favorites = items.filter(item => item.isFavorite);
+    const favoriteIds = new Set(data.favoriteOrder || []);
+    let favorites = data.items.filter(item => item.isFavorite);
+
+    favorites.sort((a, b) => {
+        const indexA = data.favoriteOrder.indexOf(a.id);
+        const indexB = data.favoriteOrder.indexOf(b.id);
+        if (indexA === -1 && indexB === -1) return 0;
+        if (indexA === -1) return 1;
+        if (indexB === -1) return -1;
+        return indexA - indexB;
+    });
+
     if (favorites.length === 0) return;
 
     const bar = document.createElement('div');
@@ -1496,78 +1541,27 @@ function renderFavoritesBar(container, items) {
         `;
     });
 
-    bar.innerHTML = `
-        <h4 class="favorites-bar-title">Destacados</h4>
-        <div class="favorites-bar-icons">${iconsHtml}</div>
-    `;
+    bar.innerHTML = `<div class="favorites-bar-icons">${iconsHtml}</div>`;
+    container.appendChild(bar);
 
-    const newCatButton = container.querySelector('.mb-6');
-    if (newCatButton) {
-        newCatButton.insertAdjacentElement('afterend', bar);
-    } else {
-        container.prepend(bar);
+    const iconsContainer = bar.querySelector('.favorites-bar-icons');
+    if(iconsContainer) {
+        new Sortable(iconsContainer, {
+            animation: 150,
+            onEnd: (evt) => {
+                const newOrder = Array.from(evt.target.children).map(child => {
+                    return parseInt(child.dataset.id, 10); 
+                });
+                data.favoriteOrder = newOrder;
+                saveData();
+            }
+        });
     }
-    
 
     bar.querySelectorAll('.favorite-icon').forEach(icon => {
         icon.addEventListener('click', (e) => handleCardClick(icon.dataset.id, e));
     });
 }
-
-function renderCategoryFilters(mainContainer, allCategories, categorizedItems) {
-    const existingNav = mainContainer.querySelector('.category-filter-nav');
-    if (existingNav) existingNav.remove();
-
-    if (allCategories.length <= 1) return;
-
-    const navContainer = document.createElement('div');
-    navContainer.className = 'category-filter-nav fade-in';
-
-    const allButton = document.createElement('button');
-    allButton.className = 'category-filter-btn';
-    allButton.textContent = 'TODOS';
-    allButton.dataset.category = 'all';
-    if (activeCategoryFilter === 'all') {
-        allButton.classList.add('active');
-    }
-    allButton.addEventListener('click', () => {
-        activeCategoryFilter = 'all';
-        refreshUI();
-    });
-    navContainer.appendChild(allButton);
-
-    allCategories.forEach(categoryName => {
-        if (categoryName === 'SIN CATEGORIA' && !(categorizedItems[categoryName] && categorizedItems[categoryName].length > 0)) {
-            return;
-        }
-
-        const btn = document.createElement('button');
-        btn.className = 'category-filter-btn';
-        btn.textContent = categoryName;
-        btn.dataset.category = categoryName;
-        if (activeCategoryFilter === categoryName) {
-            btn.classList.add('active');
-        }
-        btn.addEventListener('click', () => {
-            activeCategoryFilter = categoryName;
-            refreshUI();
-        });
-        navContainer.appendChild(btn);
-    });
-
-    const favoritesBar = mainContainer.querySelector('.favorites-bar');
-    if (favoritesBar) {
-        favoritesBar.insertAdjacentElement('afterend', navContainer);
-    } else {
-        const newCatButtonWrapper = mainContainer.querySelector('.mb-6');
-        if (newCatButtonWrapper) {
-             newCatButtonWrapper.insertAdjacentElement('afterend', navContainer);
-        } else {
-            mainContainer.prepend(navContainer);
-        }
-    }
-}
-
 
 function renderSection(sectionName, itemsToRender, searchTerm = '') {
     const container = document.getElementById(`section-${sectionName}`);
@@ -1577,25 +1571,20 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
     document.querySelectorAll('#global-view-switcher button').forEach(btn => btn.classList.toggle('active', btn.dataset.view === globalView));
     localStorage.setItem('globalView', globalView);
 
+    if (sectionName === 'buscadores' && !searchTerm && activeCategoryFilter === 'all' && activeFilterTags.length === 0) {
+        const allBuscadores = data.items.filter(item => item.type === 'Buscador');
+        const searchComponent = createBuscadorSearchComponent(allBuscadores);
+        if (searchComponent) container.appendChild(searchComponent);
+    }
+    
     if (sectionName === 'notes-tasks') {
         renderNotesAndTasksSection(container, itemsToRender, searchTerm);
         return;
     }
     
-    const typeMap = { buscadores: 'Buscador', links: 'Link', prompts: 'Promp' };
-    const type = typeMap[sectionName];
+    const items = itemsToRender; 
     
-    if (sectionName === 'buscadores') {
-        const allBuscadores = data.items.filter(item => item.type === 'Buscador');
-        const searchComponent = createBuscadorSearchComponent(allBuscadores);
-        if (searchComponent) container.appendChild(searchComponent);
-    }
-
-    container.insertAdjacentHTML('beforeend', `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`);
-    
-    const items = itemsToRender || data.items.filter(item => item.type === type);
-    
-    if (items.length === 0 && !itemsToRender) {
+    if (items.length === 0) {
         renderEmptyState(container, sectionName);
         return;
     }
@@ -1620,12 +1609,8 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
             allCategoryNames.push(cat);
         }
     });
-    
-    renderCategoryFilters(container, allCategoryNames, categorized);
 
-    const filteredCategoryNames = activeCategoryFilter === 'all'
-        ? allCategoryNames
-        : allCategoryNames.filter(cat => cat === activeCategoryFilter);
+    const filteredCategoryNames = allCategoryNames; 
 
     filteredCategoryNames.forEach(cat => {
         const itemsForThisCat = categorized[cat] || [];
@@ -1635,11 +1620,8 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
             const catDiv = document.createElement('div');
             catDiv.className = 'category-wrapper fade-in';
             catDiv.dataset.categoryName = cat;
-            if (categorySettings.color) {
-                catDiv.style.backgroundColor = categorySettings.color;
-            }
-
-            const textColor = getContrastingTextColor(categorySettings.color);
+            
+            const textColor = categorySettings.color ? getContrastingTextColor(categorySettings.color) : 'var(--text-color)';
             const dragHandleHTML = `<span class="category-drag-handle" style="color: ${textColor};"><i class="fas fa-grip-vertical"></i></span>`;
 
             const categoryActionsHTML = cat !== 'SIN CATEGORIA' ? `
@@ -1652,13 +1634,14 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
                 </div>
             ` : '';
 
-            catDiv.innerHTML = `<div class="category-header flex items-center" style="color: ${textColor}; border-color: ${textColor};">${dragHandleHTML}<h3 class="category-title flex-grow">${cat}</h3>${categoryActionsHTML}</div>`;
+            const titleStyle = categorySettings.color ? `style="color: ${categorySettings.color}"` : '';
+            catDiv.innerHTML = `<div class="category-header flex items-center">${dragHandleHTML}<h3 class="category-title flex-grow" ${titleStyle}>${cat}</h3>${categoryActionsHTML}</div>`;
             
             const contentContainer = document.createElement('div');
             const viewClassMap = { grid: 'card-grid', list: 'list-view', chip: 'chip-view', table: 'table-view' };
             
             let currentDisplayView = globalView;
-            if (globalView === 'kanban') currentDisplayView = 'grid'; // Fallback a grid si es kanban
+            if (globalView === 'kanban') currentDisplayView = 'grid';
             
             contentContainer.className = viewClassMap[currentDisplayView];
             contentContainer.dataset.category = cat;
@@ -1707,11 +1690,7 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
     });
 
     if (categoryContainer.children.length === 0) {
-        if (items.length > 0) {
-            container.insertAdjacentHTML('beforeend', `<p class="text-center opacity-70 mt-8">No se encontraron resultados para los filtros seleccionados.</p>`);
-        } else if (sectionName !== 'notes-tasks') {
-            categoryContainer.innerHTML = `<p class="opacity-70 p-4 text-center">No hay elementos en esta sección. ¡Crea una categoría y añade algo!</p>`;
-        }
+        container.insertAdjacentHTML('beforeend', `<p class="text-center opacity-70 mt-8">No se encontraron resultados para los filtros seleccionados.</p>`);
     }
 
     new Sortable(categoryContainer, {
@@ -2247,15 +2226,22 @@ function deleteItem(event, id) {
     event.stopPropagation();
     showConfirmModal("¿SEGURO QUE QUIERES ELIMINAR ESTE ELEMENTO?", (confirmed) => {
         if (confirmed) {
+            const numericId = parseInt(id, 10);
             const card = document.querySelector(`[data-id="${id}"]`);
             if (card) {
                 card.classList.add('fade-out');
                 card.addEventListener('transitionend', () => {
-                    data.items = data.items.filter(i => String(i.id) !== String(id));
+                    data.items = data.items.filter(i => i.id !== numericId);
+                    if (data.favoriteOrder) {
+                        data.favoriteOrder = data.favoriteOrder.filter(favId => favId !== numericId);
+                    }
                     saveData().then(() => refreshUI());
                 }, { once: true });
             } else {
-                data.items = data.items.filter(i => String(i.id) !== String(id));
+                data.items = data.items.filter(i => i.id !== numericId);
+                 if (data.favoriteOrder) {
+                    data.favoriteOrder = data.favoriteOrder.filter(favId => favId !== numericId);
+                }
                 saveData().then(() => refreshUI());
             }
         }
@@ -2322,35 +2308,70 @@ function setupFabMenu() {
     document.getElementById('fab-theme').addEventListener('click', changeTheme);
 }
 
-function populateGlobalFilterTags() {
-    const tagsContainer = document.getElementById('global-search-tags');
-    tagsContainer.innerHTML = '';
+function populateSidebarFilters() {
+    const categorySelect = document.getElementById('sidebar-category-filter');
+    const tagsContainer = document.getElementById('sidebar-tags-filter');
+    
+    if (!categorySelect || !tagsContainer) return;
+
     const activeNavBtn = document.querySelector('.nav-link.active');
     if (!activeNavBtn) return;
+    
     const activeSectionName = activeNavBtn.dataset.section;
     const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
     const activeType = typeMap[activeSectionName];
-    const itemsInView = data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
-    const allTags = [...new Set(itemsInView.flatMap(card => card.tags || []))].sort();
-    allTags.forEach(tag => {
-        if (!tag) return;
-        const tagEl = document.createElement('button');
-        tagEl.className = 'filter-tag p-1 text-xs';
-        tagEl.textContent = tag;
-        tagEl.dataset.tag = tag;
-        if (activeFilterTags.includes(tag)) tagEl.classList.add('active');
-        tagEl.onclick = (e) => {
-            e.stopPropagation();
-            tagEl.classList.toggle('active');
-            activeFilterTags = activeFilterTags.includes(tag) ? activeFilterTags.filter(t => t !== tag) : [...activeFilterTags, tag];
-            applyGlobalFilter();
-        };
-        tagsContainer.appendChild(tagEl);
+
+    const itemsForFilters = isGlobalSearchActive 
+        ? data.items 
+        : data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
+
+    // Populate Categories
+    const allCategories = [...new Set(itemsForFilters.map(item => item.category).filter(Boolean))].sort();
+    const currentCategoryValue = categorySelect.value;
+    categorySelect.innerHTML = `<option value="all">Todas las Categorías</option>`;
+    allCategories.forEach(cat => {
+        const selected = cat === currentCategoryValue ? 'selected' : '';
+        categorySelect.innerHTML += `<option value="${cat}" ${selected}>${cat}</option>`;
     });
+    if (allCategories.includes(currentCategoryValue)) {
+        categorySelect.value = currentCategoryValue;
+    } else {
+        categorySelect.value = 'all';
+    }
+    categorySelect.removeEventListener('change', applyGlobalFilter); // Prevent duplicate listeners
+    categorySelect.addEventListener('change', applyGlobalFilter);
+
+    // Populate Tags
+    const allTags = [...new Set(itemsForFilters.flatMap(item => item.tags || []))].sort();
+    tagsContainer.innerHTML = '';
+    
+    if(allTags.length > 0) {
+        allTags.forEach(tag => {
+            const tagBtn = document.createElement('button');
+            tagBtn.className = 'filter-tag p-1 text-xs';
+            tagBtn.dataset.tag = tag;
+            tagBtn.textContent = tag;
+
+            if (activeFilterTags.includes(tag)) {
+                tagBtn.classList.add('active');
+            }
+
+            tagBtn.onclick = (e) => {
+                e.target.classList.toggle('active');
+                activeFilterTags = Array.from(document.querySelectorAll('#sidebar-tags-filter .filter-tag.active')).map(el => el.dataset.tag);
+                applyGlobalFilter();
+            };
+            tagsContainer.appendChild(tagBtn);
+        });
+    }
 }
 
 function applyGlobalFilter() {
-    const searchTerm = document.getElementById('global-search-input').value.toLowerCase();
+    const searchTerm = (document.getElementById('global-search-input') || {}).value?.toLowerCase() || '';
+    const selectedCategory = (document.getElementById('sidebar-category-filter') || {}).value || 'all';
+
+    activeFilterTags = Array.from(document.querySelectorAll('#sidebar-tags-filter .filter-tag.active')).map(el => el.dataset.tag);
+
     const activeNavBtn = document.querySelector('.nav-link.active');
     if (!activeNavBtn) return;
     let activeSectionName = activeNavBtn.dataset.section;
@@ -2360,18 +2381,19 @@ function applyGlobalFilter() {
     if (isGlobalSearchActive) {
         itemsToFilter = data.items;
     } else {
-        const typeMap = { 'favoritos': 'Favorite', 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
+        const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
         const activeType = typeMap[activeSectionName];
-        if (activeType === 'Favorite') {
-            itemsToFilter = data.items.filter(item => item.isFavorite);
-        } else {
-            itemsToFilter = data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
-        }
+        itemsToFilter = data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
     }
 
     const results = itemsToFilter.filter(card => {
+        const categoryMatch = selectedCategory === 'all' || card.category === selectedCategory;
         const tagFilterMatch = activeFilterTags.length === 0 || activeFilterTags.every(filterTag => (card.tags || []).includes(filterTag));
-        if (!searchTerm) return tagFilterMatch;
+        if (!searchTerm && activeFilterTags.length === 0 && selectedCategory === 'all') {
+            return true; 
+        }
+        if (!searchTerm) return tagFilterMatch && categoryMatch;
+
         const titleMatch = card.title.toLowerCase().includes(searchTerm);
         const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(searchTerm);
         let contentMatch = false;
@@ -2383,14 +2405,10 @@ function applyGlobalFilter() {
         } else if (Array.isArray(card.action)) {
             contentMatch = card.action.some(task => task.text.toLowerCase().includes(searchTerm));
         }
-        return (titleMatch || tagListMatch || contentMatch) && tagFilterMatch;
+        return (titleMatch || tagListMatch || contentMatch) && tagFilterMatch && categoryMatch;
     });
-
-    if (isGlobalSearchActive) {
-        renderGlobalResults(results, searchTerm);
-    } else {
-        renderSection(activeSectionName, results, searchTerm);
-    }
+    
+    renderSection(activeSectionName, results, searchTerm);
 }
 
 function renderGlobalResults(results, searchTerm = '') {
@@ -2474,14 +2492,14 @@ function hidePreviewModal() {
 }
 
 function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
-    const items = itemsToRender || data.items.filter(item => item.type === 'Nota' || item.type === 'Tarea');
+    const items = itemsToRender;
     
     if (globalView === 'kanban') {
         renderKanbanView(container, items, searchTerm);
         return;
     }
     
-    if (items.length === 0 && !itemsToRender) {
+    if (items.length === 0) {
         renderEmptyState(container, 'notes-tasks');
         return;
     }
@@ -2661,6 +2679,21 @@ function toggleFavorite(event, itemId) {
     const item = data.items.find(i => String(i.id) === String(itemId));
     if (item) {
         item.isFavorite = !item.isFavorite;
+
+        if (!data.favoriteOrder) {
+            data.favoriteOrder = [];
+        }
+        
+        const numericItemId = parseInt(itemId, 10);
+
+        if (item.isFavorite) {
+            if (!data.favoriteOrder.includes(numericItemId)) {
+                data.favoriteOrder.push(numericItemId);
+            }
+        } else {
+            data.favoriteOrder = data.favoriteOrder.filter(id => id !== numericItemId);
+        }
+
         saveData().then(() => {
             refreshUI();
         });
@@ -2809,25 +2842,4 @@ function importData(event) {
 </script>
 </body>
 </html>
-" in the most up-to-date Canvas "Centro de Accesos v24 - Carga de Gist Mejorada" document above and am asking a query about/based on this code below.
-Instructions to follow:
-  * Don't output/edit the document if the query is Direct/Simple. For example, if the query asks for a simple explanation, output a direct answer.
-  * Make sure to **edit** the document if the query shows the intent of editing the document, in which case output the entire edited document, **not just that section or the edits**.
-    * Don't output the same document/empty document and say that you have edited it.
-    * Don't change unrelated code in the document.
-  * Don't output  and  in your final response.
-  * Any references like "this" or "selected code" refers to the code between  and  tags.
-  * Just acknowledge my request in the introduction.
-  * Make sure to refer to the document as "Canvas" in your response.
-
-" in the most up-to-date Canvas "Centro de Accesos v24 - Carga de Gist Mejorada" document above and am asking a query about/based on this code below.
-Instructions to follow:
-  * Don't output/edit the document if the query is Direct/Simple. For example, if the query asks for a simple explanation, output a direct answer.
-  * Make sure to **edit** the document if the query shows the intent of editing the document, in which case output the entire edited document, **not just that section or the edits**.
-    * Don't output the same document/empty document and say that you have edited it.
-    * Don't change unrelated code in the document.
-  * Don't output  and  in your final response.
-  * Any references like "this" or "selected code" refers to the code between  and  tags.
-  * Just acknowledge my request in the introduction.
-  * Make sure to refer to the document as "Canvas" in your response.
 
