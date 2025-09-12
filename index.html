@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v19 - Intuitivo</title>
+    <title>Centro de Accesos v21 - Intuitivo</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -527,21 +527,21 @@
             flex-wrap: wrap;
             gap: 1rem;
         }
+        /* MEJORA 1: Estilo de íconos de favoritos */
         .favorite-icon {
-            border: var(--border-width) solid var(--text-color);
+            border: var(--border-width) solid transparent;
             padding: 0.5rem;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            background-color: var(--bg-color);
+            background-color: transparent;
             cursor: pointer;
             transition: all 0.2s;
         }
         .favorite-icon:hover {
-            background-color: var(--accent-color);
+            background-color: var(--accent-color-hover);
             color: #1e293b;
-            box-shadow: 4px 4px 0 var(--text-color);
-            transform: translate(-2px, -2px);
+            transform: translateY(-2px);
         }
 
         .category-filter-nav {
@@ -597,6 +597,71 @@
             font-weight: bold;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
         }
+
+        /* --- MEJORA 2: ESTILOS PARA VISTA DE ICONOS --- */
+        .table-view {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            border: none;
+            background: transparent;
+        }
+        .dark .table-view, .theme-boca .table-view { 
+            background-color: transparent; 
+        }
+
+        .table-view-header {
+            display: none; /* Header doesn't fit this icon-based layout */
+        }
+        .table-item {
+            position: relative; /* For actions */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+            height: 140px;
+            padding: 0.5rem;
+            transition: all 0.2s;
+            cursor: pointer;
+            border-radius: 4px; 
+        }
+        .table-item:not(:last-child) {
+            border-bottom: none;
+        }
+        .table-item:hover {
+            background-color: var(--accent-color-hover);
+            color: #1e293b;
+            transform: translateY(-4px);
+        }
+        /* On hover, make actions fully visible */
+        .table-item:hover .card-actions, .table-item:hover .card-drag-handle {
+            opacity: 1;
+        }
+        .table-item .card-actions, .table-item .card-drag-handle {
+            opacity: 0.2;
+        }
+        .table-item .card-actions {
+            top: 4px;
+            right: 4px;
+            color: var(--text-color);
+        }
+        .table-item .card-drag-handle {
+            top: 4px;
+            left: 4px;
+            color: var(--text-color);
+        }
+        .table-item .action-btn {
+            background: var(--bg-color);
+        }
+        .is-favorite-row {
+            background-color: rgba(250, 204, 21, 0.2);
+        }
+        .dark .is-favorite-row, .theme-boca .is-favorite-row {
+            background-color: rgba(255, 204, 0, 0.15);
+        }
+
 
         /* MEJORA: Animaciones y estado vacío */
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -662,7 +727,7 @@
         <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
             <header class="main-header flex justify-between items-center mb-8 pb-4 gap-4">
                  <button id="menu-toggle" class="lg:hidden brutalist-button !p-2 !shadow-none">
-                     <i class="fas fa-bars text-xl"></i>
+                      <i class="fas fa-bars text-xl"></i>
                  </button>
                 <h2 id="main-title" class="text-xl sm:text-4xl font-bold tracking-tighter">BUSCADORES</h2>
                 <div class="flex items-center gap-2 sm:gap-4">
@@ -670,6 +735,8 @@
                         <button data-view="grid" class="active"><i class="fas fa-th-large"></i></button>
                         <button data-view="list"><i class="fas fa-bars"></i></button>
                         <button data-view="chip"><i class="fas fa-grip-horizontal"></i></button>
+                        <!-- MEJORA 2: Botón para nueva vista de tabla -->
+                        <button data-view="table" title="Vista de Tabla"><i class="fas fa-table"></i></button>
                     </div>
                     <button id="addNewButton" class="brutalist-button px-2 py-2 sm:px-4">
                         <span class="hidden sm:inline">+ NUEVO</span>
@@ -893,7 +960,8 @@ let activeCategoryFilter = 'all';
 
 const colorPalette = ['#fecaca', '#fed7aa', '#fef08a', '#bbf7d0', '#bfdbfe', '#ddd6fe', '#fbcfe8', '#e5e7eb'];
 
-const views = ['grid', 'list', 'chip'];
+// MEJORA 2: Se agrega la nueva vista 'table'
+const views = ['grid', 'list', 'chip', 'table'];
 let currentViewIndex = views.indexOf(localStorage.getItem('globalView') || 'grid');
 let globalView = views[currentViewIndex];
 
@@ -1020,10 +1088,10 @@ async function saveData() {
         });
         if (!response.ok) {
              if(response.status === 401 || response.status === 404) {
-                  localStorage.removeItem('github_pat');
-                  showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
-                  updateSyncStatus('error', 'Token inválido');
-                  openSettingsModal();
+                   localStorage.removeItem('github_pat');
+                   showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
+                   updateSyncStatus('error', 'Token inválido');
+                   openSettingsModal();
              }
              throw new Error(`ERROR AL GUARDAR: ${response.status}`)
         };
@@ -1250,7 +1318,7 @@ function getContrastingTextColor(hexcolor){
 function getIconHtml(icon, sizeClass = 'text-2xl') {
     if (!icon) return `<i class="fas fa-question-circle ${sizeClass}"></i>`;
     if (icon.startsWith('http')) {
-        const sizeMap = { 'text-6xl mb-3': 'w-16 h-16 mb-3', 'text-2xl': 'w-8 h-8', 'text-base': 'w-5 h-5', 'text-xl': 'w-6 h-6' };
+        const sizeMap = { 'text-4xl': 'w-10 h-10', 'text-6xl mb-3': 'w-16 h-16 mb-3', 'text-2xl': 'w-8 h-8', 'text-base': 'w-5 h-5', 'text-xl': 'w-6 h-6' };
         const imgClass = sizeMap[sizeClass] || 'w-8 h-8';
         return `<img src="${icon}" class="${imgClass} object-contain" alt="Icono" onerror="this.onerror=null;this.src='https://placehold.co/64x64/fefce8/1e293b?text=?';">`;
     }
@@ -1509,15 +1577,30 @@ function renderSection(sectionName, itemsToRender) {
 
             catDiv.innerHTML = `<div class="category-header flex items-center" style="color: ${textColor}; border-color: ${textColor};">${dragHandleHTML}<h3 class="category-title flex-grow">${cat}</h3>${categoryActionsHTML}</div>`;
             
+            // MEJORA 2: Se añade el encabezado para la vista de tabla
+            if (globalView === 'table') {
+                const tableHeader = document.createElement('div');
+                tableHeader.className = 'table-view-header hidden sm:flex font-bold uppercase p-2';
+                tableHeader.style.color = textColor;
+                tableHeader.innerHTML = `
+                    <div class="flex-grow">Elemento</div>
+                    <div class="w-1/3">Etiquetas</div>
+                    <div class="w-40 text-right">Acciones</div>
+                `;
+                catDiv.appendChild(tableHeader);
+            }
+            
             const contentContainer = document.createElement('div');
-            contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
+            const viewClassMap = { grid: 'card-grid', list: 'list-view', chip: 'chip-view', table: 'table-view' };
+            contentContainer.className = viewClassMap[globalView];
             contentContainer.dataset.category = cat;
             
             itemsForThisCat.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(item => {
                 let element;
                 if (globalView === 'grid') element = createCard(item);
                 else if (globalView === 'list') element = createListItem(item);
-                else element = createChipItem(item);
+                else if (globalView === 'chip') element = createChipItem(item);
+                else element = createTableItem(item); // MEJORA 2: Se renderiza el nuevo tipo de vista
                 contentContainer.appendChild(element);
             });
             
@@ -1533,7 +1616,7 @@ function renderSection(sectionName, itemsToRender) {
                 onEnd: function(evt) {
                     const sectionContainer = evt.target.closest('.section');
                     if (!sectionContainer) return;
-                    const allItemElements = Array.from(sectionContainer.querySelectorAll('.brutalist-card[data-id], .list-item[data-id], .chip-item[data-id]'));
+                    const allItemElements = Array.from(sectionContainer.querySelectorAll('.brutalist-card[data-id], .list-item[data-id], .chip-item[data-id], .table-item[data-id]'));
                     const itemMap = new Map(data.items.map(item => [String(item.id), item]));
                     const reorderedItems = [];
                     const seenIds = new Set();
@@ -1701,6 +1784,42 @@ function createChipItem(item) {
     chipItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
     chipItem.addEventListener('mouseleave', hidePreviewModal);
     return chipItem;
+}
+
+// MEJORA 2: Función para renderizar un item en la vista de tabla
+function createTableItem(item) {
+    const cell = document.createElement("div");
+    cell.className = 'table-item';
+    cell.dataset.id = item.id;
+
+    if (item.isFavorite) {
+        cell.classList.add('is-favorite-row');
+    }
+
+    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
+    const tagsHtml = (item.tags || []).map(tag => `#${tag}`).join(' ');
+
+    cell.innerHTML = `
+        <div class="card-drag-handle"><i class="fas fa-grip-vertical"></i></div>
+        <div class="card-actions !gap-1">
+            <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn !w-6 !h-6" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>
+            <button onclick="openEditPanel('${item.id}')" class="action-btn !w-6 !h-6" title="Editar"><i class="fas fa-pencil-alt text-xs"></i></button>
+            <button onclick="deleteItem(event, '${item.id}')" class="action-btn !w-6 !h-6" title="Eliminar"><i class="fas fa-trash-alt text-xs"></i></button>
+        </div>
+
+        <div class="mb-2">${getIconHtml(item.icon, 'text-4xl')}</div>
+        <h4 class="font-bold uppercase text-sm text-center truncate w-full" style="max-width: 100px;">${item.title}</h4>
+        <div class="text-xs text-center opacity-70 w-full truncate h-4 mt-1" title="${(item.tags || []).join(', ')}">
+            ${tagsHtml}
+        </div>
+    `;
+    cell.addEventListener('click', (e) => handleCardClick(item.id, e));
+
+    if (item.type === 'Link' || item.type === 'Buscador') {
+      cell.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
+      cell.addEventListener('mouseleave', hidePreviewModal);
+    }
+    return cell;
 }
 
 // --- ACTIONS & EVENT HANDLERS ---
@@ -2015,9 +2134,9 @@ function addCategory() {
 }
 
 function deleteCategory(categoryName) {
-     if (categoryName === 'SIN CATEGORIA') {
-         showToast("No se puede eliminar esta categoría."); return;
-    }
+   if (categoryName === 'SIN CATEGORIA') {
+        showToast("No se puede eliminar esta categoría."); return;
+   }
     showConfirmModal(`¿Seguro que quieres eliminar la categoría "${categoryName}"? Todos sus elementos se moverán a 'SIN CATEGORIA'.`, (confirmed) => {
         if (confirmed) {
             Object.keys(data.categoryOrders).forEach(section => {
@@ -2225,13 +2344,15 @@ function renderGlobalResults(results) {
         groupDiv.innerHTML = `<h3 class="category-title">${sectionTitle}</h3>`;
         
         const contentContainer = document.createElement('div');
-        contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
+        const viewClassMap = { grid: 'card-grid', list: 'list-view', chip: 'chip-view', table: 'table-view' };
+        contentContainer.className = viewClassMap[globalView];
         
         groupedByType[type].forEach(item => {
             let element;
             if (globalView === 'grid') element = createCard(item);
             else if (globalView === 'list') element = createListItem(item);
-            else element = createChipItem(item);
+            else if (globalView === 'chip') element = createChipItem(item);
+            else element = createTableItem(item); // MEJORA 2: Se actualiza para renderizar la nueva vista
             contentContainer.appendChild(element);
         });
 
@@ -2288,14 +2409,15 @@ function renderNotesAndTasksSection(container, itemsToRender) {
 
     const notes = items.filter(item => item.type === 'Nota');
     const tasks = items.filter(item => item.type === 'Tarea');
+    const viewClassMap = { grid: 'card-grid', list: 'list-view', chip: 'chip-view', table: 'table-view' };
     container.insertAdjacentHTML('beforeend', `
         <div class="fade-in">
             <h3 class="category-title">Notas</h3>
-            <div id="notes-container" class="${globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view')}"></div>
+            <div id="notes-container" class="${viewClassMap[globalView]}"></div>
         </div>
         <div class="fade-in" style="animation-delay: 0.1s;">
             <h3 class="category-title mt-8">Tareas</h3>
-            <div id="tasks-container" class="${globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view')}"></div>
+            <div id="tasks-container" class="${viewClassMap[globalView]}"></div>
         </div>
     `);
     const notesContainer = document.getElementById('notes-container');
@@ -2304,7 +2426,8 @@ function renderNotesAndTasksSection(container, itemsToRender) {
             let element;
             if (globalView === 'grid') element = createNoteCard(note);
             else if (globalView === 'list') element = createListItem(note);
-            else element = createChipItem(note);
+            else if (globalView === 'chip') element = createChipItem(note);
+            else element = createTableItem(note); // MEJORA 2
             notesContainer.appendChild(element);
         });
     } else {
@@ -2316,7 +2439,8 @@ function renderNotesAndTasksSection(container, itemsToRender) {
             let element;
             if (globalView === 'grid') element = createTaskCard(task);
             else if (globalView === 'list') element = createListItem(task);
-            else element = createChipItem(task);
+            else if (globalView === 'chip') element = createChipItem(task);
+            else element = createTableItem(task); // MEJORA 2
             tasksContainer.appendChild(element);
         });
     } else {
@@ -2547,3 +2671,4 @@ function importData(event) {
 </script>
 </body>
 </html>
+
