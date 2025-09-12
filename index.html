@@ -1,312 +1,796 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v19 - Glassmorphism</title>
-    <!-- Logo del Favicon -->
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
-    <style>
-        /* --- ESTILO GLASSMORPHISM --- */
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Centro de Accesos v19 - Intuitivo</title>
+    <!-- Logo del Favicon -->
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        /* --- ESTILO BRUTALISTA --- */
+        :root {
+            --bg-color: #fefce8; /* Amarillo pálido */
+            --text-color: #1e293b; /* Azul oscuro/negro */
+            --accent-color: #facc15; /* Amarillo brillante */
+            --accent-color-hover: #fde047;
+            --border-width: 3px;
+            --note-bg: #fef08a; /* Amarillo Post-it */
+            --task-bg: #e0e7ff; /* Azul Lavanda claro */
+            --success-color: #4ade80;
+            --danger-color: #f87171;
+        }
+        
+        .dark {
+            --bg-color: #1e293b;
+            --text-color: #fefce8;
+            --note-bg: #4a4a2a;
+            --task-bg: #312e71;
+        }
+        
+        .theme-boca {
+            --bg-color: #003366; /* Azul Boca */
+            --text-color: #ffcc00; /* Amarillo Boca */
+            --accent-color: #ffcc00;
+            --accent-color-hover: #ffd633;
+            --note-bg: #4d4d00;
+            --task-bg: #001f3f;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            color: #ffffff;
+            font-family: 'Space Mono', monospace;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .brutalist-card {
+            background: white;
+            border: var(--border-width) solid var(--text-color);
+            box-shadow: 8px 8px 0 var(--text-color);
+            transition: all 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            height: 240px;
+            overflow: hidden;
+            background-size: cover;
+            background-position: center;
+            justify-content: flex-end;
+            color: white;
+        }
+        .dark .brutalist-card, .theme-boca .brutalist-card {
             background-color: #0d1117;
-            background-image: 
-                radial-gradient(at 20% 20%, hsla(212,98%,52%,0.3) 0px, transparent 50%),
-                radial-gradient(at 80% 20%, hsla(282,92%,58%,0.3) 0px, transparent 50%),
-                radial-gradient(at 20% 80%, hsla(180,98%,45%,0.3) 0px, transparent 50%),
-                radial-gradient(at 80% 80%, hsla(35,93%,58%,0.3) 0px, transparent 50%);
-            background-attachment: fixed;
+        }
+        .theme-boca .brutalist-card {
+             background-color: #002244;
         }
 
-        /* Helper class for glass effect */
-        .glass-effect {
-            background-color: rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
-            transition: all 0.2s ease-in-out;
-        }
-
-        .brutalist-card { /* Re-styled */
-            --glass-bg: rgba(255, 255, 255, 0.08);
-            background-color: var(--glass-bg);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
-            border-radius: 0.75rem;
-            transition: all 0.2s ease-in-out;
-            display: flex; flex-direction: column; position: relative;
-            height: 240px; overflow: hidden;
-            background-size: cover; background-position: center;
-            justify-content: flex-end; color: white;
-        }
         .brutalist-card:hover {
-            --glass-bg: rgba(255, 255, 255, 0.12);
-            transform: translateY(-4px);
-            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 4px 4px 0 var(--text-color);
+            transform: translate(4px, 4px);
         }
+        .brutalist-card {
+            cursor: pointer;
+        }
+        
         .brutalist-card.is-favorite {
-             box-shadow: 0 0 0 2px rgba(255,255,255,0.8);
+            border-color: var(--accent-color);
+            box-shadow: 8px 8px 0 var(--accent-color);
         }
-
+        
         .card-content-wrapper {
-            background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%);
-            padding: 1rem; width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 50%, rgba(0,0,0,0) 100%);
+            padding: 1rem;
+            width: 100%;
         }
 
         .brutalist-sidebar {
-            background-color: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            background-color: var(--bg-color);
+            border-right: var(--border-width) solid var(--text-color);
             transition: transform 0.3s ease-in-out;
         }
 
         .nav-link {
-            border: none;
-            border-radius: 0.5rem; font-weight: 500;
-            transition: background-color 0.2s, color 0.2s; cursor: pointer;
-            color: rgba(255,255,255,0.7);
+            border: var(--border-width) solid var(--text-color);
+            font-weight: 700;
+            transition: background-color 0.2s, color 0.2s;
+            cursor: pointer;
         }
-        .nav-link:hover { background-color: rgba(255,255,255,0.1); color: white; }
-        .nav-link.active { background-color: rgba(255,255,255,0.9); color: #0f172a; }
-        .nav-link.active i { color: #0f172a !important; }
+        .nav-link.active {
+            background-color: var(--accent-color);
+            color: #1e293b;
+        }
+        .nav-link:hover:not(.active) {
+             background-color: var(--accent-color-hover);
+             color: #1e293b;
+        }
 
         .brutalist-button {
-            background-color: rgba(255, 255, 255, 0.9);
-            border: none; border-radius: 0.5rem; font-weight: 600;
-            transition: all 0.2s ease-in-out; color: #0f172a;
-            box-shadow: none;
+            background-color: var(--accent-color);
+            border: var(--border-width) solid var(--text-color);
+            box-shadow: 4px 4px 0 var(--text-color);
+            font-weight: 700;
+            transition: all 0.2s ease-in-out;
+            text-transform: uppercase;
+            color: #1e293b;
         }
-        .brutalist-button:hover { background-color: white; transform: scale(1.03); }
-        .brutalist-button:active { transform: scale(1); }
-
+        .brutalist-button:hover {
+            box-shadow: 2px 2px 0 var(--text-color);
+            transform: translate(2px, 2px);
+        }
+        .brutalist-button:active {
+            box-shadow: 0 0 0 var(--text-color);
+            transform: translate(4px, 4px);
+        }
 
         .brutalist-input {
-            background-color: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem; padding: 0.75rem; width: 100%;
-            font-family: 'Inter', sans-serif; color: white;
+            background: white;
+            border: var(--border-width) solid var(--text-color);
+            padding: 0.75rem;
+            width: 100%;
+            font-family: 'Space Mono', monospace;
         }
-        .brutalist-input::placeholder { color: rgba(255,255,255,0.5); }
+        .dark .brutalist-input, .theme-boca .brutalist-input {
+             background-color: #0d1117;
+             color: var(--text-color);
+        }
+         .theme-boca .brutalist-input {
+             background-color: #002244;
+       }
         .brutalist-input:focus {
-            outline: none; border-color: rgba(255, 255, 255, 0.5);
-            background-color: rgba(255, 255, 255, 0.1);
+            outline: none;
+            border-color: var(--accent-color);
         }
         
-        .main-header { border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .main-header {
+             border-bottom: 4px solid var(--text-color);
+        }
         
         .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1.5rem; }
         .list-view { display: flex; flex-direction: column; gap: 1rem; }
-        .chip-view { display: flex; flex-wrap: wrap; gap: 0.75rem; }
+        .chip-view { display: flex; flex-wrap: wrap; gap: 1rem; }
 
         .list-item, .chip-item {
-            background-color: rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 0.5rem; transition: all 0.2s ease-in-out; cursor: pointer;
-            box-shadow: none;
+            border: var(--border-width) solid var(--text-color);
+            background: white;
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .dark .list-item, .dark .chip-item, .theme-boca .list-item, .theme-boca .chip-item {
+            background-color: #0d1117;
+        }
+        .theme-boca .list-item, .theme-boca .chip-item {
+             background-color: #002244;
         }
         .list-item:hover, .chip-item:hover {
-            transform: translateY(-2px); border-color: rgba(255, 255, 255, 0.3);
-            background-color: rgba(255, 255, 255, 0.12);
+            transform: translate(-4px, -4px);
+            box-shadow: 4px 4px 0 var(--text-color);
         }
         
-        .category-wrapper { padding: 0; margin-bottom: 2rem; border: none; }
-        .category-header { border-bottom: 1px solid rgba(255, 255, 255, 0.15); padding-bottom: 0.75rem; margin-bottom: 1.5rem; }
-        .category-title { font-size: 1.125rem; font-weight: 600; text-transform: uppercase; color: white; }
-        
-        .modal-overlay { background-color: rgba(10, 10, 20, 0.5); backdrop-filter: blur(8px); }
-        .modal-container {
-            background-color: rgba(30, 41, 59, 0.7); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 1rem;
-            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.2);
+        .category-wrapper {
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: var(--border-width) solid var(--text-color);
+            transition: background-color 0.3s;
         }
 
-        .note-card, .task-card { background-image: none; justify-content: flex-start; }
-        .note-card { background-color: rgba(253, 224, 71, 0.1); border-color: rgba(253, 224, 71, 0.3); } /* Yellow tint */
-        .task-card { background-color: rgba(129, 140, 248, 0.1); border-color: rgba(129, 140, 248, 0.3); } /* Indigo tint */
+        .category-header { position: relative; display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid; padding-bottom: 0.5rem; margin-bottom: 1.5rem; }
+        .category-title { font-size: 1.5rem; font-weight: 700; text-transform: uppercase; }
         
-        .view-switcher button.active { background-color: rgba(255,255,255,0.1); }
-
-        .fab-container .brutalist-button, .fab-main {
-            border-radius: 9999px !important;
+        /* MEJORA: Menú de opciones de categoría siempre visible */
+        .category-actions { position: relative; }
+        .category-options-btn { background: transparent; border: none; cursor: pointer; padding: 0.5rem; }
+        .category-options-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background-color: var(--bg-color);
+            border: var(--border-width) solid var(--text-color);
+            box-shadow: 4px 4px 0 var(--text-color);
+            z-index: 10;
+            width: 150px;
         }
-   </style>
+        .category-options-menu.show { display: block; }
+        .category-options-menu button {
+            display: block;
+            width: 100%;
+            padding: 0.75rem;
+            text-align: left;
+            background: none;
+            border: none;
+            border-bottom: var(--border-width) solid var(--text-color);
+        }
+        .category-options-menu button:last-child { border-bottom: none; }
+        .category-options-menu button:hover { background-color: var(--accent-color); color: #1e293b; }
+        
+        .category-drag-handle { cursor: move; padding: 0.5rem; margin-right: 0.5rem; }
+        
+        .view-switcher button { border: var(--border-width) solid transparent; padding: 0.25rem 0.5rem; }
+        .view-switcher button.active { border-color: var(--text-color); background-color: var(--accent-color); color: #1e293b;}
+
+        /* MEJORA: Acciones de tarjeta sutilmente visibles */
+        .card-actions { position: absolute; top: 8px; right: 8px; display: flex; gap: 4px; opacity: 0.2; transition: opacity 0.2s; z-index: 20; }
+        .brutalist-card:hover .card-actions, .list-item:hover .card-actions, .chip-item:hover .card-actions { opacity: 1; }
+        .action-btn { width: 32px; height: 32px; border: var(--border-width) solid var(--text-color); background: var(--bg-color); display: flex; align-items: center; justify-content: center; }
+        .action-btn:hover { background: var(--accent-color); color: #1e293b; }
+        .card-drag-handle { position: absolute; top: 8px; left: 8px; cursor: move; padding: 4px; opacity: 0.2; transition: opacity 0.2s; z-index: 20; color: white; }
+        .brutalist-card:hover .card-drag-handle { opacity: 1; }
+
+        /* --- PANEL DE EDICIÓN Y MODALES --- */
+        .modal-overlay { background-color: rgba(254, 252, 232, 0.8); backdrop-filter: blur(4px); transition: opacity 0.3s; }
+        .dark .modal-overlay, .theme-boca .modal-overlay { background-color: rgba(30, 41, 59, 0.8); }
+        .modal-container { background-color: white; border: var(--border-width) solid var(--text-color); box-shadow: 8px 8px 0px var(--text-color); max-height: 90vh; overflow-y: auto; transition: transform 0.3s, opacity 0.3s; }
+        .dark .modal-container, .theme-boca .modal-container { background-color: #0d1117; }
+        .theme-boca .modal-container { background-color: #002244; }
+        
+        .type-btn { border: var(--border-width) solid var(--text-color); transition: all 0.2s; }
+        .type-btn.active { background-color: var(--accent-color); box-shadow: 4px 4px 0 var(--text-color); transform: translate(-4px, -4px); color: #1e293b; }
+        .rich-text-editor { border: var(--border-width) solid var(--text-color); min-height: 120px; padding: 0.5rem; background: white; }
+        .dark .rich-text-editor, .theme-boca .rich-text-editor { background-color: #1e293b; }
+        
+        /* --- ETIQUETAS --- */
+        .card-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+        .tag {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            color: white;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        /* --- FAB MENU --- */
+        .fab-container { position: fixed; right: 2rem; bottom: 2rem; z-index: 1100; }
+        .fab-main { width: 60px; height: 60px; cursor: pointer; }
+        .fab-actions { position: absolute; bottom: 70px; right: 0; display: flex; flex-direction: column; gap: 1rem; align-items: center; list-style: none; margin: 0; padding: 0; }
+        .fab-action { transform: scale(0); transition: transform .2s ease-in-out; }
+        .fab-container.open .fab-action { transform: scale(1); }
+
+        /* --- GLOBAL SEARCH BAR --- */
+        #global-search-container {
+            border: var(--border-width) solid var(--text-color);
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+        #global-search-tags {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out, margin-top 0.3s ease-in-out;
+        }
+        #global-search-container.expanded #global-search-tags {
+            max-height: 200px; /* Adjust as needed */
+            margin-top: 1rem;
+        }
+        .filter-tag { border: var(--border-width) solid var(--text-color); cursor: pointer; }
+        .filter-tag.active { background-color: var(--accent-color); color: #1e293b; }
+        
+        /* --- PREVIEW MODAL --- */
+        #preview-modal {
+            pointer-events: none;
+            box-shadow: 8px 8px 0 var(--text-color);
+            border: var(--border-width) solid var(--text-color);
+            transition: opacity 0.2s ease-in-out;
+        }
+        #preview-modal-content {
+            background-size: cover;
+            background-position: center;
+        }
+        
+        kbd {
+            background-color: #eee;
+            border-radius: 3px;
+            border: 1px solid #b4b4b4;
+            box-shadow: 0 1px 1px rgba(0, 0, 0, .2), 0 2px 0 0 rgba(255, 255, 255, .7) inset;
+            color: #333;
+            display: inline-block;
+            font-family: 'Space Mono', monospace;
+            font-size: .85em;
+            font-weight: 700;
+            line-height: 1;
+            padding: 2px 4px;
+            white-space: nowrap;
+        }
+        
+        .list-item {
+            position: relative;
+            overflow: hidden;
+            color: white;
+        }
+        .list-item-bg {
+            position: absolute;
+            inset: 0;
+            background-size: cover;
+            background-position: center;
+            filter: blur(2px);
+            transform: scale(1.1);
+            z-index: 0;
+        }
+        .list-item-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            z-index: 1;
+        }
+        .list-item-content {
+            position: relative;
+            z-index: 2;
+        }
+        .list-item .tag {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.8);
+            color: white;
+        }
+        .list-item .action-btn {
+            background-color: transparent;
+            border-color: white;
+        }
+        .list-item .action-btn:hover {
+            background-color: white;
+            color: black;
+        }
+        
+        .note-card, .task-card {
+            height: 240px;
+            min-height: auto;
+            max-height: none;
+            cursor: pointer;
+            justify-content: flex-start;
+            color: var(--text-color);
+        }
+        .note-card { background-color: var(--note-bg); }
+        .task-card { background-color: var(--task-bg); }
+
+        .note-card .card-content, .task-card .card-content {
+            max-height: 150px;
+            overflow-y: auto;
+        }
+        
+        .card-expansion-backdrop {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1150;
+            display: none;
+        }
+        .dark .card-expansion-backdrop, .theme-boca .card-expansion-backdrop {
+            background-color: rgba(0,0,0,0.7);
+        }
+
+        .note-card.expanded, .task-card.expanded {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1.1);
+            width: 90vw;
+            max-width: 500px;
+            height: 70vh;
+            z-index: 1200;
+            box-shadow: 12px 12px 0 var(--text-color);
+        }
+        .note-card.expanded .card-content, .task-card.expanded .card-content {
+            max-height: calc(70vh - 80px);
+        }
+
+        .task-list { list-style: none; padding: 0; }
+        .task-list li {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
+            border-bottom: 2px solid var(--text-color);
+        }
+         .task-list li:last-child { border-bottom: none; }
+        .task-list input[type="checkbox"] {
+            width: 20px; height: 20px;
+            border: var(--border-width) solid var(--text-color);
+            appearance: none;
+            background-color: var(--bg-color);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .task-list input[type="checkbox"]:checked { background-color: var(--accent-color); }
+        .task-list label.completed { text-decoration: line-through; opacity: 0.6; }
+
+        .color-input-wrapper {
+            position: relative;
+            width: 100%;
+            height: 48px;
+            border: var(--border-width) solid var(--text-color);
+            cursor: pointer;
+        }
+        .color-input-wrapper input[type="color"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .color-input-wrapper span {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            font-weight: bold;
+        }
+        .color-swatch {
+            width: 100%;
+            padding-top: 100%;
+            position: relative;
+            border: var(--border-width) solid var(--text-color);
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+        .color-swatch.selected {
+            box-shadow: 0 0 0 2px var(--bg-color), 0 0 0 4px var(--accent-color);
+            transform: scale(1.1);
+        }
+
+        .prompt-card {
+            justify-content: flex-start;
+            padding: 0;
+        }
+        .prompt-card .card-drag-handle {
+            color: var(--text-color);
+            opacity: 0.5;
+        }
+        .prompt-card .card-actions .action-btn {
+            color: var(--text-color);
+            border-color: var(--text-color);
+        }
+        .prompt-card .card-actions .action-btn:hover {
+            background: var(--accent-color);
+            color: #1e293b;
+        }
+        .prompt-content-wrapper {
+            overflow: hidden;
+            position: relative;
+        }
+        .prompt-text {
+            padding: 0 1rem 1rem 1rem;
+            transition: transform 0.5s ease-out;
+            transform: translateY(0);
+        }
+        .prompt-card:hover .prompt-text.is-overflowing {
+            transition: transform 10s linear;
+            transform: translateY(var(--scroll-amount));
+        }
+
+        .global-search-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .global-search-toggle .switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 24px;
+        }
+        .global-search-toggle .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .global-search-toggle .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border: 2px solid var(--text-color);
+        }
+        .global-search-toggle .slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: var(--text-color);
+            transition: .4s;
+        }
+        .global-search-toggle input:checked + .slider {
+            background-color: var(--accent-color);
+        }
+        .global-search-toggle input:checked + .slider:before {
+            transform: translateX(16px);
+        }
+        
+        .favorites-bar {
+            border: var(--border-width) dashed var(--text-color);
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .favorites-bar-title {
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 1rem;
+        }
+        .favorites-bar-icons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .favorite-icon {
+            border: var(--border-width) solid var(--text-color);
+            padding: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background-color: var(--bg-color);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .favorite-icon:hover {
+            background-color: var(--accent-color);
+            color: #1e293b;
+            box-shadow: 4px 4px 0 var(--text-color);
+            transform: translate(-2px, -2px);
+        }
+
+        .category-filter-nav {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+        }
+        .category-filter-btn {
+            border: var(--border-width) solid var(--text-color);
+            padding: 0.5rem 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            background-color: var(--bg-color);
+        }
+        .category-filter-btn:hover {
+            background-color: var(--accent-color-hover);
+            color: #1e293b;
+            transform: translate(-2px, -2px);
+            box-shadow: 2px 2px 0 var(--text-color);
+        }
+        .category-filter-btn.active {
+            background-color: var(--accent-color);
+            color: #1e293b;
+            box-shadow: 4px 4px 0 var(--text-color);
+            transform: translate(-4px, -4px);
+        }
+
+        .winxp-header {
+            background: #3d80f2;
+            background: linear-gradient(to bottom, #0055E1, #00358E);
+            position: relative;
+            padding: 2rem 1rem;
+            text-align: center;
+            color: white;
+            border-bottom: var(--border-width) solid var(--text-color);
+        }
+        .winxp-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 15% 25%, rgba(255, 255, 255, 0.25), transparent 50%);
+            pointer-events: none;
+        }
+        .winxp-header h2 {
+            font-family: 'Tahoma', sans-serif;
+            font-style: italic;
+            font-weight: bold;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+
+        /* MEJORA: Animaciones y estado vacío */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.3s ease-out forwards; }
+
+        @keyframes flash-success {
+            0%, 100% { box-shadow: 8px 8px 0 var(--text-color); }
+            50% { box-shadow: 8px 8px 0 var(--success-color); }
+        }
+        .flash-save { animation: flash-success 0.8s ease-out; }
+
+        .fade-out { transition: opacity 0.3s ease-out, transform 0.3s ease-out; opacity: 0; transform: scale(0.95); }
+
+        .empty-state-container {
+            border: var(--border-width) dashed var(--text-color);
+            padding: 2rem;
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .empty-state-container .icon { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+
+    </style>
 </head>
 <body>
-    <div id="card-expansion-backdrop" class="card-expansion-backdrop"></div>
+    <div id="card-expansion-backdrop" class="card-expansion-backdrop"></div>
 
-    <div class="relative min-h-screen lg:flex">
-        <!-- Sidebar -->
-        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 brutalist-sidebar p-6 flex-shrink-0 flex flex-col transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
-            <div id="logo-search-wrapper" class="mb-8 flex flex-col items-center justify-center" style="min-height: 8rem;">
-                <div id="logo-container" class="text-center">
-                    <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" id="sidebar-logo" class="w-32 h-32 object-contain cursor-pointer">
-                </div>
-                <div id="global-search-container" class="hidden w-full">
-                    <input type="text" id="global-search-input" placeholder="FILTRAR..." class="brutalist-input w-full">
-                    <div id="global-search-tags" class="flex flex-wrap gap-2"></div>
-                    <label class="global-search-toggle mt-3">
-                        <span class="switch">
-                            <input type="checkbox" id="global-search-switch">
-                            <span class="slider"></span>
-                        </span>
-                        <span>BÚSQUEDA GLOBAL</span>
-                    </label>
-                </div>
-            </div>
-
-            <nav id="main-nav" class="space-y-4">
-                <a href="#" data-section="buscadores" class="nav-link active block px-4 py-3"><i class="fas fa-search w-5 mr-2"></i><span>BUSCADORES</span></a>
-                <a href="#" data-section="links" class="nav-link block px-4 py-3"><i class="fas fa-link w-5 mr-2"></i><span>LINKS</span></a>
-                <a href="#" data-section="prompts" class="nav-link block px-4 py-3"><i class="fas fa-brain w-5 mr-2"></i><span>PROMPTS</span></a>
-                <a href="#" data-section="notes-tasks" class="nav-link block px-4 py-3"><i class="fas fa-check-double w-5 mr-2"></i><span>Notas y Tareas</span></a>
-            </nav>
-            
-            <div id="sync-status" class="mt-auto text-xs flex items-center gap-2 opacity-70">
-                <i id="sync-icon" class="fas fa-cloud"></i>
-                <span id="sync-text">Sincronizado</span>
-            </div>
-        </aside>
-        
-        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
-
-        <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
-            <header class="main-header flex justify-between items-center mb-8 pb-4 gap-4">
-                 <button id="menu-toggle" class="lg:hidden brutalist-button !p-2 !shadow-none !bg-transparent text-white">
-                     <i class="fas fa-bars text-xl"></i>
-                 </button>
-                <h2 id="main-title" class="text-xl sm:text-4xl font-bold tracking-tighter">BUSCADORES</h2>
-                <div class="flex items-center gap-2 sm:gap-4">
-                    <div id="global-view-switcher" class="view-switcher flex items-center p-1 rounded-md glass-effect">
-                        <button data-view="grid" class="active p-2 rounded"><i class="fas fa-th-large"></i></button>
-                        <button data-view="list" class="p-2 rounded"><i class="fas fa-bars"></i></button>
-                        <button data-view="chip" class="p-2 rounded"><i class="fas fa-grip-horizontal"></i></button>
-                    </div>
-                    <button id="addNewButton" class="brutalist-button px-2 py-2 sm:px-4">
-                        <span class="hidden sm:inline">+ NUEVO</span>
-                        <i class="fas fa-plus sm:hidden"></i>
-                    </button>
-                </div>
-            </header>
-            
-            <div id="section-buscadores" class="section"></div>
-            <div id="section-links" class="section hidden"></div>
-            <div id="section-prompts" class="section hidden"></div>
-            <div id="section-notes-tasks" class="section hidden"></div>
-        </main>
-    </div>
-    
-    <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay">
-        <div class="modal-container w-11/12 max-w-2xl p-6 sm:p-8">
-            <div class="flex justify-between items-center mb-6">
-                <h2 id="editPanelTitle" class="text-2xl font-bold">AGREGAR ELEMENTO</h2>
-                <button id="closeEditButton" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold text-white">X</button>
-            </div>
-            
-            <form id="editForm" class="space-y-6">
-                <input type="hidden" id="editItemId">
-                
-                <div>
-                    <label class="font-bold block mb-2">TIPO</label>
-                    <div class="type-selector grid grid-cols-3 sm:grid-cols-5 gap-2">
-                        <div class="type-btn text-center p-2" data-type="Buscador"><i class="fas fa-search"></i><span class="block text-xs">Buscador</span></div>
-                        <div class="type-btn text-center p-2" data-type="Link"><i class="fas fa-link"></i><span class="block text-xs">Link</span></div>
-                        <div class="type-btn text-center p-2" data-type="Promp"><i class="fas fa-brain"></i><span class="block text-xs">Prompt</span></div>
-                        <div class="type-btn text-center p-2" data-type="Nota"><i class="fas fa-sticky-note"></i><span class="block text-xs">Nota</span></div>
-                        <div class="type-btn text-center p-2" data-type="Tarea"><i class="fas fa-tasks"></i><span class="block text-xs">Tarea</span></div>
-                    </div>
-                    <select id="newType" class="hidden">
-                        <option value="Buscador">Buscador</option>
-                        <option value="Link">Link</option>
-                        <option value="Promp">Promp</option>
-                        <option value="Nota">Nota</option>
-                        <option value="Tarea">Tarea</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="font-bold block mb-2">TITULO</label>
-                    <input type="text" id="newTitle" class="brutalist-input" placeholder="Nombre del elemento">
-                </div>
-
-                <div id="actionFieldContainer">
-                    <label id="actionLabel" class="font-bold block mb-2">URL / ACCION</label>
-                    <div id="richTextToolbar" class="hidden flex items-center gap-1 mb-2 p-1 glass-effect !bg-transparent rounded">
-                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1 !bg-transparent text-white" data-command="bold" title="Negrita"><i class="fas fa-bold"></i></button>
-                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1 !bg-transparent text-white" data-command="italic" title="Cursiva"><i class="fas fa-italic"></i></button>
-                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1 !bg-transparent text-white" data-command="underline" title="Subrayado"><i class="fas fa-underline"></i></button>
-                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1 !bg-transparent text-white" data-command="insertUnorderedList" title="Lista"><i class="fas fa-list-ul"></i></button>
-                    </div>
-                    <textarea id="newActionText" class="brutalist-input" rows="3"></textarea>
-                    <div id="newActionRich" class="brutalist-input h-32 overflow-y-auto" contenteditable="true"></div>
-                </div>
-
-                <div id="iconFieldContainer">
-                    <label class="font-bold block mb-2">ICONO (URL o clase de FontAwesome)</label>
-                    <input type="text" id="newIcon" class="brutalist-input" placeholder="Ej: https://.../logo.png, o fas fa-search">
-                </div>
-                
-                <div id="categoryFieldContainer">
-                    <label class="font-bold block mb-2">CATEGORIA</label>
-                    <input type="text" id="newCategory" class="brutalist-input" list="category-suggestions" placeholder="Escribe una categoría existente o nueva">
-                    <datalist id="category-suggestions"></datalist>
-                </div>
-                
-                <div>
-                    <label class="font-bold block mb-2">ETIQUETAS (separadas por coma)</label>
-                    <input type="text" id="newTags" class="brutalist-input" placeholder="trabajo, personal">
-                </div>
-                
-                <button id="saveItemButton" type="submit" class="brutalist-button w-full py-3">
-                    GUARDAR
-                </button>
-            </form>
-        </div>
-    </div>
-    
-    <div id="toast" class="hidden fixed bottom-5 right-5 p-4 glass-effect !bg-white text-black font-bold z-[2000] rounded-lg"></div>
-
-    <div class="fab-container">
-        <ul class="fab-actions">
-            <li class="fab-action"><button id="fab-settings" class="brutalist-button fab-main" title="Configuración"><i class="fas fa-cog"></i></button></li>
-            <li class="fab-action"><button id="fab-help" class="brutalist-button fab-main" title="Ayuda"><i class="fas fa-question"></i></button></li>
-            <li class="fab-action"><button id="fab-theme" class="brutalist-button fab-main" title="Cambiar Tema"><i class="fas fa-palette"></i></button></li>
-        </ul>
-        <div class="fab-main brutalist-button"><i class="fas fa-bars"></i></div>
-    </div>
-    
-    <div id="preview-modal" class="hidden fixed top-0 left-0 z-[1300] w-80 h-60 p-2 bg-transparent">
-        <div id="preview-modal-content" class="w-full h-full glass-effect overflow-hidden rounded-lg"></div>
-    </div>
-
-    <div id="confirmModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
-        <div class="modal-container w-full max-w-md p-8">
-            <h2 id="confirmTitle" class="text-xl font-bold mb-4">CONFIRMAR ACCIÓN</h2>
-            <p id="confirmMessage" class="mb-6">¿Estás seguro de que quieres continuar?</p>
-            <div class="flex justify-end gap-4">
-                <button id="confirmCancel" class="brutalist-button !bg-transparent text-white">CANCELAR</button>
-                <button id="confirmOk" class="brutalist-button">ACEPTAR</button>
-            </div>
-        </div>
-    </div>
-    
-    <div id="helpModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
-        <div class="modal-container w-11/12 max-w-2xl p-0 overflow-hidden flex flex-col">
-            <div class="winxp-header relative flex-shrink-0" style="background: linear-gradient(to bottom, #0055E1, #00358E); padding: 1rem;">
-                 <h2 class="text-2xl font-bold text-white">Ayuda y Atajos</h2>
-                 <button id="closeHelpModal" class="absolute top-2 right-2 brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold text-white">X</button>
+    <div class="relative min-h-screen lg:flex">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="fixed inset-y-0 left-0 z-40 w-64 brutalist-sidebar p-6 flex-shrink-0 flex flex-col transform -translate-x-full transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0">
+            <div id="logo-search-wrapper" class="mb-8 flex flex-col items-center justify-center" style="min-height: 8rem;">
+                <div id="logo-container" class="text-center">
+                    <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" id="sidebar-logo" class="w-32 h-32 object-contain cursor-pointer">
+                </div>
+                <div id="global-search-container" class="hidden w-full">
+                    <input type="text" id="global-search-input" placeholder="FILTRAR..." class="brutalist-input w-full">
+                    <div id="global-search-tags" class="flex flex-wrap gap-2"></div>
+                    <label class="global-search-toggle mt-3">
+                        <span class="switch">
+                            <input type="checkbox" id="global-search-switch">
+                            <span class="slider"></span>
+                        </span>
+                        <span>BÚSQUEDA GLOBAL</span>
+                    </label>
+                </div>
             </div>
+
+            <nav id="main-nav" class="space-y-4">
+                <a href="#" data-section="buscadores" class="nav-link active block px-4 py-3"><i class="fas fa-search w-5 mr-2"></i><span>BUSCADORES</span></a>
+                <a href="#" data-section="links" class="nav-link block px-4 py-3"><i class="fas fa-link w-5 mr-2"></i><span>LINKS</span></a>
+                <a href="#" data-section="prompts" class="nav-link block px-4 py-3"><i class="fas fa-brain w-5 mr-2"></i><span>PROMPTS</span></a>
+                <a href="#" data-section="notes-tasks" class="nav-link block px-4 py-3"><i class="fas fa-check-double w-5 mr-2"></i><span>Notas y Tareas</span></a>
+            </nav>
+            
+            <!-- MEJORA: Indicador de Sincronización -->
+            <div id="sync-status" class="mt-auto text-xs flex items-center gap-2 opacity-70">
+                <i id="sync-icon" class="fas fa-cloud"></i>
+                <span id="sync-text">Sincronizado</span>
+            </div>
+        </aside>
+        
+        <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-30 hidden lg:hidden"></div>
+
+        <main class="flex-1 p-4 sm:p-8 overflow-y-auto">
+            <header class="main-header flex justify-between items-center mb-8 pb-4 gap-4">
+                 <button id="menu-toggle" class="lg:hidden brutalist-button !p-2 !shadow-none">
+                     <i class="fas fa-bars text-xl"></i>
+                 </button>
+                <h2 id="main-title" class="text-xl sm:text-4xl font-bold tracking-tighter">BUSCADORES</h2>
+                <div class="flex items-center gap-2 sm:gap-4">
+                    <div id="global-view-switcher" class="view-switcher flex items-center">
+                        <button data-view="grid" class="active"><i class="fas fa-th-large"></i></button>
+                        <button data-view="list"><i class="fas fa-bars"></i></button>
+                        <button data-view="chip"><i class="fas fa-grip-horizontal"></i></button>
+                    </div>
+                    <button id="addNewButton" class="brutalist-button px-2 py-2 sm:px-4">
+                        <span class="hidden sm:inline">+ NUEVO</span>
+                        <i class="fas fa-plus sm:hidden"></i>
+                    </button>
+                </div>
+            </header>
+            
+            <div id="section-buscadores" class="section"></div>
+            <div id="section-links" class="section hidden"></div>
+            <div id="section-prompts" class="section hidden"></div>
+            <div id="section-notes-tasks" class="section hidden"></div>
+        </main>
+    </div>
+    
+    <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay">
+        <div class="modal-container w-11/12 max-w-2xl p-6 sm:p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="editPanelTitle" class="text-2xl font-bold">AGREGAR ELEMENTO</h2>
+                <button id="closeEditButton" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
+            </div>
+            
+            <form id="editForm" class="space-y-6">
+                <input type="hidden" id="editItemId">
+                
+                <div>
+                    <label class="font-bold block mb-2">TIPO</label>
+                    <div class="type-selector grid grid-cols-3 sm:grid-cols-5 gap-2">
+                        <div class="type-btn text-center p-2" data-type="Buscador"><i class="fas fa-search"></i><span class="block text-xs">Buscador</span></div>
+                        <div class="type-btn text-center p-2" data-type="Link"><i class="fas fa-link"></i><span class="block text-xs">Link</span></div>
+                        <div class="type-btn text-center p-2" data-type="Promp"><i class="fas fa-brain"></i><span class="block text-xs">Prompt</span></div>
+                        <div class="type-btn text-center p-2" data-type="Nota"><i class="fas fa-sticky-note"></i><span class="block text-xs">Nota</span></div>
+                        <div class="type-btn text-center p-2" data-type="Tarea"><i class="fas fa-tasks"></i><span class="block text-xs">Tarea</span></div>
+                    </div>
+                    <select id="newType" class="hidden">
+                        <option value="Buscador">Buscador</option>
+                        <option value="Link">Link</option>
+                        <option value="Promp">Promp</option>
+                        <option value="Nota">Nota</option>
+                        <option value="Tarea">Tarea</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="font-bold block mb-2">TITULO</label>
+                    <input type="text" id="newTitle" class="brutalist-input" placeholder="Nombre del elemento">
+                </div>
+
+                <div id="actionFieldContainer">
+                    <label id="actionLabel" class="font-bold block mb-2">URL / ACCION</label>
+                    <div id="richTextToolbar" class="hidden flex items-center gap-1 mb-2 p-1" style="border: var(--border-width) solid var(--text-color);">
+                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1" data-command="bold" title="Negrita"><i class="fas fa-bold"></i></button>
+                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1" data-command="italic" title="Cursiva"><i class="fas fa-italic"></i></button>
+                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1" data-command="underline" title="Subrayado"><i class="fas fa-underline"></i></button>
+                        <button type="button" class="action-btn !w-auto !h-auto px-2 py-1" data-command="insertUnorderedList" title="Lista"><i class="fas fa-list-ul"></i></button>
+                    </div>
+                    <textarea id="newActionText" class="brutalist-input" rows="3"></textarea>
+                    <div id="newActionRich" class="rich-text-editor hidden" contenteditable="true"></div>
+                </div>
+
+                <div id="iconFieldContainer">
+                    <label class="font-bold block mb-2">ICONO (URL o clase de FontAwesome)</label>
+                    <input type="text" id="newIcon" class="brutalist-input" placeholder="Ej: https://.../logo.png, o fas fa-search">
+                </div>
+                
+                <div id="categoryFieldContainer">
+                    <label class="font-bold block mb-2">CATEGORIA</label>
+                    <input type="text" id="newCategory" class="brutalist-input" list="category-suggestions" placeholder="Escribe una categoría existente o nueva">
+                    <datalist id="category-suggestions"></datalist>
+                </div>
+                
+                <div>
+                    <label class="font-bold block mb-2">ETIQUETAS (separadas por coma)</label>
+                    <input type="text" id="newTags" class="brutalist-input" placeholder="trabajo, personal">
+                </div>
+                
+                <button id="saveItemButton" type="submit" class="brutalist-button w-full py-3">
+                    GUARDAR
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="toast" class="hidden fixed bottom-5 right-5 p-4 border-4 font-bold z-[2000]" style="border-color: var(--text-color); background-color: var(--accent-color); color: #1e293b;"></div>
+
+    <div class="fab-container">
+        <ul class="fab-actions">
+            <li class="fab-action"><button id="fab-settings" class="brutalist-button fab-main" title="Configuración"><i class="fas fa-cog"></i></button></li>
+            <li class="fab-action"><button id="fab-help" class="brutalist-button fab-main" title="Ayuda"><i class="fas fa-question"></i></button></li>
+            <li class="fab-action"><button id="fab-theme" class="brutalist-button fab-main" title="Cambiar Tema"><i class="fas fa-palette"></i></button></li>
+        </ul>
+        <div class="fab-main brutalist-button"><i class="fas fa-bars"></i></div>
+    </div>
+    
+    <div id="preview-modal" class="hidden fixed top-0 left-0 z-[1300] w-80 h-60 p-2 bg-transparent">
+        <div id="preview-modal-content" class="w-full h-full bg-white overflow-hidden border-4" style="border-color: var(--text-color);"></div>
+    </div>
+
+    <div id="confirmModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
+        <div class="modal-container w-full max-w-md p-8">
+            <h2 id="confirmTitle" class="text-xl font-bold mb-4">CONFIRMAR ACCIÓN</h2>
+            <p id="confirmMessage" class="mb-6">¿Estás seguro de que quieres continuar?</p>
+            <div class="flex justify-end gap-4">
+                <button id="confirmCancel" class="brutalist-button !bg-transparent text-current">CANCELAR</button>
+                <button id="confirmOk" class="brutalist-button">ACEPTAR</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="helpModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
+        <div class="modal-container w-11/12 max-w-2xl p-0 overflow-hidden flex flex-col">
+             <div class="winxp-header relative flex-shrink-0">
+                 <h2 class="text-4xl italic font-bold text-white" style="font-family: Tahoma, sans-serif; text-shadow: 1px 1px 3px rgba(0,0,0,0.5);">Bienvenido</h2>
+                 <button id="closeHelpModal" class="absolute top-2 right-2 brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold text-white">X</button>
+             </div>
             <div class="p-6 sm:p-8 overflow-y-auto">
+                <div class="text-center mb-6">
+                      <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="h-32 w-32 object-contain inline-block">
+                      <p class="text-xl font-bold">a Rear Window</p>
+                      <p class="text-sm opacity-80 -mt-1">La ventana indiscreta, el terror de Microsoft</p>
+                </div>
                 <div class="space-y-6">
                     <div>
                         <h3 class="font-bold text-lg mb-2 uppercase">Primeros Pasos</h3>
@@ -329,13 +813,13 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div>
 
-    <div id="settingsModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
+    <div id="settingsModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
         <div class="modal-container w-11/12 max-w-lg p-6 sm:p-8">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-2xl font-bold">CONFIGURACIÓN</h2>
-                <button id="closeSettingsModal" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold text-white">X</button>
+                <button id="closeSettingsModal" class="brutalist-button !shadow-none !bg-transparent !border-none text-2xl font-bold">X</button>
             </div>
             <div class="space-y-6">
                 <div>
@@ -348,28 +832,28 @@
                     <div class="mt-4">
                         <label for="githubPatInput" class="font-bold block mb-2">Personal Access Token (Clásico)</label>
                         <input type="password" id="githubPatInput" class="brutalist-input" placeholder="Token con permiso 'gist'">
-                        <p class="text-xs mt-1 opacity-70">Crea uno <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank" class="underline font-bold">aquí</a>. Se guarda localmente.</p>
+                         <p class="text-xs mt-1 opacity-70">Crea uno <a href="https://github.com/settings/tokens/new?scopes=gist" target="_blank" class="underline font-bold">aquí</a>. Se guarda localmente.</p>
                     </div>
                     <div class="flex justify-end gap-4 pt-4">
-                        <button id="saveSettingsButton" class="brutalist-button py-3 px-6">GUARDAR Y RECARGAR</button>
+                         <button id="saveSettingsButton" class="brutalist-button py-3 px-6">GUARDAR Y RECARGAR</button>
                     </div>
                 </div>
                 <div class="border-t-2 border-dashed border-current pt-6">
-                    <h3 class="font-bold text-lg mb-2 uppercase">Gestión de Datos</h3>
-                    <div class="flex flex-col sm:flex-row gap-4">
+                     <h3 class="font-bold text-lg mb-2 uppercase">Gestión de Datos</h3>
+                     <div class="flex flex-col sm:flex-row gap-4">
                         <button id="exportDataButton" class="brutalist-button flex-1 py-3">Exportar JSON</button>
                         <label class="brutalist-button flex-1 py-3 text-center cursor-pointer">
                             <span>Importar JSON</span>
                             <input type="file" id="importDataInput" class="hidden" accept=".json">
                         </label>
-                    </div>
-                    <button id="clearSettingsButton" class="brutalist-button !bg-transparent text-white mt-4 w-full">Restaurar Datos de Ejemplo</button>
+                     </div>
+                      <button id="clearSettingsButton" class="brutalist-button !bg-transparent text-current mt-4 w-full">Restaurar Datos de Ejemplo</button>
                 </div>
             </div>
         </div>
-    </div>
+    </div>
 
-    <div id="categoryEditModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
+    <div id="categoryEditModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay">
         <div class="modal-container w-11/12 max-w-md p-6 sm:p-8">
             <h2 class="text-xl font-bold mb-4">EDITAR CATEGORÍA</h2>
             <form id="categoryEditForm" class="space-y-4">
@@ -382,18 +866,19 @@
                 <div>
                     <label class="font-bold block mb-2">Color de Fondo</label>
                     <div id="category-color-palette" class="grid grid-cols-8 gap-2 mb-2"></div>
-                    <div class="color-input-wrapper glass-effect !border-none !rounded-md">
+                    <div class="color-input-wrapper">
                         <input type="color" id="categoryColorInput">
                         <span id="color-preview-text">COLOR PERSONALIZADO</span>
                     </div>
                 </div>
                 <div class="flex justify-end gap-4 pt-4">
-                    <button type="button" id="categoryCancelButton" class="brutalist-button !bg-transparent text-white">CANCELAR</button>
+                    <button type="button" id="categoryCancelButton" class="brutalist-button !bg-transparent text-current">CANCELAR</button>
                     <button type="submit" class="brutalist-button">GUARDAR</button>
                 </div>
             </form>
         </div>
-    </div>
+    </div>
+
 
 <script>
 // --- CONFIG & GLOBAL STATE ---
@@ -412,7 +897,8 @@ const views = ['grid', 'list', 'chip'];
 let currentViewIndex = views.indexOf(localStorage.getItem('globalView') || 'grid');
 let globalView = views[currentViewIndex];
 
-const themes = []; // No theme switching in this version
+const themes = ['light', 'dark', 'theme-boca'];
+let currentThemeIndex = themes.indexOf(localStorage.getItem('theme') || 'light');
 
 let activeFilterTags = [];
 
@@ -421,267 +907,260 @@ const mockData = {
     items: [
         { id: 1, type: 'Buscador', title: 'Google', action: 'https://www.google.com/search?q={search_term}', category: 'General', icon: 'fab fa-google', tags: ['motor', 'busqueda'], isFavorite: true },
         { id: 2, type: 'Buscador', title: 'YouTube', action: 'https://www.youtube.com/results?search_query={search_term}', category: 'Video', icon: 'fab fa-youtube', tags: ['videos', 'tutoriales'], isFavorite: false },
-        { id: 7, type: 'Buscador', title: 'DuckDuckGo', action: 'https://duckduckgo.com/?q={search_term}', category: 'General', icon: 'fas fa-user-secret', tags: ['privacidad', 'busqueda'], isFavorite: false },
         { id: 3, type: 'Link', title: 'GitHub', action: 'https://github.com', category: 'Desarrollo', icon: 'fab fa-github', tags: ['codigo', 'proyectos'], isFavorite: true },
-        { id: 8, type: 'Link', title: 'Reddit', action: 'https://reddit.com', category: 'Redes Sociales', icon: 'fab fa-reddit', tags: ['foro', 'comunidad'], isFavorite: false },
-        { id: 9, type: 'Link', title: 'Twitter (X)', action: 'https://x.com', category: 'Redes Sociales', icon: 'fab fa-twitter', tags: ['microblogging', 'noticias'], isFavorite: true },
         { id: 4, type: 'Promp', title: 'Generar Idea', action: 'Crea una lista de 5 ideas para un video de YouTube sobre IA.', category: 'Creatividad', icon: 'fas fa-lightbulb', tags: ['ideas'], isFavorite: false },
-        { id: 10, type: 'Promp', title: 'Prompt para Imagen', action: 'Un astronauta surfeando en un anillo de Saturno, estilo vaporwave, colores neón, detallado, 4k.', category: 'Creatividad', icon: 'fas fa-image', tags: ['midjourney', 'dalle'], isFavorite: false },
         { id: 5, type: 'Nota', title: 'Reunión Lunes', action: '<div>Discutir presupuesto Q3.</div><div>Revisar métricas.</div><div>Asignar tareas.</div>', category: 'Trabajo', icon: 'fas fa-sticky-note', tags: ['reunion'], isFavorite: false },
-        { id: 11, type: 'Nota', title: 'Snippet JS', action: '<code><pre>const greet = () => {\\n  console.log("Hello, World!");\\n};</pre></code>', category: 'Desarrollo', icon: 'fab fa-js-square', tags: ['javascript', 'codigo'], isFavorite: false },
-        { id: 6, type: 'Tarea', title: 'Proyecto Web', action: [{text: 'Diseñar mockup', status: true}, {text: 'Desarrollar landing', status: false}, {text: 'Deploy a producción', status: false}], category: 'Proyectos', icon: 'fas fa-tasks', tags: ['web'], isFavorite: true },
-        { id: 12, type: 'Tarea', title: 'Compras Supermercado', action: [{text: 'Leche', status: false}, {text: 'Pan', status: true}, {text: 'Huevos', status: false}, {text: 'Queso', status: false}], category: 'Hogar', icon: 'fas fa-shopping-cart', tags: ['comida', 'hogar'], isFavorite: false }
+        { id: 6, type: 'Tarea', title: 'Proyecto Web', action: [{text: 'Diseñar mockup', status: true}, {text: 'Desarrollar landing', status: false}], category: 'Proyectos', icon: 'fas fa-tasks', tags: ['web'], isFavorite: true }
     ],
     categories: {
         'Video': { color: '#fecaca' },
-        'Desarrollo': { color: '#bfdbfe' },
-        'Redes Sociales': { color: '#fed7aa' },
-        'Hogar': { color: '#bbf7d0' }
+        'Desarrollo': { color: '#bfdbfe' }
     },
     categoryOrders: {
         buscadores: ["General", "Video"],
-        links: ["Desarrollo", "Redes Sociales"],
+        links: ["Desarrollo"],
         prompts: ["Creatividad"],
-        "notes-tasks": ["Trabajo", "Proyectos", "Hogar", "Desarrollo"]
+        "notes-tasks": []
     }
 };
 
 // --- DATA HANDLING ---
 function ensureAllIcons() {
-    if (!data.items) return;
-    data.items.forEach(item => {
-        if ((item.type === 'Link' || item.type === 'Buscador') && !item.icon) {
-            try {
-                const url = new URL(item.action);
-                item.icon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${url.hostname}`;
-            } catch (e) {
-                console.error(`URL inválida para auto-generar favicon para "${item.title}":`, item.action);
-            }
-        }
-    });
+    if (!data.items) return;
+    data.items.forEach(item => {
+        if ((item.type === 'Link' || item.type === 'Buscador') && !item.icon) {
+            try {
+                const url = new URL(item.action);
+                item.icon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${url.hostname}`;
+            } catch (e) {
+                console.error(`URL inválida para auto-generar favicon para "${item.title}":`, item.action);
+            }
+        }
+    });
 }
 
 
 async function loadData() {
-    let gistId = localStorage.getItem('gist_id');
-    if (!gistId) {
-        data = JSON.parse(JSON.stringify(mockData));
-        ensureAllIcons();
-        initializeUI();
-        return;
-    }
+    let gistId = localStorage.getItem('gist_id');
+    if (!gistId) {
+        data = JSON.parse(JSON.stringify(mockData));
+        ensureAllIcons();
+        initializeUI();
+        // No mostramos el modal de configuración automáticamente, el usuario puede abrirlo si lo desea.
+        return;
+    }
 
-    updateSyncStatus('loading');
-    try {
-        const response = await fetch(`https://api.github.com/gists/${gistId}`);
-        if (!response.ok) {
-            if (response.status === 404) {
-                 showToast("GIST NO ENCONTRADO. REVISA LA CONFIGURACIÓN.");
-                 updateSyncStatus('error', 'Gist no encontrado');
-                 openSettingsModal();
-            }
-            throw new Error(`GIST NO ENCONTRADO: ${response.status}`);
-        }
-        const gistData = await response.json();
-        const fileContent = gistData.files[FILENAME_IN_GIST]?.content;
-        
-        if (!fileContent) {
-            showToast("ARCHIVO NO ENCONTRADO EN GIST. USANDO DATOS DE EJEMPLO.");
-            data = JSON.parse(JSON.stringify(mockData));
-        } else {
-            let loadedJson = JSON.parse(fileContent);
-            const defaults = { items: [], categories: {}, categoryOrders: {} };
-            if (Array.isArray(loadedJson)) {
-                data = { ...defaults, items: loadedJson.map(i => ({...i, isFavorite: i.isFavorite || false})) };
-            } else {
-                data = { ...defaults, ...loadedJson };
-                data.items = data.items.map(i => ({...i, isFavorite: i.isFavorite || false}));
-            }
-            showToast("DATOS CARGADOS.");
-        }
-        updateSyncStatus('synced');
-    } catch (error) {
-        console.error("Fallo al cargar datos:", error);
-        showToast(`ERROR: ${error.message}`);
-        updateSyncStatus('error', 'Error de carga');
-        data = JSON.parse(JSON.stringify(mockData));
-    }
-    ensureAllIcons();
-    initializeUI();
+    updateSyncStatus('loading');
+    try {
+        const response = await fetch(`https://api.github.com/gists/${gistId}`);
+        if (!response.ok) {
+            if (response.status === 404) {
+                 showToast("GIST NO ENCONTRADO. REVISA LA CONFIGURACIÓN.");
+                 updateSyncStatus('error', 'Gist no encontrado');
+                 openSettingsModal();
+            }
+            throw new Error(`GIST NO ENCONTRADO: ${response.status}`);
+        }
+        const gistData = await response.json();
+        const fileContent = gistData.files[FILENAME_IN_GIST]?.content;
+        
+        if (!fileContent) {
+            showToast("ARCHIVO NO ENCONTRADO EN GIST. USANDO DATOS DE EJEMPLO.");
+            data = JSON.parse(JSON.stringify(mockData));
+        } else {
+            let loadedJson = JSON.parse(fileContent);
+            const defaults = { items: [], categories: {}, categoryOrders: {} };
+            if (Array.isArray(loadedJson)) {
+                data = { ...defaults, items: loadedJson.map(i => ({...i, isFavorite: i.isFavorite || false})) };
+            } else {
+                data = { ...defaults, ...loadedJson };
+                data.items = data.items.map(i => ({...i, isFavorite: i.isFavorite || false}));
+            }
+            showToast("DATOS CARGADOS.");
+        }
+        updateSyncStatus('synced');
+    } catch (error) {
+        console.error("Fallo al cargar datos:", error);
+        showToast(`ERROR: ${error.message}`);
+        updateSyncStatus('error', 'Error de carga');
+        data = JSON.parse(JSON.stringify(mockData));
+    }
+    ensureAllIcons();
+    initializeUI();
 }
 
 async function saveData() {
-    const gistId = localStorage.getItem('gist_id');
-    if (!gistId) {
-        updateSyncStatus('local');
-        return;
-    }
-    
-    let token = localStorage.getItem('github_pat');
-    if (!token) {
-        showToast("NO HAY TOKEN DE GITHUB. ABRE LA CONFIGURACIÓN.");
-        updateSyncStatus('error', 'Falta token');
-        openSettingsModal();
-        return;
-    }
-    
-    updateSyncStatus('saving');
+    const gistId = localStorage.getItem('gist_id');
+    if (!gistId) {
+        updateSyncStatus('local');
+        return;
+    }
+    
+    let token = localStorage.getItem('github_pat');
+    if (!token) {
+        showToast("NO HAY TOKEN DE GITHUB. ABRE LA CONFIGURACIÓN.");
+        updateSyncStatus('error', 'Falta token');
+        openSettingsModal();
+        return;
+    }
+    
+    updateSyncStatus('saving');
 
-    try {
-        const response = await fetch(`https://api.github.com/gists/${gistId}`, {
-            method: 'PATCH',
-            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
-            body: JSON.stringify({
-                files: {
-                    [FILENAME_IN_GIST]: {
-                        content: JSON.stringify(data, null, 2)
-                    }
-                }
-            })
-        });
-        if (!response.ok) {
-             if(response.status === 401 || response.status === 404) {
-                  localStorage.removeItem('github_pat');
-                  showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
-                  updateSyncStatus('error', 'Token inválido');
-                  openSettingsModal();
-             }
-             throw new Error(`ERROR AL GUARDAR: ${response.status}`)
-        };
-        showToast("CAMBIOS GUARDADOS.");
-        updateSyncStatus('synced');
-    } catch (error) {
-        console.error("Fallo al guardar:", error);
-        showToast("ERROR AL GUARDAR.");
-        updateSyncStatus('error', 'Error al guardar');
-    }
+    try {
+        const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+            body: JSON.stringify({
+                files: {
+                    [FILENAME_IN_GIST]: {
+                        content: JSON.stringify(data, null, 2)
+                    }
+                }
+            })
+        });
+        if (!response.ok) {
+             if(response.status === 401 || response.status === 404) {
+                  localStorage.removeItem('github_pat');
+                  showToast("TOKEN INVALIDO. ABRE LA CONFIGURACIÓN.");
+                  updateSyncStatus('error', 'Token inválido');
+                  openSettingsModal();
+             }
+             throw new Error(`ERROR AL GUARDAR: ${response.status}`)
+        };
+        showToast("CAMBIOS GUARDADOS.");
+        updateSyncStatus('synced');
+    } catch (error) {
+        console.error("Fallo al guardar:", error);
+        showToast("ERROR AL GUARDAR.");
+        updateSyncStatus('error', 'Error al guardar');
+    }
 }
 
 // --- UI INITIALIZATION & EVENT LISTENERS ---
 document.addEventListener("DOMContentLoaded", () => {
-    loadData();
-    setupEventListeners();
-    setupFabMenu();
+    loadData();
+    setupEventListeners();
+    setupFabMenu();
 });
 
 function setupEventListeners() {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    const menuToggle = document.getElementById('menu-toggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const menuToggle = document.getElementById('menu-toggle');
 
-    const toggleSidebar = () => {
-        sidebar.classList.toggle('-translate-x-full');
-        overlay.classList.toggle('hidden');
-    };
+    const toggleSidebar = () => {
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+    };
 
-    menuToggle.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleSidebar();
-    });
-    overlay.addEventListener('click', (e) => {
-        e.stopPropagation();
-        toggleSidebar();
-    });
+    menuToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSidebar();
+    });
+    overlay.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleSidebar();
+    });
 
-    document.getElementById('main-nav').addEventListener('click', (e) => {
-        if (e.target.closest('.nav-link')) {
-            e.preventDefault();
-            const section = e.target.closest('.nav-link').dataset.section;
-            switchTab(section);
-            if (window.innerWidth < 1024) { 
-                toggleSidebar();
-            }
-        }
-    });
-    
-    document.getElementById('editForm').addEventListener('submit', handleSaveItem);
-    document.getElementById('addNewButton').addEventListener('click', () => openEditPanel());
-    document.getElementById('closeEditButton').addEventListener('click', () => document.getElementById('editPanel').classList.add('hidden'));
+    document.getElementById('main-nav').addEventListener('click', (e) => {
+        if (e.target.closest('.nav-link')) {
+            e.preventDefault();
+            const section = e.target.closest('.nav-link').dataset.section;
+            switchTab(section);
+            if (window.innerWidth < 1024) { 
+                toggleSidebar();
+            }
+        }
+    });
+    
+    document.getElementById('editForm').addEventListener('submit', handleSaveItem);
+    document.getElementById('addNewButton').addEventListener('click', () => openEditPanel());
+    document.getElementById('closeEditButton').addEventListener('click', () => document.getElementById('editPanel').classList.add('hidden'));
 
-    document.querySelectorAll('.type-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const newType = this.dataset.type;
-            document.getElementById('newType').value = newType;
-            updateEditFormFields(newType);
-            populateCategorySuggestions(newType);
-        });
-    });
+    document.querySelectorAll('.type-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            const newType = this.dataset.type;
+            document.getElementById('newType').value = newType;
+            updateEditFormFields(newType);
+            populateCategorySuggestions(newType);
+        });
+    });
 
-    document.getElementById('global-view-switcher').addEventListener('click', (e) => {
-        const button = e.target.closest('button');
-        if (button) {
-            globalView = button.dataset.view;
-            currentViewIndex = views.indexOf(globalView);
-            refreshUI();
-        }
-    });
+    document.getElementById('global-view-switcher').addEventListener('click', (e) => {
+        const button = e.target.closest('button');
+        if (button) {
+            globalView = button.dataset.view;
+            currentViewIndex = views.indexOf(globalView);
+            refreshUI();
+        }
+    });
 
-    const globalSearchInput = document.getElementById('global-search-input');
-    const globalSearchContainer = document.getElementById('global-search-container');
-    const logoContainer = document.getElementById('logo-container');
-    
-    globalSearchInput.addEventListener('input', applyGlobalFilter);
-    
-    logoContainer.addEventListener('click', (e) => {
-        e.stopPropagation();
-        if (globalSearchContainer.classList.contains('hidden')) {
-            logoContainer.classList.add('hidden');
-            globalSearchContainer.classList.remove('hidden');
-            globalSearchInput.focus();
-            globalSearchContainer.classList.add('expanded');
-        }
-    });
+    const globalSearchInput = document.getElementById('global-search-input');
+    const globalSearchContainer = document.getElementById('global-search-container');
+    const logoContainer = document.getElementById('logo-container');
+    
+    globalSearchInput.addEventListener('input', applyGlobalFilter);
+    
+    logoContainer.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (globalSearchContainer.classList.contains('hidden')) {
+            logoContainer.classList.add('hidden');
+            globalSearchContainer.classList.remove('hidden');
+            globalSearchInput.focus();
+            globalSearchContainer.classList.add('expanded');
+        }
+    });
 
-    document.addEventListener('click', (e) => {
-        const wasVisible = !globalSearchContainer.classList.contains('hidden');
-        if (wasVisible && !globalSearchContainer.contains(e.target) && !logoContainer.contains(e.target)) {
-            globalSearchContainer.classList.add('hidden');
-            globalSearchContainer.classList.remove('expanded');
-            logoContainer.classList.remove('hidden');
-            if (window.innerWidth >= 1024) {
-                globalSearchInput.value = '';
-                activeFilterTags = [];
-                document.querySelectorAll('#global-search-tags .filter-tag.active').forEach(tagEl => tagEl.classList.remove('active'));
-                applyGlobalFilter();
-            }
-        }
-    });
-    
-    document.getElementById('global-search-switch').addEventListener('change', (e) => {
-        isGlobalSearchActive = e.target.checked;
-        applyGlobalFilter();
-    });
+    document.addEventListener('click', (e) => {
+        const wasVisible = !globalSearchContainer.classList.contains('hidden');
+        if (wasVisible && !globalSearchContainer.contains(e.target) && !logoContainer.contains(e.target)) {
+            globalSearchContainer.classList.add('hidden');
+            globalSearchContainer.classList.remove('expanded');
+            logoContainer.classList.remove('hidden');
+            if (window.innerWidth >= 1024) {
+                globalSearchInput.value = '';
+                activeFilterTags = [];
+                document.querySelectorAll('#global-search-tags .filter-tag.active').forEach(tagEl => tagEl.classList.remove('active'));
+                applyGlobalFilter();
+            }
+        }
+    });
+    
+    document.getElementById('global-search-switch').addEventListener('change', (e) => {
+        isGlobalSearchActive = e.target.checked;
+        applyGlobalFilter();
+    });
 
-    document.addEventListener('keydown', (e) => {
-        const isModalOpen = !document.getElementById('editPanel').classList.contains('hidden') ||
-                                  !document.getElementById('helpModal').classList.contains('hidden') ||
-                                  !document.getElementById('settingsModal').classList.contains('hidden') ||
-                                  !document.getElementById('categoryEditModal').classList.contains('hidden');
-        
-        const expandedCard = document.querySelector('.note-card.expanded, .task-card.expanded');
+    document.addEventListener('keydown', (e) => {
+        const isModalOpen = !document.getElementById('editPanel').classList.contains('hidden') ||
+                                  !document.getElementById('helpModal').classList.contains('hidden') ||
+                                  !document.getElementById('settingsModal').classList.contains('hidden') ||
+                                  !document.getElementById('categoryEditModal').classList.contains('hidden');
+        
+        const expandedCard = document.querySelector('.note-card.expanded, .task-card.expanded');
 
-        if (e.key === 'Escape') {
-             if(expandedCard) {
-                 closeExpandedCard(expandedCard);
-             } else if (isModalOpen) {
-                 document.getElementById('editPanel').classList.add('hidden');
-                 document.getElementById('helpModal').classList.add('hidden');
-                 document.getElementById('settingsModal').classList.add('hidden');
-                 document.getElementById('categoryEditModal').classList.add('hidden');
-             }
-        }
-        if ((e.ctrlKey || e.metaKey) && e.altKey) {
-            switch(e.key) {
-                case 'b': e.preventDefault(); logoContainer.click(); break;
-                case 'n': e.preventDefault(); openEditPanel(); break;
-                case 't': e.preventDefault(); changeTheme(); break;
-                case 'v': e.preventDefault(); changeView(); break;
-            }
-        }
-    });
-    
+        if (e.key === 'Escape') {
+             if(expandedCard) {
+                 closeExpandedCard(expandedCard);
+             } else if (isModalOpen) {
+                 document.getElementById('editPanel').classList.add('hidden');
+                 document.getElementById('helpModal').classList.add('hidden');
+                 document.getElementById('settingsModal').classList.add('hidden');
+                 document.getElementById('categoryEditModal').classList.add('hidden');
+             }
+        }
+        if ((e.ctrlKey || e.metaKey) && e.altKey) {
+            switch(e.key) {
+                case 'b': e.preventDefault(); logoContainer.click(); break;
+                case 'n': e.preventDefault(); openEditPanel(); break;
+                case 't': e.preventDefault(); changeTheme(); break;
+                case 'v': e.preventDefault(); changeView(); break;
+            }
+        }
+    });
+    
     document.getElementById('fab-help').addEventListener('click', () => document.getElementById('helpModal').classList.remove('hidden'));
     document.getElementById('closeHelpModal').addEventListener('click', () => document.getElementById('helpModal').classList.add('hidden'));
     document.getElementById('fab-settings').addEventListener('click', openSettingsModal);
@@ -705,1364 +1184,1366 @@ function setupEventListeners() {
         });
     });
 
-    document.getElementById('richTextToolbar').addEventListener('click', (e) => {
-        const button = e.target.closest('button');
-        if (button) {
-            e.preventDefault();
-            const command = button.dataset.command;
-            document.execCommand(command, false, null);
-            document.getElementById('newActionRich').focus();
-        }
-    });
+    document.getElementById('richTextToolbar').addEventListener('click', (e) => {
+        const button = e.target.closest('button');
+        if (button) {
+            e.preventDefault();
+            const command = button.dataset.command;
+            document.execCommand(command, false, null);
+            document.getElementById('newActionRich').focus();
+        }
+    });
 
-    document.getElementById('card-expansion-backdrop').addEventListener('click', () => {
-        const expandedCard = document.querySelector('.note-card.expanded, .task-card.expanded');
-        if (expandedCard) closeExpandedCard(expandedCard);
-    });
+    document.getElementById('card-expansion-backdrop').addEventListener('click', () => {
+        const expandedCard = document.querySelector('.note-card.expanded, .task-card.expanded');
+        if (expandedCard) closeExpandedCard(expandedCard);
+    });
 
-    document.getElementById('exportDataButton').addEventListener('click', exportData);
-    document.getElementById('importDataInput').addEventListener('change', importData);
+    // MEJORA: Event listeners para Importar/Exportar
+    document.getElementById('exportDataButton').addEventListener('click', exportData);
+    document.getElementById('importDataInput').addEventListener('change', importData);
 }
 
 function initializeUI() {
-    // applyTheme(themes[currentThemeIndex]); // No theme switching in this version
-    switchTab('buscadores'); 
+    applyTheme(themes[currentThemeIndex]);
+    switchTab('buscadores'); 
 }
 
 function refreshUI(sectionName) {
-    const activeSection = sectionName || document.querySelector('#main-nav .active')?.dataset.section || 'buscadores';
-    applyGlobalFilter();
-    populateGlobalFilterTags();
+    const activeSection = sectionName || document.querySelector('#main-nav .active')?.dataset.section || 'buscadores';
+    applyGlobalFilter();
+    populateGlobalFilterTags();
 }
 
 function switchTab(tabName) {
-    document.querySelectorAll("#main-nav .nav-link").forEach(b => b.classList.remove("active"));
-    const newActiveLink = document.querySelector(`#main-nav .nav-link[data-section="${tabName}"]`);
-    if (newActiveLink) newActiveLink.classList.add("active");
-    
-    const titleMap = { 'buscadores': 'Buscadores', 'links': 'Links', 'prompts': 'Prompts', 'notes-tasks': 'Notas y Tareas' };
-    document.getElementById('main-title').textContent = (titleMap[tabName] || tabName).toUpperCase();
+    document.querySelectorAll("#main-nav .nav-link").forEach(b => b.classList.remove("active"));
+    const newActiveLink = document.querySelector(`#main-nav .nav-link[data-section="${tabName}"]`);
+    if (newActiveLink) newActiveLink.classList.add("active");
+    
+    const titleMap = { 'buscadores': 'Buscadores', 'links': 'Links', 'prompts': 'Prompts', 'notes-tasks': 'Notas y Tareas' };
+    document.getElementById('main-title').textContent = (titleMap[tabName] || tabName).toUpperCase();
 
-    document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
-    const activeSection = document.querySelector(`#section-${tabName}`);
-    if (activeSection) activeSection.classList.remove("hidden");
-    
-    activeCategoryFilter = 'all';
-    document.getElementById('global-view-switcher').classList.remove('hidden');
-    refreshUI(tabName);
+    document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
+    const activeSection = document.querySelector(`#section-${tabName}`);
+    if (activeSection) activeSection.classList.remove("hidden");
+    
+    activeCategoryFilter = 'all';
+    document.getElementById('global-view-switcher').classList.remove('hidden');
+    refreshUI(tabName);
 }
 
 // --- RENDERING ---
 
 function getContrastingTextColor(hexcolor){
-  if (!hexcolor) return 'var(--text-color)';
-  hexcolor = hexcolor.replace("#", "");
-  if (hexcolor.length === 3) {
-    hexcolor = hexcolor.split('').map(char => char + char).join('');
-  }
-  const r = parseInt(hexcolor.substr(0,2),16);
-  const g = parseInt(hexcolor.substr(2,2),16);
-  const b = parseInt(hexcolor.substr(4,2),16);
-  const yiq = ((r*299)+(g*587)+(b*114))/1000;
-  return (yiq >= 128) ? '#1e293b' : '#FFFFFF';
+  if (!hexcolor) return 'var(--text-color)';
+  hexcolor = hexcolor.replace("#", "");
+  if (hexcolor.length === 3) {
+    hexcolor = hexcolor.split('').map(char => char + char).join('');
+  }
+  const r = parseInt(hexcolor.substr(0,2),16);
+  const g = parseInt(hexcolor.substr(2,2),16);
+  const b = parseInt(hexcolor.substr(4,2),16);
+  const yiq = ((r*299)+(g*587)+(b*114))/1000;
+  return (yiq >= 128) ? '#1e293b' : '#FFFFFF';
 }
 
 function getIconHtml(icon, sizeClass = 'text-2xl') {
-    if (!icon) return `<i class="fas fa-question-circle ${sizeClass}"></i>`;
-    if (icon.startsWith('http')) {
-        const sizeMap = { 'text-6xl mb-3': 'w-16 h-16 mb-3', 'text-2xl': 'w-8 h-8', 'text-base': 'w-5 h-5', 'text-xl': 'w-6 h-6' };
-        const imgClass = sizeMap[sizeClass] || 'w-8 h-8';
-        return `<img src="${icon}" class="${imgClass} object-contain" alt="Icono" onerror="this.onerror=null;this.src='https://placehold.co/64x64/fefce8/1e293b?text=?';">`;
-    }
-    return `<i class="${icon} ${sizeClass}"></i>`;
+    if (!icon) return `<i class="fas fa-question-circle ${sizeClass}"></i>`;
+    if (icon.startsWith('http')) {
+        const sizeMap = { 'text-6xl mb-3': 'w-16 h-16 mb-3', 'text-2xl': 'w-8 h-8', 'text-base': 'w-5 h-5', 'text-xl': 'w-6 h-6' };
+        const imgClass = sizeMap[sizeClass] || 'w-8 h-8';
+        return `<img src="${icon}" class="${imgClass} object-contain" alt="Icono" onerror="this.onerror=null;this.src='https://placehold.co/64x64/fefce8/1e293b?text=?';">`;
+    }
+    return `<i class="${icon} ${sizeClass}"></i>`;
 }
 
 function createBuscadorSearchComponent(buscadores) {
-    const componentWrapper = document.createElement('div');
-    componentWrapper.className = 'relative mb-8';
-    const searchBarContainer = document.createElement('div');
-    searchBarContainer.id = 'main-search-bar';
-    searchBarContainer.className = 'flex items-center gap-0 p-0 brutalist-input !p-0 overflow-hidden';
-    if (buscadores.length === 0) return null;
-    let selectedBuscador = buscadores[0];
-    searchBarContainer.dataset.actionUrl = selectedBuscador.action;
-    const dropdown = document.createElement('div');
-    dropdown.id = 'search-engine-dropdown';
-    dropdown.className = 'hidden absolute top-full left-0 mt-2 w-72 modal-container z-50 max-h-80 overflow-y-auto';
-    buscadores.forEach(buscador => {
-        const item = document.createElement('div');
-        item.className = 'p-4 hover:bg-yellow-300 dark:hover:bg-yellow-600 cursor-pointer flex items-center gap-3';
-        item.dataset.id = buscador.id;
-        item.innerHTML = `${getIconHtml(buscador.icon, 'text-xl')} <span class="font-bold">${buscador.title}</span>`;
-        item.addEventListener('click', () => {
-            selectedBuscador = buscador;
-            searchBarContainer.dataset.actionUrl = buscador.action;
-            selectorIcon.innerHTML = getIconHtml(buscador.icon, 'text-xl');
-            selectorTitle.textContent = buscador.title;
-            dropdown.classList.add('hidden');
-        });
-        dropdown.appendChild(item);
-    });
-    const selector = document.createElement('div');
-    selector.id = 'search-engine-selector';
-    selector.className = 'flex items-center gap-3 p-3 cursor-pointer border-r-4 border-inherit';
-    const selectorIcon = document.createElement('span');
-    selectorIcon.innerHTML = getIconHtml(selectedBuscador.icon, 'text-xl');
-    const selectorTitle = document.createElement('span');
-    selectorTitle.className = 'font-bold';
-    selectorTitle.textContent = selectedBuscador.title;
-    const selectorArrow = document.createElement('i');
-    selectorArrow.className = 'fas fa-chevron-down text-xs ml-2';
-    selector.append(selectorIcon, selectorTitle, selectorArrow);
-    selector.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('hidden'); });
-    const searchInput = document.createElement('input');
-    searchInput.type = 'text';
-    searchInput.id = 'main-search-input';
-    searchInput.className = 'flex-grow bg-transparent focus:outline-none p-3';
-    searchInput.placeholder = 'Escribe tu búsqueda...';
-    const searchButton = document.createElement('button');
-    searchButton.id = 'main-search-button';
-    searchButton.className = 'brutalist-button !shadow-none !border-l-4 !border-y-0 !border-r-0 rounded-none px-6 py-4';
-    searchButton.textContent = 'BUSCAR';
-    const performSearch = () => {
-        const term = searchInput.value.trim();
-        if (term && searchBarContainer.dataset.actionUrl) {
-            window.open(searchBarContainer.dataset.actionUrl.replace('{search_term}', encodeURIComponent(term)), '_blank');
-        } else if (!term) { showToast("POR FAVOR INGRESA UN TÉRMINO DE BÚSQUEDA"); }
-    };
-    searchButton.addEventListener('click', performSearch);
-    searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') performSearch(); });
-    searchBarContainer.append(selector, searchInput, searchButton);
-    componentWrapper.append(searchBarContainer, dropdown);
-    document.addEventListener('click', (e) => { if (!componentWrapper.contains(e.target)) dropdown.classList.add('hidden'); });
-    return componentWrapper;
+    const componentWrapper = document.createElement('div');
+    componentWrapper.className = 'relative mb-8';
+    const searchBarContainer = document.createElement('div');
+    searchBarContainer.id = 'main-search-bar';
+    searchBarContainer.className = 'flex items-center gap-0 p-0 brutalist-input !p-0 overflow-hidden';
+    if (buscadores.length === 0) return null;
+    let selectedBuscador = buscadores[0];
+    searchBarContainer.dataset.actionUrl = selectedBuscador.action;
+    const dropdown = document.createElement('div');
+    dropdown.id = 'search-engine-dropdown';
+    dropdown.className = 'hidden absolute top-full left-0 mt-2 w-72 modal-container z-50 max-h-80 overflow-y-auto';
+    buscadores.forEach(buscador => {
+        const item = document.createElement('div');
+        item.className = 'p-4 hover:bg-yellow-300 dark:hover:bg-yellow-600 cursor-pointer flex items-center gap-3';
+        item.dataset.id = buscador.id;
+        item.innerHTML = `${getIconHtml(buscador.icon, 'text-xl')} <span class="font-bold">${buscador.title}</span>`;
+        item.addEventListener('click', () => {
+            selectedBuscador = buscador;
+            searchBarContainer.dataset.actionUrl = buscador.action;
+            selectorIcon.innerHTML = getIconHtml(buscador.icon, 'text-xl');
+            selectorTitle.textContent = buscador.title;
+            dropdown.classList.add('hidden');
+        });
+        dropdown.appendChild(item);
+    });
+    const selector = document.createElement('div');
+    selector.id = 'search-engine-selector';
+    selector.className = 'flex items-center gap-3 p-3 cursor-pointer border-r-4 border-inherit';
+    const selectorIcon = document.createElement('span');
+    selectorIcon.innerHTML = getIconHtml(selectedBuscador.icon, 'text-xl');
+    const selectorTitle = document.createElement('span');
+    selectorTitle.className = 'font-bold';
+    selectorTitle.textContent = selectedBuscador.title;
+    const selectorArrow = document.createElement('i');
+    selectorArrow.className = 'fas fa-chevron-down text-xs ml-2';
+    selector.append(selectorIcon, selectorTitle, selectorArrow);
+    selector.addEventListener('click', (e) => { e.stopPropagation(); dropdown.classList.toggle('hidden'); });
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.id = 'main-search-input';
+    searchInput.className = 'flex-grow bg-transparent focus:outline-none p-3';
+    searchInput.placeholder = 'Escribe tu búsqueda...';
+    const searchButton = document.createElement('button');
+    searchButton.id = 'main-search-button';
+    searchButton.className = 'brutalist-button !shadow-none !border-l-4 !border-y-0 !border-r-0 rounded-none px-6 py-4';
+    searchButton.textContent = 'BUSCAR';
+    const performSearch = () => {
+        const term = searchInput.value.trim();
+        if (term && searchBarContainer.dataset.actionUrl) {
+            window.open(searchBarContainer.dataset.actionUrl.replace('{search_term}', encodeURIComponent(term)), '_blank');
+        } else if (!term) { showToast("POR FAVOR INGRESA UN TÉRMINO DE BÚSQUEDA"); }
+    };
+    searchButton.addEventListener('click', performSearch);
+    searchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') performSearch(); });
+    searchBarContainer.append(selector, searchInput, searchButton);
+    componentWrapper.append(searchBarContainer, dropdown);
+    document.addEventListener('click', (e) => { if (!componentWrapper.contains(e.target)) dropdown.classList.add('hidden'); });
+    return componentWrapper;
 }
 
 function setupPromptCardAnimations(container) {
-    const promptCards = container.querySelectorAll('.prompt-card');
-    promptCards.forEach(card => {
-        const textWrapper = card.querySelector('.prompt-content-wrapper');
-        const textElement = card.querySelector('.prompt-text');
-        
-        setTimeout(() => {
-            if (textElement.scrollHeight > textWrapper.clientHeight) {
-                textElement.classList.add('is-overflowing');
-                const scrollAmount = textWrapper.clientHeight - textElement.scrollHeight;
-                textElement.style.setProperty('--scroll-amount', `${scrollAmount}px`);
-            }
-        }, 50);
-    });
+    const promptCards = container.querySelectorAll('.prompt-card');
+    promptCards.forEach(card => {
+        const textWrapper = card.querySelector('.prompt-content-wrapper');
+        const textElement = card.querySelector('.prompt-text');
+        
+        setTimeout(() => {
+            if (textElement.scrollHeight > textWrapper.clientHeight) {
+                textElement.classList.add('is-overflowing');
+                const scrollAmount = textWrapper.clientHeight - textElement.scrollHeight;
+                textElement.style.setProperty('--scroll-amount', `${scrollAmount}px`);
+            }
+        }, 50);
+    });
 }
 
 function renderFavoritesBar(container, items) {
-    const favorites = items.filter(item => item.isFavorite);
-    if (favorites.length === 0) return;
+    const favorites = items.filter(item => item.isFavorite);
+    if (favorites.length === 0) return;
 
-    const bar = document.createElement('div');
-    bar.className = 'favorites-bar fade-in';
+    const bar = document.createElement('div');
+    bar.className = 'favorites-bar fade-in';
 
-    let iconsHtml = '';
-    favorites.forEach(item => {
-        iconsHtml += `
-            <div class="favorite-icon" data-id="${item.id}" title="${item.title}">
-                ${getIconHtml(item.icon, 'text-base')}
-                <span class="font-bold text-xs">${item.title}</span>
-            </div>
-        `;
-    });
+    let iconsHtml = '';
+    favorites.forEach(item => {
+        iconsHtml += `
+            <div class="favorite-icon" data-id="${item.id}" title="${item.title}">
+                ${getIconHtml(item.icon, 'text-base')}
+                <span class="font-bold text-xs">${item.title}</span>
+            </div>
+        `;
+    });
 
-    bar.innerHTML = `
-        <h4 class="favorites-bar-title">Destacados</h4>
-        <div class="favorites-bar-icons">${iconsHtml}</div>
-    `;
+    bar.innerHTML = `
+        <h4 class="favorites-bar-title">Destacados</h4>
+        <div class="favorites-bar-icons">${iconsHtml}</div>
+    `;
 
-    const newCatButton = container.querySelector('.mb-6');
-    if (newCatButton) {
-        newCatButton.insertAdjacentElement('afterend', bar);
-    } else {
-        container.prepend(bar);
-    }
-    
+    const newCatButton = container.querySelector('.mb-6');
+    if (newCatButton) {
+        newCatButton.insertAdjacentElement('afterend', bar);
+    } else {
+        container.prepend(bar);
+    }
+    
 
-    bar.querySelectorAll('.favorite-icon').forEach(icon => {
-        icon.addEventListener('click', (e) => handleCardClick(icon.dataset.id, e));
-    });
+    bar.querySelectorAll('.favorite-icon').forEach(icon => {
+        icon.addEventListener('click', (e) => handleCardClick(icon.dataset.id, e));
+    });
 }
 
 function renderCategoryFilters(mainContainer, allCategories, categorizedItems) {
-    const existingNav = mainContainer.querySelector('.category-filter-nav');
-    if (existingNav) existingNav.remove();
+    const existingNav = mainContainer.querySelector('.category-filter-nav');
+    if (existingNav) existingNav.remove();
 
-    if (allCategories.length <= 1) return;
+    if (allCategories.length <= 1) return;
 
-    const navContainer = document.createElement('div');
-    navContainer.className = 'category-filter-nav fade-in';
+    const navContainer = document.createElement('div');
+    navContainer.className = 'category-filter-nav fade-in';
 
-    const allButton = document.createElement('button');
-    allButton.className = 'category-filter-btn';
-    allButton.textContent = 'TODOS';
-    allButton.dataset.category = 'all';
-    if (activeCategoryFilter === 'all') {
-        allButton.classList.add('active');
-    }
-    allButton.addEventListener('click', () => {
-        activeCategoryFilter = 'all';
-        refreshUI();
-    });
-    navContainer.appendChild(allButton);
+    const allButton = document.createElement('button');
+    allButton.className = 'category-filter-btn';
+    allButton.textContent = 'TODOS';
+    allButton.dataset.category = 'all';
+    if (activeCategoryFilter === 'all') {
+        allButton.classList.add('active');
+    }
+    allButton.addEventListener('click', () => {
+        activeCategoryFilter = 'all';
+        refreshUI();
+    });
+    navContainer.appendChild(allButton);
 
-    allCategories.forEach(categoryName => {
-        if (categoryName === 'SIN CATEGORIA' && !(categorizedItems[categoryName] && categorizedItems[categoryName].length > 0)) {
-            return;
-        }
+    allCategories.forEach(categoryName => {
+        if (categoryName === 'SIN CATEGORIA' && !(categorizedItems[categoryName] && categorizedItems[categoryName].length > 0)) {
+            return;
+        }
 
-        const btn = document.createElement('button');
-        btn.className = 'category-filter-btn';
-        btn.textContent = categoryName;
-        btn.dataset.category = categoryName;
-        if (activeCategoryFilter === categoryName) {
-            btn.classList.add('active');
-        }
-        btn.addEventListener('click', () => {
-            activeCategoryFilter = categoryName;
-            refreshUI();
-        });
-        navContainer.appendChild(btn);
-    });
+        const btn = document.createElement('button');
+        btn.className = 'category-filter-btn';
+        btn.textContent = categoryName;
+        btn.dataset.category = categoryName;
+        if (activeCategoryFilter === categoryName) {
+            btn.classList.add('active');
+        }
+        btn.addEventListener('click', () => {
+            activeCategoryFilter = categoryName;
+            refreshUI();
+        });
+        navContainer.appendChild(btn);
+    });
 
-    const favoritesBar = mainContainer.querySelector('.favorites-bar');
-    if (favoritesBar) {
-        favoritesBar.insertAdjacentElement('afterend', navContainer);
-    } else {
-        const newCatButtonWrapper = mainContainer.querySelector('.mb-6');
-        if (newCatButtonWrapper) {
-             newCatButtonWrapper.insertAdjacentElement('afterend', navContainer);
-        } else {
-            mainContainer.prepend(navContainer);
-        }
-    }
+    const favoritesBar = mainContainer.querySelector('.favorites-bar');
+    if (favoritesBar) {
+        favoritesBar.insertAdjacentElement('afterend', navContainer);
+    } else {
+        const newCatButtonWrapper = mainContainer.querySelector('.mb-6');
+        if (newCatButtonWrapper) {
+             newCatButtonWrapper.insertAdjacentElement('afterend', navContainer);
+        } else {
+            mainContainer.prepend(navContainer);
+        }
+    }
 }
 
 
 function renderSection(sectionName, itemsToRender) {
-    const container = document.getElementById(`section-${sectionName}`);
-    if (!container) return;
-    container.innerHTML = '';
-    
-    document.querySelectorAll('#global-view-switcher button').forEach(btn => btn.classList.toggle('active', btn.dataset.view === globalView));
-    localStorage.setItem('globalView', globalView);
+    const container = document.getElementById(`section-${sectionName}`);
+    if (!container) return;
+    container.innerHTML = '';
+    
+    document.querySelectorAll('#global-view-switcher button').forEach(btn => btn.classList.toggle('active', btn.dataset.view === globalView));
+    localStorage.setItem('globalView', globalView);
 
-    if (sectionName === 'notes-tasks') {
-        renderNotesAndTasksSection(container, itemsToRender);
-        return;
-    }
-    
-    const typeMap = { buscadores: 'Buscador', links: 'Link', prompts: 'Promp' };
-    const type = typeMap[sectionName];
-    
-    if (sectionName === 'buscadores') {
-        const allBuscadores = data.items.filter(item => item.type === 'Buscador');
-        const searchComponent = createBuscadorSearchComponent(allBuscadores);
-        if (searchComponent) container.appendChild(searchComponent);
-    }
+    if (sectionName === 'notes-tasks') {
+        renderNotesAndTasksSection(container, itemsToRender);
+        return;
+    }
+    
+    const typeMap = { buscadores: 'Buscador', links: 'Link', prompts: 'Promp' };
+    const type = typeMap[sectionName];
+    
+    if (sectionName === 'buscadores') {
+        const allBuscadores = data.items.filter(item => item.type === 'Buscador');
+        const searchComponent = createBuscadorSearchComponent(allBuscadores);
+        if (searchComponent) container.appendChild(searchComponent);
+    }
 
-    container.insertAdjacentHTML('beforeend', `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`);
-    
-    const items = itemsToRender || data.items.filter(item => item.type === type);
-    
-    if (items.length === 0 && !itemsToRender) {
-        renderEmptyState(container, sectionName);
-        return;
-    }
-    
-    renderFavoritesBar(container, items);
+    container.insertAdjacentHTML('beforeend', `<div class="mb-6"><button onclick="addCategory()" class="brutalist-button">Nueva Categoría</button></div>`);
+    
+    const items = itemsToRender || data.items.filter(item => item.type === type);
+    
+    if (items.length === 0 && !itemsToRender) {
+        renderEmptyState(container, sectionName);
+        return;
+    }
+    
+    renderFavoritesBar(container, items);
 
-    const categorized = items.reduce((acc, item) => {
-        const category = item.category || 'SIN CATEGORIA';
-        (acc[category] = acc[category] || []).push(item);
-        return acc;
-    }, {});
+    const categorized = items.reduce((acc, item) => {
+        const category = item.category || 'SIN CATEGORIA';
+        (acc[category] = acc[category] || []).push(item);
+        return acc;
+    }, {});
 
-    const sectionOrders = (data.categoryOrders && data.categoryOrders[sectionName]) || [];
-    
-    const categoryContainer = document.createElement('div');
-    categoryContainer.className = 'category-container-sortable';
-    container.appendChild(categoryContainer);
+    const sectionOrders = (data.categoryOrders && data.categoryOrders[sectionName]) || [];
+    
+    const categoryContainer = document.createElement('div');
+    categoryContainer.className = 'category-container-sortable';
+    container.appendChild(categoryContainer);
 
-    let allCategoryNames = [...sectionOrders];
-    Object.keys(categorized).forEach(cat => {
-        if (!allCategoryNames.includes(cat)) {
-            allCategoryNames.push(cat);
-        }
-    });
-    
-    renderCategoryFilters(container, allCategoryNames, categorized);
+    let allCategoryNames = [...sectionOrders];
+    Object.keys(categorized).forEach(cat => {
+        if (!allCategoryNames.includes(cat)) {
+            allCategoryNames.push(cat);
+        }
+    });
+    
+    renderCategoryFilters(container, allCategoryNames, categorized);
 
-    const filteredCategoryNames = activeCategoryFilter === 'all'
-        ? allCategoryNames
-        : allCategoryNames.filter(cat => cat === activeCategoryFilter);
+    const filteredCategoryNames = activeCategoryFilter === 'all'
+        ? allCategoryNames
+        : allCategoryNames.filter(cat => cat === activeCategoryFilter);
 
-    filteredCategoryNames.forEach(cat => {
-        const itemsForThisCat = categorized[cat] || [];
+    filteredCategoryNames.forEach(cat => {
+        const itemsForThisCat = categorized[cat] || [];
 
-        if (itemsForThisCat.length > 0) {
-            const categorySettings = data.categories[cat] || {};
-            const catDiv = document.createElement('div');
-            catDiv.className = 'category-wrapper fade-in';
-            catDiv.dataset.categoryName = cat;
-            if (categorySettings.color) {
-                catDiv.style.backgroundColor = categorySettings.color;
-            }
+        if (itemsForThisCat.length > 0) {
+            const categorySettings = data.categories[cat] || {};
+            const catDiv = document.createElement('div');
+            catDiv.className = 'category-wrapper fade-in';
+            catDiv.dataset.categoryName = cat;
+            if (categorySettings.color) {
+                catDiv.style.backgroundColor = categorySettings.color;
+            }
 
-            const textColor = getContrastingTextColor(categorySettings.color);
-            const dragHandleHTML = `<span class="category-drag-handle" style="color: ${textColor};"><i class="fas fa-grip-vertical"></i></span>`;
+            const textColor = getContrastingTextColor(categorySettings.color);
+            const dragHandleHTML = `<span class="category-drag-handle" style="color: ${textColor};"><i class="fas fa-grip-vertical"></i></span>`;
 
-            const categoryActionsHTML = cat !== 'SIN CATEGORIA' ? `
-                <div class="category-actions">
-                    <button class="category-options-btn" style="color: ${textColor};" onclick="toggleCategoryMenu(event, '${cat}')"><i class="fas fa-ellipsis-v"></i></button>
-                    <div class="category-options-menu" id="menu-${cat}">
-                        <button onclick="openCategoryEditModal('${cat}')"><i class="fas fa-pencil-alt fa-fw mr-2"></i>Editar</button>
-                        <button onclick="deleteCategory('${cat}')"><i class="fas fa-trash-alt fa-fw mr-2"></i>Eliminar</button>
-                    </div>
-                </div>
-            ` : '';
+            const categoryActionsHTML = cat !== 'SIN CATEGORIA' ? `
+                <div class="category-actions">
+                    <button class="category-options-btn" style="color: ${textColor};" onclick="toggleCategoryMenu(event, '${cat}')"><i class="fas fa-ellipsis-v"></i></button>
+                    <div class="category-options-menu" id="menu-${cat}">
+                        <button onclick="openCategoryEditModal('${cat}')"><i class="fas fa-pencil-alt fa-fw mr-2"></i>Editar</button>
+                        <button onclick="deleteCategory('${cat}')"><i class="fas fa-trash-alt fa-fw mr-2"></i>Eliminar</button>
+                    </div>
+                </div>
+            ` : '';
 
-            catDiv.innerHTML = `<div class="category-header flex items-center" style="color: ${textColor}; border-color: ${textColor};">${dragHandleHTML}<h3 class="category-title flex-grow">${cat}</h3>${categoryActionsHTML}</div>`;
-            
-            const contentContainer = document.createElement('div');
-            contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
-            contentContainer.dataset.category = cat;
-            
-            itemsForThisCat.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(item => {
-                let element;
-                if (globalView === 'grid') element = createCard(item);
-                else if (globalView === 'list') element = createListItem(item);
-                else element = createChipItem(item);
-                contentContainer.appendChild(element);
-            });
-            
-            catDiv.appendChild(contentContainer);
-            categoryContainer.appendChild(catDiv);
+            catDiv.innerHTML = `<div class="category-header flex items-center" style="color: ${textColor}; border-color: ${textColor};">${dragHandleHTML}<h3 class="category-title flex-grow">${cat}</h3>${categoryActionsHTML}</div>`;
+            
+            const contentContainer = document.createElement('div');
+            contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
+            contentContainer.dataset.category = cat;
+            
+            itemsForThisCat.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(item => {
+                let element;
+                if (globalView === 'grid') element = createCard(item);
+                else if (globalView === 'list') element = createListItem(item);
+                else element = createChipItem(item);
+                contentContainer.appendChild(element);
+            });
+            
+            catDiv.appendChild(contentContainer);
+            categoryContainer.appendChild(catDiv);
 
-            setupPromptCardAnimations(contentContainer);
+            setupPromptCardAnimations(contentContainer);
 
-            new Sortable(contentContainer, {
-                group: 'shared-cards',
-                animation: 150,
-                handle: '.card-drag-handle',
-                onEnd: function(evt) {
-                    const sectionContainer = evt.target.closest('.section');
-                    if (!sectionContainer) return;
-                    const allItemElements = Array.from(sectionContainer.querySelectorAll('.brutalist-card[data-id], .list-item[data-id], .chip-item[data-id]'));
-                    const itemMap = new Map(data.items.map(item => [String(item.id), item]));
-                    const reorderedItems = [];
-                    const seenIds = new Set();
-                    allItemElements.forEach(el => {
-                        const itemId = el.dataset.id;
-                        const item = itemMap.get(itemId);
-                        if (item) {
-                            const newCategory = el.closest('[data-category]').dataset.category;
-                            item.category = newCategory;
-                            reorderedItems.push(item);
-                            seenIds.add(itemId);
-                        }
-                    });
-                    const itemsNotInView = data.items.filter(item => !seenIds.has(String(item.id)));
-                    data.items = [...itemsNotInView, ...reorderedItems];
-                    saveData();
-                }
-            });
-        }
-    });
+            new Sortable(contentContainer, {
+                group: 'shared-cards',
+                animation: 150,
+                handle: '.card-drag-handle',
+                onEnd: function(evt) {
+                    const sectionContainer = evt.target.closest('.section');
+                    if (!sectionContainer) return;
+                    const allItemElements = Array.from(sectionContainer.querySelectorAll('.brutalist-card[data-id], .list-item[data-id], .chip-item[data-id]'));
+                    const itemMap = new Map(data.items.map(item => [String(item.id), item]));
+                    const reorderedItems = [];
+                    const seenIds = new Set();
+                    allItemElements.forEach(el => {
+                        const itemId = el.dataset.id;
+                        const item = itemMap.get(itemId);
+                        if (item) {
+                            const newCategory = el.closest('[data-category]').dataset.category;
+                            item.category = newCategory;
+                            reorderedItems.push(item);
+                            seenIds.add(itemId);
+                        }
+                    });
+                    const itemsNotInView = data.items.filter(item => !seenIds.has(String(item.id)));
+                    data.items = [...itemsNotInView, ...reorderedItems];
+                    saveData();
+                }
+            });
+        }
+    });
 
-    if (categoryContainer.children.length === 0) {
-        if (items.length > 0) {
-            container.insertAdjacentHTML('beforeend', `<p class="text-center opacity-70 mt-8">No se encontraron resultados para los filtros seleccionados.</p>`);
-        } else if (sectionName !== 'notes-tasks') {
-            categoryContainer.innerHTML = `<p class="opacity-70 p-4 text-center">No hay elementos en esta sección. ¡Crea una categoría y añade algo!</p>`;
-        }
-    }
+    if (categoryContainer.children.length === 0) {
+        if (items.length > 0) {
+            container.insertAdjacentHTML('beforeend', `<p class="text-center opacity-70 mt-8">No se encontraron resultados para los filtros seleccionados.</p>`);
+        } else if (sectionName !== 'notes-tasks') {
+            categoryContainer.innerHTML = `<p class="opacity-70 p-4 text-center">No hay elementos en esta sección. ¡Crea una categoría y añade algo!</p>`;
+        }
+    }
 
-    new Sortable(categoryContainer, {
-        animation: 150,
-        handle: '.category-drag-handle',
-        onEnd: (evt) => {
-            const activeSection = document.querySelector('#main-nav .active')?.dataset.section;
-            if (!activeSection) return;
-            const newOrder = Array.from(evt.target.children)
-                .map(child => child.dataset.categoryName)
-                .filter(Boolean);
-            if (!data.categoryOrders) data.categoryOrders = {};
-            data.categoryOrders[activeSection] = newOrder;
-            saveData();
-        }
-    });
+    new Sortable(categoryContainer, {
+        animation: 150,
+        handle: '.category-drag-handle',
+        onEnd: (evt) => {
+            const activeSection = document.querySelector('#main-nav .active')?.dataset.section;
+            if (!activeSection) return;
+            const newOrder = Array.from(evt.target.children)
+                .map(child => child.dataset.categoryName)
+                .filter(Boolean);
+            if (!data.categoryOrders) data.categoryOrders = {};
+            data.categoryOrders[activeSection] = newOrder;
+            saveData();
+        }
+    });
 }
 
 
 function createCard(item) {
-    const card = document.createElement("div");
-    card.className = 'brutalist-card';
-    if (item.isFavorite) {
-        card.classList.add('is-favorite');
-    }
-    card.dataset.id = item.id;
+    const card = document.createElement("div");
+    card.className = 'brutalist-card';
+    if (item.isFavorite) {
+        card.classList.add('is-favorite');
+    }
+    card.dataset.id = item.id;
 
-    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
-    const favoriteBtn = `<button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>`;
+    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
+    const favoriteBtn = `<button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>`;
 
-    if (item.type === 'Promp') {
-        card.classList.add('prompt-card');
-        card.style.color = 'var(--text-color)';
-        card.style.backgroundColor = 'var(--note-bg)';
-        
-        card.innerHTML = `
-            <div class="card-drag-handle"><i class="fas fa-grip-vertical"></i></div>
-            <div class="card-actions">
-                ${favoriteBtn}
-                <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-                <button onclick="deleteItem(event, '${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-            </div>
-            <div class="p-4 overflow-hidden h-full flex flex-col">
-                <h4 class="font-bold uppercase mb-2 flex-shrink-0">${item.title}</h4>
-                <div class="prompt-content-wrapper flex-grow">
-                    <div class="prompt-text">
-                        ${item.action}
-                    </div>
-                </div>
-            </div>
-        `;
-    } 
-    else if (item.type === 'Link' || item.type === 'Buscador') {
-        const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
-        card.style.backgroundImage = `url('${previewUrl}')`;
-        const iconHtml = getIconHtml(item.icon, 'text-2xl');
-        const titleHtml = `<h4 class="font-bold text-lg uppercase truncate" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">${item.title}</h4>`;
-        const tagsHtml = item.tags && item.tags.length > 0
-            ? `<div class="card-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
-            : '';
+    if (item.type === 'Promp') {
+        card.classList.add('prompt-card');
+        card.style.color = 'var(--text-color)';
+        card.style.backgroundColor = 'var(--note-bg)';
+        
+        card.innerHTML = `
+            <div class="card-drag-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="card-actions">
+                ${favoriteBtn}
+                <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                <button onclick="deleteItem(event, '${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <div class="p-4 overflow-hidden h-full flex flex-col">
+                <h4 class="font-bold uppercase mb-2 flex-shrink-0">${item.title}</h4>
+                <div class="prompt-content-wrapper flex-grow">
+                    <div class="prompt-text">
+                        ${item.action}
+                    </div>
+                </div>
+            </div>
+        `;
+    } 
+    else if (item.type === 'Link' || item.type === 'Buscador') {
+        const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
+        card.style.backgroundImage = `url('${previewUrl}')`;
+        const iconHtml = getIconHtml(item.icon, 'text-2xl');
+        const titleHtml = `<h4 class="font-bold text-lg uppercase truncate" style="text-shadow: 1px 1px 2px rgba(0,0,0,0.7);">${item.title}</h4>`;
+        const tagsHtml = item.tags && item.tags.length > 0
+            ? `<div class="card-tags">${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
+            : '';
 
-        card.innerHTML = `
-            <div class="card-drag-handle"><i class="fas fa-grip-vertical"></i></div>
-            <div class="card-actions">
-                ${favoriteBtn}
-                <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-                <button onclick="deleteItem(event, '${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-            </div>
-            <div class="card-content-wrapper mt-auto">
-                <div class="flex items-center gap-3 mb-2">
-                    <div class="flex-shrink-0">${iconHtml}</div>
-                    ${titleHtml}
-                </div>
-                ${tagsHtml}
-            </div>
-        `;
-    }
-    
-    card.addEventListener('click', (e) => handleCardClick(item.id, e));
-    return card;
+        card.innerHTML = `
+            <div class="card-drag-handle"><i class="fas fa-grip-vertical"></i></div>
+            <div class="card-actions">
+                ${favoriteBtn}
+                <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                <button onclick="deleteItem(event, '${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+            </div>
+            <div class="card-content-wrapper mt-auto">
+                <div class="flex items-center gap-3 mb-2">
+                    <div class="flex-shrink-0">${iconHtml}</div>
+                    ${titleHtml}
+                </div>
+                ${tagsHtml}
+            </div>
+        `;
+    }
+    
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+    return card;
 }
 
 function createListItem(item) {
-    const listItem = document.createElement("div");
-    listItem.className = 'list-item p-4';
-     if (item.isFavorite) {
-         listItem.classList.add('is-favorite');
-    }
-    listItem.dataset.id = item.id;
-    let bgStyle = '';
-    if (item.type === 'Link' || item.type === 'Buscador') {
-        const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
-        bgStyle = `background-image: url('${previewUrl}')`;
-    }
-    
-    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
+    const listItem = document.createElement("div");
+    listItem.className = 'list-item p-4';
+     if (item.isFavorite) {
+         listItem.classList.add('is-favorite');
+    }
+    listItem.dataset.id = item.id;
+    let bgStyle = '';
+    if (item.type === 'Link' || item.type === 'Buscador') {
+        const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
+        bgStyle = `background-image: url('${previewUrl}')`;
+    }
+    
+    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
 
-    listItem.innerHTML = `
-        <div class="list-item-bg" style="${bgStyle}"></div>
-        <div class="list-item-overlay"></div>
-        <div class="list-item-content flex items-center gap-4 w-full">
-            <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
-            <div class="w-8 text-center flex items-center justify-center">${getIconHtml(item.icon, 'text-2xl')}</div>
-            <div class="flex-grow">
-                <h4 class="font-bold uppercase">${item.title}</h4>
-                <div class="flex flex-wrap gap-2 mt-1">
-                    ${(item.tags || []).map(tag => `<span class="tag !text-xs !py-0">${tag}</span>`).join('')}
-                </div>
-            </div>
-            <div class="card-actions !static !opacity-100">
-                <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>
-                <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-                <button onclick="deleteItem(event, '${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-            </div>
-        </div>
-    `;
-    listItem.addEventListener('click', (e) => handleCardClick(item.id, e));
-    listItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
-    listItem.addEventListener('mouseleave', hidePreviewModal);
-    return listItem;
+    listItem.innerHTML = `
+        <div class="list-item-bg" style="${bgStyle}"></div>
+        <div class="list-item-overlay"></div>
+        <div class="list-item-content flex items-center gap-4 w-full">
+            <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
+            <div class="w-8 text-center flex items-center justify-center">${getIconHtml(item.icon, 'text-2xl')}</div>
+            <div class="flex-grow">
+                <h4 class="font-bold uppercase">${item.title}</h4>
+                <div class="flex flex-wrap gap-2 mt-1">
+                    ${(item.tags || []).map(tag => `<span class="tag !text-xs !py-0">${tag}</span>`).join('')}
+                </div>
+            </div>
+            <div class="card-actions !static !opacity-100">
+                <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>
+                <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                <button onclick="deleteItem(event, '${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+            </div>
+        </div>
+    `;
+    listItem.addEventListener('click', (e) => handleCardClick(item.id, e));
+    listItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
+    listItem.addEventListener('mouseleave', hidePreviewModal);
+    return listItem;
 }
 
 function createChipItem(item) {
-    const chipItem = document.createElement("div");
-    chipItem.className = 'chip-item relative p-2 pr-3 flex items-center gap-2';
-     if (item.isFavorite) {
-         chipItem.classList.add('is-favorite');
-    }
-    chipItem.dataset.id = item.id;
-    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
-    chipItem.innerHTML = `
-        <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn !w-6 !h-6 !border-2" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400 text-xs"></i></button>
-        <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
-        ${getIconHtml(item.icon, 'text-base')}
-        <span class="font-bold uppercase">${item.title}</span>
-    `;
-    chipItem.addEventListener('click', (e) => handleCardClick(item.id, e));
-    chipItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
-    chipItem.addEventListener('mouseleave', hidePreviewModal);
-    return chipItem;
+    const chipItem = document.createElement("div");
+    chipItem.className = 'chip-item relative p-2 pr-3 flex items-center gap-2';
+     if (item.isFavorite) {
+         chipItem.classList.add('is-favorite');
+    }
+    chipItem.dataset.id = item.id;
+    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
+    chipItem.innerHTML = `
+        <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn !w-6 !h-6 !border-2" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400 text-xs"></i></button>
+        <div class="card-drag-handle !opacity-100 !static"><i class="fas fa-grip-vertical"></i></div>
+        ${getIconHtml(item.icon, 'text-base')}
+        <span class="font-bold uppercase">${item.title}</span>
+    `;
+    chipItem.addEventListener('click', (e) => handleCardClick(item.id, e));
+    chipItem.addEventListener('mouseenter', (e) => showPreviewModal(item, e));
+    chipItem.addEventListener('mouseleave', hidePreviewModal);
+    return chipItem;
 }
 
 // --- ACTIONS & EVENT HANDLERS ---
 function handleCardClick(id, event) {
-    const item = data.items.find(i => String(i.id) === String(id));
-    if (!item) return;
+    const item = data.items.find(i => String(i.id) === String(id));
+    if (!item) return;
 
-    if (event.target.closest('button, .card-actions, .card-drag-handle, input, label, a')) {
-        return;
-    }
+    if (event.target.closest('button, .card-actions, .card-drag-handle, input, label, a')) {
+        return;
+    }
 
-    const card = event.target.closest('.brutalist-card');
-    if (item.type === 'Nota' || item.type === 'Tarea') {
-        if (card && !card.classList.contains('expanded')) {
-            card.classList.add('expanded');
-            document.getElementById('card-expansion-backdrop').style.display = 'block';
-        }
-        return;
-    }
-    
-    if (item.type === "Link") {
-        window.open(item.action, "_blank");
-    } else if (item.type === "Buscador") {
-        const searchBarContainer = document.getElementById('main-search-bar');
-        const selector = document.getElementById('search-engine-selector');
-        const mainSearchInput = document.getElementById('main-search-input');
+    const card = event.target.closest('.brutalist-card');
+    if (item.type === 'Nota' || item.type === 'Tarea') {
+        if (card && !card.classList.contains('expanded')) {
+            card.classList.add('expanded');
+            document.getElementById('card-expansion-backdrop').style.display = 'block';
+        }
+        return;
+    }
+    
+    if (item.type === "Link") {
+        window.open(item.action, "_blank");
+    } else if (item.type === "Buscador") {
+        const searchBarContainer = document.getElementById('main-search-bar');
+        const selector = document.getElementById('search-engine-selector');
+        const mainSearchInput = document.getElementById('main-search-input');
 
-        if (searchBarContainer && selector && mainSearchInput) {
-            const selectorIcon = selector.querySelector('span:first-child');
-            const selectorTitle = selector.querySelector('span:nth-child(2)');
+        if (searchBarContainer && selector && mainSearchInput) {
+            const selectorIcon = selector.querySelector('span:first-child');
+            const selectorTitle = selector.querySelector('span:nth-child(2)');
 
-            searchBarContainer.dataset.actionUrl = item.action;
-            selectorIcon.innerHTML = getIconHtml(item.icon, 'text-xl');
-            selectorTitle.textContent = item.title;
+            searchBarContainer.dataset.actionUrl = item.action;
+            selectorIcon.innerHTML = getIconHtml(item.icon, 'text-xl');
+            selectorTitle.textContent = item.title;
 
-            mainSearchInput.focus();
-            showToast(`Listo para buscar en ${item.title}.`);
-        }
-    } else if (item.type === "Promp") {
-        copyTextToClipboard(item.action);
-    } else {
-        openEditPanel(id);
-    }
+            mainSearchInput.focus();
+            showToast(`Listo para buscar en ${item.title}.`);
+        }
+    } else if (item.type === "Promp") {
+        copyTextToClipboard(item.action);
+    } else {
+        openEditPanel(id);
+    }
 }
 
 
 function closeExpandedCard(card) {
-    card.classList.remove('expanded');
-    document.getElementById('card-expansion-backdrop').style.display = 'none';
+    card.classList.remove('expanded');
+    document.getElementById('card-expansion-backdrop').style.display = 'none';
 }
 
 function openEditPanel(itemId = null) {
-    const form = document.getElementById('editForm');
-    form.reset();
-    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-    let itemType;
-    const titleMap = { 'Buscador': 'Nuevo Buscador', 'Link': 'Nuevo Link', 'Promp': 'Nuevo Prompt', 'Nota': 'Nueva Nota', 'Tarea': 'Nueva Tarea' };
+    const form = document.getElementById('editForm');
+    form.reset();
+    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+    let itemType;
+    const titleMap = { 'Buscador': 'Nuevo Buscador', 'Link': 'Nuevo Link', 'Promp': 'Nuevo Prompt', 'Nota': 'Nueva Nota', 'Tarea': 'Nueva Tarea' };
 
-    if (itemId) {
-        const item = data.items.find(i => String(i.id) === String(itemId));
-        if (item) {
-            document.getElementById('editPanelTitle').textContent = `EDITAR ${item.type.toUpperCase()}`;
-            document.getElementById('editItemId').value = item.id;
-            document.getElementById('newTitle').value = item.title;
-            if (item.type === 'Nota' || item.type === 'Promp') {
-                document.getElementById('newActionRich').innerHTML = item.action;
-            } else if (item.type === 'Tarea' && Array.isArray(item.action)) {
-                 document.getElementById('newActionRich').innerHTML = item.action.map(t => `<div>${t.text}</div>`).join('');
-            } else {
-                document.getElementById('newActionText').value = item.action;
-            }
-            document.getElementById('newTags').value = item.tags ? item.tags.join(', ') : '';
-            document.getElementById('newIcon').value = item.icon || '';
-            document.getElementById('newCategory').value = item.category || '';
-            const typeBtn = document.querySelector(`.type-btn[data-type="${item.type}"]`);
-            if(typeBtn) typeBtn.classList.add('active');
-            document.getElementById('newType').value = item.type;
-            itemType = item.type;
-        }
-    } else {
-        const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'links';
-        const defaultTypeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': 'Nota' };
-        const defaultType = defaultTypeMap[activeSection] || 'Link';
-        document.getElementById('editPanelTitle').textContent = titleMap[defaultType] || 'AGREGAR ELEMENTO';
-        document.getElementById('editItemId').value = '';
-        const defaultTypeBtn = document.querySelector(`.type-btn[data-type="${defaultType}"]`);
-        if(defaultTypeBtn) defaultTypeBtn.classList.add('active');
-        document.getElementById('newType').value = defaultType;
-        itemType = defaultType;
-    }
-    updateEditFormFields(document.getElementById('newType').value);
-    populateCategorySuggestions(itemType);
-    document.getElementById('editPanel').classList.remove('hidden');
+    if (itemId) {
+        const item = data.items.find(i => String(i.id) === String(itemId));
+        if (item) {
+            document.getElementById('editPanelTitle').textContent = `EDITAR ${item.type.toUpperCase()}`;
+            document.getElementById('editItemId').value = item.id;
+            document.getElementById('newTitle').value = item.title;
+            if (item.type === 'Nota' || item.type === 'Promp') {
+                document.getElementById('newActionRich').innerHTML = item.action;
+            } else if (item.type === 'Tarea' && Array.isArray(item.action)) {
+                 document.getElementById('newActionRich').innerHTML = item.action.map(t => `<div>${t.text}</div>`).join('');
+            } else {
+                document.getElementById('newActionText').value = item.action;
+            }
+            document.getElementById('newTags').value = item.tags ? item.tags.join(', ') : '';
+            document.getElementById('newIcon').value = item.icon || '';
+            document.getElementById('newCategory').value = item.category || '';
+            const typeBtn = document.querySelector(`.type-btn[data-type="${item.type}"]`);
+            if(typeBtn) typeBtn.classList.add('active');
+            document.getElementById('newType').value = item.type;
+            itemType = item.type;
+        }
+    } else {
+        const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'links';
+        const defaultTypeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': 'Nota' };
+        const defaultType = defaultTypeMap[activeSection] || 'Link';
+        document.getElementById('editPanelTitle').textContent = titleMap[defaultType] || 'AGREGAR ELEMENTO';
+        document.getElementById('editItemId').value = '';
+        const defaultTypeBtn = document.querySelector(`.type-btn[data-type="${defaultType}"]`);
+        if(defaultTypeBtn) defaultTypeBtn.classList.add('active');
+        document.getElementById('newType').value = defaultType;
+        itemType = defaultType;
+    }
+    updateEditFormFields(document.getElementById('newType').value);
+    populateCategorySuggestions(itemType);
+    document.getElementById('editPanel').classList.remove('hidden');
 }
 
 function handleSaveItem(event) {
-    event.preventDefault();
-    const id = document.getElementById("editItemId").value;
-    const type = document.getElementById("newType").value;
-    let action;
-    let icon = document.getElementById("newIcon").value.trim();
-    if (type === 'Nota' || type === 'Promp') {
-        action = document.getElementById('newActionRich').innerHTML;
-    } else if (type === 'Tarea') {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = document.getElementById('newActionRich').innerHTML;
-        const existingTasks = id ? (data.items.find(i => String(i.id) === id)?.action || []) : [];
-        action = Array.from(tempDiv.children).map((child, index) => {
-            const existing = existingTasks[index];
-            return { text: child.textContent || child.innerText, status: existing ? existing.status : false };
-        }).filter(t => t.text.trim() !== '');
-    } else {
-        action = document.getElementById('newActionText').value;
-    }
-    if (!icon && (type === 'Link' || type === 'Buscador')) {
-        try {
-            const url = new URL(action);
-            icon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${url.hostname}`;
-        } catch (e) { console.error("URL inválida para obtener favicon:", action); }
-    }
-    const newItemData = {
-        title: document.getElementById("newTitle").value.trim(),
-        action: action, type: type,
-        category: document.getElementById("newCategory").value.trim() || 'SIN CATEGORIA',
-        icon: icon,
-        tags: document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(Boolean)
-    };
-    if (id) {
-        const index = data.items.findIndex(i => String(i.id) === id);
-        if (index !== -1) data.items[index] = { ...data.items[index], ...newItemData };
-    } else {
-        newItemData.id = Date.now();
-        newItemData.isFavorite = false;
-        data.items.push(newItemData);
-    }
-    saveData().then(() => {
-        refreshUI();
-        document.getElementById("editPanel").classList.add("hidden");
-        setTimeout(() => {
-            const newCard = document.querySelector(`[data-id="${newItemData.id}"]`);
-            if(newCard) newCard.classList.add('flash-save');
-        }, 100);
-    });
+    event.preventDefault();
+    const id = document.getElementById("editItemId").value;
+    const type = document.getElementById("newType").value;
+    let action;
+    let icon = document.getElementById("newIcon").value.trim();
+    if (type === 'Nota' || type === 'Promp') {
+        action = document.getElementById('newActionRich').innerHTML;
+    } else if (type === 'Tarea') {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = document.getElementById('newActionRich').innerHTML;
+        const existingTasks = id ? (data.items.find(i => String(i.id) === id)?.action || []) : [];
+        action = Array.from(tempDiv.children).map((child, index) => {
+            const existing = existingTasks[index];
+            return { text: child.textContent || child.innerText, status: existing ? existing.status : false };
+        }).filter(t => t.text.trim() !== '');
+    } else {
+        action = document.getElementById('newActionText').value;
+    }
+    if (!icon && (type === 'Link' || type === 'Buscador')) {
+        try {
+            const url = new URL(action);
+            icon = `https://s2.googleusercontent.com/s2/favicons?domain_url=${url.hostname}`;
+        } catch (e) { console.error("URL inválida para obtener favicon:", action); }
+    }
+    const newItemData = {
+        title: document.getElementById("newTitle").value.trim(),
+        action: action, type: type,
+        category: document.getElementById("newCategory").value.trim() || 'SIN CATEGORIA',
+        icon: icon,
+        tags: document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(Boolean)
+    };
+    if (id) {
+        const index = data.items.findIndex(i => String(i.id) === id);
+        if (index !== -1) data.items[index] = { ...data.items[index], ...newItemData };
+    } else {
+        newItemData.id = Date.now();
+        newItemData.isFavorite = false;
+        data.items.push(newItemData);
+    }
+    saveData().then(() => {
+        refreshUI();
+        document.getElementById("editPanel").classList.add("hidden");
+        setTimeout(() => {
+            const newCard = document.querySelector(`[data-id="${newItemData.id}"]`);
+            if(newCard) newCard.classList.add('flash-save');
+        }, 100);
+    });
 }
 
 function updateEditFormFields(type) {
-    const richTextEditor = document.getElementById('newActionRich');
-    const richTextToolbar = document.getElementById('richTextToolbar');
-    const plainTextEditor = document.getElementById('newActionText');
-    const actionLabel = document.getElementById('actionLabel');
-    const iconField = document.getElementById('iconFieldContainer');
-    
-    document.getElementById('editPanelTitle').textContent = `NUEVO ${type.toUpperCase()}`;
+    const richTextEditor = document.getElementById('newActionRich');
+    const richTextToolbar = document.getElementById('richTextToolbar');
+    const plainTextEditor = document.getElementById('newActionText');
+    const actionLabel = document.getElementById('actionLabel');
+    const iconField = document.getElementById('iconFieldContainer');
+    
+    document.getElementById('editPanelTitle').textContent = `NUEVO ${type.toUpperCase()}`;
 
-    richTextEditor.classList.add('hidden');
-    richTextToolbar.classList.add('hidden');
-    plainTextEditor.classList.add('hidden');
-    iconField.style.display = 'block';
-    
-    if (type === 'Nota' || type === 'Promp') {
-        richTextEditor.classList.remove('hidden');
-        richTextToolbar.classList.remove('hidden');
-        actionLabel.textContent = 'CONTENIDO';
-        iconField.style.display = 'none';
-        richTextEditor.setAttribute('placeholder', 'Escribe tu nota o prompt aquí...');
-    } else if (type === 'Tarea') {
-        richTextEditor.classList.remove('hidden');
-        actionLabel.textContent = 'TAREAS';
-        iconField.style.display = 'none';
-        richTextEditor.setAttribute('placeholder', 'Escribe cada tarea en una nueva línea...');
-    } else {
-        plainTextEditor.classList.remove('hidden');
-        actionLabel.textContent = 'URL / ACCION';
-        plainTextEditor.setAttribute('placeholder', 'https://ejemplo.com');
-    }
+    richTextEditor.classList.add('hidden');
+    richTextToolbar.classList.add('hidden');
+    plainTextEditor.classList.add('hidden');
+    iconField.style.display = 'block';
+    
+    if (type === 'Nota' || type === 'Promp') {
+        richTextEditor.classList.remove('hidden');
+        richTextToolbar.classList.remove('hidden');
+        actionLabel.textContent = 'CONTENIDO';
+        iconField.style.display = 'none';
+        richTextEditor.setAttribute('placeholder', 'Escribe tu nota o prompt aquí...');
+    } else if (type === 'Tarea') {
+        richTextEditor.classList.remove('hidden');
+        actionLabel.textContent = 'TAREAS';
+        iconField.style.display = 'none';
+        richTextEditor.setAttribute('placeholder', 'Escribe cada tarea en una nueva línea...');
+    } else {
+        plainTextEditor.classList.remove('hidden');
+        actionLabel.textContent = 'URL / ACCION';
+        plainTextEditor.setAttribute('placeholder', 'https://ejemplo.com');
+    }
 }
 
 function populateCategorySuggestions(itemType) {
-    const dataList = document.getElementById("category-suggestions");
-    dataList.innerHTML = '';
-    if (!itemType) return;
+    const dataList = document.getElementById("category-suggestions");
+    dataList.innerHTML = '';
+    if (!itemType) return;
 
-    const categories = [...new Set(data.items
-        .filter(item => item.type === itemType)
-        .map(item => item.category)
-        .filter(c => c && c !== 'SIN CATEGORIA')
-    )].sort();
-    
-    categories.forEach(cat => dataList.innerHTML += `<option value="${cat}"></option>`);
+    const categories = [...new Set(data.items
+        .filter(item => item.type === itemType)
+        .map(item => item.category)
+        .filter(c => c && c !== 'SIN CATEGORIA')
+    )].sort();
+    
+    categories.forEach(cat => dataList.innerHTML += `<option value="${cat}"></option>`);
 }
 
 function openCategoryEditModal(categoryName) {
-    const modal = document.getElementById('categoryEditModal');
-    const originalNameInput = document.getElementById('originalCategoryName');
-    const nameInput = document.getElementById('categoryNameInput');
-    const selectedColorInput = document.getElementById('selectedCategoryColor');
-    const customColorInput = document.getElementById('categoryColorInput');
-    const colorPreviewText = document.getElementById('color-preview-text');
-    const paletteContainer = document.getElementById('category-color-palette');
+    const modal = document.getElementById('categoryEditModal');
+    const originalNameInput = document.getElementById('originalCategoryName');
+    const nameInput = document.getElementById('categoryNameInput');
+    const selectedColorInput = document.getElementById('selectedCategoryColor');
+    const customColorInput = document.getElementById('categoryColorInput');
+    const colorPreviewText = document.getElementById('color-preview-text');
+    const paletteContainer = document.getElementById('category-color-palette');
 
-    originalNameInput.value = categoryName;
-    nameInput.value = categoryName;
+    originalNameInput.value = categoryName;
+    nameInput.value = categoryName;
 
-    const categorySettings = data.categories[categoryName] || {};
-    const currentColor = categorySettings.color || '#ffffff';
+    const categorySettings = data.categories[categoryName] || {};
+    const currentColor = categorySettings.color || '#ffffff';
 
-    selectedColorInput.value = currentColor;
-    customColorInput.value = currentColor;
-    
-    colorPreviewText.parentElement.style.backgroundColor = currentColor;
-    colorPreviewText.textContent = currentColor.toUpperCase();
-    colorPreviewText.style.color = getContrastingTextColor(currentColor);
+    selectedColorInput.value = currentColor;
+    customColorInput.value = currentColor;
+    
+    colorPreviewText.parentElement.style.backgroundColor = currentColor;
+    colorPreviewText.textContent = currentColor.toUpperCase();
+    colorPreviewText.style.color = getContrastingTextColor(currentColor);
 
-    paletteContainer.innerHTML = '';
-    colorPalette.forEach(color => {
-        const swatch = document.createElement('div');
-        swatch.className = 'color-swatch';
-        swatch.style.backgroundColor = color;
-        swatch.dataset.color = color;
+    paletteContainer.innerHTML = '';
+    colorPalette.forEach(color => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch';
+        swatch.style.backgroundColor = color;
+        swatch.dataset.color = color;
 
-        if (color.toLowerCase() === currentColor.toLowerCase()) {
-            swatch.classList.add('selected');
-        }
+        if (color.toLowerCase() === currentColor.toLowerCase()) {
+            swatch.classList.add('selected');
+        }
 
-        swatch.addEventListener('click', () => {
-            paletteContainer.querySelectorAll('.color-swatch.selected').forEach(s => s.classList.remove('selected'));
-            swatch.classList.add('selected');
-            const selectedColor = swatch.dataset.color;
-            
-            selectedColorInput.value = selectedColor;
-            customColorInput.value = selectedColor;
-            colorPreviewText.parentElement.style.backgroundColor = selectedColor;
-            colorPreviewText.textContent = selectedColor.toUpperCase();
-            colorPreviewText.style.color = getContrastingTextColor(selectedColor);
-        });
+        swatch.addEventListener('click', () => {
+            paletteContainer.querySelectorAll('.color-swatch.selected').forEach(s => s.classList.remove('selected'));
+            swatch.classList.add('selected');
+            const selectedColor = swatch.dataset.color;
+            
+            selectedColorInput.value = selectedColor;
+            customColorInput.value = selectedColor;
+            colorPreviewText.parentElement.style.backgroundColor = selectedColor;
+            colorPreviewText.textContent = selectedColor.toUpperCase();
+            colorPreviewText.style.color = getContrastingTextColor(selectedColor);
+        });
 
-        paletteContainer.appendChild(swatch);
-    });
+        paletteContainer.appendChild(swatch);
+    });
 
-    modal.classList.remove('hidden');
+    modal.classList.remove('hidden');
 }
 
 function saveCategoryChanges(event) {
-    event.preventDefault();
-    const originalName = document.getElementById('originalCategoryName').value;
-    const newName = document.getElementById('categoryNameInput').value.trim();
-    const newColor = document.getElementById('selectedCategoryColor').value;
+    event.preventDefault();
+    const originalName = document.getElementById('originalCategoryName').value;
+    const newName = document.getElementById('categoryNameInput').value.trim();
+    const newColor = document.getElementById('selectedCategoryColor').value;
 
-    if (!newName) {
-        showToast("El nombre de la categoría no puede estar vacío.");
-        return;
-    }
+    if (!newName) {
+        showToast("El nombre de la categoría no puede estar vacío.");
+        return;
+    }
 
-    if (!data.categories) data.categories = {};
+    if (!data.categories) data.categories = {};
 
-    if (originalName !== newName) {
-        data.items.forEach(item => {
-            if (item.category === originalName) {
-                item.category = newName;
-            }
-        });
-        Object.keys(data.categoryOrders).forEach(section => {
-            data.categoryOrders[section] = data.categoryOrders[section].map(cat => cat === originalName ? newName : cat);
-        });
-        if (data.categories[originalName]) {
-            data.categories[newName] = data.categories[originalName];
-            delete data.categories[originalName];
-        }
-    }
+    if (originalName !== newName) {
+        data.items.forEach(item => {
+            if (item.category === originalName) {
+                item.category = newName;
+            }
+        });
+        Object.keys(data.categoryOrders).forEach(section => {
+            data.categoryOrders[section] = data.categoryOrders[section].map(cat => cat === originalName ? newName : cat);
+        });
+        if (data.categories[originalName]) {
+            data.categories[newName] = data.categories[originalName];
+            delete data.categories[originalName];
+        }
+    }
 
-    if (!data.categories[newName]) {
-        data.categories[newName] = {};
-    }
-    data.categories[newName].color = newColor;
+    if (!data.categories[newName]) {
+        data.categories[newName] = {};
+    }
+    data.categories[newName].color = newColor;
 
-    document.getElementById('categoryEditModal').classList.add('hidden');
-    saveData().then(() => refreshUI());
+    document.getElementById('categoryEditModal').classList.add('hidden');
+    saveData().then(() => refreshUI());
 }
 
 function addCategory() {
-    const activeSectionName = document.querySelector('#main-nav .active')?.dataset.section;
-    if (!activeSectionName || activeSectionName === 'notes-tasks') {
-        showToast("No se puede agregar una categoría a esta sección.");
-        return;
-    }
+    const activeSectionName = document.querySelector('#main-nav .active')?.dataset.section;
+    if (!activeSectionName || activeSectionName === 'notes-tasks') {
+        showToast("No se puede agregar una categoría a esta sección.");
+        return;
+    }
 
-    const name = prompt("Nombre de la nueva categoría:");
-    if (!name || !name.trim()) return;
-    const newCategoryName = name.trim();
+    const name = prompt("Nombre de la nueva categoría:");
+    if (!name || !name.trim()) return;
+    const newCategoryName = name.trim();
 
-    if (!data.categoryOrders) data.categoryOrders = {};
-    if (!data.categoryOrders[activeSectionName]) data.categoryOrders[activeSectionName] = [];
-    
-    const allCategoriesForSection = new Set(data.categoryOrders[activeSectionName]);
-    data.items.forEach(item => {
-        const typeMap = { buscadores: 'Buscador', links: 'Link', prompts: 'Promp' };
-        if (item.type === typeMap[activeSectionName]) {
-            allCategoriesForSection.add(item.category);
-        }
-    });
+    if (!data.categoryOrders) data.categoryOrders = {};
+    if (!data.categoryOrders[activeSectionName]) data.categoryOrders[activeSectionName] = [];
+    
+    const allCategoriesForSection = new Set(data.categoryOrders[activeSectionName]);
+    data.items.forEach(item => {
+        const typeMap = { buscadores: 'Buscador', links: 'Link', prompts: 'Promp' };
+        if (item.type === typeMap[activeSectionName]) {
+            allCategoriesForSection.add(item.category);
+        }
+    });
 
-    if (allCategoriesForSection.has(newCategoryName)) {
-        showToast("Esa categoría ya existe.");
-        return;
-    }
+    if (allCategoriesForSection.has(newCategoryName)) {
+        showToast("Esa categoría ya existe.");
+        return;
+    }
 
-    data.categoryOrders[activeSectionName].push(newCategoryName);
-    saveData().then(() => {
-        refreshUI();
-        showToast(`Categoría "${newCategoryName}" creada.`);
-    });
+    data.categoryOrders[activeSectionName].push(newCategoryName);
+    saveData().then(() => {
+        refreshUI();
+        showToast(`Categoría "${newCategoryName}" creada.`);
+    });
 }
 
 function deleteCategory(categoryName) {
-     if (categoryName === 'SIN CATEGORIA') {
-         showToast("No se puede eliminar esta categoría."); return;
-    }
-    showConfirmModal(`¿Seguro que quieres eliminar la categoría "${categoryName}"? Todos sus elementos se moverán a 'SIN CATEGORIA'.`, (confirmed) => {
-        if (confirmed) {
-            Object.keys(data.categoryOrders).forEach(section => {
-                if(data.categoryOrders[section]) {
-                    data.categoryOrders[section] = data.categoryOrders[section].filter(cat => cat !== categoryName);
-                }
-            });
-            data.items.forEach(item => {
-                if (item.category === categoryName) item.category = 'SIN CATEGORIA';
-            });
-            delete data.categories[categoryName];
-            saveData().then(() => refreshUI());
-        }
-    });
+     if (categoryName === 'SIN CATEGORIA') {
+         showToast("No se puede eliminar esta categoría."); return;
+    }
+    showConfirmModal(`¿Seguro que quieres eliminar la categoría "${categoryName}"? Todos sus elementos se moverán a 'SIN CATEGORIA'.`, (confirmed) => {
+        if (confirmed) {
+            Object.keys(data.categoryOrders).forEach(section => {
+                if(data.categoryOrders[section]) {
+                    data.categoryOrders[section] = data.categoryOrders[section].filter(cat => cat !== categoryName);
+                }
+            });
+            data.items.forEach(item => {
+                if (item.category === categoryName) item.category = 'SIN CATEGORIA';
+            });
+            delete data.categories[categoryName];
+            saveData().then(() => refreshUI());
+        }
+    });
 }
 
 function showConfirmModal(message, callback) {
-    const confirmModal = document.getElementById('confirmModal');
-    document.getElementById('confirmMessage').textContent = message;
-    confirmModal.classList.remove('hidden');
-    const confirmOk = document.getElementById('confirmOk');
-    const confirmCancel = document.getElementById('confirmCancel');
-    const close = () => {
-        confirmModal.classList.add('hidden');
-        confirmOk.replaceWith(confirmOk.cloneNode(true));
-        confirmCancel.replaceWith(confirmCancel.cloneNode(true));
-    };
-    document.getElementById('confirmOk').onclick = () => { callback(true); close(); };
-    document.getElementById('confirmCancel').onclick = () => { callback(false); close(); };
+    const confirmModal = document.getElementById('confirmModal');
+    document.getElementById('confirmMessage').textContent = message;
+    confirmModal.classList.remove('hidden');
+    const confirmOk = document.getElementById('confirmOk');
+    const confirmCancel = document.getElementById('confirmCancel');
+    const close = () => {
+        confirmModal.classList.add('hidden');
+        confirmOk.replaceWith(confirmOk.cloneNode(true));
+        confirmCancel.replaceWith(confirmCancel.cloneNode(true));
+    };
+    document.getElementById('confirmOk').onclick = () => { callback(true); close(); };
+    document.getElementById('confirmCancel').onclick = () => { callback(false); close(); };
 }
 
 function deleteItem(event, id) {
-    event.stopPropagation();
-    showConfirmModal("¿SEGURO QUE QUIERES ELIMINAR ESTE ELEMENTO?", (confirmed) => {
-        if (confirmed) {
-            const card = document.querySelector(`[data-id="${id}"]`);
-            if (card) {
-                card.classList.add('fade-out');
-                card.addEventListener('transitionend', () => {
-                    data.items = data.items.filter(i => String(i.id) !== String(id));
-                    saveData().then(() => refreshUI());
-                }, { once: true });
-            } else {
-                data.items = data.items.filter(i => String(i.id) !== String(id));
-                saveData().then(() => refreshUI());
-            }
-        }
-    });
+    event.stopPropagation();
+    showConfirmModal("¿SEGURO QUE QUIERES ELIMINAR ESTE ELEMENTO?", (confirmed) => {
+        if (confirmed) {
+            const card = document.querySelector(`[data-id="${id}"]`);
+            if (card) {
+                card.classList.add('fade-out');
+                card.addEventListener('transitionend', () => {
+                    data.items = data.items.filter(i => String(i.id) !== String(id));
+                    saveData().then(() => refreshUI());
+                }, { once: true });
+            } else {
+                data.items = data.items.filter(i => String(i.id) !== String(id));
+                saveData().then(() => refreshUI());
+            }
+        }
+    });
 }
 
 function showToast(message) {
-    const toast = document.getElementById("toast");
-    toast.textContent = message.toUpperCase();
-    toast.classList.remove("hidden");
-    setTimeout(() => toast.classList.add("hidden"), 3000);
+    const toast = document.getElementById("toast");
+    toast.textContent = message.toUpperCase();
+    toast.classList.remove("hidden");
+    setTimeout(() => toast.classList.add("hidden"), 3000);
 }
 
 function copyTextToClipboard(htmlContent) {
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = htmlContent;
-    const text = tempDiv.textContent || tempDiv.innerText || "";
-    const textArea = document.createElement("textarea");
-    textArea.value = text;
-    textArea.style.position = "fixed";
-    textArea.style.top = "-9999px";
-    textArea.style.left = "-9999px";
-    document.body.appendChild(textArea);
-    textArea.focus();
-    textArea.select();
-    try {
-        if (document.execCommand('copy')) {
-            showToast("PROMPT COPIADO.");
-        } else {
-            showToast("FALLO AL COPIAR.");
-        }
-    } catch (err) {
-        showToast("ERROR AL COPIAR.");
-    }
-    document.body.removeChild(textArea);
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = htmlContent;
+    const text = tempDiv.textContent || tempDiv.innerText || "";
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.top = "-9999px";
+    textArea.style.left = "-9999px";
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    try {
+        if (document.execCommand('copy')) {
+            showToast("PROMPT COPIADO.");
+        } else {
+            showToast("FALLO AL COPIAR.");
+        }
+    } catch (err) {
+        showToast("ERROR AL COPIAR.");
+    }
+    document.body.removeChild(textArea);
 }
 
 function applyTheme(themeName) {
-    // This theme is static, but function is kept for compatibility
+    document.body.classList.remove(...themes);
+    if(themeName !== 'light') document.body.classList.add(themeName);
+    localStorage.setItem('theme', themeName);
 }
 
 function changeTheme() {
-    // This theme is static, but function is kept for compatibility
-    showToast("Este tema no tiene variantes.");
+    currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+    applyTheme(themes[currentThemeIndex]);
 }
 
 function changeView() {
-    currentViewIndex = (currentViewIndex + 1) % views.length;
-    globalView = views[currentViewIndex];
-    refreshUI();
+    currentViewIndex = (currentViewIndex + 1) % views.length;
+    globalView = views[currentViewIndex];
+    refreshUI();
 }
 
 function setupFabMenu() {
-    const fabContainer = document.querySelector('.fab-container');
-    fabContainer.addEventListener('click', (e) => {
-        const mainFab = e.target.closest('.fab-main');
-        const actionFab = e.target.closest('.fab-action');
-        if (mainFab && !actionFab) {
-            fabContainer.classList.toggle('open');
-        }
-    });
-    const themeButton = document.getElementById('fab-theme');
-    if(themeButton) themeButton.style.display = 'none';
+    const fabContainer = document.querySelector('.fab-container');
+    fabContainer.addEventListener('click', (e) => {
+        const mainFab = e.target.closest('.fab-main');
+        const actionFab = e.target.closest('.fab-action');
+        if (mainFab && !actionFab) {
+            fabContainer.classList.toggle('open');
+        }
+    });
+    document.getElementById('fab-theme').addEventListener('click', changeTheme);
 }
 
 function populateGlobalFilterTags() {
-    const tagsContainer = document.getElementById('global-search-tags');
-    tagsContainer.innerHTML = '';
-    const activeNavBtn = document.querySelector('.nav-link.active');
-    if (!activeNavBtn) return;
-    const activeSectionName = activeNavBtn.dataset.section;
-    const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
-    const activeType = typeMap[activeSectionName];
-    const itemsInView = data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
-    const allTags = [...new Set(itemsInView.flatMap(card => card.tags || []))].sort();
-    allTags.forEach(tag => {
-        if (!tag) return;
-        const tagEl = document.createElement('button');
-        tagEl.className = 'filter-tag p-1 text-xs';
-        tagEl.textContent = tag;
-        tagEl.dataset.tag = tag;
-        if (activeFilterTags.includes(tag)) tagEl.classList.add('active');
-        tagEl.onclick = (e) => {
-            e.stopPropagation();
-            tagEl.classList.toggle('active');
-            activeFilterTags = activeFilterTags.includes(tag) ? activeFilterTags.filter(t => t !== tag) : [...activeFilterTags, tag];
-            applyGlobalFilter();
-        };
-        tagsContainer.appendChild(tagEl);
-    });
+    const tagsContainer = document.getElementById('global-search-tags');
+    tagsContainer.innerHTML = '';
+    const activeNavBtn = document.querySelector('.nav-link.active');
+    if (!activeNavBtn) return;
+    const activeSectionName = activeNavBtn.dataset.section;
+    const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
+    const activeType = typeMap[activeSectionName];
+    const itemsInView = data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
+    const allTags = [...new Set(itemsInView.flatMap(card => card.tags || []))].sort();
+    allTags.forEach(tag => {
+        if (!tag) return;
+        const tagEl = document.createElement('button');
+        tagEl.className = 'filter-tag p-1 text-xs';
+        tagEl.textContent = tag;
+        tagEl.dataset.tag = tag;
+        if (activeFilterTags.includes(tag)) tagEl.classList.add('active');
+        tagEl.onclick = (e) => {
+            e.stopPropagation();
+            tagEl.classList.toggle('active');
+            activeFilterTags = activeFilterTags.includes(tag) ? activeFilterTags.filter(t => t !== tag) : [...activeFilterTags, tag];
+            applyGlobalFilter();
+        };
+        tagsContainer.appendChild(tagEl);
+    });
 }
 
 function applyGlobalFilter() {
-    const searchTerm = document.getElementById('global-search-input').value.toLowerCase();
-    const activeNavBtn = document.querySelector('.nav-link.active');
-    if (!activeNavBtn) return;
-    let activeSectionName = activeNavBtn.dataset.section;
-    
-    let itemsToFilter;
+    const searchTerm = document.getElementById('global-search-input').value.toLowerCase();
+    const activeNavBtn = document.querySelector('.nav-link.active');
+    if (!activeNavBtn) return;
+    let activeSectionName = activeNavBtn.dataset.section;
+    
+    let itemsToFilter;
 
-    if (isGlobalSearchActive) {
-        itemsToFilter = data.items;
-    } else {
-        const typeMap = { 'favoritos': 'Favorite', 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
-        const activeType = typeMap[activeSectionName];
-        if (activeType === 'Favorite') {
-            itemsToFilter = data.items.filter(item => item.isFavorite);
-        } else {
-            itemsToFilter = data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
-        }
-    }
+    if (isGlobalSearchActive) {
+        itemsToFilter = data.items;
+    } else {
+        const typeMap = { 'favoritos': 'Favorite', 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
+        const activeType = typeMap[activeSectionName];
+        if (activeType === 'Favorite') {
+            itemsToFilter = data.items.filter(item => item.isFavorite);
+        } else {
+            itemsToFilter = data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
+        }
+    }
 
-    const results = itemsToFilter.filter(card => {
-        const tagFilterMatch = activeFilterTags.length === 0 || activeFilterTags.every(filterTag => (card.tags || []).includes(filterTag));
-        if (!searchTerm) return tagFilterMatch;
-        const titleMatch = card.title.toLowerCase().includes(searchTerm);
-        const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(searchTerm);
-        let contentMatch = false;
-        if (typeof card.action === 'string') {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = card.action;
-            const contentText = tempDiv.textContent || "";
-            contentMatch = contentText.toLowerCase().includes(searchTerm);
-        } else if (Array.isArray(card.action)) {
-            contentMatch = card.action.some(task => task.text.toLowerCase().includes(searchTerm));
-        }
-        return (titleMatch || tagListMatch || contentMatch) && tagFilterMatch;
-    });
+    const results = itemsToFilter.filter(card => {
+        const tagFilterMatch = activeFilterTags.length === 0 || activeFilterTags.every(filterTag => (card.tags || []).includes(filterTag));
+        if (!searchTerm) return tagFilterMatch;
+        const titleMatch = card.title.toLowerCase().includes(searchTerm);
+        const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(searchTerm);
+        let contentMatch = false;
+        if (typeof card.action === 'string') {
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = card.action;
+            const contentText = tempDiv.textContent || "";
+            contentMatch = contentText.toLowerCase().includes(searchTerm);
+        } else if (Array.isArray(card.action)) {
+            contentMatch = card.action.some(task => task.text.toLowerCase().includes(searchTerm));
+        }
+        return (titleMatch || tagListMatch || contentMatch) && tagFilterMatch;
+    });
 
-    if (isGlobalSearchActive) {
-        renderGlobalResults(results);
-    } else {
-        renderSection(activeSectionName, results);
-    }
+    if (isGlobalSearchActive) {
+        renderGlobalResults(results);
+    } else {
+        renderSection(activeSectionName, results);
+    }
 }
 
 function renderGlobalResults(results) {
-    const container = document.querySelector('.section:not(.hidden)');
-    if (!container) return;
-    container.innerHTML = '';
+    const container = document.querySelector('.section:not(.hidden)');
+    if (!container) return;
+    container.innerHTML = '';
 
-    if (results.length === 0) {
-        container.innerHTML = '<p class="text-center opacity-70 mt-8">No se encontraron resultados en ninguna sección.</p>';
-        return;
-    }
+    if (results.length === 0) {
+        container.innerHTML = '<p class="text-center opacity-70 mt-8">No se encontraron resultados en ninguna sección.</p>';
+        return;
+    }
 
-    const groupedByType = results.reduce((acc, item) => {
-        const type = item.type;
-        (acc[type] = acc[type] || []).push(item);
-        return acc;
-    }, {});
+    const groupedByType = results.reduce((acc, item) => {
+        const type = item.type;
+        (acc[type] = acc[type] || []).push(item);
+        return acc;
+    }, {});
 
-    const typeToSectionMap = {
-        'Buscador': 'Buscadores', 'Link': 'Links', 'Promp': 'Prompts', 'Nota': 'Notas y Tareas', 'Tarea': 'Notas y Tareas'
-    };
+    const typeToSectionMap = {
+        'Buscador': 'Buscadores', 'Link': 'Links', 'Promp': 'Prompts', 'Nota': 'Notas y Tareas', 'Tarea': 'Notas y Tareas'
+    };
 
-    Object.keys(groupedByType).forEach(type => {
-        const sectionTitle = typeToSectionMap[type] || 'Otros';
-        const groupDiv = document.createElement('div');
-        groupDiv.innerHTML = `<h3 class="category-title">${sectionTitle}</h3>`;
-        
-        const contentContainer = document.createElement('div');
-        contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
-        
-        groupedByType[type].forEach(item => {
-            let element;
-            if (globalView === 'grid') element = createCard(item);
-            else if (globalView === 'list') element = createListItem(item);
-            else element = createChipItem(item);
-            contentContainer.appendChild(element);
-        });
+    Object.keys(groupedByType).forEach(type => {
+        const sectionTitle = typeToSectionMap[type] || 'Otros';
+        const groupDiv = document.createElement('div');
+        groupDiv.innerHTML = `<h3 class="category-title">${sectionTitle}</h3>`;
+        
+        const contentContainer = document.createElement('div');
+        contentContainer.className = globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view');
+        
+        groupedByType[type].forEach(item => {
+            let element;
+            if (globalView === 'grid') element = createCard(item);
+            else if (globalView === 'list') element = createListItem(item);
+            else element = createChipItem(item);
+            contentContainer.appendChild(element);
+        });
 
-        groupDiv.appendChild(contentContainer);
-        container.appendChild(groupDiv);
-    });
+        groupDiv.appendChild(contentContainer);
+        container.appendChild(groupDiv);
+    });
 }
 
 function showPreviewModal(item, event) {
-    const modal = document.getElementById('preview-modal');
-    const modalContent = document.getElementById('preview-modal-content');
-    
-    if (item.type !== 'Link' && item.type !== 'Buscador') return;
+    const modal = document.getElementById('preview-modal');
+    const modalContent = document.getElementById('preview-modal-content');
+    
+    if (item.type !== 'Link' && item.type !== 'Buscador') return;
 
-    const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
-    modalContent.style.backgroundImage = `url('${previewUrl}')`;
-    
-    const modalWidth = 320; 
-    const modalHeight = 240;
-    const cursorX = event.clientX; 
-    const cursorY = event.clientY;
-    const viewportWidth = window.innerWidth; 
-    const viewportHeight = window.innerHeight;
-    const offset = 20;
+    const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
+    modalContent.style.backgroundImage = `url('${previewUrl}')`;
+    
+    const modalWidth = 320; 
+    const modalHeight = 240;
+    const cursorX = event.clientX; 
+    const cursorY = event.clientY;
+    const viewportWidth = window.innerWidth; 
+    const viewportHeight = window.innerHeight;
+    const offset = 20;
 
-    let top = cursorY - modalHeight - offset; 
-    let left = cursorX + offset;
+    let top = cursorY - modalHeight - offset; 
+    let left = cursorX + offset;
 
-    if (top < offset) {
-        top = cursorY + offset;
-    }
-    if (left + modalWidth > viewportWidth - offset) {
-        left = cursorX - modalWidth - offset;
-    }
-    
-    modal.style.top = `${top}px`;
-    modal.style.left = `${left}px`;
-    modal.classList.remove('hidden');
+    if (top < offset) {
+        top = cursorY + offset;
+    }
+    if (left + modalWidth > viewportWidth - offset) {
+        left = cursorX - modalWidth - offset;
+    }
+    
+    modal.style.top = `${top}px`;
+    modal.style.left = `${left}px`;
+    modal.classList.remove('hidden');
 }
 
 function hidePreviewModal() {
-    document.getElementById('preview-modal').classList.add('hidden');
+    document.getElementById('preview-modal').classList.add('hidden');
 }
 
 function renderNotesAndTasksSection(container, itemsToRender) {
-    const items = itemsToRender || data.items.filter(item => item.type === 'Nota' || item.type === 'Tarea');
-    
-    if (items.length === 0 && !itemsToRender) {
-        renderEmptyState(container, 'notes-tasks');
-        return;
-    }
+    const items = itemsToRender || data.items.filter(item => item.type === 'Nota' || item.type === 'Tarea');
+    
+    if (items.length === 0 && !itemsToRender) {
+        renderEmptyState(container, 'notes-tasks');
+        return;
+    }
 
-    renderFavoritesBar(container, items);
+    renderFavoritesBar(container, items);
 
-    const notes = items.filter(item => item.type === 'Nota');
-    const tasks = items.filter(item => item.type === 'Tarea');
-    container.insertAdjacentHTML('beforeend', `
-        <div class="fade-in">
-            <h3 class="category-title">Notas</h3>
-            <div id="notes-container" class="${globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view')}"></div>
-        </div>
-        <div class="fade-in" style="animation-delay: 0.1s;">
-            <h3 class="category-title mt-8">Tareas</h3>
-            <div id="tasks-container" class="${globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view')}"></div>
-        </div>
-    `);
-    const notesContainer = document.getElementById('notes-container');
-    if (notes.length > 0) {
-        notes.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(note => {
-            let element;
-            if (globalView === 'grid') element = createNoteCard(note);
-            else if (globalView === 'list') element = createListItem(note);
-            else element = createChipItem(note);
-            notesContainer.appendChild(element);
-        });
-    } else {
-        notesContainer.innerHTML = '<p class="opacity-70">No hay notas.</p>';
-    }
-    const tasksContainer = document.getElementById('tasks-container');
-    if (tasks.length > 0) {
-        tasks.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(task => {
-            let element;
-            if (globalView === 'grid') element = createTaskCard(task);
-            else if (globalView === 'list') element = createListItem(task);
-            else element = createChipItem(task);
-            tasksContainer.appendChild(element);
-        });
-    } else {
-        tasksContainer.innerHTML = '<p class="opacity-70">No hay tareas.</p>';
-    }
+    const notes = items.filter(item => item.type === 'Nota');
+    const tasks = items.filter(item => item.type === 'Tarea');
+    container.insertAdjacentHTML('beforeend', `
+        <div class="fade-in">
+            <h3 class="category-title">Notas</h3>
+            <div id="notes-container" class="${globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view')}"></div>
+        </div>
+        <div class="fade-in" style="animation-delay: 0.1s;">
+            <h3 class="category-title mt-8">Tareas</h3>
+            <div id="tasks-container" class="${globalView === 'grid' ? 'card-grid' : (globalView === 'list' ? 'list-view' : 'chip-view')}"></div>
+        </div>
+    `);
+    const notesContainer = document.getElementById('notes-container');
+    if (notes.length > 0) {
+        notes.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(note => {
+            let element;
+            if (globalView === 'grid') element = createNoteCard(note);
+            else if (globalView === 'list') element = createListItem(note);
+            else element = createChipItem(note);
+            notesContainer.appendChild(element);
+        });
+    } else {
+        notesContainer.innerHTML = '<p class="opacity-70">No hay notas.</p>';
+    }
+    const tasksContainer = document.getElementById('tasks-container');
+    if (tasks.length > 0) {
+        tasks.sort((a, b) => (b.isFavorite || false) - (a.isFavorite || false)).forEach(task => {
+            let element;
+            if (globalView === 'grid') element = createTaskCard(task);
+            else if (globalView === 'list') element = createListItem(task);
+            else element = createChipItem(task);
+            tasksContainer.appendChild(element);
+        });
+    } else {
+        tasksContainer.innerHTML = '<p class="opacity-70">No hay tareas.</p>';
+    }
 }
 
 function createNoteCard(item) {
-    const card = document.createElement("div");
-    card.className = 'brutalist-card note-card p-6 flex flex-col';
-    if (item.isFavorite) {
-        card.classList.add('is-favorite');
-    }
-    card.dataset.id = item.id;
-    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
-    card.innerHTML = `
-        <div class="card-actions">
-            <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>
-            <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-            <button onclick="deleteItem(event, '${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-        </div>
-        <h4 class="font-bold text-lg uppercase mb-2">${item.title}</h4>
-        <div class="card-content flex-grow">${item.action}</div>
-        ${item.tags && item.tags.length > 0 ? `<div class="card-tags mt-auto pt-2">${item.tags.map(tag => `<span class="tag !bg-yellow-300 !text-slate-800">${tag}</span>`).join('')}</div>` : ''}
-    `;
-    card.addEventListener('click', (e) => handleCardClick(item.id, e));
-    return card;
+    const card = document.createElement("div");
+    card.className = 'brutalist-card note-card p-6 flex flex-col';
+    if (item.isFavorite) {
+        card.classList.add('is-favorite');
+    }
+    card.dataset.id = item.id;
+    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
+    card.innerHTML = `
+        <div class="card-actions">
+            <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>
+            <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+            <button onclick="deleteItem(event, '${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+        </div>
+        <h4 class="font-bold text-lg uppercase mb-2">${item.title}</h4>
+        <div class="card-content flex-grow">${item.action}</div>
+        ${item.tags && item.tags.length > 0 ? `<div class="card-tags mt-auto pt-2">${item.tags.map(tag => `<span class="tag !bg-yellow-300 !text-slate-800">${tag}</span>`).join('')}</div>` : ''}
+    `;
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+    return card;
 }
 
 function createTaskCard(item) {
-    const card = document.createElement("div");
-    card.className = 'brutalist-card task-card p-6 flex flex-col';
-    if (item.isFavorite) {
-        card.classList.add('is-favorite');
-    }
-    card.dataset.id = item.id;
-    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
-    const taskListHtml = Array.isArray(item.action) ? `
-        <ul class="task-list mt-2">
-            ${item.action.map((task, index) => `
-                <li>
-                    <input type="checkbox" id="task-${item.id}-${index}" data-item-id="${item.id}" data-task-index="${index}" ${task.status ? 'checked' : ''}>
-                    <label for="task-${item.id}-${index}" class="${task.status ? 'completed' : ''}">${task.text}</label>
-                </li>
-            `).join('')}
-        </ul>
-    ` : '';
-    card.innerHTML = `
-         <div class="card-actions">
-            <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>
-            <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
-            <button onclick="deleteItem(event, '${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
-        </div>
-        <h4 class="font-bold text-lg uppercase">${item.title}</h4>
-        <div class="card-content flex-grow">${taskListHtml}</div>
-        ${item.tags && item.tags.length > 0 ? `<div class="card-tags mt-auto pt-2">${item.tags.map(tag => `<span class="tag !bg-indigo-200 !text-slate-800">${tag}</span>`).join('')}</div>` : ''}
-    `;
-    card.addEventListener('click', (e) => handleCardClick(item.id, e));
-    card.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', (e) => {
-            e.stopPropagation();
-            const label = checkbox.nextElementSibling;
-            if (label) label.classList.toggle('completed', checkbox.checked);
-            const itemId = e.target.dataset.itemId;
-            const taskIndex = parseInt(e.target.dataset.taskIndex, 10);
-            const dataItem = data.items.find(d => String(d.id) === itemId);
-            if (dataItem && dataItem.action[taskIndex]) {
-                dataItem.action[taskIndex].status = e.target.checked;
-                saveData();
-            }
-        });
-    });
-    return card;
+    const card = document.createElement("div");
+    card.className = 'brutalist-card task-card p-6 flex flex-col';
+    if (item.isFavorite) {
+        card.classList.add('is-favorite');
+    }
+    card.dataset.id = item.id;
+    const favoriteIconClass = item.isFavorite ? 'fas' : 'far';
+    const taskListHtml = Array.isArray(item.action) ? `
+        <ul class="task-list mt-2">
+            ${item.action.map((task, index) => `
+                <li>
+                    <input type="checkbox" id="task-${item.id}-${index}" data-item-id="${item.id}" data-task-index="${index}" ${task.status ? 'checked' : ''}>
+                    <label for="task-${item.id}-${index}" class="${task.status ? 'completed' : ''}">${task.text}</label>
+                </li>
+            `).join('')}
+        </ul>
+    ` : '';
+    card.innerHTML = `
+         <div class="card-actions">
+            <button onclick="toggleFavorite(event, '${item.id}')" class="action-btn" title="Favorito"><i class="${favoriteIconClass} fa-star text-yellow-400"></i></button>
+            <button onclick="openEditPanel('${item.id}')" class="action-btn" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+            <button onclick="deleteItem(event, '${item.id}')" class="action-btn" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+        </div>
+        <h4 class="font-bold text-lg uppercase">${item.title}</h4>
+        <div class="card-content flex-grow">${taskListHtml}</div>
+        ${item.tags && item.tags.length > 0 ? `<div class="card-tags mt-auto pt-2">${item.tags.map(tag => `<span class="tag !bg-indigo-200 !text-slate-800">${tag}</span>`).join('')}</div>` : ''}
+    `;
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+    card.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            e.stopPropagation();
+            const label = checkbox.nextElementSibling;
+            if (label) label.classList.toggle('completed', checkbox.checked);
+            const itemId = e.target.dataset.itemId;
+            const taskIndex = parseInt(e.target.dataset.taskIndex, 10);
+            const dataItem = data.items.find(d => String(d.id) === itemId);
+            if (dataItem && dataItem.action[taskIndex]) {
+                dataItem.action[taskIndex].status = e.target.checked;
+                saveData();
+            }
+        });
+    });
+    return card;
 }
 
 function toggleFavorite(event, itemId) {
-    event.stopPropagation();
-    const item = data.items.find(i => String(i.id) === String(itemId));
-    if (item) {
-        item.isFavorite = !item.isFavorite;
-        saveData().then(() => {
-            refreshUI();
-        });
-    }
+    event.stopPropagation();
+    const item = data.items.find(i => String(i.id) === String(itemId));
+    if (item) {
+        item.isFavorite = !item.isFavorite;
+        saveData().then(() => {
+            refreshUI();
+        });
+    }
 }
 
 function openSettingsModal() {
-    const settingsModal = document.getElementById('settingsModal');
-    document.getElementById('gistIdInput').value = localStorage.getItem('gist_id') || '';
-    document.getElementById('githubPatInput').value = localStorage.getItem('github_pat') || '';
-    settingsModal.classList.remove('hidden');
+    const settingsModal = document.getElementById('settingsModal');
+    document.getElementById('gistIdInput').value = localStorage.getItem('gist_id') || '';
+    document.getElementById('githubPatInput').value = localStorage.getItem('github_pat') || '';
+    settingsModal.classList.remove('hidden');
 }
 
 function saveSettings() {
-    const gistId = document.getElementById('gistIdInput').value.trim();
-    const pat = document.getElementById('githubPatInput').value.trim();
-    if (!gistId) {
-        showToast("EL GIST ID ES NECESARIO.");
-        return;
-    }
-    localStorage.setItem('gist_id', gistId);
-    if(pat) localStorage.setItem('github_pat', pat);
-    document.getElementById('settingsModal').classList.add('hidden');
-    showToast("CONFIGURACIÓN GUARDADA. RECARGANDO DATOS...");
-    loadData();
+    const gistId = document.getElementById('gistIdInput').value.trim();
+    const pat = document.getElementById('githubPatInput').value.trim();
+    if (!gistId) {
+        showToast("EL GIST ID ES NECESARIO.");
+        return;
+    }
+    localStorage.setItem('gist_id', gistId);
+    if(pat) localStorage.setItem('github_pat', pat);
+    document.getElementById('settingsModal').classList.add('hidden');
+    showToast("CONFIGURACIÓN GUARDADA. RECARGANDO DATOS...");
+    loadData();
 }
 
 function useSampleData() {
-    showConfirmModal("Esto reemplazará tus datos actuales con los de ejemplo. ¿Continuar?", (confirmed) => {
-        if(confirmed) {
-            localStorage.removeItem('gist_id');
-            localStorage.removeItem('github_pat');
-            data = JSON.parse(JSON.stringify(mockData));
-            ensureAllIcons();
-            initializeUI();
-            document.getElementById('settingsModal').classList.add('hidden');
-            showToast("USANDO DATOS DE EJEMPLO.");
-        }
-    });
+    showConfirmModal("Esto reemplazará tus datos actuales con los de ejemplo. ¿Continuar?", (confirmed) => {
+        if(confirmed) {
+            localStorage.removeItem('gist_id');
+            localStorage.removeItem('github_pat');
+            data = JSON.parse(JSON.stringify(mockData));
+            ensureAllIcons();
+            initializeUI();
+            document.getElementById('settingsModal').classList.add('hidden');
+            showToast("USANDO DATOS DE EJEMPLO.");
+        }
+    });
 }
 
 // --- MEJORAS INTUITIVAS ---
 
 function toggleCategoryMenu(event, categoryName) {
-    event.stopPropagation();
-    document.querySelectorAll('.category-options-menu').forEach(menu => {
-        if (menu.id !== `menu-${categoryName}`) {
-            menu.classList.remove('show');
-        }
-    });
-    const menu = document.getElementById(`menu-${categoryName}`);
-    menu.classList.toggle('show');
+    event.stopPropagation();
+    document.querySelectorAll('.category-options-menu').forEach(menu => {
+        if (menu.id !== `menu-${categoryName}`) {
+            menu.classList.remove('show');
+        }
+    });
+    const menu = document.getElementById(`menu-${categoryName}`);
+    menu.classList.toggle('show');
 }
 document.addEventListener('click', (e) => {
-    if (!e.target.closest('.category-actions')) {
-        document.querySelectorAll('.category-options-menu').forEach(menu => menu.classList.remove('show'));
-    }
+    if (!e.target.closest('.category-actions')) {
+        document.querySelectorAll('.category-options-menu').forEach(menu => menu.classList.remove('show'));
+    }
 });
 
 function renderEmptyState(container, sectionName) {
-    const titles = {
-        buscadores: "Sin Buscadores",
-        links: "Sin Links",
-        prompts: "Sin Prompts",
-        'notes-tasks': "Sin Notas ni Tareas"
-    };
-    const icons = {
-        buscadores: "fa-search",
-        links: "fa-link",
-        prompts: "fa-brain",
-        'notes-tasks': "fa-check-double"
-    };
-    container.innerHTML = `
-        <div class="empty-state-container">
-            <i class="fas ${icons[sectionName]} icon"></i>
-            <h3 class="text-2xl font-bold mb-2">${titles[sectionName]}</h3>
-            <p class="mb-4">Parece que no hay nada aquí. ¡Añade tu primer elemento!</p>
-            <button onclick="openEditPanel()" class="brutalist-button">Añadir Nuevo</button>
-        </div>
-    `;
+    const titles = {
+        buscadores: "Sin Buscadores",
+        links: "Sin Links",
+        prompts: "Sin Prompts",
+        'notes-tasks': "Sin Notas ni Tareas"
+    };
+    const icons = {
+        buscadores: "fa-search",
+        links: "fa-link",
+        prompts: "fa-brain",
+        'notes-tasks': "fa-check-double"
+    };
+    container.innerHTML = `
+        <div class="empty-state-container">
+            <i class="fas ${icons[sectionName]} icon"></i>
+            <h3 class="text-2xl font-bold mb-2">${titles[sectionName]}</h3>
+            <p class="mb-4">Parece que no hay nada aquí. ¡Añade tu primer elemento!</p>
+            <button onclick="openEditPanel()" class="brutalist-button">Añadir Nuevo</button>
+        </div>
+    `;
 }
 
 function updateSyncStatus(status, message = '') {
-    const iconEl = document.getElementById('sync-icon');
-    const textEl = document.getElementById('sync-text');
-    iconEl.className = 'fas'; // Reset classes
-    switch (status) {
-        case 'loading':
-            iconEl.classList.add('fa-spinner', 'fa-spin');
-            textEl.textContent = 'Cargando...';
-            break;
-        case 'saving':
-            iconEl.classList.add('fa-spinner', 'fa-spin');
-            textEl.textContent = 'Guardando...';
-            break;
-        case 'synced':
-            iconEl.classList.add('fa-check-circle');
-            textEl.textContent = 'Sincronizado';
-            break;
-        case 'local':
-            iconEl.classList.add('fa-save');
-            textEl.textContent = 'Guardado Local';
-            break;
-        case 'error':
-            iconEl.classList.add('fa-exclamation-triangle');
-            textEl.textContent = message || 'Error';
-            break;
-    }
+    const iconEl = document.getElementById('sync-icon');
+    const textEl = document.getElementById('sync-text');
+    iconEl.className = 'fas'; // Reset classes
+    switch (status) {
+        case 'loading':
+            iconEl.classList.add('fa-spinner', 'fa-spin');
+            textEl.textContent = 'Cargando...';
+            break;
+        case 'saving':
+            iconEl.classList.add('fa-spinner', 'fa-spin');
+            textEl.textContent = 'Guardando...';
+            break;
+        case 'synced':
+            iconEl.classList.add('fa-check-circle');
+            textEl.textContent = 'Sincronizado';
+            break;
+        case 'local':
+            iconEl.classList.add('fa-save');
+            textEl.textContent = 'Guardado Local';
+            break;
+        case 'error':
+            iconEl.classList.add('fa-exclamation-triangle');
+            textEl.textContent = message || 'Error';
+            break;
+    }
 }
 
 function exportData() {
-    const dataStr = JSON.stringify(data, null, 2);
-    const dataBlob = new Blob([dataStr], {type: "application/json"});
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.download = 'centro_de_accesos_backup.json';
-    link.href = url;
-    link.click();
-    URL.revokeObjectURL(url);
-    showToast("Datos exportados.");
+    const dataStr = JSON.stringify(data, null, 2);
+    const dataBlob = new Blob([dataStr], {type: "application/json"});
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.download = 'centro_de_accesos_backup.json';
+    link.href = url;
+    link.click();
+    URL.revokeObjectURL(url);
+    showToast("Datos exportados.");
 }
 
 function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (e) => {
-        try {
-            const importedData = JSON.parse(e.target.result);
-            showConfirmModal("Esto reemplazará tus datos actuales con los del archivo. ¿Continuar?", (confirmed) => {
-                if (confirmed) {
-                    data = importedData;
-                    ensureAllIcons();
-                    saveData().then(() => {
-                        refreshUI();
-                        showToast("Datos importados correctamente.");
-                    });
-                }
-            });
-        } catch (error) {
-            showToast("Error: El archivo no es un JSON válido.");
-        }
-    };
-    reader.readAsText(file);
-    event.target.value = ''; // Reset input
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const importedData = JSON.parse(e.target.result);
+            showConfirmModal("Esto reemplazará tus datos actuales con los del archivo. ¿Continuar?", (confirmed) => {
+                if (confirmed) {
+                    data = importedData;
+                    ensureAllIcons();
+                    saveData().then(() => {
+                        refreshUI();
+                        showToast("Datos importados correctamente.");
+                    });
+                }
+            });
+        } catch (error) {
+            showToast("Error: El archivo no es un JSON válido.");
+        }
+    };
+    reader.readAsText(file);
+    event.target.value = ''; // Reset input
 }
+
 </script>
 </body>
 </html>
-
