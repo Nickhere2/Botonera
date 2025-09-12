@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -1083,7 +1082,8 @@ function ensureAllIcons() {
         if ((item.type === 'Link' || item.type === 'Buscador') && !item.icon) {
             try {
                 const url = new URL(item.action);
-                item.icon = `https://icon.horse/icon/${url.hostname}`;
+                // MEJORA: Se cambió icon.horse por el servicio de favicons de Google, que es más confiable.
+                item.icon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
             } catch (e) {
                 console.error(`URL inválida para auto-generar favicon para "${item.title}":`, item.action);
             }
@@ -1515,8 +1515,23 @@ function setupPromptCardAnimations(container) {
 }
 
 function renderFavoritesBar(container, items) {
-    const favoriteIds = new Set(data.favoriteOrder || []);
-    let favorites = data.items.filter(item => item.isFavorite);
+    // Se determina la sección activa para filtrar los favoritos correspondientes.
+    const activeNavBtn = document.querySelector('.nav-link.active');
+    if (!activeNavBtn) return;
+    const activeSectionName = activeNavBtn.dataset.section;
+
+    const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
+    const sectionType = typeMap[activeSectionName];
+
+    if (!sectionType) return;
+    
+    // Se obtienen solo los items que corresponden a la sección activa.
+    const itemsForThisSection = data.items.filter(item => 
+        Array.isArray(sectionType) ? sectionType.includes(item.type) : item.type === sectionType
+    );
+
+    // De los items de la sección, se filtran los que son favoritos.
+    let favorites = itemsForThisSection.filter(item => item.isFavorite);
 
     favorites.sort((a, b) => {
         const indexA = data.favoriteOrder.indexOf(a.id);
@@ -1992,7 +2007,8 @@ function handleSaveItem(event) {
     if (!icon && (type === 'Link' || type === 'Buscador')) {
         try {
             const url = new URL(action);
-            icon = `https://icon.horse/icon/${url.hostname}`;
+            // MEJORA: Se cambió icon.horse por el servicio de favicons de Google, que es más confiable.
+            icon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
         } catch (e) { console.error("URL inválida para obtener favicon:", action); }
     }
     const newItemData = {
