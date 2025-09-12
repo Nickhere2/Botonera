@@ -1102,8 +1102,17 @@ async function loadData() {
     }
 
     updateSyncStatus('loading');
+    
+    const token = localStorage.getItem('github_pat');
+    const headers = { 
+        'Accept': 'application/vnd.github.v3+json'
+    };
+    if (token) {
+        headers['Authorization'] = `token ${token}`;
+    }
+
     try {
-        const response = await fetch(`https://api.github.com/gists/${gistId}`);
+        const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
         if (!response.ok) {
             let errorMessage = `ERROR DE RED: ${response.status}`;
             if (response.status === 404) {
@@ -1111,8 +1120,8 @@ async function loadData() {
                 updateSyncStatus('error', 'Gist no encontrado');
                 openSettingsModal();
             } else if (response.status === 403) {
-                errorMessage = "LÍMITE DE CONSULTAS API ALCANZADO. AÑADE UN TOKEN EN CONFIGURACIÓN.";
-                updateSyncStatus('error', 'Límite API');
+                errorMessage = "ACCESO PROHIBIDO (403). PUEDE SER UN TOKEN INVÁLIDO O LÍMITE DE API.";
+                updateSyncStatus('error', 'Acceso prohibido');
                 openSettingsModal();
             }
             showToast(errorMessage);
@@ -1141,10 +1150,13 @@ async function loadData() {
         updateSyncStatus('synced');
     } catch (error) {
         console.error("Fallo al cargar datos:", error);
-        if (!error.message.includes("GIST NO ENCONTRADO") && !error.message.includes("LÍMITE")) {
+        if (error instanceof TypeError && error.message.includes("Failed to fetch")) {
+            showToast("ERROR DE CORS. LA API DE GITHUB BLOQUEÓ LA SOLICITUD DEL NAVEGADOR.");
+            updateSyncStatus('error', 'Error de CORS');
+        } else if (!error.message.includes("GIST NO ENCONTRADO") && !error.message.includes("ACCESO PROHIBIDO")) {
             showToast(`ERROR AL CARGAR DATOS. VERIFICA EL JSON O TU CONEXIÓN.`);
+            updateSyncStatus('error', 'Error de carga');
         }
-        updateSyncStatus('error', 'Error de carga');
         data = JSON.parse(JSON.stringify(mockData)); // Fallback to mock data is important
     }
     ensureAllIcons();
