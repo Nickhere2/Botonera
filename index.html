@@ -34,6 +34,7 @@
             --radius: 0.75rem;
             --note-bg: #fefce8;
             --task-bg: #eff6ff;
+            --prompt-bg: #f0fdf4; /* Verde claro para prompts */
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -58,6 +59,7 @@
             --ring: #7c3aed;
             --note-bg: #3f3f17;
             --task-bg: #1e293b;
+            --prompt-bg: #162a1a;
         }
 
         body {
@@ -76,10 +78,18 @@
             transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
         }
         .sidebar.is-collapsed { width: 80px; }
-        .sidebar.is-collapsed .sidebar-header .font-bold, .sidebar.is-collapsed .nav-link span, .sidebar.is-collapsed .sidebar-footer .nav-link-text, .sidebar.is-collapsed #global-search-container {
+        .sidebar.is-collapsed .sidebar-header .font-bold, 
+        .sidebar.is-collapsed .nav-link span, 
+        .sidebar.is-collapsed .sidebar-footer .nav-link-text, 
+        .sidebar.is-collapsed #global-search-container,
+        .sidebar.is-collapsed #agenda-widget .agenda-header-title,
+        .sidebar.is-collapsed #agenda-widget .agenda-content {
             display: none;
         }
-        .sidebar.is-collapsed .sidebar-header { justify-content: center; }
+        .sidebar.is-collapsed .sidebar-header,
+        .sidebar.is-collapsed #agenda-widget .agenda-header { 
+            justify-content: center; 
+        }
          .sidebar.is-collapsed .nav-link, .sidebar.is-collapsed .sidebar-footer a {
             justify-content: center;
         }
@@ -150,7 +160,7 @@
         }
         .card:hover .card-bg-preview { transform: scale(1.05); }
 
-        .note-card, .task-card {
+        .note-card, .task-card, .prompt-card {
             justify-content: flex-start;
             height: 250px;
             color: var(--card-foreground);
@@ -158,6 +168,7 @@
         }
         .note-card { background: var(--note-bg); }
         .task-card { background: var(--task-bg); }
+        .prompt-card { background: var(--prompt-bg); }
         
         .btn {
             display: inline-flex;
@@ -218,6 +229,33 @@
         
         #global-view-switcher button.active { background-color: var(--accent-foreground); color: var(--accent); }
 
+        .agenda-content {
+            max-height: 200px;
+            overflow-y: auto;
+            transition: max-height 0.3s ease-in-out, margin-top 0.3s ease-in-out;
+        }
+        .agenda-header .actions .btn { opacity: 0; transition: opacity 0.2s ease; }
+        .agenda-header:hover .actions .btn { opacity: 1; }
+        .event-item .actions { opacity: 0; transition: opacity 0.2s ease; }
+        .event-item:hover .actions { opacity: 1; }
+        
+        kbd {
+            background-color: var(--secondary);
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            color: var(--secondary-foreground);
+            display: inline-block;
+            font-family: monospace;
+            font-size: .85em;
+            font-weight: 700;
+            line-height: 1;
+            padding: 2px 6px;
+        }
+        .dark kbd {
+             background-color: #3f3f46;
+             border-color: #52525b;
+        }
+
     </style>
 </head>
 <body class="dark"> <!-- Inicia en modo oscuro por defecto -->
@@ -225,18 +263,17 @@
     <div class="main-layout">
         <!-- Sidebar -->
         <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-40 p-4 flex-shrink-0 flex flex-col transform -translate-x-full lg:translate-x-0">
-            <!-- Header de la Sidebar -->
+            <!-- Sidebar Header -->
             <div class="sidebar-header flex items-center justify-between pb-4 px-2">
                  <div class="flex items-center gap-3">
                     <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="w-10 h-10">
-                    <span class="font-bold text-lg">Centro de Accesos</span>
                  </div>
                  <button id="sidebar-toggle" class="btn btn-ghost !p-2 hidden lg:inline-flex" title="Colapsar barra lateral">
                      <i class="fas fa-angle-double-left"></i>
                  </button>
             </div>
             
-            <!-- Buscador Global -->
+            <!-- Global Search -->
             <div id="global-search-container" class="px-2 pb-4">
                 <div class="relative">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
@@ -244,7 +281,7 @@
                 </div>
             </div>
 
-            <!-- Navegación Principal -->
+            <!-- Main Navigation -->
             <nav id="main-nav" class="flex-grow space-y-2 px-2">
                 <a href="#" data-section="buscadores" class="nav-link active"><i class="fas fa-search w-5 text-center"></i><span>Buscadores</span></a>
                 <a href="#" data-section="links" class="nav-link"><i class="fas fa-link w-5 text-center"></i><span>Links</span></a>
@@ -252,10 +289,12 @@
                 <a href="#" data-section="notes-tasks" class="nav-link"><i class="fas fa-check-double w-5 text-center"></i><span>Notas y Tareas</span></a>
             </nav>
             
-            <!-- Footer de la Sidebar -->
+            <!-- Agenda Widget Container -->
+            <div id="sidebar-agenda-container" class="px-2 mt-4 border-t border-border pt-4"></div>
+
+            <!-- Sidebar Footer -->
             <div class="sidebar-footer mt-auto flex flex-col gap-2 px-2">
-                <a href="#" id="fab-settings" class="nav-link"><i class="fas fa-cog w-5 text-center"></i><span class="nav-link-text">Configuración</span></a>
-                <a href="#" id="fab-help" class="nav-link"><i class="fas fa-question-circle w-5 text-center"></i><span class="nav-link-text">Ayuda</span></a>
+                <a href="#" id="open-settings-help" class="nav-link"><i class="fas fa-cog w-5 text-center"></i><span class="nav-link-text">Ajustes y Ayuda</span></a>
                 <a href="#" id="fab-theme" class="nav-link"><i class="fas fa-palette w-5 text-center"></i><span class="nav-link-text">Cambiar Tema</span></a>
                 <div id="sync-status" class="text-xs flex items-center gap-2 opacity-70 p-2 justify-center">
                     <i id="sync-icon" class="fas fa-cloud"></i>
@@ -297,10 +336,10 @@
     
     <!-- MODALS & OVERLAYS -->
     <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="eventPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="settingsHelpPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg font-bold z-[2000] shadow-lg" style="background-color: var(--primary); color: var(--primary-foreground);"></div>
     <div id="confirmModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
-    <div id="helpModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
-    <div id="settingsModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="preview-modal" class="hidden fixed z-[1300] w-80 h-60 p-1 bg-card-background rounded-lg shadow-lg pointer-events-none transition-opacity duration-200 opacity-0">
         <div id="preview-modal-content" class="w-full h-full bg-cover bg-center rounded-md border border-border"></div>
     </div>
@@ -308,7 +347,7 @@
 <script>
 // --- STATE & CONFIG ---
 const FILENAME_IN_GIST = 'Botones.json';
-let data = { items: [], categories: {}, categoryOrders: {}, favoriteOrder: [] };
+let data = { items: [], categories: {}, categoryOrders: {}, favoriteOrder: [], events: [] };
 const views = ['grid', 'list', 'table', 'kanban'];
 let globalView = localStorage.getItem('globalView') || 'grid';
 const themes = ['dark', 'light'];
@@ -327,7 +366,12 @@ const mockData = {
     ],
     categories: { 'Video': {}, 'Desarrollo': {} },
     categoryOrders: { buscadores: ["General", "Video"], links: ["Desarrollo"], prompts: ["Creatividad"], "notes-tasks": [] },
-    favoriteOrder: [1, 3]
+    favoriteOrder: [1, 3],
+    events: [
+        { id: 1, title: 'Cumpleaños de Ana', date: '2000-09-15', type: 'birthday', note: 'Comprar regalo.', reminderDays: 7 },
+        { id: 2, title: 'Entrega Proyecto Final', date: '2025-09-20', type: 'reminder', note: '', reminderDays: 3 },
+        { id: 3, title: 'Cumpleaños de Juan', date: '1995-09-18', type: 'birthday', note: '', reminderDays: 1 }
+    ]
 };
 
 
@@ -369,7 +413,7 @@ async function loadData() {
             data = JSON.parse(JSON.stringify(mockData));
         } else {
             let loadedJson = JSON.parse(fileContent);
-            const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrder: [] };
+            const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrder: [], events: [] };
             data = { ...defaults, ...loadedJson };
             data.items = (data.items || []).map(i => ({...i, isFavorite: i.isFavorite || false}));
             if (!data.favoriteOrder) {
@@ -408,13 +452,7 @@ async function saveData() {
         const response = await fetch(`https://api.github.com/gists/${gistId}`, {
             method: 'PATCH',
             headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
-            body: JSON.stringify({
-                files: {
-                    [FILENAME_IN_GIST]: {
-                        content: JSON.stringify(data, null, 2)
-                    }
-                }
-            })
+            body: JSON.stringify(data, null, 2)
         });
         if (!response.ok) {
              if(response.status === 401 || response.status === 404) {
@@ -478,8 +516,7 @@ function setupEventListeners() {
     
     document.getElementById('addNewButton').addEventListener('click', () => openEditPanel());
     document.getElementById('fab-theme').addEventListener('click', changeTheme);
-    document.getElementById('fab-settings').addEventListener('click', openSettingsModal);
-    document.getElementById('fab-help').addEventListener('click', openHelpModal);
+    document.getElementById('open-settings-help').addEventListener('click', openSettingsHelpModal);
     
     document.getElementById('global-view-switcher').addEventListener('click', (e) => {
         const button = e.target.closest('button');
@@ -499,12 +536,14 @@ function initializeUI() {
         document.querySelector('main').style.marginLeft = '280px';
     }
     switchTab('buscadores');
+    renderAgendaWidget();
     document.querySelector(`#global-view-switcher button[data-view="${globalView}"]`).classList.add('active');
 }
 
 function refreshUI() {
     const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'buscadores';
     applyGlobalFilter();
+    renderAgendaWidget();
 }
 
 function switchTab(tabName) {
@@ -533,7 +572,7 @@ function switchTab(tabName) {
 function renderSection(sectionName, itemsToRender, searchTerm = '') {
     const container = document.getElementById(`section-${sectionName}`);
     container.innerHTML = '';
-    
+
     if (sectionName === 'notes-tasks') {
         renderNotesAndTasksSection(container, itemsToRender, searchTerm);
         return;
@@ -557,7 +596,7 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
     const sortedCategories = [...sectionOrders, ...Object.keys(categorized).filter(c => !sectionOrders.includes(c))];
 
     sortedCategories.forEach(categoryName => {
-        if (categorized[categoryName]) {
+        if (categorized[categoryName] && categorized[categoryName].length > 0) {
             const catWrapper = document.createElement('div');
             catWrapper.className = 'mb-12';
             
@@ -574,9 +613,16 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
             
             categorized[categoryName].forEach(item => {
                 let element;
-                if (globalView === 'grid') element = createCard(item, searchTerm);
-                else if (globalView === 'list') element = createListItem(item, searchTerm);
-                else if (globalView === 'table') element = createTableItem(item, searchTerm);
+                if (globalView === 'grid') {
+                     if (item.type === 'Nota') element = createNoteCard(item, searchTerm);
+                     else if (item.type === 'Tarea') element = createTaskCard(item, searchTerm);
+                     else if (item.type === 'Promp') element = createPromptCard(item, searchTerm);
+                     else element = createCard(item, searchTerm);
+                } else if (globalView === 'list') {
+                    element = createListItem(item, searchTerm);
+                } else if (globalView === 'table') {
+                    element = createTableItem(item, searchTerm);
+                }
                 
                 if (element) contentContainer.appendChild(element);
             });
@@ -589,8 +635,7 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
 
 function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
     if (globalView === 'kanban') {
-        // renderKanbanView(container, items, searchTerm);
-        container.innerHTML = '<p class="text-center text-muted-foreground">La vista Kanban está en construcción.</p>';
+        container.innerHTML += '<p class="text-center text-muted-foreground">La vista Kanban está en construcción.</p>';
         return;
     }
     
@@ -614,9 +659,7 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
         const notesContainer = document.createElement('div');
         notesContainer.className = viewClass;
         notes.forEach(note => {
-            let element;
-            if (globalView === 'grid') element = createNoteCard(note, searchTerm);
-            else element = createListItem(note, searchTerm);
+            let element = (globalView === 'grid') ? createNoteCard(note, searchTerm) : createListItem(note, searchTerm);
             if(element) notesContainer.appendChild(element);
         });
         notesWrapper.appendChild(notesContainer);
@@ -630,10 +673,8 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
         const tasksContainer = document.createElement('div');
         tasksContainer.className = viewClass;
         tasks.forEach(task => {
-            let element;
-            if (globalView === 'grid') element = createTaskCard(task, searchTerm);
-            else element = createListItem(task, searchTerm);
-             if(element) tasksContainer.appendChild(element);
+            let element = (globalView === 'grid') ? createTaskCard(task, searchTerm) : createListItem(task, searchTerm);
+            if(element) tasksContainer.appendChild(element);
         });
         tasksWrapper.appendChild(tasksContainer);
         container.appendChild(tasksWrapper);
@@ -755,6 +796,25 @@ function createTableItem(item, searchTerm = '') {
 function createNoteCard(item, searchTerm) {
     const card = document.createElement('div');
     card.className = 'card note-card';
+    card.dataset.id = item.id;
+    if (item.isFavorite) card.classList.add('is-favorite');
+    card.innerHTML = `
+        <div class="flex justify-between items-start">
+            <h4 class="font-bold text-lg">${item.title}</h4>
+            <div class="card-actions flex gap-1">
+                <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+            </div>
+        </div>
+        <div class="mt-2 text-sm text-muted-foreground overflow-y-auto h-full">${item.action}</div>
+    `;
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+    return card;
+}
+
+function createPromptCard(item, searchTerm) {
+    const card = document.createElement('div');
+    card.className = 'card prompt-card';
     card.dataset.id = item.id;
     if (item.isFavorite) card.classList.add('is-favorite');
     card.innerHTML = `
@@ -904,6 +964,194 @@ function renderEmptyState(container, sectionName) {
         </div>
     `;
 }
+
+// --- AGENDA WIDGET ---
+function renderAgendaWidget() {
+    const container = document.getElementById('sidebar-agenda-container');
+    const upcomingEvents = getUpcomingEvents(30);
+    
+    const eventTypeIcons = {
+        birthday: 'fa-birthday-cake text-pink-400',
+        reminder: 'fa-bell text-blue-400',
+        anniversary: 'fa-heart text-red-400',
+        meeting: 'fa-users text-green-400',
+        payment: 'fa-credit-card text-yellow-400',
+        appointment: 'fa-stethoscope text-indigo-400'
+    };
+
+    let eventListHTML = '<div class="space-y-2">';
+    if (upcomingEvents.length > 0) {
+        upcomingEvents.forEach(event => {
+            const icon = eventTypeIcons[event.type] || 'fa-calendar-day text-gray-400';
+            const reminderIcon = event.isReminderActive ? `<i class="fas fa-bell text-yellow-400 text-xs" title="Aviso activo"></i>` : '';
+            const noteIcon = event.note ? `<i class="fas fa-sticky-note text-gray-500 text-xs ml-1" title="${event.note}"></i>` : '';
+
+            eventListHTML += `
+                <div class="event-item flex items-center gap-2 text-sm">
+                    <i class="fas ${icon} w-4 text-center"></i>
+                    <div class="flex-grow overflow-hidden">
+                        <p class="font-medium truncate">${event.title} ${noteIcon}</p>
+                        <p class="text-xs text-muted-foreground">${event.date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</p>
+                    </div>
+                    ${reminderIcon}
+                    <div class="actions flex items-center">
+                         <button onclick="openEventPanel(${event.id})" class="btn btn-ghost !p-1"><i class="fas fa-pencil-alt text-xs"></i></button>
+                         <button onclick="deleteEvent(event, ${event.id})" class="btn btn-ghost !p-1"><i class="fas fa-trash-alt text-xs"></i></button>
+                    </div>
+                </div>
+            `;
+        });
+    } else {
+        eventListHTML += `<p class="text-sm text-muted-foreground text-center py-2">No hay eventos próximos.</p>`;
+    }
+    eventListHTML += '</div>';
+
+    container.innerHTML = `
+        <div id="agenda-widget">
+            <div class="agenda-header flex justify-between items-center mb-2">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-calendar-alt text-muted-foreground"></i>
+                    <h3 class="agenda-header-title font-semibold text-muted-foreground">Agenda</h3>
+                </div>
+                <div class="actions">
+                    <button onclick="openEventPanel()" class="btn btn-ghost !p-2" title="Añadir evento"><i class="fas fa-plus"></i></button>
+                </div>
+            </div>
+            <div class="agenda-content mt-2">
+                ${eventListHTML}
+            </div>
+        </div>
+    `;
+}
+
+function getUpcomingEvents(days) {
+    if (!data.events || data.events.length === 0) return [];
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const upcoming = data.events.map(event => {
+        const eventDate = new Date(event.date);
+        let nextOccurrence = new Date(event.date);
+
+        if (event.type === 'birthday' || event.type === 'anniversary') {
+            nextOccurrence = new Date(today.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+            if (nextOccurrence < today) {
+                nextOccurrence.setFullYear(today.getFullYear() + 1);
+            }
+        }
+
+        const diffTime = nextOccurrence - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        const reminderDays = parseInt(event.reminderDays) || 0;
+        const isReminderActive = reminderDays > 0 && diffDays <= reminderDays;
+
+        if (diffDays >= 0 && diffDays <= days) {
+            return { ...event, date: nextOccurrence, daysLeft: diffDays, isReminderActive };
+        }
+        return null;
+    }).filter(Boolean);
+
+    return upcoming.sort((a, b) => a.date - b.date);
+}
+
+function openEventPanel(eventId = null) {
+    const modal = document.getElementById('eventPanel');
+    const event = eventId ? data.events.find(e => e.id === eventId) : null;
+    
+    let dateValue = '';
+    if (event) {
+        const d = new Date(event.date);
+        dateValue = d.toISOString().split('T')[0];
+    }
+
+    const eventTypes = {
+        reminder: 'Recordatorio',
+        birthday: 'Cumpleaños',
+        anniversary: 'Aniversario',
+        meeting: 'Reunión',
+        payment: 'Pago',
+        appointment: 'Cita Médica'
+    };
+
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">${event ? 'Editar' : 'Nuevo'} Evento</h2>
+            <form id="eventForm" class="space-y-4">
+                <input type="hidden" id="eventId" value="${event?.id || ''}">
+                <div>
+                    <label for="eventTitle" class="font-semibold block mb-2">Título</label>
+                    <input type="text" id="eventTitle" class="input-base" value="${event?.title || ''}" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="eventDate" class="font-semibold block mb-2">Fecha</label>
+                        <input type="date" id="eventDate" class="input-base" value="${dateValue}" required>
+                    </div>
+                     <div>
+                        <label for="eventType" class="font-semibold block mb-2">Tipo</label>
+                        <select id="eventType" class="input-base">
+                            ${Object.entries(eventTypes).map(([key, value]) => 
+                                `<option value="${key}" ${event?.type === key ? 'selected' : ''}>${value}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                </div>
+                 <div>
+                    <label for="eventNote" class="font-semibold block mb-2">Nota (Opcional)</label>
+                    <textarea id="eventNote" class="input-base" rows="2">${event?.note || ''}</textarea>
+                </div>
+                 <div>
+                    <label for="eventReminder" class="font-semibold block mb-2">Avisar con días de antelación</label>
+                    <input type="number" id="eventReminder" class="input-base" min="0" value="${event?.reminderDays || 0}">
+                </div>
+                <div class="flex justify-end gap-2 pt-4 mt-2">
+                    <button type="button" onclick="document.getElementById('eventPanel').classList.add('hidden')" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    document.getElementById('eventForm').onsubmit = handleSaveEvent;
+}
+
+function handleSaveEvent(event) {
+    event.preventDefault();
+    const id = document.getElementById('eventId').value;
+    const newEvent = {
+        id: id ? parseInt(id) : Date.now(),
+        title: document.getElementById('eventTitle').value,
+        date: document.getElementById('eventDate').value,
+        type: document.getElementById('eventType').value,
+        note: document.getElementById('eventNote').value,
+        reminderDays: parseInt(document.getElementById('eventReminder').value) || 0
+    };
+
+    if (id) {
+        const index = data.events.findIndex(e => e.id === newEvent.id);
+        if (index !== -1) data.events[index] = newEvent;
+    } else {
+        if (!data.events) data.events = [];
+        data.events.push(newEvent);
+    }
+    document.getElementById('eventPanel').classList.add('hidden');
+    saveData().then(refreshUI);
+    showToast('Evento guardado.');
+}
+
+function deleteEvent(event, eventId) {
+    event.stopPropagation();
+    showConfirmModal('¿Seguro que quieres eliminar este evento?', (confirmed) => {
+        if (confirmed) {
+            data.events = data.events.filter(e => e.id !== eventId);
+            saveData().then(refreshUI);
+            showToast('Evento eliminado.');
+        }
+    });
+}
+
 
 // --- THEME & MODALS ---
 function changeTheme() {
@@ -1118,32 +1366,85 @@ function deleteItem(event, id) {
     });
 }
 
-function openSettingsModal() {
-    const modal = document.getElementById('settingsModal');
+function openSettingsHelpModal() {
+    const modal = document.getElementById('settingsHelpPanel');
     const gistId = localStorage.getItem('gist_id') || '';
     const pat = localStorage.getItem('github_pat') || '';
+    
     modal.innerHTML = `
-        <div class="modal-container w-full max-w-lg p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">Configuración</h2>
-                <button onclick="document.getElementById('settingsModal').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
+        <div class="modal-container w-full max-w-2xl p-0 flex flex-col">
+            <div class="flex justify-between items-center p-4 border-b border-border">
+                <h2 class="text-2xl font-bold">Ajustes y Ayuda</h2>
+                <button onclick="document.getElementById('settingsHelpPanel').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
             </div>
-            <div class="space-y-4">
-                <div>
-                    <label for="gistIdInput" class="font-semibold block mb-2">Gist ID</label>
-                    <input type="text" id="gistIdInput" class="input-base" value="${gistId}" placeholder="El ID de tu Gist de GitHub">
+            <div class="flex border-b border-border">
+                <button data-tab="settings" class="settings-help-tab active flex-1 p-3 font-semibold">Configuración</button>
+                <button data-tab="help" class="settings-help-tab flex-1 p-3 font-semibold">Ayuda</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="settings-tab-content" class="tab-content space-y-4">
+                     <div>
+                        <label for="gistIdInput" class="font-semibold block mb-2">Gist ID</label>
+                        <input type="text" id="gistIdInput" class="input-base" value="${gistId}" placeholder="El ID de tu Gist de GitHub">
+                    </div>
+                    <div>
+                        <label for="githubPatInput" class="font-semibold block mb-2">Personal Access Token</label>
+                        <input type="password" id="githubPatInput" class="input-base" value="${pat}" placeholder="Token con permiso 'gist'">
+                    </div>
+                    <div class="flex justify-end gap-2 pt-4">
+                        <button id="saveSettingsButton" class="btn btn-primary">Guardar y Recargar</button>
+                    </div>
                 </div>
-                <div>
-                    <label for="githubPatInput" class="font-semibold block mb-2">Personal Access Token</label>
-                    <input type="password" id="githubPatInput" class="input-base" value="${pat}" placeholder="Token con permiso 'gist'">
-                </div>
-                <div class="flex justify-end gap-2 pt-4">
-                    <button id="saveSettingsButton" class="btn btn-primary">Guardar y Recargar</button>
+                <div id="help-tab-content" class="tab-content hidden prose dark:prose-invert max-w-none">
+                    <h3 class="font-bold text-lg">¿Qué es esto?</h3>
+                    <p>Es un dashboard personalizable para organizar tus links, buscadores, notas y tareas en un solo lugar. Sincroniza tus datos de forma segura usando un Gist de GitHub.</p>
+                    <h3 class="font-bold text-lg mt-4">¿Cómo funciona?</h3>
+                    <ul class="list-disc list-inside space-y-2">
+                        <li><b>Secciones:</b> Navega entre Buscadores, Links, Prompts y Notas/Tareas usando el menú lateral.</li>
+                        <li><b>Añadir Elementos:</b> Haz clic en el botón "+ Nuevo" para agregar cualquier tipo de elemento a la sección activa.</li>
+                        <li><b>Agenda:</b> Añade recordatorios y cumpleaños en la agenda de la barra lateral. Configura avisos para no olvidar nada.</li>
+                        <li><b>Sincronización:</b> En la pestaña "Configuración", introduce tu Gist ID y un Personal Access Token de GitHub para guardar y cargar tus datos desde cualquier lugar.</li>
+                    </ul>
+                     <h3 class="font-bold text-lg mt-4">Atajos de Teclado</h3>
+                     <ul class="list-disc list-inside space-y-1">
+                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>B</kbd> : Activar barra de búsqueda</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema (claro/oscuro)</li>
+                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
+                        <li><kbd>Esc</kbd> : Cerrar ventanas y paneles</li>
+                    </ul>
                 </div>
             </div>
         </div>
     `;
     modal.classList.remove('hidden');
+
+    const tabs = modal.querySelectorAll('.settings-help-tab');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            modal.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
+            document.getElementById(`${tab.dataset.tab}-tab-content`).classList.remove('hidden');
+        });
+    });
+    // Estilo para la pestaña activa
+    tabs.forEach(t => {
+      if(t.classList.contains('active')) t.style.borderBottom = '2px solid var(--primary)';
+      else t.style.borderBottom = 'none';
+    });
+     tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => {
+                t.classList.remove('active');
+                t.style.borderBottom = 'none';
+            });
+            tab.classList.add('active');
+            tab.style.borderBottom = '2px solid var(--primary)';
+        });
+    });
+
+
     document.getElementById('saveSettingsButton').onclick = saveSettings;
 }
 
@@ -1152,24 +1453,9 @@ function saveSettings() {
     const pat = document.getElementById('githubPatInput').value.trim();
     if (gistId) localStorage.setItem('gist_id', gistId);
     if (pat) localStorage.setItem('github_pat', pat);
-    document.getElementById('settingsModal').classList.add('hidden');
+    document.getElementById('settingsHelpPanel').classList.add('hidden');
     showToast("Configuración guardada. Recargando...");
     loadData();
-}
-
-
-function openHelpModal() { 
-    const modal = document.getElementById('helpModal');
-    modal.innerHTML = `
-        <div class="modal-container w-full max-w-2xl p-6">
-             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">Ayuda</h2>
-                <button onclick="document.getElementById('helpModal').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
-            </div>
-            <p>Bienvenido al Centro de Accesos. Usa la barra lateral para navegar y el buscador para encontrar lo que necesites.</p>
-        </div>
-    `;
-    modal.classList.remove('hidden');
 }
 
 function showConfirmModal(message, callback) {
