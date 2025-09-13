@@ -756,7 +756,6 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '', c
 }
 
 function renderFavoritesBar(container, items) {
-    // Reorder favorites based on favoriteOrder array
     const orderedFavorites = (data.favoriteOrder || [])
         .map(id => items.find(item => item.id === id && item.isFavorite))
         .filter(Boolean);
@@ -1685,4 +1684,3 @@ function updateSyncStatus(status, message = '') {
 </script>
 </body>
 </html>
-
