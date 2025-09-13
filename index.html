@@ -111,7 +111,6 @@
             border-radius: var(--radius);
             transition: all 0.2s ease-in-out;
             position: relative;
-            cursor: pointer;
         }
         .card:hover, .list-item:hover, .table-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
         .card.is-favorite, .list-item.is-favorite, .table-item.is-favorite { box-shadow: 0 0 0 2px var(--primary); }
@@ -127,7 +126,7 @@
             color: white;
         }
         
-        .list-item {
+        .list-item, .fav-item {
             display: flex;
             align-items: center;
             padding: 0.75rem;
@@ -214,6 +213,8 @@
         
         .card-actions, .list-item-actions, .table-item-actions { opacity: 0; transition: opacity 0.2s; }
         .card:hover .card-actions, .list-item:hover .list-item-actions, .table-item:hover .table-item-actions { opacity: 1; }
+        .drag-handle { cursor: move; opacity: 0; transition: opacity 0.2s; }
+        .card:hover .drag-handle, .list-item:hover .drag-handle, .table-item:hover .drag-handle { opacity: 1; }
 
         .modal-overlay { background-color: rgba(9, 9, 11, 0.8); backdrop-filter: blur(4px); }
         .modal-container { background-color: var(--card-background); border-radius: var(--radius); box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
@@ -254,6 +255,34 @@
         .dark kbd {
              background-color: #3f3f46;
              border-color: #52525b;
+        }
+
+        #preview-modal-tags {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 0.5rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+        }
+        #preview-modal-tags .tag {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+            padding: 2px 6px;
+            border-radius: 99px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .dark #preview-modal-content::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: inherit;
+            pointer-events: none;
         }
 
     </style>
@@ -341,15 +370,16 @@
     <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg font-bold z-[2000] shadow-lg" style="background-color: var(--primary); color: var(--primary-foreground);"></div>
     <div id="confirmModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="preview-modal" class="hidden fixed z-[1300] w-80 h-60 p-1 bg-card-background rounded-lg shadow-lg pointer-events-none transition-opacity duration-200 opacity-0">
-        <div id="preview-modal-content" class="w-full h-full bg-cover bg-center rounded-md border border-border"></div>
+        <div id="preview-modal-content" class="relative w-full h-full bg-cover bg-center rounded-md border border-border">
+             <div id="preview-modal-tags"></div>
+        </div>
     </div>
 
 <script>
 // --- STATE & CONFIG ---
 const FILENAME_IN_GIST = 'Botones.json';
 let data = { items: [], categories: {}, categoryOrders: {}, favoriteOrder: [], events: [] };
-const views = ['grid', 'list', 'table', 'kanban'];
-let globalView = localStorage.getItem('globalView') || 'grid';
+let viewModes = {};
 const themes = ['dark', 'light'];
 let currentTheme = localStorage.getItem('theme') || 'dark';
 let previewTimeout = null;
@@ -392,6 +422,7 @@ function ensureAllIcons() {
 
 async function loadData() {
     let gistId = localStorage.getItem('gist_id');
+    viewModes = JSON.parse(localStorage.getItem('viewModes')) || {};
     if (!gistId) {
         data = JSON.parse(JSON.stringify(mockData));
         ensureAllIcons();
@@ -521,11 +552,14 @@ function setupEventListeners() {
     document.getElementById('global-view-switcher').addEventListener('click', (e) => {
         const button = e.target.closest('button');
         if(button && button.dataset.view) {
-            globalView = button.dataset.view;
-            localStorage.setItem('globalView', globalView);
+            const activeSection = document.querySelector('#main-nav .active')?.dataset.section;
+            if (activeSection) {
+                viewModes[activeSection] = button.dataset.view;
+                localStorage.setItem('viewModes', JSON.stringify(viewModes));
+            }
             document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.remove('active'));
             button.classList.add('active');
-            refreshUI();
+            applyGlobalFilter(); // Re-render with the new view
         }
     });
 }
@@ -537,11 +571,9 @@ function initializeUI() {
     }
     switchTab('buscadores');
     renderAgendaWidget();
-    document.querySelector(`#global-view-switcher button[data-view="${globalView}"]`).classList.add('active');
 }
 
 function refreshUI() {
-    const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'buscadores';
     applyGlobalFilter();
     renderAgendaWidget();
 }
@@ -556,11 +588,14 @@ function switchTab(tabName) {
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
     document.getElementById(`section-${tabName}`).classList.remove("hidden");
     
+    const currentView = viewModes[tabName] || 'grid';
+    document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
+
     const kanbanButton = document.querySelector('#global-view-switcher button[data-view="kanban"]');
     kanbanButton.style.display = (tabName === 'notes-tasks') ? 'inline-flex' : 'none';
-    if(globalView === 'kanban' && tabName !== 'notes-tasks') {
-        globalView = 'grid';
-        localStorage.setItem('globalView', globalView);
+    if(currentView === 'kanban' && tabName !== 'notes-tasks') {
+        viewModes[tabName] = 'grid';
+        localStorage.setItem('viewModes', JSON.stringify(viewModes));
         document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.remove('active'));
         document.querySelector('#global-view-switcher button[data-view="grid"]').classList.add('active');
     }
@@ -572,9 +607,10 @@ function switchTab(tabName) {
 function renderSection(sectionName, itemsToRender, searchTerm = '') {
     const container = document.getElementById(`section-${sectionName}`);
     container.innerHTML = '';
+    const currentView = viewModes[sectionName] || 'grid';
 
     if (sectionName === 'notes-tasks') {
-        renderNotesAndTasksSection(container, itemsToRender, searchTerm);
+        renderNotesAndTasksSection(container, itemsToRender, searchTerm, currentView);
         return;
     }
 
@@ -594,47 +630,100 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
 
     const sectionOrders = data.categoryOrders?.[sectionName] || [];
     const sortedCategories = [...sectionOrders, ...Object.keys(categorized).filter(c => !sectionOrders.includes(c))];
+    
+    const categoryContainerWrapper = document.createElement('div');
+    container.appendChild(categoryContainerWrapper);
 
     sortedCategories.forEach(categoryName => {
         if (categorized[categoryName] && categorized[categoryName].length > 0) {
             const catWrapper = document.createElement('div');
-            catWrapper.className = 'mb-12';
+            catWrapper.className = 'mb-12 category-wrapper';
+            catWrapper.dataset.categoryName = categoryName;
             
             let editButtonHTML = '';
             if (categoryName !== 'Sin Categoría') {
                 editButtonHTML = `<button onclick="openCategoryEditModal(event, '${categoryName}')" class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" title="Editar categoría"><i class="fas fa-pencil-alt text-sm"></i></button>`;
             }
-            catWrapper.innerHTML = `<div class="flex items-center gap-2 mb-4"><h2 class="text-xl font-bold text-muted-foreground">${categoryName}</h2>${editButtonHTML}</div>`;
+            catWrapper.innerHTML = `<div class="flex items-center gap-2 mb-4"><h2 class="text-xl font-bold text-muted-foreground cursor-move category-drag-handle">${categoryName}</h2>${editButtonHTML}</div>`;
 
             const contentContainer = document.createElement('div');
             
             const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
-            contentContainer.className = viewClasses[globalView] || 'card-grid';
+            contentContainer.className = `item-container ${viewClasses[currentView] || 'card-grid'}`;
             
             categorized[categoryName].forEach(item => {
                 let element;
-                if (globalView === 'grid') {
+                if (currentView === 'grid') {
                      if (item.type === 'Nota') element = createNoteCard(item, searchTerm);
                      else if (item.type === 'Tarea') element = createTaskCard(item, searchTerm);
                      else if (item.type === 'Promp') element = createPromptCard(item, searchTerm);
                      else element = createCard(item, searchTerm);
-                } else if (globalView === 'list') {
+                } else if (currentView === 'list') {
                     element = createListItem(item, searchTerm);
-                } else if (globalView === 'table') {
+                } else if (currentView === 'table') {
                     element = createTableItem(item, searchTerm);
                 }
                 
-                if (element) contentContainer.appendChild(element);
+                if (element) {
+                    element.setAttribute('draggable', 'true');
+                    contentContainer.appendChild(element);
+                }
             });
 
             catWrapper.appendChild(contentContainer);
-            container.appendChild(catWrapper);
+            categoryContainerWrapper.appendChild(catWrapper);
+
+            new Sortable(contentContainer, {
+                group: sectionName,
+                animation: 150,
+                handle: '.drag-handle',
+                onEnd: (evt) => {
+                    const currentSection = evt.target.closest('.section');
+                    if (!currentSection) return;
+
+                    const allItemElements = Array.from(currentSection.querySelectorAll('.item-container > [data-id]'));
+
+                    const newCategoryMap = new Map();
+                    const newOrderedIds = [];
+                    allItemElements.forEach(el => {
+                        const id = parseInt(el.dataset.id);
+                        const category = el.closest('.category-wrapper').dataset.categoryName;
+                        newOrderedIds.push(id);
+                        newCategoryMap.set(id, category);
+                    });
+
+                    const visibleItems = new Set(newOrderedIds);
+                    const nonVisibleItems = data.items.filter(item => !visibleItems.has(item.id));
+                    
+                    const reorderedItems = newOrderedIds.map(id => {
+                        const item = data.items.find(i => i.id === id);
+                        if (item) {
+                            item.category = newCategoryMap.get(id) || item.category;
+                            return item;
+                        }
+                    }).filter(Boolean);
+
+                    data.items = [...nonVisibleItems, ...reorderedItems];
+                    saveData();
+                }
+            });
+        }
+    });
+    
+    new Sortable(categoryContainerWrapper, {
+        animation: 150,
+        handle: '.category-drag-handle',
+        onEnd: (evt) => {
+            const newOrder = Array.from(evt.target.children).map(child => child.dataset.categoryName);
+            if (!data.categoryOrders) data.categoryOrders = {};
+            data.categoryOrders[sectionName] = newOrder;
+            saveData();
         }
     });
 }
 
-function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
-    if (globalView === 'kanban') {
+function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '', currentView) {
+    if (currentView === 'kanban') {
         container.innerHTML += '<p class="text-center text-muted-foreground">La vista Kanban está en construcción.</p>';
         return;
     }
@@ -650,7 +739,7 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
     const tasks = itemsToRender.filter(item => item.type === 'Tarea');
     
     const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
-    const viewClass = viewClasses[globalView] || 'card-grid';
+    const viewClass = viewClasses[currentView] || 'card-grid';
 
     if (notes.length > 0) {
         const notesWrapper = document.createElement('div');
@@ -659,7 +748,7 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
         const notesContainer = document.createElement('div');
         notesContainer.className = viewClass;
         notes.forEach(note => {
-            let element = (globalView === 'grid') ? createNoteCard(note, searchTerm) : createListItem(note, searchTerm);
+            let element = (currentView === 'grid') ? createNoteCard(note, searchTerm) : createListItem(note, searchTerm);
             if(element) notesContainer.appendChild(element);
         });
         notesWrapper.appendChild(notesContainer);
@@ -673,7 +762,7 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
         const tasksContainer = document.createElement('div');
         tasksContainer.className = viewClass;
         tasks.forEach(task => {
-            let element = (globalView === 'grid') ? createTaskCard(task, searchTerm) : createListItem(task, searchTerm);
+            let element = (currentView === 'grid') ? createTaskCard(task, searchTerm) : createListItem(task, searchTerm);
             if(element) tasksContainer.appendChild(element);
         });
         tasksWrapper.appendChild(tasksContainer);
@@ -693,10 +782,11 @@ function renderFavoritesBar(container, items) {
     
     favorites.forEach(item => {
         const favIcon = document.createElement('div');
-        favIcon.className = 'flex items-center gap-2 p-2 pr-4 rounded-full bg-secondary cursor-pointer hover:bg-accent transition';
+        favIcon.className = 'fav-item flex items-center gap-2 p-2 pr-4 rounded-full bg-secondary hover:bg-accent transition cursor-move';
+        favIcon.dataset.id = item.id;
         favIcon.innerHTML = `
             <div class="w-8 h-8 bg-card-background rounded-full flex items-center justify-center">${getIconHtml(item.icon, 'text-lg')}</div>
-            <span class="font-semibold text-sm">${item.title}</span>
+            <span class="font-semibold text-sm pointer-events-none">${item.title}</span>
         `;
         favIcon.onclick = (e) => handleCardClick(item.id, e);
         favContainer.appendChild(favIcon);
@@ -704,6 +794,15 @@ function renderFavoritesBar(container, items) {
 
     bar.appendChild(favContainer);
     container.appendChild(bar);
+
+    new Sortable(favContainer, {
+        animation: 150,
+        onEnd: (evt) => {
+            const newOrder = Array.from(evt.target.children).map(child => parseInt(child.dataset.id));
+            data.favoriteOrder = newOrder;
+            saveData();
+        }
+    });
 }
 
 
@@ -718,6 +817,7 @@ function createCard(item, searchTerm = '') {
         : '';
 
     card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-white/50 hover:text-white"><i class="fas fa-grip-vertical"></i></div>
         <div class="card-bg-preview" style="background-image: url('${previewUrl}')"></div>
         <div class="card-overlay">
             <div class="flex justify-between items-start">
@@ -748,6 +848,7 @@ function createListItem(item, searchTerm = '') {
     if (item.isFavorite) listItem.classList.add('is-favorite');
 
     listItem.innerHTML = `
+        <div class="drag-handle p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center flex-shrink-0">${getIconHtml(item.icon, 'text-xl')}</div>
         <div class="flex-grow overflow-hidden">
             <h4 class="font-bold truncate">${item.title}</h4>
@@ -769,6 +870,7 @@ function createTableItem(item, searchTerm = '') {
     if (item.isFavorite) tableItem.classList.add('is-favorite');
 
     tableItem.innerHTML = `
+        <div class="drag-handle absolute top-1 left-1 p-1 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="table-item-actions absolute top-1 right-1 flex">
             <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Editar"><i class="fas fa-pencil-alt"></i></button>
             <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Favorito"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
@@ -782,7 +884,7 @@ function createTableItem(item, searchTerm = '') {
         clearTimeout(previewTimeout);
         previewTimeout = setTimeout(() => {
             showPreviewModal(item, e);
-        }, 500); // Retraso de 500ms
+        }, 500);
     });
 
     tableItem.addEventListener('mouseleave', () => {
@@ -799,6 +901,7 @@ function createNoteCard(item, searchTerm) {
     card.dataset.id = item.id;
     if (item.isFavorite) card.classList.add('is-favorite');
     card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="flex justify-between items-start">
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
@@ -818,6 +921,7 @@ function createPromptCard(item, searchTerm) {
     card.dataset.id = item.id;
     if (item.isFavorite) card.classList.add('is-favorite');
     card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="flex justify-between items-start">
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
@@ -849,6 +953,7 @@ function createTaskCard(item, searchTerm) {
     ` : '';
 
     card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="flex justify-between items-start">
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
@@ -878,7 +983,7 @@ function createTaskCard(item, searchTerm) {
 
 // --- ACTIONS & EVENT HANDLERS ---
 function handleCardClick(id, event) {
-    if (event.target.closest('button, input')) return; 
+    if (event.target.closest('button, input, .drag-handle')) return; 
     const item = data.items.find(i => String(i.id) === String(id));
     if (!item) return;
 
@@ -1521,10 +1626,19 @@ function saveCategoryChanges(event) {
 function showPreviewModal(item, event) {
     const modal = document.getElementById('preview-modal');
     if (item.type !== 'Link' && item.type !== 'Buscador') return;
+    
     const modalContent = document.getElementById('preview-modal-content');
     const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
     modalContent.style.backgroundImage = `url('${previewUrl}')`;
     
+    const tagsContainer = document.getElementById('preview-modal-tags');
+    if (item.tags && item.tags.length > 0) {
+        tagsContainer.innerHTML = item.tags.map(tag => `<span class="tag">${tag}</span>`).join('');
+        tagsContainer.style.display = 'flex';
+    } else {
+        tagsContainer.style.display = 'none';
+    }
+
     const modalWidth = 320; 
     const modalHeight = 240;
     const cursorX = event.clientX; 
