@@ -69,7 +69,6 @@
         }
 
         /* --- LAYOUT PRINCIPAL --- */
-        .main-layout { transition: padding-left 0.3s ease-in-out; }
         .sidebar {
             background-color: var(--sidebar-background);
             border-right: 1px solid var(--border);
@@ -179,14 +178,14 @@
         .btn-ghost:hover { background-color: var(--secondary); color: var(--secondary-foreground); }
 
         .input-base {
-            background: var(--background);
+            background: var(--card-background);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 0.5rem 0.75rem;
             width: 100%;
             transition: all 0.2s;
         }
-        dark .input-base { background: var(--card-background); }
+        .dark .input-base { background: #27272a; }
         .input-base:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
         
         .nav-link {
@@ -206,7 +205,7 @@
         .card:hover .card-actions, .list-item:hover .list-item-actions, .table-item:hover .table-item-actions { opacity: 1; }
 
         .modal-overlay { background-color: rgba(9, 9, 11, 0.8); backdrop-filter: blur(4px); }
-        .modal-container { background-color: var(--card-background); border-radius: var(--radius); box-shadow: var(--shadow-lg); }
+        .modal-container { background-color: var(--card-background); border-radius: var(--radius); box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
 
         .fade-in { animation: fadeIn 0.3s ease-out forwards; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
@@ -302,6 +301,9 @@
     <div id="confirmModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="helpModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="settingsModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="preview-modal" class="hidden fixed z-[1300] w-80 h-60 p-1 bg-card-background rounded-lg shadow-lg pointer-events-none transition-opacity duration-200 opacity-0">
+        <div id="preview-modal-content" class="w-full h-full bg-cover bg-center rounded-md border border-border"></div>
+    </div>
 
 <script>
 // --- STATE & CONFIG ---
@@ -311,6 +313,7 @@ const views = ['grid', 'list', 'table', 'kanban'];
 let globalView = localStorage.getItem('globalView') || 'grid';
 const themes = ['dark', 'light'];
 let currentTheme = localStorage.getItem('theme') || 'dark';
+let previewTimeout = null;
 
 // --- MOCK DATA (Fallback) ---
 const mockData = {
@@ -448,7 +451,9 @@ function setupEventListeners() {
     const mainContent = document.querySelector('main');
     document.getElementById('sidebar-toggle').addEventListener('click', () => {
         sidebar.classList.toggle('is-collapsed');
-        mainContent.style.marginLeft = sidebar.classList.contains('is-collapsed') ? '80px' : '280px';
+        if (window.innerWidth >= 1024) {
+           mainContent.style.marginLeft = sidebar.classList.contains('is-collapsed') ? '80px' : '280px';
+        }
     });
 
     const overlay = document.getElementById('sidebar-overlay');
@@ -555,7 +560,13 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
         if (categorized[categoryName]) {
             const catWrapper = document.createElement('div');
             catWrapper.className = 'mb-12';
-            catWrapper.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">${categoryName}</h2>`;
+            
+            let editButtonHTML = '';
+            if (categoryName !== 'Sin Categoría') {
+                editButtonHTML = `<button onclick="openCategoryEditModal(event, '${categoryName}')" class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" title="Editar categoría"><i class="fas fa-pencil-alt text-sm"></i></button>`;
+            }
+            catWrapper.innerHTML = `<div class="flex items-center gap-2 mb-4"><h2 class="text-xl font-bold text-muted-foreground">${categoryName}</h2>${editButtonHTML}</div>`;
+
             const contentContainer = document.createElement('div');
             
             const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
@@ -577,9 +588,56 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
 }
 
 function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
-    // Similar logic but separates notes and tasks, and handles Kanban view
-    // This is a simplified placeholder. A full implementation is needed.
-    container.innerHTML = '<p>Notas y Tareas sección en construcción</p>';
+    if (globalView === 'kanban') {
+        // renderKanbanView(container, items, searchTerm);
+        container.innerHTML = '<p class="text-center text-muted-foreground">La vista Kanban está en construcción.</p>';
+        return;
+    }
+    
+    if (itemsToRender.length === 0) {
+        renderEmptyState(container, 'notes-tasks');
+        return;
+    }
+
+    renderFavoritesBar(container, itemsToRender);
+
+    const notes = itemsToRender.filter(item => item.type === 'Nota');
+    const tasks = itemsToRender.filter(item => item.type === 'Tarea');
+    
+    const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
+    const viewClass = viewClasses[globalView] || 'card-grid';
+
+    if (notes.length > 0) {
+        const notesWrapper = document.createElement('div');
+        notesWrapper.className = 'mb-12';
+        notesWrapper.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Notas</h2>`;
+        const notesContainer = document.createElement('div');
+        notesContainer.className = viewClass;
+        notes.forEach(note => {
+            let element;
+            if (globalView === 'grid') element = createNoteCard(note, searchTerm);
+            else element = createListItem(note, searchTerm);
+            if(element) notesContainer.appendChild(element);
+        });
+        notesWrapper.appendChild(notesContainer);
+        container.appendChild(notesWrapper);
+    }
+
+    if (tasks.length > 0) {
+        const tasksWrapper = document.createElement('div');
+        tasksWrapper.className = 'mb-12';
+        tasksWrapper.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Tareas</h2>`;
+        const tasksContainer = document.createElement('div');
+        tasksContainer.className = viewClass;
+        tasks.forEach(task => {
+            let element;
+            if (globalView === 'grid') element = createTaskCard(task, searchTerm);
+            else element = createListItem(task, searchTerm);
+             if(element) tasksContainer.appendChild(element);
+        });
+        tasksWrapper.appendChild(tasksContainer);
+        container.appendChild(tasksWrapper);
+    }
 }
 
 function renderFavoritesBar(container, items) {
@@ -633,6 +691,7 @@ function createCard(item, searchTerm = '') {
                 </div>
                 <div class="card-actions flex gap-1">
                      <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                     <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="fas fa-pencil-alt"></i></button>
                 </div>
             </div>
         </div>
@@ -669,20 +728,97 @@ function createTableItem(item, searchTerm = '') {
     if (item.isFavorite) tableItem.classList.add('is-favorite');
 
     tableItem.innerHTML = `
-        <div class="table-item-actions absolute top-1 right-1">
-            <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-1 !text-xs"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+        <div class="table-item-actions absolute top-1 right-1 flex">
+            <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+            <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Favorito"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
         </div>
         <div class="w-16 h-16 mb-2 flex items-center justify-center">${getIconHtml(item.icon, 'text-4xl')}</div>
         <h4 class="font-semibold text-sm text-center truncate w-full">${item.title}</h4>
     `;
     tableItem.addEventListener('click', (e) => handleCardClick(item.id, e));
+    
+    tableItem.addEventListener('mouseenter', (e) => {
+        clearTimeout(previewTimeout);
+        previewTimeout = setTimeout(() => {
+            showPreviewModal(item, e);
+        }, 500); // Retraso de 500ms
+    });
+
+    tableItem.addEventListener('mouseleave', () => {
+        clearTimeout(previewTimeout);
+        hidePreviewModal();
+    });
+    
     return tableItem;
+}
+
+function createNoteCard(item, searchTerm) {
+    const card = document.createElement('div');
+    card.className = 'card note-card';
+    card.dataset.id = item.id;
+    if (item.isFavorite) card.classList.add('is-favorite');
+    card.innerHTML = `
+        <div class="flex justify-between items-start">
+            <h4 class="font-bold text-lg">${item.title}</h4>
+            <div class="card-actions flex gap-1">
+                <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+            </div>
+        </div>
+        <div class="mt-2 text-sm text-muted-foreground overflow-y-auto h-full">${item.action}</div>
+    `;
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+    return card;
+}
+
+function createTaskCard(item, searchTerm) {
+    const card = document.createElement('div');
+    card.className = 'card task-card';
+    card.dataset.id = item.id;
+    if (item.isFavorite) card.classList.add('is-favorite');
+    
+    const taskListHtml = Array.isArray(item.action) ? `
+        <ul class="space-y-2 mt-2">
+            ${item.action.map((task, index) => `
+                <li class="flex items-center gap-2">
+                    <input type="checkbox" id="task-${item.id}-${index}" data-item-id="${item.id}" data-task-index="${index}" ${task.status ? 'checked' : ''} class="w-4 h-4 rounded accent-primary">
+                    <label for="task-${item.id}-${index}" class="${task.status ? 'line-through text-muted-foreground' : ''}">${task.text}</label>
+                </li>
+            `).join('')}
+        </ul>
+    ` : '';
+
+    card.innerHTML = `
+        <div class="flex justify-between items-start">
+            <h4 class="font-bold text-lg">${item.title}</h4>
+            <div class="card-actions flex gap-1">
+                 <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                 <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+            </div>
+        </div>
+        <div class="overflow-y-auto h-full">${taskListHtml}</div>
+    `;
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+    card.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            e.stopPropagation();
+            const itemId = e.target.dataset.itemId;
+            const taskIndex = parseInt(e.target.dataset.taskIndex, 10);
+            const dataItem = data.items.find(d => String(d.id) === itemId);
+            if (dataItem && dataItem.action[taskIndex]) {
+                dataItem.action[taskIndex].status = e.target.checked;
+                saveData();
+                refreshUI();
+            }
+        });
+    });
+    return card;
 }
 
 
 // --- ACTIONS & EVENT HANDLERS ---
 function handleCardClick(id, event) {
-    if (event.target.closest('button')) return; 
+    if (event.target.closest('button, input')) return; 
     const item = data.items.find(i => String(i.id) === String(id));
     if (!item) return;
 
@@ -692,7 +828,9 @@ function handleCardClick(id, event) {
         const term = prompt(`Buscar en ${item.title}:`);
         if (term) window.open(item.action.replace('{search_term}', encodeURIComponent(term)), '_blank');
     } else if (item.type === "Promp") {
-        navigator.clipboard.writeText(item.action).then(() => showToast("Prompt copiado."));
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = item.action;
+        navigator.clipboard.writeText(tempDiv.textContent || tempDiv.innerText).then(() => showToast("Prompt copiado."));
     } else {
         openEditPanel(id);
     }
@@ -738,7 +876,9 @@ function applyGlobalFilter() {
         
         let contentMatch = false;
         if (typeof card.action === 'string') {
-            contentMatch = card.action.toLowerCase().includes(searchTerm);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = card.action;
+            contentMatch = (tempDiv.textContent || tempDiv.innerText).toLowerCase().includes(searchTerm);
         } else if (Array.isArray(card.action)) {
             contentMatch = card.action.some(task => task.text.toLowerCase().includes(searchTerm));
         }
@@ -796,10 +936,335 @@ function getIconHtml(icon, sizeClass = 'text-2xl', isForCard = false) {
     return `<i class="${icon} ${sizeClass} ${colorClass}"></i>`;
 }
 
-// Full modal implementations needed
-function openEditPanel(itemId = null) { showToast(`Abrir editor para item: ${itemId || 'nuevo'}`); }
-function openSettingsModal() { showToast("Abrir configuración"); }
-function openHelpModal() { showToast("Abrir ayuda"); }
+// --- MODAL IMPLEMENTATIONS ---
+function openEditPanel(itemId = null) {
+    const modal = document.getElementById('editPanel');
+    const item = itemId ? data.items.find(i => String(i.id) === String(itemId)) : null;
+    const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'links';
+    const defaultTypeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': 'Nota' };
+    const type = item ? item.type : defaultTypeMap[activeSection];
+    
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="editPanelTitle" class="text-2xl font-bold">${item ? 'Editar' : 'Nuevo'} Elemento</h2>
+                <button onclick="document.getElementById('editPanel').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
+            </div>
+            <form id="editForm" class="space-y-4">
+                <input type="hidden" id="editItemId" value="${item?.id || ''}">
+                <div>
+                    <label class="font-semibold block mb-2">Tipo</label>
+                    <div class="flex flex-wrap gap-2 type-selector">
+                        ${['Buscador', 'Link', 'Promp', 'Nota', 'Tarea'].map(t => `
+                            <button type="button" data-type="${t}" class="btn ${type === t ? 'btn-primary' : 'btn-secondary'} type-btn">${t}</button>
+                        `).join('')}
+                    </div>
+                    <input type="hidden" id="newType" value="${type}">
+                </div>
+                <div>
+                    <label class="font-semibold block mb-2">Título</label>
+                    <input type="text" id="newTitle" class="input-base" placeholder="Nombre del elemento" value="${item?.title || ''}">
+                </div>
+                 <div id="actionFieldContainer">
+                    <label id="actionLabel" class="font-semibold block mb-2">Contenido / URL</label>
+                    <textarea id="newActionText" class="input-base hidden" rows="3">${(item && typeof item.action === 'string') ? item.action : ''}</textarea>
+                    <div id="newActionRich" class="input-base hidden min-h-[100px]" contenteditable="true"></div>
+                </div>
+                 <div id="iconFieldContainer">
+                    <label class="font-semibold block mb-2">Icono (URL o FontAwesome)</label>
+                    <input type="text" id="newIcon" class="input-base" placeholder="https://.../logo.png o fas fa-search" value="${item?.icon || ''}">
+                </div>
+                <div>
+                    <label class="font-semibold block mb-2">Categoría</label>
+                    <input type="text" id="newCategory" class="input-base" list="category-suggestions" placeholder="Categoría nueva o existente" value="${item?.category || ''}">
+                    <datalist id="category-suggestions"></datalist>
+                </div>
+                <div>
+                    <label class="font-semibold block mb-2">Etiquetas (separadas por coma)</label>
+                    <input type="text" id="newTags" class="input-base" placeholder="trabajo, personal" value="${item?.tags?.join(', ') || ''}">
+                </div>
+                <div class="flex justify-end gap-2 pt-4">
+                    ${item ? `<button type="button" id="deleteItemButton" class="btn btn-secondary !bg-red-500/10 !text-red-500 mr-auto">Eliminar</button>` : ''}
+                    <button type="button" onclick="document.getElementById('editPanel').classList.add('hidden')" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+
+    const form = modal.querySelector('#editForm');
+    form.onsubmit = handleSaveItem;
+
+    if (item) {
+        document.getElementById('deleteItemButton').onclick = (e) => deleteItem(e, item.id);
+    }
+    
+    modal.querySelector('.type-selector').addEventListener('click', e => {
+        const button = e.target.closest('.type-btn');
+        if (button) {
+            const newType = button.dataset.type;
+            modal.querySelectorAll('.type-btn').forEach(b => b.classList.replace('btn-primary', 'btn-secondary'));
+            button.classList.replace('btn-secondary', 'btn-primary');
+            document.getElementById('newType').value = newType;
+            updateEditFormFields(newType);
+        }
+    });
+
+    updateEditFormFields(type, item);
+    populateCategorySuggestions(type);
+}
+
+function updateEditFormFields(type, item = null) {
+    const richEditor = document.getElementById('newActionRich');
+    const textEditor = document.getElementById('newActionText');
+    const iconField = document.getElementById('iconFieldContainer');
+    const actionLabel = document.getElementById('actionLabel');
+
+    richEditor.classList.add('hidden');
+    textEditor.classList.add('hidden');
+    iconField.style.display = 'block';
+
+    if (type === 'Nota' || type === 'Promp') {
+        actionLabel.textContent = 'Contenido';
+        richEditor.classList.remove('hidden');
+        iconField.style.display = 'none';
+        if (item && typeof item.action === 'string') richEditor.innerHTML = item.action;
+    } else if (type === 'Tarea') {
+        actionLabel.textContent = 'Tareas (una por línea)';
+        richEditor.classList.remove('hidden');
+        iconField.style.display = 'none';
+        if (item && Array.isArray(item.action)) {
+            richEditor.innerHTML = item.action.map(t => `<div>${t.text}</div>`).join('');
+        }
+    } else {
+        actionLabel.textContent = 'URL / Acción';
+        textEditor.classList.remove('hidden');
+        if (item) textEditor.value = item.action;
+    }
+}
+
+function populateCategorySuggestions(itemType) {
+    const dataList = document.getElementById("category-suggestions");
+    if (!dataList) return;
+    dataList.innerHTML = '';
+    const categories = [...new Set(data.items.filter(item => item.type === itemType).map(item => item.category).filter(Boolean))].sort();
+    categories.forEach(cat => dataList.innerHTML += `<option value="${cat}"></option>`);
+}
+
+function handleSaveItem(event) {
+    event.preventDefault();
+    const id = document.getElementById("editItemId").value;
+    const type = document.getElementById("newType").value;
+    let action;
+    if (type === 'Nota' || type === 'Promp') {
+        action = document.getElementById('newActionRich').innerHTML;
+    } else if (type === 'Tarea') {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = document.getElementById('newActionRich').innerHTML;
+        const existingTasks = id ? (data.items.find(i => String(i.id) === id)?.action || []) : [];
+        action = Array.from(tempDiv.children).map((child, index) => ({ text: child.textContent || child.innerText, status: existingTasks[index]?.status || false })).filter(t => t.text.trim());
+    } else {
+        action = document.getElementById('newActionText').value;
+    }
+    
+    let icon = document.getElementById("newIcon").value.trim();
+    if (!icon && (type === 'Link' || type === 'Buscador')) {
+        try {
+            const url = new URL(action);
+            icon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
+        } catch (e) { console.error("URL inválida:", action); }
+    }
+
+    const newItemData = {
+        title: document.getElementById("newTitle").value.trim() || 'Sin Título',
+        action, type,
+        category: document.getElementById("newCategory").value.trim() || 'Sin Categoría',
+        icon,
+        tags: document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(Boolean)
+    };
+
+    if (id) {
+        const index = data.items.findIndex(i => String(i.id) === id);
+        if (index !== -1) data.items[index] = { ...data.items[index], ...newItemData };
+    } else {
+        newItemData.id = Date.now();
+        newItemData.isFavorite = false;
+        data.items.push(newItemData);
+    }
+    
+    saveData().then(() => {
+        refreshUI();
+        document.getElementById("editPanel").classList.add("hidden");
+        showToast(`Elemento "${newItemData.title}" guardado.`);
+    });
+}
+
+function deleteItem(event, id) {
+    event.stopPropagation();
+    showConfirmModal("¿Seguro que quieres eliminar este elemento?", (confirmed) => {
+        if (confirmed) {
+            const numericId = parseInt(id, 10);
+            data.items = data.items.filter(i => i.id !== numericId);
+            if (data.favoriteOrder) {
+                data.favoriteOrder = data.favoriteOrder.filter(favId => favId !== numericId);
+            }
+            saveData().then(() => {
+                refreshUI();
+                document.getElementById("editPanel").classList.add("hidden");
+                showToast("Elemento eliminado.");
+            });
+        }
+    });
+}
+
+function openSettingsModal() {
+    const modal = document.getElementById('settingsModal');
+    const gistId = localStorage.getItem('gist_id') || '';
+    const pat = localStorage.getItem('github_pat') || '';
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-lg p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Configuración</h2>
+                <button onclick="document.getElementById('settingsModal').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label for="gistIdInput" class="font-semibold block mb-2">Gist ID</label>
+                    <input type="text" id="gistIdInput" class="input-base" value="${gistId}" placeholder="El ID de tu Gist de GitHub">
+                </div>
+                <div>
+                    <label for="githubPatInput" class="font-semibold block mb-2">Personal Access Token</label>
+                    <input type="password" id="githubPatInput" class="input-base" value="${pat}" placeholder="Token con permiso 'gist'">
+                </div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button id="saveSettingsButton" class="btn btn-primary">Guardar y Recargar</button>
+                </div>
+            </div>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    document.getElementById('saveSettingsButton').onclick = saveSettings;
+}
+
+function saveSettings() {
+    const gistId = document.getElementById('gistIdInput').value.trim();
+    const pat = document.getElementById('githubPatInput').value.trim();
+    if (gistId) localStorage.setItem('gist_id', gistId);
+    if (pat) localStorage.setItem('github_pat', pat);
+    document.getElementById('settingsModal').classList.add('hidden');
+    showToast("Configuración guardada. Recargando...");
+    loadData();
+}
+
+
+function openHelpModal() { 
+    const modal = document.getElementById('helpModal');
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-2xl p-6">
+             <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Ayuda</h2>
+                <button onclick="document.getElementById('helpModal').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
+            </div>
+            <p>Bienvenido al Centro de Accesos. Usa la barra lateral para navegar y el buscador para encontrar lo que necesites.</p>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+}
+
+function showConfirmModal(message, callback) {
+    const modal = document.getElementById('confirmModal');
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-md p-6 text-center">
+            <p class="text-lg mb-6">${message}</p>
+            <div class="flex justify-center gap-4">
+                <button id="confirmCancel" class="btn btn-secondary">Cancelar</button>
+                <button id="confirmOk" class="btn btn-primary">Aceptar</button>
+            </div>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    modal.querySelector('#confirmOk').onclick = () => { modal.classList.add('hidden'); callback(true); };
+    modal.querySelector('#confirmCancel').onclick = () => { modal.classList.add('hidden'); callback(false); };
+}
+
+function openCategoryEditModal(event, originalName) {
+    event.stopPropagation();
+    const modal = document.getElementById('editPanel');
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-md p-6">
+            <h2 class="text-2xl font-bold mb-4">Editar Categoría</h2>
+            <form id="categoryEditForm">
+                <input type="hidden" id="originalCategoryName" value="${originalName}">
+                <div>
+                    <label for="categoryNameInput" class="font-semibold block mb-2">Nuevo nombre</label>
+                    <input type="text" id="categoryNameInput" class="input-base" value="${originalName}" required>
+                </div>
+                <div class="flex justify-end gap-2 pt-4 mt-2">
+                    <button type="button" onclick="document.getElementById('editPanel').classList.add('hidden')" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    document.getElementById('categoryNameInput').focus();
+    document.getElementById('categoryEditForm').onsubmit = saveCategoryChanges;
+}
+
+function saveCategoryChanges(event) {
+    event.preventDefault();
+    const originalName = document.getElementById('originalCategoryName').value;
+    const newName = document.getElementById('categoryNameInput').value.trim();
+
+    if (!newName || newName === originalName) {
+        document.getElementById('editPanel').classList.add('hidden');
+        return;
+    }
+    data.items.forEach(item => {
+        if (item.category === originalName) item.category = newName;
+    });
+    Object.keys(data.categoryOrders).forEach(section => {
+        data.categoryOrders[section] = data.categoryOrders[section].map(cat => cat === originalName ? newName : cat);
+    });
+    document.getElementById('editPanel').classList.add('hidden');
+    saveData().then(refreshUI);
+    showToast(`Categoría renombrada a "${newName}".`);
+}
+
+function showPreviewModal(item, event) {
+    const modal = document.getElementById('preview-modal');
+    if (item.type !== 'Link' && item.type !== 'Buscador') return;
+    const modalContent = document.getElementById('preview-modal-content');
+    const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
+    modalContent.style.backgroundImage = `url('${previewUrl}')`;
+    
+    const modalWidth = 320; 
+    const modalHeight = 240;
+    const cursorX = event.clientX; 
+    const cursorY = event.clientY;
+    const viewportWidth = window.innerWidth; 
+    const viewportHeight = window.innerHeight;
+    const offset = 20;
+
+    let top = cursorY + offset; 
+    let left = cursorX + offset;
+
+    if (top + modalHeight > viewportHeight - offset) top = cursorY - modalHeight - offset;
+    if (left + modalWidth > viewportWidth - offset) left = cursorX - modalWidth - offset;
+    
+    modal.style.top = `${top}px`;
+    modal.style.left = `${left}px`;
+    modal.classList.remove('hidden');
+    setTimeout(() => { modal.style.opacity = '1'; }, 10);
+}
+
+function hidePreviewModal() {
+    const modal = document.getElementById('preview-modal');
+    modal.style.opacity = '0';
+    setTimeout(() => { modal.classList.add('hidden'); }, 200);
+}
+
 function updateSyncStatus(status, message = '') {
     const iconEl = document.getElementById('sync-icon');
     const textEl = document.getElementById('sync-text');
