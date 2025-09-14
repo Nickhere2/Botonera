@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v32 - Búsqueda Global</title>
+    <title>Centro de Accesos v33 - Mejoras de UI y Búsqueda</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -407,7 +407,7 @@
                         <!-- El contenido del botón se generará con JS -->
                     </button>
                     
-                    <div id="search-engine-dropdown" class="absolute top-full left-0 mt-2 w-72 bg-card-background border border-border rounded-lg shadow-lg z-50 hidden fade-in">
+                    <div id="search-engine-dropdown" class="absolute top-full left-0 mt-2 w-72 bg-card-background border border-border rounded-lg shadow-lg z-[1001] hidden fade-in">
                         <div class="p-2 border-b border-border">
                             <input type="text" id="dropdown-search-input" placeholder="Buscar motor..." class="input-base w-full text-sm">
                         </div>
@@ -948,13 +948,16 @@ function createListItem(item, searchTerm = '') {
     return listItem;
 }
 
-function createTableItem(item, searchTerm = '') {
+function createTableItem(item, searchTerm = '', isGlobalSearch = false) {
     const tableItem = document.createElement("div");
     tableItem.className = 'table-item';
     tableItem.dataset.id = item.id;
     if (item.isFavorite) tableItem.classList.add('is-favorite');
     if (item.id === selectedSearchEngineId) tableItem.classList.add('is-selected');
 
+    const typeBadge = isGlobalSearch 
+        ? `<span class="absolute bottom-1 right-1 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">${item.type}</span>`
+        : '';
 
     tableItem.innerHTML = `
         <div class="drag-handle absolute top-1 left-1 p-1 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
@@ -964,6 +967,7 @@ function createTableItem(item, searchTerm = '') {
         </div>
         <div class="w-16 h-16 mb-2 flex items-center justify-center">${getIconHtml(item.icon, 'text-4xl')}</div>
         <h4 class="font-semibold text-sm text-center truncate w-full">${item.title}</h4>
+        ${typeBadge}
     `;
     tableItem.addEventListener('click', (e) => handleCardClick(item.id, e));
     
@@ -1301,8 +1305,8 @@ function renderGlobalSearchResults(primary, secondary, activeSectionName) {
         const sectionTitle = document.querySelector(`[data-section="${activeSectionName}"] span`).textContent;
         wrapper.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Resultados en ${sectionTitle}</h2>`;
         const content = document.createElement('div');
-        content.className = 'list-view';
-        primary.forEach(item => content.appendChild(createListItem(item)));
+        content.className = 'table-view';
+        primary.forEach(item => content.appendChild(createTableItem(item, '', true)));
         wrapper.appendChild(content);
         container.appendChild(wrapper);
     }
@@ -1335,8 +1339,8 @@ function renderGlobalSearchResults(primary, secondary, activeSectionName) {
             const sectionTitle = document.querySelector(`[data-section="${sectionName}"] span`).textContent;
             wrapper.innerHTML = `<h3 class="text-lg font-semibold mb-3">${sectionTitle}</h3>`;
             const content = document.createElement('div');
-            content.className = 'list-view';
-            secondaryGrouped[sectionName].forEach(item => content.appendChild(createListItem(item)));
+            content.className = 'table-view';
+            secondaryGrouped[sectionName].forEach(item => content.appendChild(createTableItem(item, '', true)));
             wrapper.appendChild(content);
             container.appendChild(wrapper);
         }
@@ -1426,11 +1430,13 @@ function getUpcomingEvents(days) {
     today.setHours(0, 0, 0, 0);
 
     const upcoming = data.events.map(event => {
-        const eventDate = new Date(event.date);
-        let nextOccurrence = new Date(event.date);
+        // Corrección de zona horaria: Tratar la fecha como local
+        const dateString = event.date.replace(/-/g, '/');
+        const eventDate = new Date(dateString);
+        let nextOccurrence = new Date(dateString);
 
         if (event.type === 'birthday' || event.type === 'anniversary') {
-            nextOccurrence = new Date(today.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+            nextOccurrence.setFullYear(today.getFullYear());
             if (nextOccurrence < today) {
                 nextOccurrence.setFullYear(today.getFullYear() + 1);
             }
@@ -1457,8 +1463,9 @@ function openEventPanel(eventId = null) {
     
     let dateValue = '';
     if (event) {
-        const d = new Date(event.date);
-        dateValue = d.toISOString().split('T')[0];
+        // Corrección de zona horaria para mostrar la fecha correcta en el input
+        const d = new Date(event.date.replace(/-/g, '/'));
+        dateValue = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
     }
 
     const eventTypes = {
