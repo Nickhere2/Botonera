@@ -808,13 +808,22 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
                     if (itemIndex > -1) {
                         data.items[itemIndex].category = newCategoryName;
 
-                        const allItemElements = Array.from(container.querySelectorAll('.item-container > [data-id]'));
-                        const newOrderedIds = allItemElements.map(el => parseInt(el.dataset.id));
+                        const allItemElementsInSection = Array.from(container.querySelectorAll('.item-container > [data-id]'));
+                        const orderedIdsInSection = allItemElementsInSection.map(el => parseInt(el.dataset.id));
                         
-                        const nonVisibleItems = data.items.filter(item => !newOrderedIds.includes(item.id));
-                        const reorderedVisibleItems = newOrderedIds.map(id => data.items.find(item => item.id === id)).filter(Boolean);
+                        const activeType = typeMap[sectionName];
+                        const allItemsForThisSection = data.items.filter(item => 
+                            Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
+                        );
 
-                        data.items = [...nonVisibleItems, ...reorderedVisibleItems];
+                        const otherSectionItems = data.items.filter(item => !allItemsForThisSection.includes(item));
+                        
+                        const sortedSectionItems = allItemsForThisSection.sort((a, b) => {
+                            return orderedIdsInSection.indexOf(a.id) - orderedIdsInSection.indexOf(b.id);
+                        });
+
+                        data.items = [...otherSectionItems, ...sortedSectionItems];
+                        
                         saveData();
                     }
                 }
@@ -921,8 +930,16 @@ function renderFavoritesBar(container) {
     new Sortable(favContainer, {
         animation: 150,
         onEnd: (evt) => {
-            const newOrder = Array.from(evt.target.children).map(child => parseInt(child.dataset.id));
-            data.favoriteOrder = newOrder;
+            const newOrderOfIds = Array.from(evt.target.children).map(child => parseInt(child.dataset.id));
+            
+            // Remove moved items from original position in favoriteOrder
+            let newFavoriteOrder = data.favoriteOrder.filter(id => !newOrderOfIds.includes(id));
+
+            // Add them back at the beginning in their new order
+            newFavoriteOrder.unshift(...newOrderOfIds);
+            
+            data.favoriteOrder = newFavoriteOrder;
+
             saveData();
         }
     });
@@ -2039,5 +2056,4 @@ function updateSyncStatus(status, message = '') {
 </script>
 </body>
 </html>
-
 
