@@ -408,7 +408,7 @@
                         <!-- El contenido del botón se generará con JS -->
                     </button>
                     
-                    <div id="search-engine-dropdown" class="absolute top-full left-0 mt-2 w-72 border border-border rounded-lg shadow-lg z-50 hidden fade-in">
+                    <div id="search-engine-dropdown" class="absolute top-full left-0 mt-2 w-72 border border-border rounded-lg shadow-lg z-[1001] hidden fade-in">
                         <div class="p-2 border-b border-border">
                             <input type="text" id="dropdown-search-input" placeholder="Buscar motor..." class="input-base w-full text-sm">
                         </div>
@@ -733,12 +733,17 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
         return;
     }
 
-    if (itemsToRender.length === 0) {
+    if (itemsToRender.length === 0 && searchTerm === '') {
         renderEmptyState(container, sectionName);
         return;
     }
     
-    renderFavoritesBar(container, itemsToRender);
+    renderFavoritesBar(container);
+
+    if (itemsToRender.length === 0 && searchTerm !== '') {
+        // No renderizar categorías si la búsqueda no arroja resultados en esta sección
+        return;
+    }
 
     const categorized = itemsToRender.reduce((acc, item) => {
         const category = item.category || 'Sin Categoría';
@@ -835,7 +840,7 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '', c
         return;
     }
 
-    renderFavoritesBar(container, itemsToRender);
+    renderFavoritesBar(container);
 
     const notes = itemsToRender.filter(item => item.type === 'Nota');
     const tasks = itemsToRender.filter(item => item.type === 'Tarea');
@@ -872,15 +877,28 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '', c
     }
 }
 
-function renderFavoritesBar(container, items) {
+function renderFavoritesBar(container) {
+    let bar = container.querySelector('.favorites-bar');
+    if (bar) bar.remove();
+
+    const activeNavBtn = document.querySelector('.nav-link.active');
+    if (!activeNavBtn) return;
+    const activeSectionName = activeNavBtn.dataset.section;
+    const activeType = typeMap[activeSectionName];
+
+    const sectionItems = data.items.filter(item =>
+        Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
+    );
+
     const orderedFavorites = (data.favoriteOrder || [])
-        .map(id => items.find(item => item.id === id && item.isFavorite))
+        .map(id => sectionItems.find(item => item.id === id && item.isFavorite))
         .filter(Boolean);
+
 
     if (orderedFavorites.length === 0) return;
 
-    const bar = document.createElement('div');
-    bar.className = 'mb-8';
+    bar = document.createElement('div');
+    bar.className = 'mb-8 favorites-bar';
     bar.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Favoritos</h2>`;
     const favContainer = document.createElement('div');
     favContainer.className = 'flex flex-wrap gap-4';
@@ -898,7 +916,7 @@ function renderFavoritesBar(container, items) {
     });
 
     bar.appendChild(favContainer);
-    container.appendChild(bar);
+    container.prepend(bar);
 
     new Sortable(favContainer, {
         animation: 150,
@@ -1250,7 +1268,9 @@ function toggleFavorite(event, itemId) {
         
         const numericId = parseInt(itemId, 10);
         if (item.isFavorite) {
-            if (!data.favoriteOrder.includes(numericId)) data.favoriteOrder.push(numericId);
+            if (!data.favoriteOrder.includes(numericId)) {
+                data.favoriteOrder.unshift(numericId);
+            }
         } else {
             data.favoriteOrder = data.favoriteOrder.filter(id => id !== numericId);
         }
@@ -2019,4 +2039,5 @@ function updateSyncStatus(status, message = '') {
 </script>
 </body>
 </html>
+
 
