@@ -231,8 +231,6 @@
         
         .card-actions, .list-item-actions, .table-item-actions { opacity: 0; transition: opacity 0.2s; z-index: 10; }
         .card:hover .card-actions, .list-item:hover .list-item-actions, .table-item:hover .table-item-actions { opacity: 1; }
-        .drag-handle { cursor: move; opacity: 0; transition: opacity 0.2s; z-index: 10; }
-        .card:hover .drag-handle, .list-item:hover .drag-handle, .table-item:hover .drag-handle { opacity: 1; }
 
         .modal-overlay { background-color: rgba(9, 9, 11, 0.8); backdrop-filter: blur(4px); }
         .modal-container { background-color: var(--card-background); border-radius: var(--radius); box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
@@ -447,7 +445,7 @@
 <script>
 // --- STATE & CONFIG ---
 const FILENAME_IN_GIST = 'Botones.json';
-let data = { items: [], categories: {}, categoryOrders: {}, favoriteOrder: [], events: [] };
+let data = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [] };
 let viewModes = {};
 const themes = ['dark', 'light'];
 let currentTheme = localStorage.getItem('theme') || 'dark';
@@ -468,7 +466,10 @@ const mockData = {
     ],
     categories: { 'Video': {}, 'Desarrollo': {} },
     categoryOrders: { buscadores: ["General", "Video"], links: ["Desarrollo"], prompts: ["Creatividad"], "notes-tasks": [] },
-    favoriteOrder: [1, 3],
+    favoriteOrders: {
+        buscadores: [1],
+        links: [3]
+    },
     events: [
         { id: 1, title: 'Cumpleaños de Ana', date: '2000-09-15', type: 'birthday', note: 'Comprar regalo.', reminderDays: 7 },
         { id: 2, title: 'Entrega Proyecto Final', date: '2025-09-20', type: 'reminder', note: '', reminderDays: 3 },
@@ -528,11 +529,33 @@ async function loadData() {
             data = JSON.parse(JSON.stringify(mockData));
         } else {
             let loadedJson = JSON.parse(fileContent);
-            const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrder: [], events: [] };
+            const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [] };
             data = { ...defaults, ...loadedJson };
             data.items = (data.items || []).map(i => ({...i, isFavorite: i.isFavorite || false}));
-            if (!data.favoriteOrder) {
-                data.favoriteOrder = data.items.filter(i => i.isFavorite).map(i => i.id);
+            
+            if (data.favoriteOrder && !data.favoriteOrders) {
+                console.log("Migrating old favoriteOrder to new favoriteOrders structure.");
+                data.favoriteOrders = {};
+                data.favoriteOrder.forEach(id => {
+                    const item = data.items.find(i => i.id === id);
+                    if (item) {
+                        const sectionName = Object.keys(typeMap).find(key => {
+                            const type = typeMap[key];
+                            return Array.isArray(type) ? type.includes(item.type) : type === item.type;
+                        });
+                        if (sectionName) {
+                            if (!data.favoriteOrders[sectionName]) {
+                                data.favoriteOrders[sectionName] = [];
+                            }
+                            data.favoriteOrders[sectionName].push(id);
+                        }
+                    }
+                });
+                delete data.favoriteOrder; // Remove the old property
+            }
+
+            if (!data.favoriteOrders) {
+                data.favoriteOrders = {};
             }
             showToast("Datos cargados desde Gist.");
         }
@@ -711,8 +734,15 @@ function switchTab(tabName) {
     if (tabName === 'buscadores') {
         mainSearchBar.classList.remove('hidden');
         const searchEngines = data.items.filter(item => item.type === 'Buscador');
-        if (searchEngines.length > 0 && !searchEngines.some(e => e.id === selectedSearchEngineId)) {
-             selectSearchEngine(searchEngines[0].id, false);
+        const currentSelectionIsValid = searchEngines.some(e => e.id === selectedSearchEngineId);
+
+        if (!currentSelectionIsValid) {
+            const youtube = searchEngines.find(item => item.title.toLowerCase() === 'youtube');
+            if (youtube) {
+                selectSearchEngine(youtube.id, false);
+            } else if (searchEngines.length > 0) {
+                selectSearchEngine(searchEngines[0].id, false);
+            }
         }
         updateSearchEngineSelectorButton();
     } else {
@@ -741,7 +771,6 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
     renderFavoritesBar(container);
 
     if (itemsToRender.length === 0 && searchTerm !== '') {
-        // No renderizar categorías si la búsqueda no arroja resultados en esta sección
         return;
     }
 
@@ -768,7 +797,7 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
             if (categoryName !== 'Sin Categoría') {
                 editButtonHTML = `<button onclick="openCategoryEditModal(event, '${categoryName}')" class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" title="Editar categoría"><i class="fas fa-pencil-alt text-sm"></i></button>`;
             }
-            catWrapper.innerHTML = `<div class="flex items-center gap-2 mb-4"><h2 class="text-xl font-bold text-muted-foreground cursor-move category-drag-handle">${categoryName}</h2>${editButtonHTML}</div>`;
+            catWrapper.innerHTML = `<div class="flex items-center gap-2 mb-4"><h2 class="text-xl font-bold text-muted-foreground">${categoryName}</h2>${editButtonHTML}</div>`;
 
             const contentContainer = document.createElement('div');
             
@@ -795,50 +824,6 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
 
             catWrapper.appendChild(contentContainer);
             categoryContainerWrapper.appendChild(catWrapper);
-
-            new Sortable(contentContainer, {
-                group: sectionName,
-                animation: 150,
-                handle: '.drag-handle',
-                onEnd: (evt) => {
-                    const itemId = parseInt(evt.item.dataset.id);
-                    const newCategoryName = evt.to.closest('.category-wrapper').dataset.categoryName;
-                    
-                    const itemIndex = data.items.findIndex(i => i.id === itemId);
-                    if (itemIndex > -1) {
-                        data.items[itemIndex].category = newCategoryName;
-
-                        const allItemElementsInSection = Array.from(container.querySelectorAll('.item-container > [data-id]'));
-                        const orderedIdsInSection = allItemElementsInSection.map(el => parseInt(el.dataset.id));
-                        
-                        const activeType = typeMap[sectionName];
-                        const allItemsForThisSection = data.items.filter(item => 
-                            Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
-                        );
-
-                        const otherSectionItems = data.items.filter(item => !allItemsForThisSection.includes(item));
-                        
-                        const sortedSectionItems = allItemsForThisSection.sort((a, b) => {
-                            return orderedIdsInSection.indexOf(a.id) - orderedIdsInSection.indexOf(b.id);
-                        });
-
-                        data.items = [...otherSectionItems, ...sortedSectionItems];
-                        
-                        saveData();
-                    }
-                }
-            });
-        }
-    });
-    
-    new Sortable(categoryContainerWrapper, {
-        animation: 150,
-        handle: '.category-drag-handle',
-        onEnd: (evt) => {
-            const newOrder = Array.from(evt.target.children).map(child => child.dataset.categoryName);
-            if (!data.categoryOrders) data.categoryOrders = {};
-            data.categoryOrders[sectionName] = newOrder;
-            saveData();
         }
     });
 }
@@ -893,14 +878,11 @@ function renderFavoritesBar(container) {
     const activeNavBtn = document.querySelector('.nav-link.active');
     if (!activeNavBtn) return;
     const activeSectionName = activeNavBtn.dataset.section;
-    const activeType = typeMap[activeSectionName];
+    
+    const orderedFavoritesIds = (data.favoriteOrders && data.favoriteOrders[activeSectionName]) ? data.favoriteOrders[activeSectionName] : [];
 
-    const sectionItems = data.items.filter(item =>
-        Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
-    );
-
-    const orderedFavorites = (data.favoriteOrder || [])
-        .map(id => sectionItems.find(item => item.id === id && item.isFavorite))
+    const orderedFavorites = orderedFavoritesIds
+        .map(id => data.items.find(item => item.id === id && item.isFavorite))
         .filter(Boolean);
 
 
@@ -926,23 +908,6 @@ function renderFavoritesBar(container) {
 
     bar.appendChild(favContainer);
     container.prepend(bar);
-
-    new Sortable(favContainer, {
-        animation: 150,
-        onEnd: (evt) => {
-            const newOrderOfIds = Array.from(evt.target.children).map(child => parseInt(child.dataset.id));
-            
-            // Remove moved items from original position in favoriteOrder
-            let newFavoriteOrder = data.favoriteOrder.filter(id => !newOrderOfIds.includes(id));
-
-            // Add them back at the beginning in their new order
-            newFavoriteOrder.unshift(...newOrderOfIds);
-            
-            data.favoriteOrder = newFavoriteOrder;
-
-            saveData();
-        }
-    });
 }
 
 
@@ -958,7 +923,6 @@ function createCard(item, searchTerm = '') {
         : '';
 
     card.innerHTML = `
-        <div class="drag-handle absolute top-2 left-2 p-2 text-white/50 hover:text-white"><i class="fas fa-grip-vertical"></i></div>
         <div class="card-bg-preview" style="background-image: url('${previewUrl}')"></div>
         <div class="card-overlay">
             <div class="flex justify-between items-start">
@@ -991,7 +955,6 @@ function createListItem(item, searchTerm = '') {
 
 
     listItem.innerHTML = `
-        <div class="drag-handle p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center flex-shrink-0">${getIconHtml(item.icon, 'text-xl')}</div>
         <div class="flex-grow overflow-hidden">
             <h4 class="font-bold truncate">${item.title}</h4>
@@ -1018,7 +981,6 @@ function createTableItem(item, searchTerm = '', isGlobalSearch = false) {
         : '';
 
     tableItem.innerHTML = `
-        <div class="drag-handle absolute top-1 left-1 p-1 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="table-item-actions absolute top-1 right-1 flex">
             <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Editar"><i class="fas fa-pencil-alt"></i></button>
             <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Favorito"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
@@ -1050,7 +1012,6 @@ function createNoteCard(item, searchTerm) {
     card.dataset.id = item.id;
     if (item.isFavorite) card.classList.add('is-favorite');
     card.innerHTML = `
-        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="flex justify-between items-start">
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
@@ -1070,7 +1031,6 @@ function createPromptCard(item, searchTerm) {
     card.dataset.id = item.id;
     if (item.isFavorite) card.classList.add('is-favorite');
     card.innerHTML = `
-        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="flex justify-between items-start">
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
@@ -1102,7 +1062,6 @@ function createTaskCard(item, searchTerm) {
     ` : '';
 
     card.innerHTML = `
-        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="flex justify-between items-start">
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
@@ -1132,7 +1091,7 @@ function createTaskCard(item, searchTerm) {
 
 // --- ACTIONS & EVENT HANDLERS ---
 function handleCardClick(id, event) {
-    if (event.target.closest('button, input, .drag-handle')) return; 
+    if (event.target.closest('button, input')) return; 
     const item = data.items.find(i => String(i.id) === String(id));
     if (!item) return;
 
@@ -1280,20 +1239,34 @@ function handleGlobalShortcuts(e) {
 function toggleFavorite(event, itemId) {
     event.stopPropagation();
     const item = data.items.find(i => String(i.id) === String(itemId));
-    if (item) {
-        item.isFavorite = !item.isFavorite;
-        
-        const numericId = parseInt(itemId, 10);
-        if (item.isFavorite) {
-            if (!data.favoriteOrder.includes(numericId)) {
-                data.favoriteOrder.unshift(numericId);
-            }
-        } else {
-            data.favoriteOrder = data.favoriteOrder.filter(id => id !== numericId);
-        }
-        
-        saveData().then(refreshUI);
+    if (!item) return;
+
+    const itemSectionName = Object.keys(typeMap).find(key => {
+        const type = typeMap[key];
+        return Array.isArray(type) ? type.includes(item.type) : type === item.type;
+    });
+
+    if (!itemSectionName) return;
+
+    item.isFavorite = !item.isFavorite;
+    const numericId = parseInt(itemId, 10);
+
+    if (!data.favoriteOrders) {
+        data.favoriteOrders = {};
     }
+    if (!data.favoriteOrders[itemSectionName]) {
+        data.favoriteOrders[itemSectionName] = [];
+    }
+
+    if (item.isFavorite) {
+        if (!data.favoriteOrders[itemSectionName].includes(numericId)) {
+            data.favoriteOrders[itemSectionName].unshift(numericId);
+        }
+    } else {
+        data.favoriteOrders[itemSectionName] = data.favoriteOrders[itemSectionName].filter(id => id !== numericId);
+    }
+    
+    saveData().then(refreshUI);
 }
 
 // MODIFICADO: Lógica de búsqueda global
@@ -1818,8 +1791,10 @@ function deleteItem(event, id) {
         if (confirmed) {
             const numericId = parseInt(id, 10);
             data.items = data.items.filter(i => i.id !== numericId);
-            if (data.favoriteOrder) {
-                data.favoriteOrder = data.favoriteOrder.filter(favId => favId !== numericId);
+            if (data.favoriteOrders) {
+                for (const section in data.favoriteOrders) {
+                    data.favoriteOrders[section] = data.favoriteOrders[section].filter(favId => favId !== numericId);
+                }
             }
             saveData().then(() => {
                 refreshUI();
