@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v28 - Diseño Optimizado</title>
+    <title>Centro de Accesos v32 - Búsqueda Global</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -114,6 +114,12 @@
         }
         .card:hover, .list-item:hover, .table-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
         .card.is-favorite, .list-item.is-favorite, .table-item.is-favorite { box-shadow: 0 0 0 2px var(--primary); }
+        
+        .card.is-selected, .list-item.is-selected, .table-item.is-selected {
+            transform: translateY(-2px);
+            box-shadow: 0 0 0 3px var(--ring), var(--shadow-lg);
+            border-color: var(--ring);
+        }
 
         .card {
             display: flex;
@@ -124,6 +130,7 @@
             background-position: center;
             justify-content: flex-end;
             color: white;
+            cursor: pointer;
         }
         
         .list-item, .fav-item {
@@ -131,6 +138,7 @@
             align-items: center;
             padding: 0.75rem;
             gap: 1rem;
+            cursor: pointer;
         }
 
         .table-item {
@@ -141,8 +149,8 @@
             width: 120px;
             height: 120px;
             padding: 0.5rem;
+            cursor: pointer;
         }
-
 
         .card-overlay {
             padding: 1rem;
@@ -197,6 +205,16 @@
         }
         .dark .input-base { background: #27272a; }
         .input-base:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
+        
+        #global-search-input {
+            background-color: var(--muted);
+        }
+        .dark #global-search-input {
+            background-color: #202023; /* Un gris oscuro ligeramente más claro */
+        }
+        #global-search-input:focus {
+            background-color: var(--card-background);
+        }
         
         .nav-link {
             display: flex;
@@ -285,6 +303,32 @@
             pointer-events: none;
         }
 
+        /* --- ESTILOS BUSCADOR MEJORADO --- */
+        #search-engine-selector-button .chevron-icon {
+            transition: transform 0.2s ease-in-out;
+        }
+        #search-engine-dropdown.is-open ~ #search-engine-selector-button .chevron-icon {
+            transform: rotate(180deg);
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            border-radius: var(--radius);
+        }
+        .dropdown-item:hover {
+            background-color: var(--muted);
+        }
+        .dropdown-item.is-selected {
+            background-color: var(--accent);
+            color: var(--accent-foreground);
+            font-weight: 600;
+        }
+        #main-search-input {
+             padding-left: 10rem;
+        }
     </style>
 </head>
 <body class="dark"> <!-- Inicia en modo oscuro por defecto -->
@@ -294,19 +338,20 @@
         <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-40 p-4 flex-shrink-0 flex flex-col transform -translate-x-full lg:translate-x-0">
             <!-- Sidebar Header -->
             <div class="sidebar-header flex items-center justify-between pb-4 px-2">
-                 <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3">
                     <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="w-10 h-10">
-                 </div>
-                 <button id="sidebar-toggle" class="btn btn-ghost !p-2 hidden lg:inline-flex" title="Colapsar barra lateral">
+                </div>
+                <button id="sidebar-toggle" class="btn btn-ghost !p-2 hidden lg:inline-flex" title="Colapsar barra lateral">
                      <i class="fas fa-angle-double-left"></i>
-                 </button>
+                </button>
             </div>
             
-            <!-- Global Search -->
+            <!-- Global Search Mejorado -->
             <div id="global-search-container" class="px-2 pb-4">
                 <div class="relative">
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                    <input type="text" id="global-search-input" placeholder="Buscar..." class="input-base w-full !pl-9">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10"></i>
+                    <input type="text" id="global-search-input" placeholder="Buscar..." class="input-base w-full !pl-9 !pr-14">
+                    <kbd id="search-shortcut" class="absolute right-2.5 top-1/2 -translate-y-1/2 opacity-60 pointer-events-none hidden sm:inline-flex items-center gap-1 text-xs"></kbd>
                 </div>
             </div>
 
@@ -335,13 +380,13 @@
         <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden"></div>
 
         <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto lg:ml-[280px]">
-            <header class="header flex flex-col md:flex-row justify-between items-center mb-6 pb-4 gap-4">
-                 <div class="flex items-center gap-4 w-full md:w-auto">
+            <header class="header flex flex-col md:flex-row justify-between items-start mb-6 pb-4 gap-4">
+                <div class="flex items-center gap-4 w-full md:w-auto">
                     <button id="menu-toggle" class="lg:hidden btn btn-ghost !p-2">
                           <i class="fas fa-bars text-xl"></i>
                     </button>
                     <h1 id="main-title" class="text-2xl sm:text-3xl font-bold tracking-tight">BUSCADORES</h1>
-                 </div>
+                </div>
                 <div class="flex items-center gap-2 sm:gap-4 w-full md:w-auto">
                     <div id="global-view-switcher" class="view-switcher flex items-center bg-secondary p-1 rounded-lg ml-auto">
                         <button data-view="grid" class="btn btn-sm btn-ghost !rounded-md px-3 py-1"><i class="fas fa-th-large"></i></button>
@@ -355,6 +400,30 @@
                 </div>
             </header>
             
+            <!-- CONTENEDOR DEL BUSCADOR MEJORADO -->
+            <div id="main-search-bar-container" class="mb-8 hidden">
+                <div class="relative">
+                    <button id="search-engine-selector-button" class="absolute inset-y-0 left-0 flex items-center pl-3 pr-10 text-muted-foreground bg-secondary hover:bg-muted transition rounded-l-lg z-10">
+                        <!-- El contenido del botón se generará con JS -->
+                    </button>
+                    
+                    <div id="search-engine-dropdown" class="absolute top-full left-0 mt-2 w-72 bg-card-background border border-border rounded-lg shadow-lg z-50 hidden fade-in">
+                        <div class="p-2 border-b border-border">
+                            <input type="text" id="dropdown-search-input" placeholder="Buscar motor..." class="input-base w-full text-sm">
+                        </div>
+                        <div id="dropdown-options-container" class="max-h-60 overflow-y-auto p-1">
+                            <!-- Las opciones del desplegable se generarán con JS -->
+                        </div>
+                    </div>
+
+                    <input type="text" id="main-search-input" placeholder="Escribe para buscar..." class="input-base w-full !py-4 !pr-16 text-lg">
+                    
+                    <button id="main-search-button" class="btn btn-primary absolute inset-y-0 right-0 my-2 mr-2 !px-4">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+
             <div id="section-buscadores" class="section"></div>
             <div id="section-links" class="section hidden"></div>
             <div id="section-prompts" class="section hidden"></div>
@@ -382,6 +451,9 @@ let viewModes = {};
 const themes = ['dark', 'light'];
 let currentTheme = localStorage.getItem('theme') || 'dark';
 let previewTimeout = null;
+let selectedSearchEngineId = null;
+const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
+
 
 // --- MOCK DATA (Fallback) ---
 const mockData = {
@@ -486,8 +558,8 @@ async function saveData() {
         });
         if (!response.ok) {
              if(response.status === 401 || response.status === 404) {
-                   showToast("Token inválido. Revisa la configuración.");
-                   updateSyncStatus('error', 'Token inválido');
+                 showToast("Token inválido. Revisa la configuración.");
+                 updateSyncStatus('error', 'Token inválido');
              }
              throw new Error(`Error al guardar: ${response.status}`)
         };
@@ -558,9 +630,29 @@ function setupEventListeners() {
             }
             document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.remove('active'));
             button.classList.add('active');
-            applyGlobalFilter(); // Re-render with the new view
+            applyGlobalFilter();
         }
     });
+
+    // Listeners para el buscador mejorado
+    document.getElementById('main-search-button').addEventListener('click', performMainSearch);
+    document.getElementById('main-search-input').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') performMainSearch();
+    });
+    document.getElementById('search-engine-selector-button').addEventListener('click', toggleSearchEngineDropdown);
+    document.getElementById('dropdown-search-input').addEventListener('input', renderSearchEngineDropdown);
+
+    // Listener para cerrar el dropdown
+    document.addEventListener('click', (e) => {
+        const dropdown = document.getElementById('search-engine-dropdown');
+        const button = document.getElementById('search-engine-selector-button');
+        if (!dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && !button.contains(e.target)) {
+            closeSearchEngineDropdown();
+        }
+    });
+
+    // Listener para atajos de teclado globales
+    document.addEventListener('keydown', handleGlobalShortcuts);
 }
 
 function initializeUI() {
@@ -568,6 +660,8 @@ function initializeUI() {
     if (window.innerWidth >= 1024) {
         document.querySelector('main').style.marginLeft = '280px';
     }
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    document.getElementById('search-shortcut').innerHTML = `<kbd>${isMac ? '⌘' : 'Ctrl'}</kbd><kbd>B</kbd>`;
     switchTab('buscadores');
     renderAgendaWidget();
 }
@@ -582,7 +676,7 @@ function switchTab(tabName) {
     const activeLink = document.querySelector(`#main-nav .nav-link[data-section="${tabName}"]`);
     activeLink.classList.add("active");
     
-    document.getElementById('main-title').textContent = activeLink.querySelector('span').textContent;
+    document.getElementById('main-title').textContent = activeLink.querySelector('span').textContent.toUpperCase();
 
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
     document.getElementById(`section-${tabName}`).classList.remove("hidden");
@@ -590,9 +684,16 @@ function switchTab(tabName) {
     const currentView = viewModes[tabName] || 'grid';
     document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
 
-    const kanbanButton = document.querySelector('#global-view-switcher button[data-view="kanban"]');
-    if (kanbanButton) {
-        kanbanButton.style.display = 'none'; // Kanban view removed
+    const mainSearchBar = document.getElementById('main-search-bar-container');
+    if (tabName === 'buscadores') {
+        mainSearchBar.classList.remove('hidden');
+        const searchEngines = data.items.filter(item => item.type === 'Buscador');
+        if (searchEngines.length > 0 && !searchEngines.some(e => e.id === selectedSearchEngineId)) {
+             selectSearchEngine(searchEngines[0].id, false);
+        }
+        updateSearchEngineSelectorButton();
+    } else {
+        mainSearchBar.classList.add('hidden');
     }
 
     applyGlobalFilter();
@@ -763,7 +864,7 @@ function renderFavoritesBar(container, items) {
     
     orderedFavorites.forEach(item => {
         const favIcon = document.createElement('div');
-        favIcon.className = 'fav-item flex items-center gap-2 p-2 pr-4 rounded-full bg-secondary hover:bg-accent transition cursor-move';
+        favIcon.className = 'fav-item flex items-center gap-2 p-2 pr-4 rounded-full bg-secondary hover:bg-accent transition';
         favIcon.dataset.id = item.id;
         favIcon.innerHTML = `
             <div class="w-8 h-8 bg-card-background rounded-full flex items-center justify-center">${getIconHtml(item.icon, 'text-lg')}</div>
@@ -792,6 +893,7 @@ function createCard(item, searchTerm = '') {
     card.className = 'card fade-in';
     card.dataset.id = item.id;
     if (item.isFavorite) card.classList.add('is-favorite');
+    if (item.id === selectedSearchEngineId) card.classList.add('is-selected');
 
     const previewUrl = (item.type === 'Link' || item.type === 'Buscador') 
         ? `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`
@@ -827,13 +929,15 @@ function createListItem(item, searchTerm = '') {
     listItem.className = 'list-item';
     listItem.dataset.id = item.id;
     if (item.isFavorite) listItem.classList.add('is-favorite');
+    if (item.id === selectedSearchEngineId) listItem.classList.add('is-selected');
+
 
     listItem.innerHTML = `
         <div class="drag-handle p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center flex-shrink-0">${getIconHtml(item.icon, 'text-xl')}</div>
         <div class="flex-grow overflow-hidden">
             <h4 class="font-bold truncate">${item.title}</h4>
-            <p class="text-sm text-muted-foreground truncate">${item.category || ''}</p>
+            <p class="text-sm text-muted-foreground truncate">${item.type} / ${item.category || 'Sin Categoría'}</p>
         </div>
         <div class="list-item-actions flex items-center gap-2">
             <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
@@ -849,6 +953,8 @@ function createTableItem(item, searchTerm = '') {
     tableItem.className = 'table-item';
     tableItem.dataset.id = item.id;
     if (item.isFavorite) tableItem.classList.add('is-favorite');
+    if (item.id === selectedSearchEngineId) tableItem.classList.add('is-selected');
+
 
     tableItem.innerHTML = `
         <div class="drag-handle absolute top-1 left-1 p-1 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
@@ -971,8 +1077,7 @@ function handleCardClick(id, event) {
     if (item.type === "Link") {
         window.open(item.action, "_blank");
     } else if (item.type === "Buscador") {
-        const term = prompt(`Buscar en ${item.title}:`);
-        if (term) window.open(item.action.replace('{search_term}', encodeURIComponent(term)), '_blank');
+        selectSearchEngine(item.id);
     } else if (item.type === "Promp") {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = item.action;
@@ -981,6 +1086,134 @@ function handleCardClick(id, event) {
         openEditPanel(id);
     }
 }
+
+// --- BUSCADOR MEJORADO & ATAJOS ---
+function toggleSearchEngineDropdown() {
+    const dropdown = document.getElementById('search-engine-dropdown');
+    const isOpen = !dropdown.classList.contains('hidden');
+    if (isOpen) {
+        closeSearchEngineDropdown();
+    } else {
+        dropdown.classList.remove('hidden');
+        dropdown.classList.add('is-open');
+        document.getElementById('dropdown-search-input').value = '';
+        renderSearchEngineDropdown();
+        document.getElementById('dropdown-search-input').focus();
+    }
+}
+
+function closeSearchEngineDropdown() {
+    const dropdown = document.getElementById('search-engine-dropdown');
+    dropdown.classList.add('hidden');
+    dropdown.classList.remove('is-open');
+}
+
+function renderSearchEngineDropdown() {
+    const container = document.getElementById('dropdown-options-container');
+    const searchTerm = document.getElementById('dropdown-search-input').value.toLowerCase();
+    const engines = data.items.filter(item => item.type === 'Buscador');
+
+    const filteredEngines = engines.filter(engine => 
+        engine.title.toLowerCase().includes(searchTerm)
+    );
+
+    container.innerHTML = '';
+    if (filteredEngines.length > 0) {
+        filteredEngines.forEach(engine => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'dropdown-item';
+            if(engine.id === selectedSearchEngineId) {
+                itemEl.classList.add('is-selected');
+            }
+            itemEl.innerHTML = `
+                ${getIconHtml(engine.icon, 'text-xl')}
+                <span>${engine.title}</span>
+            `;
+            itemEl.onclick = () => selectSearchEngine(engine.id);
+            container.appendChild(itemEl);
+        });
+    } else {
+        container.innerHTML = `<p class="text-sm text-muted-foreground text-center p-4">No se encontraron motores.</p>`;
+    }
+}
+
+function selectSearchEngine(itemId, focusInput = true) {
+    selectedSearchEngineId = parseInt(itemId);
+    updateSearchEngineSelectorButton();
+    applyGlobalFilter();
+    closeSearchEngineDropdown();
+    if (focusInput) {
+        document.getElementById('main-search-input').focus();
+    }
+}
+
+function updateSearchEngineSelectorButton() {
+    const button = document.getElementById('search-engine-selector-button');
+    const engine = data.items.find(i => i.id === selectedSearchEngineId);
+    if (engine) {
+        button.innerHTML = `
+            <div class="flex items-center gap-2 pointer-events-none">
+                ${getIconHtml(engine.icon, 'text-xl')}
+                <span class="font-semibold text-sm text-foreground">${engine.title}</span>
+            </div>
+            <i class="fas fa-chevron-down chevron-icon ml-auto mr-2 text-xs"></i>
+        `;
+        setTimeout(() => {
+            const buttonWidth = button.offsetWidth;
+            document.getElementById('main-search-input').style.paddingLeft = `${buttonWidth + 12}px`;
+        }, 0);
+    } else {
+        button.innerHTML = `
+             <span class="font-semibold text-sm">Seleccionar</span>
+             <i class="fas fa-chevron-down chevron-icon ml-auto mr-2 text-xs"></i>
+        `;
+    }
+}
+
+function performMainSearch() {
+    const term = document.getElementById('main-search-input').value;
+    if (!term.trim() || !selectedSearchEngineId) {
+         showToast("Por favor, escribe un término y selecciona un motor de búsqueda.");
+        return;
+    }
+
+    const engine = data.items.find(i => i.id === selectedSearchEngineId);
+    if (engine) {
+        const url = engine.action.replace('{search_term}', encodeURIComponent(term));
+        window.open(url, '_blank');
+    }
+}
+
+function handleGlobalShortcuts(e) {
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const modifier = isMac ? e.metaKey : e.ctrlKey;
+
+    if (e.key === 'Escape') {
+        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal'];
+        modals.forEach(id => document.getElementById(id).classList.add('hidden'));
+        closeSearchEngineDropdown();
+        return;
+    }
+
+    if (modifier && e.altKey) {
+        switch (e.key.toLowerCase()) {
+            case 'n': e.preventDefault(); openEditPanel(); break;
+            case 't': e.preventDefault(); changeTheme(); break;
+            case 'v':
+                e.preventDefault();
+                const viewButtons = Array.from(document.querySelectorAll('#global-view-switcher button'));
+                const activeButton = document.querySelector('#global-view-switcher button.active');
+                const currentIndex = viewButtons.indexOf(activeButton);
+                const nextIndex = (currentIndex + 1) % viewButtons.length;
+                viewButtons[nextIndex].click();
+                break;
+        }
+    } else if (modifier && e.key.toLowerCase() === 'b') {
+        e.preventDefault();
+        document.getElementById('global-search-input').focus();
+    }
+}
+
 
 function toggleFavorite(event, itemId) {
     event.stopPropagation();
@@ -999,23 +1232,26 @@ function toggleFavorite(event, itemId) {
     }
 }
 
-
+// MODIFICADO: Lógica de búsqueda global
 function applyGlobalFilter() {
     const searchTerm = document.getElementById('global-search-input').value.toLowerCase();
     const activeNavBtn = document.querySelector('.nav-link.active');
     if (!activeNavBtn) return;
     
-    let activeSectionName = activeNavBtn.dataset.section;
-    
-    const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
-    const activeType = typeMap[activeSectionName];
-    
-    const itemsToFilter = data.items.filter(item => 
-        Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
-    );
+    const activeSectionName = activeNavBtn.dataset.section;
 
-    const results = itemsToFilter.filter(card => {
-        if (!searchTerm) return true;
+    // Si no hay término de búsqueda, mostrar la vista de sección normal
+    if (!searchTerm) {
+        const activeType = typeMap[activeSectionName];
+        const itemsToFilter = data.items.filter(item => 
+            Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
+        );
+        renderSection(activeSectionName, itemsToFilter, '');
+        return;
+    }
+
+    // Si hay término de búsqueda, realizar búsqueda global
+    const allResults = data.items.filter(card => {
         const titleMatch = card.title.toLowerCase().includes(searchTerm);
         const categoryNameMatch = (card.category || '').toLowerCase().includes(searchTerm);
         const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(searchTerm);
@@ -1028,12 +1264,85 @@ function applyGlobalFilter() {
         } else if (Array.isArray(card.action)) {
             contentMatch = card.action.some(task => task.text.toLowerCase().includes(searchTerm));
         }
-        
         return titleMatch || categoryNameMatch || tagListMatch || contentMatch;
     });
-    
-    renderSection(activeSectionName, results, searchTerm);
+
+    const activeType = typeMap[activeSectionName];
+    const primaryResults = allResults.filter(item => 
+        Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
+    );
+    const secondaryResults = allResults.filter(item => !primaryResults.includes(item));
+
+    renderGlobalSearchResults(primaryResults, secondaryResults, activeSectionName);
 }
+
+// NUEVO: Función para renderizar los resultados de la búsqueda global
+function renderGlobalSearchResults(primary, secondary, activeSectionName) {
+    const container = document.getElementById(`section-${activeSectionName}`);
+    document.querySelectorAll(".section").forEach(s => {
+        if (s.id !== `section-${activeSectionName}`) s.classList.add("hidden");
+    });
+    container.classList.remove("hidden");
+    container.innerHTML = ''; // Limpiar el contenedor de la sección activa
+
+    if (primary.length === 0 && secondary.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
+                <h3 class="text-xl font-semibold">Sin resultados</h3>
+                <p class="text-muted-foreground mt-2">No se encontraron resultados para "${document.getElementById('global-search-input').value}" en ninguna sección.</p>
+            </div>
+        `;
+        return;
+    }
+
+    if (primary.length > 0) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mb-12';
+        const sectionTitle = document.querySelector(`[data-section="${activeSectionName}"] span`).textContent;
+        wrapper.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Resultados en ${sectionTitle}</h2>`;
+        const content = document.createElement('div');
+        content.className = 'list-view';
+        primary.forEach(item => content.appendChild(createListItem(item)));
+        wrapper.appendChild(content);
+        container.appendChild(wrapper);
+    }
+
+    if (secondary.length > 0) {
+        if (primary.length > 0) {
+            const divider = document.createElement('hr');
+            divider.className = 'my-8 border-border';
+            container.appendChild(divider);
+        }
+
+        const otherResultsHeader = document.createElement('h2');
+        otherResultsHeader.className = 'text-xl font-bold mb-4 text-muted-foreground';
+        otherResultsHeader.textContent = 'Resultados en otras secciones';
+        container.appendChild(otherResultsHeader);
+        
+        const secondaryGrouped = secondary.reduce((acc, item) => {
+            const section = Object.keys(typeMap).find(key => {
+                const type = typeMap[key];
+                return Array.isArray(type) ? type.includes(item.type) : type === item.type;
+            });
+            if (!acc[section]) acc[section] = [];
+            acc[section].push(item);
+            return acc;
+        }, {});
+
+        for (const sectionName in secondaryGrouped) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'mb-8';
+            const sectionTitle = document.querySelector(`[data-section="${sectionName}"] span`).textContent;
+            wrapper.innerHTML = `<h3 class="text-lg font-semibold mb-3">${sectionTitle}</h3>`;
+            const content = document.createElement('div');
+            content.className = 'list-view';
+            secondaryGrouped[sectionName].forEach(item => content.appendChild(createListItem(item)));
+            wrapper.appendChild(content);
+            container.appendChild(wrapper);
+        }
+    }
+}
+
 
 function renderEmptyState(container, sectionName) {
     const titles = {
@@ -1456,6 +1765,7 @@ function openSettingsHelpModal() {
     const modal = document.getElementById('settingsHelpPanel');
     const gistId = localStorage.getItem('gist_id') || '';
     const pat = localStorage.getItem('github_pat') || '';
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     
     modal.innerHTML = `
         <div class="modal-container w-full max-w-2xl p-0 flex flex-col">
@@ -1470,9 +1780,9 @@ function openSettingsHelpModal() {
             <div class="p-6 overflow-y-auto">
                 <div id="settings-tab-content" class="tab-content space-y-4">
                      <div>
-                        <label for="gistIdInput" class="font-semibold block mb-2">Gist ID</label>
-                        <input type="text" id="gistIdInput" class="input-base" value="${gistId}" placeholder="El ID de tu Gist de GitHub">
-                    </div>
+                         <label for="gistIdInput" class="font-semibold block mb-2">Gist ID</label>
+                         <input type="text" id="gistIdInput" class="input-base" value="${gistId}" placeholder="El ID de tu Gist de GitHub">
+                     </div>
                     <div>
                         <label for="githubPatInput" class="font-semibold block mb-2">Personal Access Token</label>
                         <input type="password" id="githubPatInput" class="input-base" value="${pat}" placeholder="Token con permiso 'gist'">
@@ -1493,12 +1803,12 @@ function openSettingsHelpModal() {
                     </ul>
                      <h3 class="font-bold text-lg mt-4">Atajos de Teclado</h3>
                      <ul class="list-disc list-inside space-y-1">
-                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
-                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>B</kbd> : Activar barra de búsqueda</li>
-                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema (claro/oscuro)</li>
-                        <li><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
-                        <li><kbd>Esc</kbd> : Cerrar ventanas y paneles</li>
-                    </ul>
+                         <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
+                         <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>B</kbd> : Activar barra de búsqueda</li>
+                         <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema (claro/oscuro)</li>
+                         <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
+                         <li><kbd>Esc</kbd> : Cerrar ventanas y paneles</li>
+                     </ul>
                 </div>
             </div>
         </div>
@@ -1514,7 +1824,7 @@ function openSettingsHelpModal() {
             document.getElementById(`${tab.dataset.tab}-tab-content`).classList.remove('hidden');
         });
     });
-    // Estilo para la pestaña activa
+    
     tabs.forEach(t => {
       if(t.classList.contains('active')) t.style.borderBottom = '2px solid var(--primary)';
       else t.style.borderBottom = 'none';
