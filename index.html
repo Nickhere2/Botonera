@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v33 - Mejoras de UI y Búsqueda</title>
+    <title>Centro de Accesos v34 - Correcciones y Mejoras</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -340,6 +340,7 @@
             <div class="sidebar-header flex items-center justify-between pb-4 px-2">
                 <div class="flex items-center gap-3">
                     <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="w-10 h-10">
+                    <h2 class="text-xl font-bold tracking-tight text-foreground">Accesos</h2>
                 </div>
                 <button id="sidebar-toggle" class="btn btn-ghost !p-2 hidden lg:inline-flex" title="Colapsar barra lateral">
                      <i class="fas fa-angle-double-left"></i>
@@ -402,12 +403,12 @@
             
             <!-- CONTENEDOR DEL BUSCADOR MEJORADO -->
             <div id="main-search-bar-container" class="mb-8 hidden">
-                <div class="relative">
+                <div class="relative z-20">
                     <button id="search-engine-selector-button" class="absolute inset-y-0 left-0 flex items-center pl-3 pr-10 text-muted-foreground bg-secondary hover:bg-muted transition rounded-l-lg z-10">
                         <!-- El contenido del botón se generará con JS -->
                     </button>
                     
-                    <div id="search-engine-dropdown" class="absolute top-full left-0 mt-2 w-72 bg-card-background border border-border rounded-lg shadow-lg z-[1001] hidden fade-in">
+                    <div id="search-engine-dropdown" class="absolute top-full left-0 mt-2 w-72 bg-card-background border border-border rounded-lg shadow-lg z-50 hidden fade-in">
                         <div class="p-2 border-b border-border">
                             <input type="text" id="dropdown-search-input" placeholder="Buscar motor..." class="input-base w-full text-sm">
                         </div>
@@ -1390,7 +1391,7 @@ function renderAgendaWidget() {
                     <i class="fas ${icon} w-4 text-center"></i>
                     <div class="flex-grow overflow-hidden">
                         <p class="font-medium truncate">${event.title} ${noteIcon}</p>
-                        <p class="text-xs text-muted-foreground">${event.date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}</p>
+                        <p class="text-xs text-muted-foreground">${event.date.toLocaleDateString('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'long' })}</p>
                     </div>
                     ${reminderIcon}
                     <div class="actions flex items-center">
@@ -1431,9 +1432,10 @@ function getUpcomingEvents(days) {
 
     const upcoming = data.events.map(event => {
         // Corrección de zona horaria: Tratar la fecha como local
-        const dateString = event.date.replace(/-/g, '/');
-        const eventDate = new Date(dateString);
-        let nextOccurrence = new Date(dateString);
+        const dateParts = event.date.split('-').map(Number);
+        const eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        
+        let nextOccurrence = new Date(eventDate);
 
         if (event.type === 'birthday' || event.type === 'anniversary') {
             nextOccurrence.setFullYear(today.getFullYear());
@@ -1464,7 +1466,8 @@ function openEventPanel(eventId = null) {
     let dateValue = '';
     if (event) {
         // Corrección de zona horaria para mostrar la fecha correcta en el input
-        const d = new Date(event.date.replace(/-/g, '/'));
+        const dateParts = event.date.split('-').map(Number);
+        const d = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
         dateValue = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
     }
 
