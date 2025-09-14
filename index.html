@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v35 - Correcciones Finales</title>
+    <title>Centro de Accesos v36 - Drag & Drop Funcional</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -231,7 +231,7 @@
         
         .card-actions, .list-item-actions, .table-item-actions { opacity: 0; transition: opacity 0.2s; z-index: 10; }
         .card:hover .card-actions, .list-item:hover .list-item-actions, .table-item:hover .table-item-actions { opacity: 1; }
-        .drag-handle { cursor: move; opacity: 0; transition: opacity 0.2s; }
+        .drag-handle { cursor: move; opacity: 0; transition: opacity 0.2s; z-index: 10; }
         .card:hover .drag-handle, .list-item:hover .drag-handle, .table-item:hover .drag-handle { opacity: 1; }
         .category-drag-handle { cursor: move; }
         .fav-item { cursor: move; }
@@ -802,7 +802,7 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
             if (categoryName !== 'Sin Categoría') {
                 editButtonHTML = `<button onclick="openCategoryEditModal(event, '${categoryName}')" class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" title="Editar categoría"><i class="fas fa-pencil-alt text-sm"></i></button>`;
             }
-            catWrapper.innerHTML = `<div class="flex items-center gap-2 mb-4"><h2 class="text-xl font-bold text-muted-foreground">${categoryName}</h2>${editButtonHTML}</div>`;
+            catWrapper.innerHTML = `<div class="flex items-center gap-2 mb-4"><h2 class="text-xl font-bold text-muted-foreground category-drag-handle">${categoryName}</h2>${editButtonHTML}</div>`;
 
             const contentContainer = document.createElement('div');
             
@@ -829,6 +829,53 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
 
             catWrapper.appendChild(contentContainer);
             categoryContainerWrapper.appendChild(catWrapper);
+
+             new Sortable(contentContainer, {
+                group: sectionName,
+                animation: 150,
+                handle: '.drag-handle',
+                onEnd: (evt) => {
+                    const itemId = parseInt(evt.item.dataset.id);
+                    const fromCategory = evt.from.closest('.category-wrapper').dataset.categoryName;
+                    const toCategory = evt.to.closest('.category-wrapper').dataset.categoryName;
+
+                    const item = data.items.find(i => i.id === itemId);
+                    if (item) {
+                        item.category = toCategory;
+                    }
+
+                    const allDomItemIds = Array.from(container.querySelectorAll('.item-container > [data-id]')).map(el => parseInt(el.dataset.id));
+                    
+                    const activeType = typeMap[sectionName];
+                    const sectionItems = data.items.filter(i => 
+                        Array.isArray(activeType) ? activeType.includes(i.type) : i.type === activeType
+                    );
+                    const otherItems = data.items.filter(i => !sectionItems.map(si => si.id).includes(i.id));
+
+                    const sortedSectionItems = sectionItems.sort((a, b) => {
+                        const indexA = allDomItemIds.indexOf(a.id);
+                        const indexB = allDomItemIds.indexOf(b.id);
+                        if (indexA > -1 && indexB > -1) return indexA - indexB; 
+                        if (indexA > -1) return -1;
+                        if (indexB > -1) return 1; 
+                        return 0; 
+                    });
+
+                    data.items = [...otherItems, ...sortedSectionItems];
+                    saveData();
+                }
+            });
+        }
+    });
+    
+    new Sortable(categoryContainerWrapper, {
+        animation: 150,
+        handle: '.category-drag-handle',
+        onEnd: (evt) => {
+            const newOrder = Array.from(evt.target.children).map(child => child.dataset.categoryName);
+            if (!data.categoryOrders) data.categoryOrders = {};
+            data.categoryOrders[sectionName] = newOrder;
+            saveData();
         }
     });
 }
@@ -913,6 +960,17 @@ function renderFavoritesBar(container) {
 
     bar.appendChild(favContainer);
     container.prepend(bar);
+    
+    new Sortable(favContainer, {
+        animation: 150,
+        onEnd: (evt) => {
+            const newOrderOfIds = Array.from(evt.target.children).map(child => parseInt(child.dataset.id));
+            if (data.favoriteOrders && data.favoriteOrders[activeSectionName]) {
+                data.favoriteOrders[activeSectionName] = newOrderOfIds;
+            }
+            saveData();
+        }
+    });
 }
 
 
@@ -928,6 +986,7 @@ function createCard(item, searchTerm = '') {
         : '';
 
     card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-white/50 hover:text-white"><i class="fas fa-grip-vertical"></i></div>
         <div class="card-bg-preview" style="background-image: url('${previewUrl}')"></div>
         <div class="card-overlay">
             <div class="flex justify-between items-start">
@@ -960,6 +1019,7 @@ function createListItem(item, searchTerm = '') {
 
 
     listItem.innerHTML = `
+        <div class="drag-handle p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center flex-shrink-0">${getIconHtml(item.icon, 'text-xl')}</div>
         <div class="flex-grow overflow-hidden">
             <h4 class="font-bold truncate">${item.title}</h4>
@@ -986,6 +1046,7 @@ function createTableItem(item, searchTerm = '', isGlobalSearch = false) {
         : '';
 
     tableItem.innerHTML = `
+        <div class="drag-handle absolute top-1 left-1 p-1 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="table-item-actions absolute top-1 right-1 flex">
             <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Editar"><i class="fas fa-pencil-alt"></i></button>
             <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Favorito"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
@@ -1017,6 +1078,7 @@ function createNoteCard(item, searchTerm) {
     card.dataset.id = item.id;
     if (item.isFavorite) card.classList.add('is-favorite');
     card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="flex justify-between items-start">
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
@@ -1036,6 +1098,7 @@ function createPromptCard(item, searchTerm) {
     card.dataset.id = item.id;
     if (item.isFavorite) card.classList.add('is-favorite');
     card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="flex justify-between items-start">
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
@@ -1067,6 +1130,7 @@ function createTaskCard(item, searchTerm) {
     ` : '';
 
     card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="flex justify-between items-start">
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
@@ -1096,7 +1160,7 @@ function createTaskCard(item, searchTerm) {
 
 // --- ACTIONS & EVENT HANDLERS ---
 function handleCardClick(id, event) {
-    if (event.target.closest('button, input')) return; 
+    if (event.target.closest('button, input, .drag-handle')) return; 
     const item = data.items.find(i => String(i.id) === String(id));
     if (!item) return;
 
