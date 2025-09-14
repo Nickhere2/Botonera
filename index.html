@@ -503,8 +503,37 @@ async function loadData() {
     const localData = localStorage.getItem('appData');
     viewModes = JSON.parse(localStorage.getItem('viewModes')) || {};
 
+    const processLoadedData = (loadedData) => {
+        const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [] };
+        data = { ...defaults, ...loadedData };
+        data.items = (data.items || []).map(i => ({...i, isFavorite: i.isFavorite || false}));
+
+        if (data.favoriteOrder && !data.favoriteOrders) {
+            data.favoriteOrders = {};
+            data.favoriteOrder.forEach(id => {
+                const item = data.items.find(i => i.id === id);
+                if (item) {
+                    const sectionName = Object.keys(typeMap).find(key => {
+                        const type = typeMap[key];
+                        return Array.isArray(type) ? type.includes(item.type) : type === item.type;
+                    });
+                    if (sectionName) {
+                        if (!data.favoriteOrders[sectionName]) {
+                            data.favoriteOrders[sectionName] = [];
+                        }
+                        data.favoriteOrders[sectionName].push(id);
+                    }
+                }
+            });
+            delete data.favoriteOrder;
+        }
+        if (!data.favoriteOrders) {
+            data.favoriteOrders = {};
+        }
+    };
+
     if (!gistId && localData) {
-        data = JSON.parse(localData);
+        processLoadedData(JSON.parse(localData));
         showToast("Datos cargados desde guardado local.");
         updateSyncStatus('local');
         ensureAllIcons();
@@ -531,37 +560,9 @@ async function loadData() {
         const fileContent = gistData.files[FILENAME_IN_GIST]?.content;
         if (!fileContent) {
             showToast("Archivo no encontrado en Gist. Usando datos de ejemplo.");
-            data = JSON.parse(JSON.stringify(mockData));
+            processLoadedData(mockData);
         } else {
-            let loadedJson = JSON.parse(fileContent);
-            const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [] };
-            data = { ...defaults, ...loadedJson };
-            data.items = (data.items || []).map(i => ({...i, isFavorite: i.isFavorite || false}));
-            
-            if (data.favoriteOrder && !data.favoriteOrders) {
-                console.log("Migrating old favoriteOrder to new favoriteOrders structure.");
-                data.favoriteOrders = {};
-                data.favoriteOrder.forEach(id => {
-                    const item = data.items.find(i => i.id === id);
-                    if (item) {
-                        const sectionName = Object.keys(typeMap).find(key => {
-                            const type = typeMap[key];
-                            return Array.isArray(type) ? type.includes(item.type) : type === item.type;
-                        });
-                        if (sectionName) {
-                            if (!data.favoriteOrders[sectionName]) {
-                                data.favoriteOrders[sectionName] = [];
-                            }
-                            data.favoriteOrders[sectionName].push(id);
-                        }
-                    }
-                });
-                delete data.favoriteOrder; // Remove the old property
-            }
-
-            if (!data.favoriteOrders) {
-                data.favoriteOrders = {};
-            }
+            processLoadedData(JSON.parse(fileContent));
             showToast("Datos cargados desde Gist.");
         }
         updateSyncStatus('synced');
@@ -569,7 +570,7 @@ async function loadData() {
         console.error("Fallo al cargar datos:", error);
         showToast(`Error al cargar: ${error.message}.`);
         updateSyncStatus('error', 'Error de carga');
-        data = JSON.parse(JSON.stringify(mockData));
+        processLoadedData(mockData);
     }
     ensureAllIcons();
     initializeUI();
@@ -835,33 +836,31 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
                 animation: 150,
                 handle: '.drag-handle',
                 onEnd: (evt) => {
-                    const itemId = parseInt(evt.item.dataset.id);
-                    const fromCategory = evt.from.closest('.category-wrapper').dataset.categoryName;
-                    const toCategory = evt.to.closest('.category-wrapper').dataset.categoryName;
-
-                    const item = data.items.find(i => i.id === itemId);
-                    if (item) {
-                        item.category = toCategory;
+                    const movedItemId = parseInt(evt.item.dataset.id);
+                    const toCategoryName = evt.to.closest('.category-wrapper').dataset.categoryName;
+                    const fromCategoryName = evt.from.closest('.category-wrapper').dataset.categoryName;
+                    
+                    const itemToUpdate = data.items.find(i => i.id === movedItemId);
+                    if (itemToUpdate) {
+                        itemToUpdate.category = toCategoryName;
                     }
 
-                    const allDomItemIds = Array.from(container.querySelectorAll('.item-container > [data-id]')).map(el => parseInt(el.dataset.id));
+                    const allDomItemIds = Array.from(document.querySelectorAll(`#section-${sectionName} .item-container > [data-id]`)).map(el => parseInt(el.dataset.id));
                     
                     const activeType = typeMap[sectionName];
-                    const sectionItems = data.items.filter(i => 
-                        Array.isArray(activeType) ? activeType.includes(i.type) : i.type === activeType
-                    );
-                    const otherItems = data.items.filter(i => !sectionItems.map(si => si.id).includes(i.id));
+                    const sectionItems = data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
+                    const otherItems = data.items.filter(item => !sectionItems.find(i => i.id === item.id));
 
                     const sortedSectionItems = sectionItems.sort((a, b) => {
-                        const indexA = allDomItemIds.indexOf(a.id);
-                        const indexB = allDomItemIds.indexOf(b.id);
-                        if (indexA > -1 && indexB > -1) return indexA - indexB; 
-                        if (indexA > -1) return -1;
-                        if (indexB > -1) return 1; 
-                        return 0; 
+                        let indexA = allDomItemIds.indexOf(a.id);
+                        let indexB = allDomItemIds.indexOf(b.id);
+                        if (indexA === -1) indexA = Infinity;
+                        if (indexB === -1) indexB = Infinity;
+                        return indexA - indexB;
                     });
-
+                    
                     data.items = [...otherItems, ...sortedSectionItems];
+
                     saveData();
                 }
             });
@@ -960,7 +959,7 @@ function renderFavoritesBar(container) {
 
     bar.appendChild(favContainer);
     container.prepend(bar);
-    
+
     new Sortable(favContainer, {
         animation: 150,
         onEnd: (evt) => {
