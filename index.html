@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v34 - Correcciones y Mejoras</title>
+    <title>Centro de Accesos v35 - Correcciones Finales</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -304,6 +304,9 @@
         }
 
         /* --- ESTILOS BUSCADOR MEJORADO --- */
+        #search-engine-dropdown {
+            background-color: var(--background);
+        }
         #search-engine-selector-button .chevron-icon {
             transition: transform 0.2s ease-in-out;
         }
@@ -338,9 +341,7 @@
         <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-40 p-4 flex-shrink-0 flex flex-col transform -translate-x-full lg:translate-x-0">
             <!-- Sidebar Header -->
             <div class="sidebar-header flex items-center justify-between pb-4 px-2">
-                <div class="flex items-center">
-                    <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="w-14 h-14">
-                </div>
+                <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="w-14 h-14">
                 <button id="sidebar-toggle" class="btn btn-ghost !p-2 hidden lg:inline-flex" title="Colapsar barra lateral">
                      <i class="fas fa-angle-double-left"></i>
                 </button>
@@ -401,8 +402,8 @@
             </header>
             
             <!-- CONTENEDOR DEL BUSCADOR MEJORADO -->
-            <div id="main-search-bar-container" class="mb-8 hidden">
-                <div class="relative">
+            <div id="main-search-bar-container" class="mb-8 hidden relative z-40">
+                <div>
                     <button id="search-engine-selector-button" class="absolute inset-y-0 left-0 flex items-center pl-3 pr-10 text-muted-foreground bg-secondary hover:bg-muted transition rounded-l-lg z-30">
                         <!-- El contenido del botón se generará con JS -->
                     </button>
@@ -416,7 +417,7 @@
                         </div>
                     </div>
 
-                    <input type="text" id="main-search-input" placeholder="Escribe para buscar..." class="input-base w-full !py-4 !pr-16 text-lg z-20">
+                    <input type="text" id="main-search-input" placeholder="Escribe para buscar..." class="input-base w-full !py-4 !pr-16 text-lg z-20 relative">
                     
                     <button id="main-search-button" class="btn btn-primary absolute inset-y-0 right-0 my-2 mr-2 !px-4 z-30">
                         <i class="fas fa-search"></i>
@@ -493,13 +494,25 @@ function ensureAllIcons() {
 
 async function loadData() {
     let gistId = localStorage.getItem('gist_id');
+    const localData = localStorage.getItem('appData');
     viewModes = JSON.parse(localStorage.getItem('viewModes')) || {};
+
+    if (!gistId && localData) {
+        data = JSON.parse(localData);
+        showToast("Datos cargados desde guardado local.");
+        updateSyncStatus('local');
+        ensureAllIcons();
+        initializeUI();
+        return;
+    }
+
     if (!gistId) {
         data = JSON.parse(JSON.stringify(mockData));
         ensureAllIcons();
         initializeUI();
         return;
     }
+    
     updateSyncStatus('loading');
     const token = localStorage.getItem('github_pat');
     const headers = { 'Accept': 'application/vnd.github.v3+json' };
@@ -536,6 +549,10 @@ async function loadData() {
 
 async function saveData() {
     const gistId = localStorage.getItem('gist_id');
+    const dataString = JSON.stringify(data, null, 2);
+
+    localStorage.setItem('appData', dataString);
+
     if (!gistId) {
         updateSyncStatus('local');
         return;
@@ -554,7 +571,13 @@ async function saveData() {
         const response = await fetch(`https://api.github.com/gists/${gistId}`, {
             method: 'PATCH',
             headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
-            body: JSON.stringify(data, null, 2)
+            body: JSON.stringify({
+                files: {
+                    [FILENAME_IN_GIST]: {
+                        content: dataString
+                    }
+                }
+            })
         });
         if (!response.ok) {
              if(response.status === 401 || response.status === 404) {
@@ -1996,5 +2019,6 @@ function updateSyncStatus(status, message = '') {
 </script>
 </body>
 </html>
-" because it is the most up-to-date and make the necessary changes.
+", could you tell me que es el gist id y que es el token de github pat, y como se consiguen?
+
 
