@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v36 - Drag & Drop Funcional</title>
+    <title>Centro de Accesos v42 - Vistas en Inicio</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -70,7 +70,7 @@
             -moz-osx-font-smoothing: grayscale;
         }
 
-        /* --- LAYOUT PRINCIPAL --- */
+        /* --- LAYOUT PRINCIPAL Y ANIMACIÓN SIDEBAR MEJORADA --- */
         .sidebar {
             background-color: var(--sidebar-background);
             border-right: 1px solid var(--border);
@@ -78,14 +78,29 @@
             transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
         }
         .sidebar.is-collapsed { width: 80px; }
+
+        .sidebar .sidebar-header .font-bold,
+        .sidebar .nav-link span,
+        .sidebar .sidebar-footer .nav-link-text,
+        .sidebar #global-search-container,
+        .sidebar #agenda-widget .agenda-header-title,
+        .sidebar #agenda-widget .agenda-content {
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+            opacity: 1;
+            visibility: visible;
+        }
+
         .sidebar.is-collapsed .sidebar-header .font-bold, 
         .sidebar.is-collapsed .nav-link span, 
         .sidebar.is-collapsed .sidebar-footer .nav-link-text, 
         .sidebar.is-collapsed #global-search-container,
         .sidebar.is-collapsed #agenda-widget .agenda-header-title,
         .sidebar.is-collapsed #agenda-widget .agenda-content {
-            display: none;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
         }
+
         .sidebar.is-collapsed .sidebar-header,
         .sidebar.is-collapsed #agenda-widget .agenda-header { 
             justify-content: center; 
@@ -202,6 +217,7 @@
             padding: 0.5rem 0.75rem;
             width: 100%;
             transition: all 0.2s;
+            color: var(--foreground);
         }
         .dark .input-base { background: #27272a; }
         .input-base:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
@@ -313,9 +329,6 @@
         #search-engine-selector-button .chevron-icon {
             transition: transform 0.2s ease-in-out;
         }
-        #search-engine-dropdown.is-open ~ #search-engine-selector-button .chevron-icon {
-            transform: rotate(180deg);
-        }
         .dropdown-item {
             display: flex;
             align-items: center;
@@ -332,9 +345,6 @@
             color: var(--accent-foreground);
             font-weight: 600;
         }
-        #main-search-input {
-             padding-left: 10rem;
-        }
     </style>
 </head>
 <body class="dark"> <!-- Inicia en modo oscuro por defecto -->
@@ -345,23 +355,25 @@
             <!-- Sidebar Header -->
             <div class="sidebar-header flex items-center justify-between pb-4 px-2">
                 <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="w-14 h-14">
+                <span class="font-bold text-lg">Centro de Accesos</span>
                 <button id="sidebar-toggle" class="btn btn-ghost !p-2 hidden lg:inline-flex" title="Colapsar barra lateral">
                      <i class="fas fa-angle-double-left"></i>
                 </button>
             </div>
             
-            <!-- Global Search Mejorado -->
+            <!-- Global Search -->
             <div id="global-search-container" class="px-2 pb-4">
                 <div class="relative">
                     <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10"></i>
-                    <input type="text" id="global-search-input" placeholder="Buscar..." class="input-base w-full !pl-9 !pr-14">
+                    <input type="text" id="global-search-input" placeholder="Buscar en todo..." class="input-base w-full !pl-9 !pr-14">
                     <kbd id="search-shortcut" class="absolute right-2.5 top-1/2 -translate-y-1/2 opacity-60 pointer-events-none hidden sm:inline-flex items-center gap-1 text-xs"></kbd>
                 </div>
             </div>
 
             <!-- Main Navigation -->
             <nav id="main-nav" class="flex-grow space-y-2 px-2">
-                <a href="#" data-section="buscadores" class="nav-link active"><i class="fas fa-search w-5 text-center"></i><span>Buscadores</span></a>
+                <a href="#" data-section="inicio" class="nav-link active"><i class="fas fa-home w-5 text-center"></i><span>Inicio</span></a>
+                <a href="#" data-section="buscadores" class="nav-link"><i class="fas fa-search w-5 text-center"></i><span>Buscadores</span></a>
                 <a href="#" data-section="links" class="nav-link"><i class="fas fa-link w-5 text-center"></i><span>Links</span></a>
                 <a href="#" data-section="prompts" class="nav-link"><i class="fas fa-brain w-5 text-center"></i><span>Prompts</span></a>
                 <a href="#" data-section="notes-tasks" class="nav-link"><i class="fas fa-check-double w-5 text-center"></i><span>Notas y Tareas</span></a>
@@ -389,7 +401,7 @@
                     <button id="menu-toggle" class="lg:hidden btn btn-ghost !p-2">
                           <i class="fas fa-bars text-xl"></i>
                     </button>
-                    <h1 id="main-title" class="text-2xl sm:text-3xl font-bold tracking-tight">BUSCADORES</h1>
+                    <h1 id="main-title" class="text-2xl sm:text-3xl font-bold tracking-tight">INICIO</h1>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-4 w-full md:w-auto">
                     <div id="global-view-switcher" class="view-switcher flex items-center bg-secondary p-1 rounded-lg ml-auto">
@@ -404,31 +416,8 @@
                 </div>
             </header>
             
-            <!-- CONTENEDOR DEL BUSCADOR MEJORADO -->
-            <div id="main-search-bar-container" class="mb-8 hidden relative z-40">
-                <div>
-                    <button id="search-engine-selector-button" class="absolute inset-y-0 left-0 flex items-center pl-3 pr-10 text-muted-foreground bg-secondary hover:bg-muted transition rounded-l-lg z-30">
-                        <!-- El contenido del botón se generará con JS -->
-                    </button>
-                    
-                    <div id="search-engine-dropdown" class="absolute top-full left-0 mt-2 w-72 border border-border rounded-lg shadow-lg z-[1001] hidden fade-in">
-                        <div class="p-2 border-b border-border">
-                            <input type="text" id="dropdown-search-input" placeholder="Buscar motor..." class="input-base w-full text-sm">
-                        </div>
-                        <div id="dropdown-options-container" class="max-h-60 overflow-y-auto p-1">
-                            <!-- Las opciones del desplegable se generarán con JS -->
-                        </div>
-                    </div>
-
-                    <input type="text" id="main-search-input" placeholder="Escribe para buscar..." class="input-base w-full !py-4 !pr-16 text-lg z-20 relative">
-                    
-                    <button id="main-search-button" class="btn btn-primary absolute inset-y-0 right-0 my-2 mr-2 !px-4 z-30">
-                        <i class="fas fa-search"></i>
-                    </button>
-                </div>
-            </div>
-
-            <div id="section-buscadores" class="section"></div>
+            <div id="section-inicio" class="section"></div>
+            <div id="section-buscadores" class="section hidden"></div>
             <div id="section-links" class="section hidden"></div>
             <div id="section-prompts" class="section hidden"></div>
             <div id="section-notes-tasks" class="section hidden"></div>
@@ -456,24 +445,25 @@ const themes = ['dark', 'light'];
 let currentTheme = localStorage.getItem('theme') || 'dark';
 let previewTimeout = null;
 let selectedSearchEngineId = null;
-const typeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
+const typeMap = { 'inicio': 'Inicio', 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
 
 
 // --- MOCK DATA (Fallback) ---
 const mockData = {
     items: [
-        { id: 1, type: 'Buscador', title: 'Google', action: 'https://www.google.com/search?q={search_term}', category: 'General', icon: 'fab fa-google', tags: ['motor', 'busqueda'], isFavorite: true },
-        { id: 2, type: 'Buscador', title: 'YouTube', action: 'https://www.youtube.com/results?search_query={search_term}', category: 'Video', icon: 'fab fa-youtube', tags: ['videos', 'tutoriales'], isFavorite: false },
+        { id: 1, type: 'Buscador', title: 'Google', action: 'https://www.google.com/search?q={search_term}', category: 'General', icon: 'fab fa-google', tags: ['motor', 'busqueda'], isFavorite: true, shortcut: 'g' },
+        { id: 2, type: 'Buscador', title: 'YouTube', action: 'https://www.youtube.com/results?search_query={search_term}', category: 'Video', icon: 'fab fa-youtube', tags: ['videos', 'tutoriales'], isFavorite: false, shortcut: 'y' },
         { id: 3, type: 'Link', title: 'GitHub', action: 'https://github.com', category: 'Desarrollo', icon: 'fab fa-github', tags: ['codigo', 'proyectos'], isFavorite: true },
         { id: 4, type: 'Promp', title: 'Generar Idea', action: 'Crea una lista de 5 ideas para un video de YouTube sobre IA.', category: 'Creatividad', icon: 'fas fa-lightbulb', tags: ['ideas'], isFavorite: false },
         { id: 5, type: 'Nota', title: 'Reunión Lunes', action: '<div>Discutir presupuesto Q3.</div><div>Revisar métricas.</div><div>Asignar tareas.</div>', category: 'Trabajo', icon: 'fas fa-sticky-note', tags: ['reunion'], isFavorite: false },
         { id: 6, type: 'Tarea', title: 'Proyecto Web', action: [{text: 'Diseñar mockup', status: true}, {text: 'Desarrollar landing', status: false}], category: 'Proyectos', icon: 'fas fa-tasks', tags: ['web'], isFavorite: true }
     ],
     categories: { 'Video': {}, 'Desarrollo': {} },
-    categoryOrders: { buscadores: ["General", "Video"], links: ["Desarrollo"], prompts: ["Creatividad"], "notes-tasks": [] },
+    categoryOrders: { buscadores: ["General", "Video"], links: ["Desarrollo"], prompts: ["Creatividad"], "notes-tasks": ["Trabajo", "Proyectos"] },
     favoriteOrders: {
         buscadores: [1],
-        links: [3]
+        links: [3],
+        "notes-tasks": [6]
     },
     events: [
         { id: 1, title: 'Cumpleaños de Ana', date: '2000-09-15', type: 'birthday', note: 'Comprar regalo.', reminderDays: 7 },
@@ -507,6 +497,26 @@ async function loadData() {
         const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [] };
         data = { ...defaults, ...loadedData };
         data.items = (data.items || []).map(i => ({...i, isFavorite: i.isFavorite || false}));
+
+        // Generar atajos para buscadores si no existen
+        const searchEngines = data.items.filter(item => item.type === 'Buscador');
+        const usedShortcuts = new Set(searchEngines.map(e => e.shortcut).filter(Boolean));
+        searchEngines.forEach(engine => {
+            if (!engine.shortcut) {
+                let potentialShortcut = engine.title.charAt(0).toLowerCase();
+                let counter = 1;
+                while (usedShortcuts.has(potentialShortcut)) {
+                    if (counter < engine.title.length) {
+                        potentialShortcut = engine.title.charAt(counter).toLowerCase();
+                        counter++;
+                    } else {
+                        potentialShortcut = `${engine.title.charAt(0).toLowerCase()}${counter - engine.title.length + 1}`;
+                    }
+                }
+                engine.shortcut = potentialShortcut;
+                usedShortcuts.add(potentialShortcut);
+            }
+        });
 
         if (data.favoriteOrder && !data.favoriteOrders) {
             data.favoriteOrders = {};
@@ -542,7 +552,7 @@ async function loadData() {
     }
 
     if (!gistId) {
-        data = JSON.parse(JSON.stringify(mockData));
+        processLoadedData(JSON.parse(JSON.stringify(mockData)));
         ensureAllIcons();
         initializeUI();
         return;
@@ -568,8 +578,7 @@ async function loadData() {
         updateSyncStatus('synced');
     } catch (error) {
         console.error("Fallo al cargar datos:", error);
-        showToast(`Error al cargar: ${error.message}.`);
-        updateSyncStatus('error', 'Error de carga');
+        showToast(`Error al cargar: ${error.message}.`, 'error');
         processLoadedData(mockData);
     }
     ensureAllIcons();
@@ -589,7 +598,7 @@ async function saveData() {
     
     let token = localStorage.getItem('github_pat');
     if (!token) {
-        showToast("Falta token de GitHub. Guardado localmente.");
+        showToast("Falta token de GitHub. Guardado localmente.", 'error');
         updateSyncStatus('error', 'Falta token');
         return;
     }
@@ -610,7 +619,7 @@ async function saveData() {
         });
         if (!response.ok) {
              if(response.status === 401 || response.status === 404) {
-                 showToast("Token inválido. Revisa la configuración.");
+                 showToast("Token inválido. Revisa la configuración.", 'error');
                  updateSyncStatus('error', 'Token inválido');
              }
              throw new Error(`Error al guardar: ${response.status}`)
@@ -619,7 +628,7 @@ async function saveData() {
         updateSyncStatus('synced');
     } catch (error) {
         console.error("Fallo al guardar en Gist:", error);
-        showToast("Error al guardar en Gist.");
+        showToast("Error al guardar en Gist.", 'error');
         updateSyncStatus('error', 'Error al guardar');
     }
 }
@@ -682,23 +691,19 @@ function setupEventListeners() {
             }
             document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.remove('active'));
             button.classList.add('active');
-            applyGlobalFilter();
+            if (activeSection === 'inicio') {
+                renderInicioSection();
+            } else {
+                applyGlobalFilter();
+            }
         }
     });
-
-    // Listeners para el buscador mejorado
-    document.getElementById('main-search-button').addEventListener('click', performMainSearch);
-    document.getElementById('main-search-input').addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') performMainSearch();
-    });
-    document.getElementById('search-engine-selector-button').addEventListener('click', toggleSearchEngineDropdown);
-    document.getElementById('dropdown-search-input').addEventListener('input', renderSearchEngineDropdown);
-
-    // Listener para cerrar el dropdown
+    
+    // Listener para cerrar el dropdown de búsqueda
     document.addEventListener('click', (e) => {
         const dropdown = document.getElementById('search-engine-dropdown');
         const button = document.getElementById('search-engine-selector-button');
-        if (!dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && !button.contains(e.target)) {
+        if (dropdown && !dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && button && !button.contains(e.target)) {
             closeSearchEngineDropdown();
         }
     });
@@ -714,12 +719,17 @@ function initializeUI() {
     }
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     document.getElementById('search-shortcut').innerHTML = `<kbd>${isMac ? '⌘' : 'Ctrl'}</kbd><kbd>B</kbd>`;
-    switchTab('buscadores');
+    switchTab('inicio');
     renderAgendaWidget();
 }
 
 function refreshUI() {
-    applyGlobalFilter();
+    const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'inicio';
+    if (activeSection === 'inicio') {
+        renderInicioSection();
+    } else {
+        applyGlobalFilter();
+    }
     renderAgendaWidget();
 }
 
@@ -733,29 +743,21 @@ function switchTab(tabName) {
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
     document.getElementById(`section-${tabName}`).classList.remove("hidden");
     
-    const currentView = viewModes[tabName] || 'grid';
+    const viewSwitcher = document.getElementById('global-view-switcher');
+    const addNewBtn = document.getElementById('addNewButton');
+
+    const currentView = viewModes[tabName] || (tabName === 'inicio' ? 'list' : 'grid');
     document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
-
-    const mainSearchBar = document.getElementById('main-search-bar-container');
-    if (tabName === 'buscadores') {
-        mainSearchBar.classList.remove('hidden');
-        const searchEngines = data.items.filter(item => item.type === 'Buscador');
-        const currentSelectionIsValid = searchEngines.some(e => e.id === selectedSearchEngineId);
-
-        if (!currentSelectionIsValid) {
-            const youtube = searchEngines.find(item => item.title.toLowerCase() === 'youtube');
-            if (youtube) {
-                selectSearchEngine(youtube.id, false);
-            } else if (searchEngines.length > 0) {
-                selectSearchEngine(searchEngines[0].id, false);
-            }
-        }
-        updateSearchEngineSelectorButton();
+    
+    if (tabName === 'inicio') {
+        viewSwitcher.classList.remove('hidden');
+        addNewBtn.classList.add('hidden');
+        renderInicioSection();
     } else {
-        mainSearchBar.classList.add('hidden');
+        viewSwitcher.classList.remove('hidden');
+        addNewBtn.classList.remove('hidden');
+        applyGlobalFilter();
     }
-
-    applyGlobalFilter();
 }
 
 // --- RENDER FUNCTIONS ---
@@ -788,7 +790,7 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
     }, {});
 
     const sectionOrders = data.categoryOrders?.[sectionName] || [];
-    const sortedCategories = [...sectionOrders, ...Object.keys(categorized).filter(c => !sectionOrders.includes(c))];
+    const sortedCategories = [...new Set([...sectionOrders, ...Object.keys(categorized).filter(c => !sectionOrders.includes(c))])];
     
     const categoryContainerWrapper = document.createElement('div');
     container.appendChild(categoryContainerWrapper);
@@ -838,7 +840,6 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
                 onEnd: (evt) => {
                     const movedItemId = parseInt(evt.item.dataset.id);
                     const toCategoryName = evt.to.closest('.category-wrapper').dataset.categoryName;
-                    const fromCategoryName = evt.from.closest('.category-wrapper').dataset.categoryName;
                     
                     const itemToUpdate = data.items.find(i => i.id === movedItemId);
                     if (itemToUpdate) {
@@ -878,6 +879,118 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
         }
     });
 }
+
+// --- NUEVA SECCIÓN DE INICIO ---
+function renderInicioSection() {
+    const container = document.getElementById('section-inicio');
+    container.innerHTML = ''; // Limpiar contenido
+
+    // 1. Añadir la barra de búsqueda principal
+    const searchBarContainer = document.createElement('div');
+    searchBarContainer.innerHTML = getMainSearchBarHTML();
+    container.appendChild(searchBarContainer);
+    
+    // Re-vincular eventos para la barra de búsqueda
+    document.getElementById('main-search-button').addEventListener('click', performMainSearch);
+    const mainSearchInput = document.getElementById('main-search-input');
+    mainSearchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') performMainSearch();
+    });
+    mainSearchInput.addEventListener('input', handleSearchInputShortcut);
+    document.getElementById('search-engine-selector-button').addEventListener('click', toggleSearchEngineDropdown);
+    document.getElementById('dropdown-search-input').addEventListener('input', renderSearchEngineDropdown);
+    
+    // Inicializar el selector de motor de búsqueda
+    const searchEngines = data.items.filter(item => item.type === 'Buscador');
+    const currentSelectionIsValid = searchEngines.some(e => e.id === selectedSearchEngineId);
+    if (!selectedSearchEngineId || !currentSelectionIsValid) {
+        const defaultEngine = searchEngines.find(engine => engine.title.toLowerCase() === 'google') || searchEngines[0];
+        if (defaultEngine) {
+            selectSearchEngine(defaultEngine.id, false);
+        }
+    }
+    updateSearchEngineSelectorButton();
+    
+    // 2. Renderizar los favoritos de otras secciones
+    const favoritesWrapper = document.createElement('div');
+    favoritesWrapper.className = 'mt-12 space-y-8';
+    let favoritesFound = false;
+    const currentView = viewModes['inicio'] || 'list';
+
+    Object.keys(data.categoryOrders).forEach(sectionName => {
+        if (sectionName === 'buscadores') return; // Excluir buscadores
+
+        const orderedFavoritesIds = (data.favoriteOrders && data.favoriteOrders[sectionName]) ? data.favoriteOrders[sectionName] : [];
+        const favoriteItems = orderedFavoritesIds
+            .map(id => data.items.find(item => item.id === id && item.isFavorite))
+            .filter(Boolean);
+
+        if (favoriteItems.length > 0) {
+            favoritesFound = true;
+            const sectionWrapper = document.createElement('div');
+            const sectionTitleText = document.querySelector(`#main-nav .nav-link[data-section="${sectionName}"] span`).textContent;
+            sectionWrapper.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Favoritos de ${sectionTitleText}</h2>`;
+            
+            const itemsContainer = document.createElement('div');
+            const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
+            itemsContainer.className = viewClasses[currentView] || 'list-view';
+
+            favoriteItems.forEach(item => {
+                let element;
+                if (currentView === 'list') {
+                    element = createListItem(item);
+                } else if (currentView === 'grid') {
+                    element = createCard(item);
+                } else { // 'table'
+                    element = createTableItem(item);
+                }
+                if (element) itemsContainer.appendChild(element);
+            });
+            
+            sectionWrapper.appendChild(itemsContainer);
+            favoritesWrapper.appendChild(sectionWrapper);
+        }
+    });
+
+    if (favoritesFound) {
+        container.appendChild(favoritesWrapper);
+    } else {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'text-center py-16 px-6 mt-8 rounded-lg border-2 border-dashed border-border';
+        emptyState.innerHTML = `
+            <i class="fas fa-star text-4xl text-muted-foreground mb-4"></i>
+            <h3 class="text-xl font-semibold">Aún no tienes favoritos</h3>
+            <p class="text-muted-foreground mt-2">Haz clic en la estrella <i class="far fa-star text-yellow-400"></i> en cualquier elemento para agregarlo aquí.</p>
+        `;
+        container.appendChild(emptyState);
+    }
+}
+
+function getMainSearchBarHTML() {
+    return `
+    <div id="main-search-bar-container" class="mb-12 relative z-10 max-w-3xl mx-auto">
+        <div class="flex relative w-full text-lg bg-card-background border border-border rounded-xl shadow-lg focus-within:ring-4 focus-within:ring-purple-500/20 transition-shadow">
+            <div class="relative flex-shrink-0">
+                <button id="search-engine-selector-button" class="flex items-center gap-2 h-full pl-5 pr-4 text-sm font-medium text-foreground bg-secondary/50 rounded-l-xl hover:bg-muted focus:outline-none border-r border-border" type="button">
+                    <!-- JS will populate this -->
+                </button>
+                <div id="search-engine-dropdown" class="absolute top-full left-0 mt-2 w-72 border border-border bg-card-background rounded-lg shadow-lg z-[1001] hidden">
+                    <div class="p-2 border-b border-border">
+                        <input type="text" id="dropdown-search-input" placeholder="Buscar motor..." class="input-base w-full text-sm">
+                    </div>
+                    <div id="dropdown-options-container" class="max-h-60 overflow-y-auto p-1">
+                        <!-- Options generated by JS -->
+                    </div>
+                </div>
+            </div>
+            <input type="text" id="main-search-input" class="relative w-full p-4 bg-transparent border-0 focus:ring-0 text-foreground placeholder:text-muted-foreground" placeholder="Busca con...">
+            <button id="main-search-button" type="submit" class="flex-shrink-0 px-6 text-white bg-primary rounded-r-xl border-l border-primary-hover hover:bg-primary-hover focus:outline-none">
+                <i class="fas fa-search text-lg"></i>
+            </button>
+        </div>
+    </div>`;
+}
+
 
 function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '', currentView) {
     if (itemsToRender.length === 0) {
@@ -1167,6 +1280,11 @@ function handleCardClick(id, event) {
         window.open(item.action, "_blank");
     } else if (item.type === "Buscador") {
         selectSearchEngine(item.id);
+        const activeSection = document.querySelector('#main-nav .active')?.dataset.section
+        if(activeSection !== 'inicio') {
+            switchTab('inicio')
+        }
+        document.getElementById('main-search-input')?.focus();
     } else if (item.type === "Promp") {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = item.action;
@@ -1177,14 +1295,33 @@ function handleCardClick(id, event) {
 }
 
 // --- BUSCADOR MEJORADO & ATAJOS ---
+function handleSearchInputShortcut(e) {
+    const input = e.target;
+    const value = input.value;
+
+    if (value.length > 1 && value.endsWith(' ')) {
+        const shortcut = value.slice(0, -1).toLowerCase();
+        const engine = data.items.find(item => item.type === 'Buscador' && item.shortcut === shortcut);
+
+        if (engine) {
+            e.preventDefault();
+            selectSearchEngine(engine.id);
+            input.value = '';
+        }
+    }
+}
+
 function toggleSearchEngineDropdown() {
     const dropdown = document.getElementById('search-engine-dropdown');
+    const button = document.getElementById('search-engine-selector-button');
+    if(!dropdown || !button) return;
+    
     const isOpen = !dropdown.classList.contains('hidden');
     if (isOpen) {
         closeSearchEngineDropdown();
     } else {
         dropdown.classList.remove('hidden');
-        dropdown.classList.add('is-open');
+        button.querySelector('.chevron-icon')?.classList.add('rotate-180');
         document.getElementById('dropdown-search-input').value = '';
         renderSearchEngineDropdown();
         document.getElementById('dropdown-search-input').focus();
@@ -1193,8 +1330,13 @@ function toggleSearchEngineDropdown() {
 
 function closeSearchEngineDropdown() {
     const dropdown = document.getElementById('search-engine-dropdown');
-    dropdown.classList.add('hidden');
-    dropdown.classList.remove('is-open');
+    const button = document.getElementById('search-engine-selector-button');
+    if (dropdown) {
+        dropdown.classList.add('hidden');
+    }
+    if (button) {
+        button.querySelector('.chevron-icon')?.classList.remove('rotate-180');
+    }
 }
 
 function renderSearchEngineDropdown() {
@@ -1208,15 +1350,22 @@ function renderSearchEngineDropdown() {
 
     container.innerHTML = '';
     if (filteredEngines.length > 0) {
-        filteredEngines.forEach(engine => {
+        filteredEngines.forEach((engine, index) => {
             const itemEl = document.createElement('div');
             itemEl.className = 'dropdown-item';
             if(engine.id === selectedSearchEngineId) {
                 itemEl.classList.add('is-selected');
             }
+            
+            let shortcutHTML = '';
+            if (engine.shortcut) {
+                shortcutHTML = `<kbd class="ml-auto">${engine.shortcut}</kbd>`;
+            }
+
             itemEl.innerHTML = `
                 ${getIconHtml(engine.icon, 'text-xl')}
-                <span>${engine.title}</span>
+                <span class="truncate">${engine.title}</span>
+                ${shortcutHTML}
             `;
             itemEl.onclick = () => selectSearchEngine(engine.id);
             container.appendChild(itemEl);
@@ -1228,33 +1377,39 @@ function renderSearchEngineDropdown() {
 
 function selectSearchEngine(itemId, focusInput = true) {
     selectedSearchEngineId = parseInt(itemId);
+    const engine = data.items.find(i => i.id === selectedSearchEngineId);
+    const searchInput = document.getElementById('main-search-input');
+    if (engine && searchInput) {
+        searchInput.placeholder = `Buscar con ${engine.title}...`;
+    }
+
     updateSearchEngineSelectorButton();
-    applyGlobalFilter();
+    const activeSection = document.querySelector('#main-nav .active')?.dataset.section
+    if (activeSection === 'buscadores') {
+        applyGlobalFilter(); // Refresca para mostrar la selección
+    }
     closeSearchEngineDropdown();
     if (focusInput) {
-        document.getElementById('main-search-input').focus();
+        searchInput?.focus();
     }
 }
 
 function updateSearchEngineSelectorButton() {
     const button = document.getElementById('search-engine-selector-button');
+    if (!button) return;
     const engine = data.items.find(i => i.id === selectedSearchEngineId);
     if (engine) {
         button.innerHTML = `
             <div class="flex items-center gap-2 pointer-events-none">
                 ${getIconHtml(engine.icon, 'text-xl')}
-                <span class="font-semibold text-sm text-foreground">${engine.title}</span>
+                <span class="font-semibold text-sm text-foreground truncate max-w-[100px]">${engine.title}</span>
             </div>
-            <i class="fas fa-chevron-down chevron-icon ml-auto mr-2 text-xs"></i>
+            <i class="fas fa-chevron-down chevron-icon ml-auto text-xs transition-transform"></i>
         `;
-        setTimeout(() => {
-            const buttonWidth = button.offsetWidth;
-            document.getElementById('main-search-input').style.paddingLeft = `${buttonWidth + 12}px`;
-        }, 0);
     } else {
         button.innerHTML = `
              <span class="font-semibold text-sm">Seleccionar</span>
-             <i class="fas fa-chevron-down chevron-icon ml-auto mr-2 text-xs"></i>
+             <i class="fas fa-chevron-down chevron-icon ml-auto text-xs transition-transform"></i>
         `;
     }
 }
@@ -1262,7 +1417,7 @@ function updateSearchEngineSelectorButton() {
 function performMainSearch() {
     const term = document.getElementById('main-search-input').value;
     if (!term.trim() || !selectedSearchEngineId) {
-         showToast("Por favor, escribe un término y selecciona un motor de búsqueda.");
+         showToast("Por favor, escribe un término y selecciona un motor de búsqueda.", 'error');
         return;
     }
 
@@ -1276,6 +1431,7 @@ function performMainSearch() {
 function handleGlobalShortcuts(e) {
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     const modifier = isMac ? e.metaKey : e.ctrlKey;
+    const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable;
 
     if (e.key === 'Escape') {
         const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal'];
@@ -1292,12 +1448,14 @@ function handleGlobalShortcuts(e) {
                 e.preventDefault();
                 const viewButtons = Array.from(document.querySelectorAll('#global-view-switcher button'));
                 const activeButton = document.querySelector('#global-view-switcher button.active');
-                const currentIndex = viewButtons.indexOf(activeButton);
-                const nextIndex = (currentIndex + 1) % viewButtons.length;
-                viewButtons[nextIndex].click();
+                if (activeButton) {
+                    const currentIndex = viewButtons.indexOf(activeButton);
+                    const nextIndex = (currentIndex + 1) % viewButtons.length;
+                    viewButtons[nextIndex].click();
+                }
                 break;
         }
-    } else if (modifier && e.key.toLowerCase() === 'b') {
+    } else if (modifier && e.key.toLowerCase() === 'b' && !isInputFocused) {
         e.preventDefault();
         document.getElementById('global-search-input').focus();
     }
@@ -1306,7 +1464,8 @@ function handleGlobalShortcuts(e) {
 
 function toggleFavorite(event, itemId) {
     event.stopPropagation();
-    const item = data.items.find(i => String(i.id) === String(itemId));
+    const numericId = parseInt(itemId, 10);
+    const item = data.items.find(i => i.id === numericId);
     if (!item) return;
 
     const itemSectionName = Object.keys(typeMap).find(key => {
@@ -1314,30 +1473,28 @@ function toggleFavorite(event, itemId) {
         return Array.isArray(type) ? type.includes(item.type) : type === item.type;
     });
 
-    if (!itemSectionName) return;
+    if (!itemSectionName) {
+        console.error("No se pudo determinar la sección para el elemento:", item);
+        return;
+    }
 
     item.isFavorite = !item.isFavorite;
-    const numericId = parseInt(itemId, 10);
 
-    if (!data.favoriteOrders) {
-        data.favoriteOrders = {};
-    }
-    if (!data.favoriteOrders[itemSectionName]) {
-        data.favoriteOrders[itemSectionName] = [];
-    }
+    if (!data.favoriteOrders) data.favoriteOrders = {};
+    if (!data.favoriteOrders[itemSectionName]) data.favoriteOrders[itemSectionName] = [];
+    
+    const isAlreadyFavorite = data.favoriteOrders[itemSectionName].includes(numericId);
 
-    if (item.isFavorite) {
-        if (!data.favoriteOrders[itemSectionName].includes(numericId)) {
-            data.favoriteOrders[itemSectionName].unshift(numericId);
-        }
-    } else {
+    if (item.isFavorite && !isAlreadyFavorite) {
+        data.favoriteOrders[itemSectionName].unshift(numericId); // Añadir al principio
+    } else if (!item.isFavorite && isAlreadyFavorite) {
         data.favoriteOrders[itemSectionName] = data.favoriteOrders[itemSectionName].filter(id => id !== numericId);
     }
     
+    showToast(item.isFavorite ? `"${item.title}" añadido a favoritos.` : `"${item.title}" quitado de favoritos.`);
     saveData().then(refreshUI);
 }
 
-// MODIFICADO: Lógica de búsqueda global
 function applyGlobalFilter() {
     const searchTerm = document.getElementById('global-search-input').value.toLowerCase();
     const activeNavBtn = document.querySelector('.nav-link.active');
@@ -1345,7 +1502,6 @@ function applyGlobalFilter() {
     
     const activeSectionName = activeNavBtn.dataset.section;
 
-    // Si no hay término de búsqueda, mostrar la vista de sección normal
     if (!searchTerm) {
         const activeType = typeMap[activeSectionName];
         const itemsToFilter = data.items.filter(item => 
@@ -1355,7 +1511,6 @@ function applyGlobalFilter() {
         return;
     }
 
-    // Si hay término de búsqueda, realizar búsqueda global
     const allResults = data.items.filter(card => {
         const titleMatch = card.title.toLowerCase().includes(searchTerm);
         const categoryNameMatch = (card.category || '').toLowerCase().includes(searchTerm);
@@ -1381,7 +1536,6 @@ function applyGlobalFilter() {
     renderGlobalSearchResults(primaryResults, secondaryResults, activeSectionName);
 }
 
-// NUEVO: Función para renderizar los resultados de la búsqueda global
 function renderGlobalSearchResults(primary, secondary, activeSectionName) {
     const container = document.getElementById(`section-${activeSectionName}`);
     document.querySelectorAll(".section").forEach(s => {
@@ -1456,8 +1610,15 @@ function renderEmptyState(container, sectionName) {
         prompts: "Sin Prompts",
         'notes-tasks': "Sin Notas ni Tareas"
     };
+    const icons = {
+        buscadores: "fa-search",
+        links: "fa-link",
+        prompts: "fa-brain",
+        'notes-tasks': "fa-check-double"
+    };
     container.innerHTML = `
         <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
+            <i class="fas ${icons[sectionName]} text-4xl text-muted-foreground mb-4"></i>
             <h3 class="text-xl font-semibold">${titles[sectionName]}</h3>
             <p class="text-muted-foreground mt-2 mb-4">Añade tu primer elemento para empezar.</p>
             <button onclick="openEditPanel()" class="btn btn-primary">Añadir Nuevo</button>
@@ -1566,9 +1727,7 @@ function openEventPanel(eventId = null) {
     let dateValue = '';
     if (event) {
         // Corrección de zona horaria para mostrar la fecha correcta en el input
-        const dateParts = event.date.split('-').map(Number);
-        const d = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-        dateValue = d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2);
+        dateValue = event.date;
     }
 
     const eventTypes = {
@@ -1670,9 +1829,21 @@ function applyTheme(theme) {
     localStorage.setItem('theme', theme);
 }
 
-function showToast(message) {
+function showToast(message, type = 'success') {
     const toast = document.getElementById("toast");
     toast.textContent = message;
+    
+    toast.style.backgroundColor = '';
+    toast.style.color = '';
+
+    if (type === 'error') {
+        toast.style.backgroundColor = '#ef4444'; // red-500
+        toast.style.color = 'white';
+    } else {
+        toast.style.backgroundColor = 'var(--primary)';
+        toast.style.color = 'var(--primary-foreground)';
+    }
+
     toast.classList.remove("hidden");
     setTimeout(() => toast.classList.add("hidden"), 3000);
 }
@@ -1723,9 +1894,15 @@ function openEditPanel(itemId = null) {
                     <textarea id="newActionText" class="input-base hidden" rows="3">${(item && typeof item.action === 'string') ? item.action : ''}</textarea>
                     <div id="newActionRich" class="input-base hidden min-h-[100px]" contenteditable="true"></div>
                 </div>
-                 <div id="iconFieldContainer">
-                    <label class="font-semibold block mb-2">Icono (URL o FontAwesome)</label>
-                    <input type="text" id="newIcon" class="input-base" placeholder="https://.../logo.png o fas fa-search" value="${item?.icon || ''}">
+                <div class="grid grid-cols-2 gap-4">
+                    <div id="iconFieldContainer">
+                        <label class="font-semibold block mb-2">Icono (URL o FontAwesome)</label>
+                        <input type="text" id="newIcon" class="input-base" placeholder="https://.../logo.png o fas fa-search" value="${item?.icon || ''}">
+                    </div>
+                    <div id="shortcutFieldContainer" class="hidden">
+                        <label class="font-semibold block mb-2">Atajo (1-2 caracteres)</label>
+                        <input type="text" id="newShortcut" class="input-base" placeholder="g" maxlength="2" value="${item?.shortcut || ''}">
+                    </div>
                 </div>
                 <div>
                     <label class="font-semibold block mb-2">Categoría</label>
@@ -1772,13 +1949,20 @@ function updateEditFormFields(type, item = null) {
     const richEditor = document.getElementById('newActionRich');
     const textEditor = document.getElementById('newActionText');
     const iconField = document.getElementById('iconFieldContainer');
+    const shortcutField = document.getElementById('shortcutFieldContainer');
     const actionLabel = document.getElementById('actionLabel');
 
     richEditor.classList.add('hidden');
     textEditor.classList.add('hidden');
     iconField.style.display = 'block';
+    shortcutField.classList.add('hidden');
 
-    if (type === 'Nota' || type === 'Promp') {
+    if(type === 'Buscador'){
+        shortcutField.classList.remove('hidden');
+        actionLabel.textContent = 'URL / Acción';
+        textEditor.classList.remove('hidden');
+        if (item) textEditor.value = item.action;
+    } else if (type === 'Nota' || type === 'Promp') {
         actionLabel.textContent = 'Contenido';
         richEditor.classList.remove('hidden');
         iconField.style.display = 'none';
@@ -1790,7 +1974,7 @@ function updateEditFormFields(type, item = null) {
         if (item && Array.isArray(item.action)) {
             richEditor.innerHTML = item.action.map(t => `<div>${t.text}</div>`).join('');
         }
-    } else {
+    } else { // Link
         actionLabel.textContent = 'URL / Acción';
         textEditor.classList.remove('hidden');
         if (item) textEditor.value = item.action;
@@ -1836,6 +2020,18 @@ function handleSaveItem(event) {
         icon,
         tags: document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(Boolean)
     };
+
+    if (type === 'Buscador') {
+        const shortcut = document.getElementById("newShortcut").value.trim().toLowerCase();
+        if (shortcut) {
+            const otherEngineWithShortcut = data.items.find(i => i.type === 'Buscador' && i.shortcut === shortcut && String(i.id) !== id);
+            if (otherEngineWithShortcut) {
+                showToast(`Atajo "${shortcut}" ya está en uso por "${otherEngineWithShortcut.title}".`, 'error');
+                return;
+            }
+            newItemData.shortcut = shortcut;
+        }
+    }
 
     if (id) {
         const index = data.items.findIndex(i => String(i.id) === id);
@@ -1892,8 +2088,8 @@ function openSettingsHelpModal() {
             <div class="p-6 overflow-y-auto">
                 <div id="settings-tab-content" class="tab-content space-y-4">
                      <div>
-                         <label for="gistIdInput" class="font-semibold block mb-2">Gist ID</label>
-                         <input type="text" id="gistIdInput" class="input-base" value="${gistId}" placeholder="El ID de tu Gist de GitHub">
+                        <label for="gistIdInput" class="font-semibold block mb-2">Gist ID</label>
+                        <input type="text" id="gistIdInput" class="input-base" value="${gistId}" placeholder="El ID de tu Gist de GitHub">
                      </div>
                     <div>
                         <label for="githubPatInput" class="font-semibold block mb-2">Personal Access Token</label>
@@ -1908,18 +2104,19 @@ function openSettingsHelpModal() {
                     <p>Es un dashboard personalizable para organizar tus links, buscadores, notas y tareas en un solo lugar. Sincroniza tus datos de forma segura usando un Gist de GitHub.</p>
                     <h3 class="font-bold text-lg mt-4">¿Cómo funciona?</h3>
                     <ul class="list-disc list-inside space-y-2">
-                        <li><b>Secciones:</b> Navega entre Buscadores, Links, Prompts y Notas/Tareas usando el menú lateral.</li>
+                        <li><b>Secciones:</b> Navega entre Inicio, Buscadores, Links, Prompts y Notas/Tareas usando el menú lateral.</li>
                         <li><b>Añadir Elementos:</b> Haz clic en el botón "+ Nuevo" para agregar cualquier tipo de elemento a la sección activa.</li>
                         <li><b>Agenda:</b> Añade recordatorios y cumpleaños en la agenda de la barra lateral. Configura avisos para no olvidar nada.</li>
                         <li><b>Sincronización:</b> En la pestaña "Configuración", introduce tu Gist ID y un Personal Access Token de GitHub para guardar y cargar tus datos desde cualquier lugar.</li>
                     </ul>
                      <h3 class="font-bold text-lg mt-4">Atajos de Teclado</h3>
                      <ul class="list-disc list-inside space-y-1">
-                         <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
-                         <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>B</kbd> : Activar barra de búsqueda</li>
-                         <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema (claro/oscuro)</li>
-                         <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
-                         <li><kbd>Esc</kbd> : Cerrar ventanas y paneles</li>
+                          <li>Escribe el <b>atajo</b> de un buscador (ej: <kbd>g</kbd>) + <kbd>Espacio</kbd> en la barra principal para seleccionarlo.</li>
+                          <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>B</kbd> : Activar barra de búsqueda global</li>
+                          <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
+                          <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema (claro/oscuro)</li>
+                          <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
+                          <li><kbd>Esc</kbd> : Cerrar ventanas y paneles</li>
                      </ul>
                 </div>
             </div>
