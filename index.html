@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v45 - Pestaña de IA</title>
+    <title>Centro de Accesos v45 - Pestaña de IA (Corregida)</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -63,6 +63,7 @@
         .note-card, .task-card, .prompt-card { justify-content: flex-start; height: 250px; color: var(--card-foreground); padding: 1.25rem; }
         .note-card { background: var(--note-bg); } .task-card { background: var(--task-bg); } .prompt-card { background: var(--prompt-bg); }
         .btn { display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius); font-weight: 600; transition: all 0.2s; padding: 0.5rem 1rem; border: 1px solid transparent; cursor: pointer; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-primary { background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary); } .btn-primary:hover { background-color: var(--primary-hover); }
         .btn-secondary { background-color: var(--secondary); color: var(--secondary-foreground); border-color: var(--border); } .btn-secondary:hover { background-color: var(--accent); }
         .btn-ghost { background-color: transparent; color: var(--muted-foreground); } .btn-ghost:hover { background-color: var(--secondary); color: var(--secondary-foreground); }
@@ -91,6 +92,11 @@
         .dark #scratchpad-textarea { background-color: #27272a; color: var(--foreground); border-color: #3f3f46; }
         .dark #scratchpad-textarea::placeholder { color: var(--muted-foreground); }
         .prose { color: var(--foreground); }
+        .prose p { margin-bottom: 1em; }
+        .prose strong { font-weight: 600; }
+        .prose ul { list-style: disc; margin-left: 1.5em; margin-bottom: 1em; }
+        .prose ol { list-style: decimal; margin-left: 1.5em; margin-bottom: 1em; }
+        .prose li { margin-bottom: 0.5em; }
         .prose pre { background-color: var(--secondary); padding: 1em; border-radius: var(--radius); }
         .dark .prose-invert { color: var(--foreground); }
     </style>
@@ -666,15 +672,10 @@ function renderDisenoClasico(container) {
     let favoritesFound = false;
     const currentView = viewModes['inicio'] || 'list';
 
-    // MODIFICADO: Ahora se itera sobre un array de secciones para asegurar que se muestren todos los favoritos
     ['links', 'prompts', 'notes-tasks'].forEach(sectionName => {
         const orderedFavoritesIds = (data.favoriteOrders && data.favoriteOrders[sectionName]) ? data.favoriteOrders[sectionName] : [];
-        const favoriteItems = orderedFavoritesIds.map(id => {
-            const item = data.items.find(item => item.id === id && item.isFavorite);
-            if(item && (item.type !== 'Buscador')) return item;
-            return null;
-        }).filter(Boolean);
-
+        const favoriteItems = orderedFavoritesIds.map(id => data.items.find(item => item.id === id && item.isFavorite)).filter(Boolean);
+        
         if (favoriteItems.length > 0) {
             favoritesFound = true;
             const sectionWrapper = document.createElement('div');
@@ -2073,6 +2074,97 @@ function updateSyncStatus(status, message = '') {
 }
 
 // --- IA Section ---
+function simpleMarkdownToHtml(text) {
+    let html = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+
+    let lines = html.split('\n');
+    let inList = false;
+    let listType = '';
+
+    let processedHtml = lines.map(line => {
+        const trimmedLine = line.trim();
+        const isUnordered = trimmedLine.startsWith('* ');
+        const isOrdered = /^\d+\. /.test(trimmedLine);
+
+        if (isUnordered || isOrdered) {
+            let itemHtml = '<li>' + trimmedLine.substring(trimmedLine.indexOf(' ') + 1) + '</li>';
+            if (!inList) {
+                listType = isUnordered ? 'ul' : 'ol';
+                itemHtml = `<${listType}>` + itemHtml;
+                inList = true;
+            } else if ((isUnordered && listType !== 'ul') || (isOrdered && listType !== 'ol')) {
+                 itemHtml = `</${listType}><${isUnordered ? 'ul' : 'ol'}>` + itemHtml;
+                 listType = isUnordered ? 'ul' : 'ol';
+            }
+            return itemHtml;
+        } else {
+            if (inList) {
+                inList = false;
+                return `</${listType}>` + (trimmedLine ? `<p>${line}</p>` : '');
+            }
+            return trimmedLine ? `<p>${line}</p>` : '';
+        }
+    }).join('');
+
+    if (inList) {
+        processedHtml += `</${listType}>`;
+    }
+    
+    return processedHtml.replace(/<p><\/p>/g, '');
+}
+
+async function handleAIGeneration() {
+    const apiKey = localStorage.getItem('gemini_api_key');
+    const prompt = document.getElementById('ai-prompt').value;
+    const generateBtn = document.getElementById('ai-generate-btn');
+    const resultContainer = document.getElementById('ai-result-container');
+    const resultDiv = document.getElementById('ai-result');
+
+    if (!prompt.trim()) {
+        showToast("Por favor, introduce un prompt.", 'error');
+        return;
+    }
+
+    // Show loading state
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
+    resultContainer.classList.remove('hidden');
+    resultDiv.innerHTML = '<p class="text-muted-foreground">Pensando...</p>';
+
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error.message || `Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const text = data.candidates[0].content.parts[0].text;
+        
+        resultDiv.innerHTML = simpleMarkdownToHtml(text);
+
+    } catch (error) {
+        console.error("Error llamando a la API de Gemini:", error);
+        resultDiv.innerHTML = `<p class="text-red-500"><strong>Error:</strong> ${error.message}</p>`;
+        showToast("Hubo un error al generar la respuesta.", 'error');
+    } finally {
+        // Restore button state
+        generateBtn.disabled = false;
+        generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Generar';
+    }
+}
+
 function renderAISection(container) {
     container.innerHTML = '';
     const apiKey = localStorage.getItem('gemini_api_key');
@@ -2108,14 +2200,7 @@ function renderAISection(container) {
         </div>
     `;
 
-    document.getElementById('ai-generate-btn').addEventListener('click', () => {
-        // En un futuro, aquí iría la llamada a la API de Gemini
-        const resultContainer = document.getElementById('ai-result-container');
-        const resultDiv = document.getElementById('ai-result');
-        resultDiv.innerHTML = '<p>Función de IA en desarrollo. La llamada a la API se implementará próximamente.</p>';
-        resultContainer.classList.remove('hidden');
-        showToast("Llamando a la IA (simulación)...");
-    });
+    document.getElementById('ai-generate-btn').addEventListener('click', handleAIGeneration);
 }
 
 
