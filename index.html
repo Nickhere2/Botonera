@@ -940,7 +940,10 @@ function renderInicioSection() {
                 if (currentView === 'list') {
                     element = createListItem(item);
                 } else if (currentView === 'grid') {
-                    element = createCard(item);
+                    if (item.type === 'Nota') element = createNoteCard(item);
+                    else if (item.type === 'Tarea') element = createTaskCard(item);
+                    else if (item.type === 'Promp') element = createPromptCard(item);
+                    else element = createCard(item);
                 } else { // 'table'
                     element = createTableItem(item);
                 }
@@ -1483,12 +1486,19 @@ function toggleFavorite(event, itemId) {
     if (!data.favoriteOrders) data.favoriteOrders = {};
     if (!data.favoriteOrders[itemSectionName]) data.favoriteOrders[itemSectionName] = [];
     
-    const isAlreadyFavorite = data.favoriteOrders[itemSectionName].includes(numericId);
+    const favoritesArray = data.favoriteOrders[itemSectionName];
+    const indexInFavorites = favoritesArray.indexOf(numericId);
 
-    if (item.isFavorite && !isAlreadyFavorite) {
-        data.favoriteOrders[itemSectionName].unshift(numericId); // Añadir al principio
-    } else if (!item.isFavorite && isAlreadyFavorite) {
-        data.favoriteOrders[itemSectionName] = data.favoriteOrders[itemSectionName].filter(id => id !== numericId);
+    if (item.isFavorite) {
+        // Add to favorites if it's not already there (safety check)
+        if (indexInFavorites === -1) {
+            favoritesArray.unshift(numericId);
+        }
+    } else {
+        // Remove from favorites if it exists
+        if (indexInFavorites > -1) {
+            favoritesArray.splice(indexInFavorites, 1);
+        }
     }
     
     showToast(item.isFavorite ? `"${item.title}" añadido a favoritos.` : `"${item.title}" quitado de favoritos.`);
@@ -2296,4 +2306,5 @@ function updateSyncStatus(status, message = '') {
 </script>
 </body>
 </html>
+
 
