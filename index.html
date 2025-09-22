@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v46 - Mejoras Estéticas</title>
+    <title>Centro de Accesos v48 - Refinamiento de Diseño (Corregido)</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -28,18 +28,18 @@
         }
         
         .dark {
-            --background: #09090b; --foreground: #fafafa; --card-background: #18181b;
-            --primary: #7c3aed; --primary-hover: #8b5cf6; --secondary: #27272a;
-            --secondary-foreground: #fafafa; --muted: #27272a; --muted-foreground: #a1a1aa;
-            --accent: #27272a; --accent-foreground: #a78bfa; --border: #27272a;
-            --ring: #7c3aed; --note-bg: #27272a; --task-bg: #27272a; --prompt-bg: #27272a;
+            --background: #111827; --foreground: #e5e7eb; --card-background: #1f2937;
+            --primary: #8b5cf6; --primary-hover: #7c3aed; --secondary: #374151;
+            --secondary-foreground: #e5e7eb; --muted: #374151; --muted-foreground: #9ca3af;
+            --accent: #312e81; --accent-foreground: #a78bfa; --border: #374151;
+            --ring: #8b5cf6; --note-bg: #1f2937; --task-bg: #1f2937; --prompt-bg: #1f2937;
             --note-border: #f59e0b; --task-border: #38bdf8; --prompt-border: #34d399;
         }
 
         body { font-family: 'Inter', sans-serif; background-color: var(--background); color: var(--foreground); }
 
         /* --- LAYOUT Y ANIMACIÓN SIDEBAR MEJORADA --- */
-        .sidebar { background-color: var(--sidebar-background); border-right: 1px solid var(--border); width: 280px; transition: width 0.3s ease-in-out, transform 0.3s ease-in-out; }
+        .sidebar { background-color: #1f2937; border-right: 1px solid var(--border); width: 280px; transition: width 0.3s ease-in-out, transform 0.3s ease-in-out; }
         .sidebar.is-collapsed { width: 80px; }
         .sidebar .sidebar-header .font-bold, .sidebar .nav-link span, .sidebar .sidebar-footer .nav-link-text { transition: opacity 0.2s ease, visibility 0.2s ease; opacity: 1; visibility: visible; }
         .sidebar.is-collapsed .sidebar-header .font-bold, .sidebar.is-collapsed .nav-link span, .sidebar.is-collapsed .sidebar-footer .nav-link-text { opacity: 0; visibility: hidden; pointer-events: none; }
@@ -74,7 +74,7 @@
         .btn-secondary { background-color: var(--secondary); color: var(--secondary-foreground); border-color: var(--border); } .btn-secondary:hover { background-color: var(--accent); }
         .btn-ghost { background-color: transparent; color: var(--muted-foreground); } .btn-ghost:hover { background-color: var(--secondary); color: var(--secondary-foreground); }
         .input-base { background: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.75rem; width: 100%; transition: all 0.2s; color: var(--foreground); }
-        .dark .input-base { background: #27272a; } .input-base:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
+        .dark .input-base { background: #374151; } .input-base:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
         .nav-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: var(--radius); font-weight: 500; color: var(--muted-foreground); transition: background-color 0.2s, color 0.2s; }
         .nav-link:hover { background-color: var(--muted); color: var(--foreground); } .nav-link.active { background-color: var(--accent); color: var(--accent-foreground); font-weight: 600; }
         .card-actions, .list-item-actions, .table-item-actions { opacity: 0; transition: opacity 0.2s; z-index: 10; }
@@ -88,15 +88,15 @@
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
         #global-view-switcher button.active { background-color: var(--accent-foreground); color: var(--accent); }
         kbd { background-color: var(--secondary); border-radius: 4px; border: 1px solid var(--border); color: var(--secondary-foreground); display: inline-block; font-family: monospace; font-size: .85em; font-weight: 700; line-height: 1; padding: 2px 6px; }
-        .dark kbd { background-color: #3f3f46; border-color: #52525b; }
-        #main-title { background: linear-gradient(to right, var(--primary), var(--accent-foreground)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .dark kbd { background-color: #4b5563; border-color: #6b7280; }
+        #main-title { color: var(--foreground); }
         
         /* ESTILOS WIDGETS Y DISEÑOS INICIO */
         .widget { background-color: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
         .event-item .actions { opacity: 0; transition: opacity 0.2s ease; }
         .event-item:hover .actions { opacity: 1; }
         #scratchpad-textarea { background-color: var(--secondary); color: var(--foreground); box-sizing: border-box; }
-        .dark #scratchpad-textarea { background-color: #27272a; color: var(--foreground); border-color: #3f3f46; }
+        .dark #scratchpad-textarea { background-color: #374151; color: var(--foreground); border-color: #4b5563; }
         .dark #scratchpad-textarea::placeholder { color: var(--muted-foreground); }
         .prose { color: var(--foreground); }
         .prose p { margin-bottom: 1em; }
@@ -115,8 +115,7 @@
         <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-40 p-4 flex-shrink-0 flex flex-col transform -translate-x-full lg:translate-x-0">
             <!-- Sidebar Header -->
             <div class="sidebar-header flex items-center justify-between pb-4 px-2">
-                <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="w-14 h-14">
-                <span class="font-bold text-lg">Centro de Accesos</span>
+                <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="w-16 h-16">
                 <button id="sidebar-toggle" class="btn btn-ghost !p-2 hidden lg:inline-flex" title="Colapsar barra lateral">
                      <i class="fas fa-angle-double-left"></i>
                 </button>
@@ -510,6 +509,13 @@ function switchTab(tabName) {
 function renderSection(sectionName, itemsToRender, searchTerm = '') {
     const container = document.getElementById(`section-${sectionName}`);
     container.innerHTML = '';
+    
+    // Add search bar to 'buscadores' section
+    if (sectionName === 'buscadores') {
+        container.innerHTML = getMainSearchBarHTML();
+        attachSearchBarListeners();
+    }
+    
     const currentView = viewModes[sectionName] || 'grid';
 
     if (sectionName === 'notes-tasks') {
@@ -635,18 +641,7 @@ function renderInicioSection() {
     renderDisenoClasico(container);
 
     // Re-vincular eventos para la barra de búsqueda
-    const activeSearchBar = container.querySelector(`#main-search-bar-container`);
-    if(activeSearchBar) {
-        activeSearchBar.querySelector('#main-search-button').addEventListener('click', performMainSearch);
-        const mainSearchInput = activeSearchBar.querySelector('#main-search-input');
-        mainSearchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') performMainSearch();
-        });
-        mainSearchInput.addEventListener('input', handleSearchInputShortcut);
-        activeSearchBar.querySelector('#search-engine-selector-button').addEventListener('click', toggleSearchEngineDropdown);
-        const dropdownSearch = document.getElementById('dropdown-search-input');
-        if(dropdownSearch) dropdownSearch.addEventListener('input', renderSearchEngineDropdown);
-    }
+    attachSearchBarListeners();
     
     // Inicializar el selector de motor de búsqueda
     const searchEngines = data.items.filter(item => item.type === 'Buscador');
@@ -777,7 +772,7 @@ function getMainSearchBarHTML() {
                 <button id="search-engine-selector-button" class="flex items-center gap-2 h-full pl-5 pr-4 text-sm font-medium text-foreground bg-secondary/50 rounded-l-xl hover:bg-muted focus:outline-none border-r border-border" type="button">
                     <!-- JS will populate this -->
                 </button>
-                <div id="search-engine-dropdown" class="absolute top-full left-0 mt-2 w-72 border border-border bg-card-background rounded-lg shadow-lg z-[1001] hidden">
+                <div id="search-engine-dropdown" style="background-color: var(--card-background);" class="absolute top-full left-0 mt-2 w-72 border border-border rounded-lg shadow-lg z-[1001] hidden">
                     <div class="p-2 border-b border-border">
                         <input type="text" id="dropdown-search-input" placeholder="Buscar motor..." class="input-base w-full text-sm">
                     </div>
@@ -1109,6 +1104,28 @@ function handleCardClick(id, event) {
 }
 
 // --- BUSCADOR MEJORADO & ATAJOS ---
+function attachSearchBarListeners() {
+    const searchBar = document.querySelector('#main-search-bar-container');
+    if (!searchBar) return;
+
+    const searchButton = searchBar.querySelector('#main-search-button');
+    if (searchButton) searchButton.addEventListener('click', performMainSearch);
+    
+    const searchInput = searchBar.querySelector('#main-search-input');
+    if(searchInput) {
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') performMainSearch();
+        });
+        searchInput.addEventListener('input', handleSearchInputShortcut);
+    }
+    
+    const selectorButton = searchBar.querySelector('#search-engine-selector-button');
+    if (selectorButton) selectorButton.addEventListener('click', toggleSearchEngineDropdown);
+
+    const dropdownInput = searchBar.querySelector('#dropdown-search-input');
+    if (dropdownInput) dropdownInput.addEventListener('input', renderSearchEngineDropdown);
+}
+
 function handleSearchInputShortcut(e) {
     const input = e.target;
     const value = input.value;
@@ -2214,5 +2231,4 @@ function renderAISection(container) {
 </script>
 </body>
 </html>
-
 
