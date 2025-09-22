@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v49 - Mejoras de Video</title>
+    <title>Centro de Accesos v50 - IA Avanzada para Videos</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -63,22 +63,13 @@
         .card-bg-preview { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.3s ease; }
         .card:hover .card-bg-preview { transform: scale(1.05); }
         
-        /* Novedad: Icono de Play para Videos */
         .video-play-icon {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 3rem;
-            color: rgba(255, 255, 255, 0.8);
-            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
-            opacity: 0;
-            transition: opacity 0.2s ease-in-out;
-            pointer-events: none; /* Para no interferir con el click de la tarjeta */
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); font-size: 3rem;
+            color: rgba(255, 255, 255, 0.8); text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            opacity: 0; transition: opacity 0.2s ease-in-out; pointer-events: none;
         }
-        .card:hover .video-play-icon {
-            opacity: 1;
-        }
+        .card:hover .video-play-icon { opacity: 1; }
 
         .note-card, .task-card, .prompt-card { justify-content: flex-start; height: 250px; color: var(--foreground); padding: 1.25rem; border-left-width: 4px; }
         .note-card { background-color: var(--note-bg); border-color: var(--note-border); }
@@ -108,21 +99,23 @@
         .dark kbd { background-color: #4b5563; border-color: #6b7280; }
         #main-title { color: var(--foreground); }
         
-        /* ESTILOS WIDGETS Y DISEÑOS INICIO */
         .widget { background-color: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
         .event-item .actions { opacity: 0; transition: opacity 0.2s ease; }
         .event-item:hover .actions { opacity: 1; }
         #scratchpad-textarea { background-color: var(--secondary); color: var(--foreground); box-sizing: border-box; }
         .dark #scratchpad-textarea { background-color: #374151; color: var(--foreground); border-color: #4b5563; }
         .dark #scratchpad-textarea::placeholder { color: var(--muted-foreground); }
-        .prose { color: var(--foreground); }
-        .prose p { margin-bottom: 1em; }
-        .prose strong { font-weight: 600; }
-        .prose ul { list-style: disc; margin-left: 1.5em; margin-bottom: 1em; }
-        .prose ol { list-style: decimal; margin-left: 1.5em; margin-bottom: 1em; }
-        .prose li { margin-bottom: 0.5em; }
-        .prose pre { background-color: var(--secondary); padding: 1em; border-radius: var(--radius); }
+        .prose { color: var(--foreground); } .prose p { margin-bottom: 1em; } .prose strong { font-weight: 600; }
+        .prose ul { list-style: disc; margin-left: 1.5em; margin-bottom: 1em; } .prose ol { list-style: decimal; margin-left: 1.5em; margin-bottom: 1em; }
+        .prose li { margin-bottom: 0.5em; } .prose pre { background-color: var(--secondary); padding: 1em; border-radius: var(--radius); }
         .dark .prose-invert { color: var(--foreground); }
+
+        /* Estilos para el Chat de IA */
+        #ai-chat-area { max-height: 50vh; }
+        .ai-chat-bubble { background-color: var(--secondary); padding: 0.75rem 1rem; border-radius: var(--radius); max-width: 90%; }
+        .ai-chat-bubble.user { background-color: var(--primary); color: var(--primary-foreground); align-self: flex-end; }
+        .ai-chat-bubble.gemini { background-color: var(--secondary); }
+
     </style>
 </head>
 <body class="dark"> <!-- Inicia en modo oscuro por defecto -->
@@ -197,12 +190,12 @@
     <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="eventPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="settingsHelpPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
-    <div id="videoAIPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
-    <!-- Novedad: Modal para el reproductor de video -->
-    <div id="videoPlayerModal" class="hidden fixed inset-0 z-[1200] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="videoAIPanel" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="promptManagerPanel" class="hidden fixed inset-0 z-[1200] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="videoPlayerModal" class="hidden fixed inset-0 z-[1300] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg font-bold z-[2000] shadow-lg" style="background-color: var(--primary); color: var(--primary-foreground);"></div>
-    <div id="confirmModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
-    <div id="preview-modal" class="hidden fixed z-[1300] w-80 h-60 p-1 bg-card-background rounded-lg shadow-lg pointer-events-none transition-opacity duration-200 opacity-0">
+    <div id="confirmModal" class="hidden fixed inset-0 z-[1400] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="preview-modal" class="hidden fixed z-[1500] w-80 h-60 p-1 bg-card-background rounded-lg shadow-lg pointer-events-none transition-opacity duration-200 opacity-0">
         <div id="preview-modal-content" class="relative w-full h-full bg-cover bg-center rounded-md border border-border">
              <div id="preview-modal-tags"></div>
         </div>
@@ -211,16 +204,32 @@
 <script>
 // --- STATE & CONFIG ---
 const FILENAME_IN_GIST = 'Botones.json';
-let data = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [] };
+let data = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [], aiPrompts: [] };
 let viewModes = {};
 const themes = ['dark', 'light'];
 let currentTheme = localStorage.getItem('theme') || 'dark';
 let previewTimeout = null;
 let selectedSearchEngineId = 'global'; // Set global search as default
 const typeMap = { 'inicio': 'Inicio', 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'], 'videos': 'Video', 'ia': 'IA' };
+let videoTranscriptCache = null; // Cache for the current video transcript
+let aiChatHistory = []; // Cache for the current AI chat history
 
+// --- MOCK DATA & DEFAULTS ---
+const defaultAiPrompts = [
+    { id: 1, isDefault: true, title: "ANTI-CLICKBAIT 2.0", prompt: "Analiza el título, la miniatura y el contenido del video. Identifica la afirmación o pregunta sensacionalista del título/thumb. Luego, encuentra en el video DÓNDE y CÓMO se responde eso. Si la respuesta es simple (una frase) pero el video dura mucho (ej. 1 hora), señálalo con ironía y eficiencia. Responde en este formato:\n➤ “Te están vendiendo [resumir hype del título/thumb]. Pero en el minuto [X] dice: ‘[frase real]’. No necesitabas [duración] para eso. Respuesta real en 5-10 palabras: [respuesta ultra breve].”" },
+    { id: 2, isDefault: true, title: "📌 RESUMEN MUY BREVE", prompt: "Resume el video en UNA sola frase o máximo 3 líneas. Debe incluir: qué es lo más importante que dice, por qué importa, y qué debes recordar. Sé conciso, claro y directo. Evita tecnicismos." },
+    { id: 3, isDefault: true, title: "📖 RESUMEN COMPLETO", prompt: "Genera un resumen estructurado del video con estas secciones:\n- Introducción: ¿Cuál es el propósito o problema que plantea?\n- Desarrollo: ¿Qué argumentos, ejemplos o estudios presenta? Menciona momentos clave (minutos si es posible).\n- Conclusión: ¿Qué propone, recomienda o concluye?\nMáximo 150 palabras. Usa lenguaje claro y organizado con bullets o párrafos cortos." },
+    { id: 4, isDefault: true, title: "⏱️ MARCADORES DE TIEMPO", prompt: "Extrae los momentos clave del video y organízalos en una lista con timestamps (minutos:segundos). Para cada momento, escribe una descripción breve de qué ocurre (ej: “explica X”, “muestra ejemplo de Y”, “revela dato Z”). Incluye al menos 4-6 puntos. Si hay introducción clickbait o llamado a suscribirse, menciónalo con emoji 😏." },
+    { id: 5, isDefault: true, title: "💡 IDEAS CLAVE", prompt: "Extrae 3 a 5 ideas, conceptos o frases clave del video que el usuario DEBE recordar. Para cada una, escribe:\n- Nombre del concepto (negrita)\n- Explicación breve (1 línea)\n- Por qué es útil o relevante (1 línea)\nUsa lenguaje sencillo y emojis para hacerlo visual." },
+    { id: 6, isDefault: true, title: "✅ CHEQUEA EN FUENTES CREÍBLES", prompt: "Identifica 1-3 afirmaciones clave o polémicas del video. Para cada una:\n1. Clasifícala: ✅ REAL / ⚠️ PARCIALMENTE CIERTO / ❌ MITO / 🎭 EXAGERADO\n2. Cita una fuente creíble que lo respalde o refute (OMS, PubMed, universidad, estudio, experto reconocido). Si no hay fuente, di “No hay evidencia disponible”.\n3. Breve explicación (1-2 líneas).\nFormato claro, con bullets y emojis." },
+    { id: 7, isDefault: true, title: "🧒 EXPLÍCAMELO COMO SI TUVIERA 10 AÑOS", prompt: "Explica el contenido principal del video como si se lo estuvieras contando a un niño de 10 años. Usa analogías simples, lenguaje coloquial y estructura tipo presentación de 3 diapositivas:\n- Diapositiva 1: ¿Qué es el problema o idea principal? (usa emoji y ejemplo cotidiano)\n- Diapositiva 2: ¿Cómo funciona o por qué pasa? (usa comparación divertida)\n- Diapositiva 3: ¿Qué puedo hacer o recordar? (acción simple + emoji motivador)\nMáximo 100 palabras en total." },
+    { id: 8, isDefault: true, title: "❓ MULTIPLE CHOICE", prompt: "Crea un quiz de 3 preguntas de opción múltiple basadas en el contenido del video. Cada pregunta debe tener 4 opciones (a, b, c, d), con SOLO UNA correcta. Después de cada pregunta, agrega la retroalimentación que se mostrará al responder, empezando con ✅ o ❌ y explicando por qué. Usa lenguaje claro y divertido." },
+    { id: 9, isDefault: true, title: "🕵️‍♂️ ¿MITO O REAL? + SOLUCIÓN REAL", prompt: "Identifica la afirmación más fuerte, polémica o sensacionalista del video. Verifícala con fuentes confiables (OMS, estudios, expertos). Responde en este formato:\n- ❌ MITO / ✅ REAL / 🎭 EXAGERADO / ⚠️ PARCIALMENTE CIERTO\n- 📚 Fuente: [nombre + link si es posible]\n- 💡 SOLUCIÓN REAL: Si es mito o exagerado, ofrece una alternativa práctica, realista y basada en evidencia. Máximo 3 pasos o frases. Usa lenguaje motivador y claro." },
+    { id: 10, isDefault: true, title: "🤔 ¿Y SI TE DIJERA LO CONTRARIO?", prompt: "El video presenta una postura fuerte sobre [tema]. Encuentra y resume un punto de vista opuesto o crítico, respaldado por evidencia (estudio, experto, institución confiable). Responde en este formato:\n➤ “¿Y si te dijera que [contrapunto breve]? [Fuente confiable] muestra que [explicación de 1-2 líneas]. Aquí el estudio/informe: [link si es posible].”\nMáximo 80 palabras. Sé objetivo, no confrontativo." },
+    { id: 11, isDefault: true, title: "🚀 APLÍCALO EN TU VIDA (PLAN DE 3 PASOS)", prompt: "Convierte lo aprendido en un plan de acción de 3 pasos, concretos, realistas y personalizables. Usa este formato:\n🎯 Tu plan de 3 pasos (empieza hoy):\n1. [Paso 1: acción simple, verbo en imperativo]\n2. [Paso 2: acción con herramienta o técnica]\n3. [Paso 3: cómo medir o mantenerlo]\n✅ Bonus: [app, recurso o tip extra útil]\nLenguaje motivador, claro, sin tecnicismos." },
+    { id: 12, isDefault: true, title: "📺 SI TE GUSTÓ ESTE VIDEO, MIRA ESTOS 3", prompt: "Recomienda 3 videos de YouTube sobre el mismo tema, pero con mejor calidad: más rigurosos, educativos, con fuentes, o de canales confiables (TED, Kurzgesagt, CrashCourse, Ali Abdaal, etc.). Para cada uno:\n- Título sugerido (no real, pero descriptivo)\n- Canal o tipo de creador (ej: “neurocientífico”, “economista”, “educativo animado”)\n- Por qué es mejor o complementario (1 línea)\nFormato:\n🧭 Si te interesa el tema, mira estos (más reales/útiles):\n1. “[Título sugerido]” — canal: [tipo] → [por qué]\n2. ...\n3. ..." }
+];
 
-// --- MOCK DATA (Fallback) ---
 const mockData = {
     items: [
         { id: 1, type: 'Buscador', title: 'Google', action: 'https://www.google.com/search?q={search_term}', category: 'General', icon: 'fab fa-google', tags: ['motor', 'busqueda'], isFavorite: true, shortcut: 'g' },
@@ -243,7 +252,8 @@ const mockData = {
         { id: 1, title: 'Cumpleaños de Ana', date: '2000-09-15', type: 'birthday', note: 'Comprar regalo.', reminderDays: 7 },
         { id: 2, title: 'Entrega Proyecto Final', date: '2025-09-22', type: 'reminder', note: '', reminderDays: 3 },
         { id: 3, title: 'Llamar a Juan', date: '2025-09-22', type: 'reminder', note: '', reminderDays: 1 }
-    ]
+    ],
+    aiPrompts: defaultAiPrompts
 };
 
 
@@ -268,9 +278,13 @@ async function loadData() {
     viewModes = JSON.parse(localStorage.getItem('viewModes')) || {};
 
     const processLoadedData = (loadedData) => {
-        const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [] };
+        const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [], aiPrompts: defaultAiPrompts };
         data = { ...defaults, ...loadedData };
         data.items = (data.items || []).map(i => ({...i, isFavorite: i.isFavorite || false}));
+
+        if (!data.aiPrompts || data.aiPrompts.length === 0) {
+            data.aiPrompts = defaultAiPrompts;
+        }
 
         // Generar atajos para buscadores si no existen
         const searchEngines = data.items.filter(item => item.type === 'Buscador');
@@ -1194,21 +1208,55 @@ function handleCardClick(id, event) {
     }
 }
 
-async function handlePasteYouTubeLink() {
+function showPasteModal(callback) {
+    const modal = document.getElementById('confirmModal'); // Reusing a modal container
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-md p-6">
+            <h3 class="text-lg font-bold mb-4">Pegar enlace de YouTube</h3>
+            <p class="text-sm text-muted-foreground mb-4">Pega la URL del video de YouTube en el campo de abajo.</p>
+            <input type="text" id="paste-input" class="input-base w-full" placeholder="https://www.youtube.com/watch?v=...">
+            <div class="flex justify-end gap-4 mt-6">
+                <button id="pasteCancel" class="btn btn-secondary">Cancelar</button>
+                <button id="pasteOk" class="btn btn-primary">Añadir Video</button>
+            </div>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    const input = modal.querySelector('#paste-input');
+    input.focus();
+
+    modal.querySelector('#pasteOk').onclick = () => {
+        const url = input.value.trim();
+        if (url) {
+            modal.classList.add('hidden');
+            callback(url);
+        } else {
+            showToast("Por favor, pega una URL.", 'error');
+        }
+    };
+    modal.querySelector('#pasteCancel').onclick = () => {
+        modal.classList.add('hidden');
+        callback(null);
+    };
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            modal.querySelector('#pasteOk').click();
+        }
+    });
+}
+
+async function processPastedYouTubeLink(clipboardText) {
     const addNewButton = document.getElementById('addNewButton');
-    const originalButtonContent = addNewButton.innerHTML;
     addNewButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Obteniendo...`;
     addNewButton.disabled = true;
 
     try {
-        const clipboardText = await navigator.clipboard.readText();
         const videoId = getYouTubeID(clipboardText);
 
         if (!videoId) {
-            throw new Error("El texto copiado no es un enlace de YouTube válido.");
+            throw new Error("La URL no parece ser un enlace de YouTube válido.");
         }
         
-        // Usamos un proxy para evitar problemas de CORS con la API oEmbed de YouTube
         const oEmbedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(clipboardText)}&format=json`;
         const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(oEmbedUrl)}`;
 
@@ -1218,7 +1266,7 @@ async function handlePasteYouTubeLink() {
         }
         
         const oembedData = await response.json();
-        const videoData = JSON.parse(oembedData.contents); // allorigins envuelve la respuesta
+        const videoData = JSON.parse(oembedData.contents);
         const videoTitle = videoData.title;
 
         if (!videoTitle) {
@@ -1230,7 +1278,7 @@ async function handlePasteYouTubeLink() {
             type: 'Video',
             title: videoTitle,
             action: clipboardText,
-            category: 'Videos Pegados', // Una categoría por defecto
+            category: 'Videos Pegados',
             icon: 'fab fa-youtube',
             tags: ['clipboard'],
             isFavorite: false
@@ -1242,13 +1290,20 @@ async function handlePasteYouTubeLink() {
         showToast(`Video "${videoTitle}" añadido.`, 'success');
 
     } catch (err) {
-        console.error('Error al pegar el enlace de YouTube:', err);
-        showToast(err.message || 'No se pudo añadir el video desde el portapapeles.', 'error');
+        console.error('Error al procesar el enlace de YouTube:', err);
+        showToast(err.message || 'No se pudo añadir el video.', 'error');
     } finally {
-        // Restaura el botón a su estado original, tanto en éxito como en error
-        addNewButton.innerHTML = originalButtonContent;
+        addNewButton.innerHTML = `<i class="fab fa-youtube mr-2"></i> <span class="hidden sm:inline">Pegar Link</span>`;
         addNewButton.disabled = false;
     }
+}
+
+function handlePasteYouTubeLink() {
+    showPasteModal(url => {
+        if (url) {
+            processPastedYouTubeLink(url);
+        }
+    });
 }
 
 
