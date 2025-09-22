@@ -388,12 +388,7 @@ async function saveData() {
     }
 }
 
-// --- UI INITIALIZATION & EVENT LISTENERS ---
-document.addEventListener("DOMContentLoaded", () => {
-    loadData();
-    setupEventListeners();
-});
-
+// --- UTILITY FUNCTIONS ---
 function debounce(func, delay) {
     let timeout;
     return (...args) => {
@@ -402,10 +397,22 @@ function debounce(func, delay) {
     };
 }
 
-// FIX: Helper function to get the currently visible section container
 function getActiveSectionContainer() {
     return document.querySelector('.section:not(.hidden)');
 }
+
+function getYouTubeID(url) {
+    if (!url || typeof url !== 'string') return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+}
+
+// --- UI INITIALIZATION & EVENT LISTENERS ---
+document.addEventListener("DOMContentLoaded", () => {
+    loadData();
+    setupEventListeners();
+});
 
 function setupEventListeners() {
     const sidebar = document.getElementById('sidebar');
@@ -436,6 +443,7 @@ function setupEventListeners() {
     });
     
     document.getElementById('addNewButton').addEventListener('click', () => openEditPanel());
+
     document.getElementById('fab-theme').addEventListener('click', changeTheme);
     document.getElementById('open-settings-help').addEventListener('click', openSettingsHelpModal);
     
@@ -457,7 +465,6 @@ function setupEventListeners() {
         }
     });
     
-    // FIX: Listener for closing dropdown now correctly finds elements in the active section
     document.addEventListener('click', (e) => {
         const activeContainer = getActiveSectionContainer();
         if (!activeContainer) return;
@@ -468,7 +475,6 @@ function setupEventListeners() {
         }
     });
 
-    // Listener para atajos de teclado globales
     document.addEventListener('keydown', handleGlobalShortcuts);
 }
 
@@ -513,6 +519,7 @@ function switchTab(tabName) {
     } else {
         viewSwitcher.classList.remove('hidden');
         addNewBtn.classList.remove('hidden');
+        addNewBtn.innerHTML = `<i class="fas fa-plus mr-2"></i> <span class="hidden sm:inline">Nuevo</span>`;
         applyGlobalFilter();
     }
 }
@@ -522,11 +529,9 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
     const container = document.getElementById(`section-${sectionName}`);
     container.innerHTML = '';
     
-    // Add search bar to 'buscadores' section
     if (sectionName === 'buscadores') {
         container.innerHTML = getMainSearchBarHTML();
         attachSearchBarListeners(container);
-        // Inicializar el selector de motor de búsqueda para esta sección
         const searchEngines = data.items.filter(item => item.type === 'Buscador');
         const currentSelectionIsValid = searchEngines.some(e => e.id === selectedSearchEngineId);
         if (selectedSearchEngineId !== 'global' && (!selectedSearchEngineId || !currentSelectionIsValid)) {
@@ -534,10 +539,9 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
             if (defaultEngine) {
                 selectSearchEngine(defaultEngine.id, false);
             } else {
-                selectSearchEngine('global', false); // Fallback a búsqueda global si no hay motores
+                selectSearchEngine('global', false);
             }
         } else {
-            // Asegurarse de que el placeholder esté actualizado
             selectSearchEngine(selectedSearchEngineId, false);
         }
     }
@@ -663,13 +667,9 @@ function renderInicioSection() {
     const container = document.getElementById('section-inicio');
     container.innerHTML = ''; // Limpiar contenido
 
-    // Renderizar diseño único
     renderDisenoClasico(container);
-
-    // FIX: Pass the container to ensure listeners are attached to the correct search bar
     attachSearchBarListeners(container);
     
-    // Inicializar el selector de motor de búsqueda
     const searchEngines = data.items.filter(item => item.type === 'Buscador');
     const currentSelectionIsValid = searchEngines.some(e => e.id === selectedSearchEngineId);
     if (selectedSearchEngineId !== 'global' && (!selectedSearchEngineId || !currentSelectionIsValid)) {
@@ -677,10 +677,9 @@ function renderInicioSection() {
         if (defaultEngine) {
             selectSearchEngine(defaultEngine.id, false);
         } else {
-            selectSearchEngine('global', false); // Fallback a búsqueda global si no hay motores
+            selectSearchEngine('global', false);
         }
     } else {
-        // Asegurarse de que el placeholder esté actualizado
         selectSearchEngine(selectedSearchEngineId, false);
     }
 }
@@ -790,7 +789,6 @@ function renderHomeScratchpadWidget(container, gridClasses) {
     container.appendChild(widget);
 }
 
-// FIX: Changed all IDs to classes to prevent duplicates
 function getMainSearchBarHTML() {
     return `
     <div class="main-search-bar-container mb-12 relative z-20 max-w-3xl mx-auto w-full">
@@ -1132,6 +1130,7 @@ function handleCardClick(id, event) {
     }
 }
 
+
 // --- BUSCADOR MEJORADO & ATAJOS ---
 function attachSearchBarListeners(container) {
     const searchBar = container.querySelector('.main-search-bar-container');
@@ -1192,7 +1191,6 @@ function handleSearchInputShortcut(e) {
     }
 }
 
-// FIX: All functions below now use getActiveSectionContainer() to avoid conflicts
 function toggleSearchEngineDropdown() {
     const activeContainer = getActiveSectionContainer();
     if (!activeContainer) return;
@@ -1296,8 +1294,6 @@ function selectSearchEngine(itemId, focusInput = true) {
     updateSearchEngineSelectorButton();
     const activeSectionName = document.querySelector('#main-nav .active')?.dataset.section;
 
-    // FIX: Replaced applyGlobalFilter() to prevent infinite recursion.
-    // Now it just updates the visual selection state directly.
     if (activeSectionName === 'buscadores') {
         const sectionContainer = document.getElementById('section-buscadores');
         sectionContainer.querySelectorAll('.card.is-selected, .list-item.is-selected, .table-item.is-selected').forEach(el => {
@@ -2206,12 +2202,6 @@ function updateSyncStatus(status, message = '') {
 // --- Video AI Panel ---
 function openVideoAIPanel(item) {
     const modal = document.getElementById('videoAIPanel');
-    
-    function getYouTubeID(url) {
-        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[2].length === 11) ? match[2] : null;
-    }
 
     const videoId = getYouTubeID(item.action);
     const embedHtml = videoId 
