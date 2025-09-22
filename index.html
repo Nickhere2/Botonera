@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v48 - Refinamiento de Diseño (Corregido)</title>
+    <title>Centro de Accesos v49 - Mejoras de Video</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -63,7 +63,24 @@
         .card-bg-preview { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.3s ease; }
         .card:hover .card-bg-preview { transform: scale(1.05); }
         
-        .note-card, .task-card, .prompt-card { justify-content: flex-start; height: 250px; color: var(--card-foreground); padding: 1.25rem; border-left-width: 4px; }
+        /* Novedad: Icono de Play para Videos */
+        .video-play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+            pointer-events: none; /* Para no interferir con el click de la tarjeta */
+        }
+        .card:hover .video-play-icon {
+            opacity: 1;
+        }
+
+        .note-card, .task-card, .prompt-card { justify-content: flex-start; height: 250px; color: var(--foreground); padding: 1.25rem; border-left-width: 4px; }
         .note-card { background-color: var(--note-bg); border-color: var(--note-border); }
         .task-card { background-color: var(--task-bg); border-color: var(--task-border); }
         .prompt-card { background-color: var(--prompt-bg); border-color: var(--prompt-border); }
@@ -181,6 +198,8 @@
     <div id="eventPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="settingsHelpPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="videoAIPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
+    <!-- Novedad: Modal para el reproductor de video -->
+    <div id="videoPlayerModal" class="hidden fixed inset-0 z-[1200] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg font-bold z-[2000] shadow-lg" style="background-color: var(--primary); color: var(--primary-foreground);"></div>
     <div id="confirmModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="preview-modal" class="hidden fixed z-[1300] w-80 h-60 p-1 bg-card-background rounded-lg shadow-lg pointer-events-none transition-opacity duration-200 opacity-0">
@@ -511,15 +530,27 @@ function switchTab(tabName) {
     const currentView = viewModes[tabName] || (tabName === 'inicio' ? 'list' : 'grid');
     document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
     
+    // Clonar el botón para eliminar listeners antiguos y evitar duplicados
+    const newBtn = addNewBtn.cloneNode(true);
+    addNewBtn.parentNode.replaceChild(newBtn, addNewBtn);
+    
     if (tabName === 'inicio' || tabName === 'ia') {
         viewSwitcher.classList.toggle('hidden', tabName !== 'inicio');
-        addNewBtn.classList.add('hidden');
+        newBtn.classList.add('hidden');
         if(tabName === 'inicio') renderInicioSection();
         if(tabName === 'ia') renderAISection(document.getElementById('section-ia'));
     } else {
         viewSwitcher.classList.remove('hidden');
-        addNewBtn.classList.remove('hidden');
-        addNewBtn.innerHTML = `<i class="fas fa-plus mr-2"></i> <span class="hidden sm:inline">Nuevo</span>`;
+        newBtn.classList.remove('hidden');
+        
+        if (tabName === 'videos') {
+            newBtn.innerHTML = `<i class="fab fa-youtube mr-2"></i> <span class="hidden sm:inline">Pegar Link</span>`;
+            newBtn.addEventListener('click', handlePasteYouTubeLink);
+        } else {
+            newBtn.innerHTML = `<i class="fas fa-plus mr-2"></i> <span class="hidden sm:inline">Nuevo</span>`;
+            newBtn.addEventListener('click', () => openEditPanel());
+        }
+        
         applyGlobalFilter();
     }
 }
@@ -699,7 +730,7 @@ function renderDisenoClasico(container) {
     let favoritesFound = false;
     const currentView = viewModes['inicio'] || 'list';
 
-    ['links', 'prompts', 'notes-tasks'].forEach(sectionName => {
+    ['links', 'prompts', 'notes-tasks', 'videos'].forEach(sectionName => {
         const orderedFavoritesIds = (data.favoriteOrders && data.favoriteOrders[sectionName]) ? data.favoriteOrders[sectionName] : [];
         const favoriteItems = orderedFavoritesIds.map(id => data.items.find(item => item.id === id && item.isFavorite)).filter(Boolean);
         
@@ -916,12 +947,29 @@ function createCard(item, searchTerm = '') {
     if (item.isFavorite) card.classList.add('is-favorite');
     if (item.id === selectedSearchEngineId) card.classList.add('is-selected');
 
-    const previewUrl = (item.type === 'Link' || item.type === 'Buscador' || item.type === 'Video') 
-        ? `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`
-        : '';
+    let previewUrl = '';
+    let videoPlayIcon = '';
+    // MODIFICACIÓN: Usar miniatura de YouTube para videos
+    if (item.type === 'Video') {
+        const videoId = getYouTubeID(item.action);
+        if (videoId) {
+            previewUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
+        videoPlayIcon = `<div class="video-play-icon"><i class="fas fa-play"></i></div>`;
+    } else if (item.type === 'Link' || item.type === 'Buscador') {
+        previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
+    }
+    
+    // MODIFICACIÓN: Añadir botón de IA para Videos
+    let extraActions = '';
+    if (item.type === 'Video') {
+        extraActions = `<button onclick="openVideoAIPanel(data.items.find(i=>i.id===${item.id}), event)" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20" title="Analizar con IA"><i class="fas fa-magic"></i></button>`;
+    }
+
 
     card.innerHTML = `
         <div class="drag-handle absolute top-2 left-2 p-2 text-white/50 hover:text-white"><i class="fas fa-grip-vertical"></i></div>
+        ${videoPlayIcon}
         <div class="card-bg-preview" style="background-image: url('${previewUrl}')"></div>
         <div class="card-overlay">
             <div class="flex justify-between items-start">
@@ -935,6 +983,7 @@ function createCard(item, searchTerm = '') {
                     </div>
                 </div>
                 <div class="card-actions flex gap-1">
+                     ${extraActions}
                      <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
                      <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="fas fa-pencil-alt"></i></button>
                 </div>
@@ -952,6 +1001,11 @@ function createListItem(item, searchTerm = '') {
     if (item.isFavorite) listItem.classList.add('is-favorite');
     if (item.id === selectedSearchEngineId) listItem.classList.add('is-selected');
 
+    // MODIFICACIÓN: Añadir botón de IA para Videos en la vista de lista
+    let extraActions = '';
+    if (item.type === 'Video') {
+        extraActions = `<button onclick="openVideoAIPanel(data.items.find(i=>i.id===${item.id}), event)" class="btn btn-ghost !p-2" title="Analizar con IA"><i class="fas fa-magic"></i></button>`;
+    }
 
     listItem.innerHTML = `
         <div class="drag-handle p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
@@ -961,6 +1015,7 @@ function createListItem(item, searchTerm = '') {
             <p class="text-sm text-muted-foreground truncate">${item.type} / ${item.category || 'Sin Categoría'}</p>
         </div>
         <div class="list-item-actions flex items-center gap-2">
+            ${extraActions}
             <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
             <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
         </div>
@@ -979,10 +1034,18 @@ function createTableItem(item, searchTerm = '', isGlobalSearch = false) {
     const typeBadge = isGlobalSearch 
         ? `<span class="absolute bottom-1 right-1 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">${item.type}</span>`
         : '';
+        
+    // MODIFICACIÓN: Añadir botón de IA para Videos en la vista de tabla
+    let extraActions = '';
+    if (item.type === 'Video') {
+        extraActions = `<button onclick="openVideoAIPanel(data.items.find(i=>i.id===${item.id}), event)" class="btn btn-ghost !p-1 !text-xs" title="Analizar con IA"><i class="fas fa-magic"></i></button>`;
+    }
+
 
     tableItem.innerHTML = `
         <div class="drag-handle absolute top-1 left-1 p-1 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="table-item-actions absolute top-1 right-1 flex">
+            ${extraActions}
             <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Editar"><i class="fas fa-pencil-alt"></i></button>
             <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Favorito"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
         </div>
@@ -1113,7 +1176,8 @@ function handleCardClick(id, event) {
     if (item.type === "Link") {
         window.open(item.action, "_blank");
     } else if (item.type === "Video") {
-        openVideoAIPanel(item);
+        // MODIFICACIÓN: La acción principal ahora es abrir el reproductor
+        openVideoPlayerModal(item);
     } else if (item.type === "Buscador") {
         selectSearchEngine(item.id);
         const activeSection = document.querySelector('#main-nav .active')?.dataset.section
@@ -1127,6 +1191,63 @@ function handleCardClick(id, event) {
         navigator.clipboard.writeText(tempDiv.textContent || tempDiv.innerText).then(() => showToast("Prompt copiado."));
     } else {
         openEditPanel(id);
+    }
+}
+
+async function handlePasteYouTubeLink() {
+    const addNewButton = document.getElementById('addNewButton');
+    const originalButtonContent = addNewButton.innerHTML;
+    addNewButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Obteniendo...`;
+    addNewButton.disabled = true;
+
+    try {
+        const clipboardText = await navigator.clipboard.readText();
+        const videoId = getYouTubeID(clipboardText);
+
+        if (!videoId) {
+            throw new Error("El texto copiado no es un enlace de YouTube válido.");
+        }
+        
+        // Usamos un proxy para evitar problemas de CORS con la API oEmbed de YouTube
+        const oEmbedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(clipboardText)}&format=json`;
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(oEmbedUrl)}`;
+
+        const response = await fetch(proxyUrl);
+        if (!response.ok) {
+            throw new Error('No se pudo obtener la información del video via proxy.');
+        }
+        
+        const oembedData = await response.json();
+        const videoData = JSON.parse(oembedData.contents); // allorigins envuelve la respuesta
+        const videoTitle = videoData.title;
+
+        if (!videoTitle) {
+             throw new Error('No se pudo obtener el título del video.');
+        }
+
+        const newItem = {
+            id: Date.now(),
+            type: 'Video',
+            title: videoTitle,
+            action: clipboardText,
+            category: 'Videos Pegados', // Una categoría por defecto
+            icon: 'fab fa-youtube',
+            tags: ['clipboard'],
+            isFavorite: false
+        };
+
+        data.items.push(newItem);
+        await saveData();
+        refreshUI();
+        showToast(`Video "${videoTitle}" añadido.`, 'success');
+
+    } catch (err) {
+        console.error('Error al pegar el enlace de YouTube:', err);
+        showToast(err.message || 'No se pudo añadir el video desde el portapapeles.', 'error');
+    } finally {
+        // Restaura el botón a su estado original, tanto en éxito como en error
+        addNewButton.innerHTML = originalButtonContent;
+        addNewButton.disabled = false;
     }
 }
 
@@ -1377,8 +1498,14 @@ function handleGlobalShortcuts(e) {
     const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable;
 
     if (e.key === 'Escape') {
-        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal', 'videoAIPanel'];
+        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal', 'videoAIPanel', 'videoPlayerModal'];
         modals.forEach(id => document.getElementById(id).classList.add('hidden'));
+        // Novedad: Detener video al presionar ESC
+        const videoPlayer = document.getElementById('videoPlayerModal')?.querySelector('iframe');
+        if (videoPlayer) {
+            videoPlayer.src = '';
+        }
+
         closeSearchEngineDropdown();
         return;
     }
@@ -1992,7 +2119,7 @@ function openSettingsHelpModal() {
                         <label for="githubPatInput" class="font-semibold block mb-2">Personal Access Token (Clásico)</label>
                         <input type="password" id="githubPatInput" class="input-base" value="${pat}" placeholder="Token con permiso 'gist'">
                      </div>
-                     <hr class="border-border">
+                    <hr class="border-border">
                      <div>
                         <h3 class="font-bold text-lg mb-2">Integración con IA</h3>
                         <label for="geminiApiKeyInput" class="font-semibold block mb-2">Gemini API Key</label>
@@ -2134,7 +2261,15 @@ function showPreviewModal(item, event) {
     if (item.type !== 'Link' && item.type !== 'Buscador' && item.type !== 'Video') return;
     
     const modalContent = document.getElementById('preview-modal-content');
-    const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
+
+    let previewUrl = '';
+    if (item.type === 'Video') {
+        const videoId = getYouTubeID(item.action);
+        if (videoId) previewUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+    } else {
+        previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
+    }
+
     modalContent.style.backgroundImage = `url('${previewUrl}')`;
     
     const tagsContainer = document.getElementById('preview-modal-tags');
@@ -2199,8 +2334,42 @@ function updateSyncStatus(status, message = '') {
     }
 }
 
-// --- Video AI Panel ---
-function openVideoAIPanel(item) {
+// --- Video AI Panel & Player ---
+// Novedad: Modal para reproducir videos
+function openVideoPlayerModal(item) {
+    const modal = document.getElementById('videoPlayerModal');
+    const videoId = getYouTubeID(item.action);
+
+    if (!videoId) {
+        showToast('URL de YouTube inválida.', 'error');
+        return;
+    }
+    
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-4xl p-4 flex flex-col gap-4 relative">
+             <button onclick="closeVideoPlayerModal()" class="absolute -top-3 -right-3 btn btn-secondary !rounded-full !p-0 w-8 h-8 z-10">&times;</button>
+             <div class="w-full aspect-video">
+                <iframe class="w-full h-full rounded-lg" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+             </div>
+             <h3 class="text-xl font-bold">${item.title}</h3>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+}
+
+function closeVideoPlayerModal() {
+    const modal = document.getElementById('videoPlayerModal');
+    // Detener el video al cerrar
+    const iframe = modal.querySelector('iframe');
+    if (iframe) {
+        iframe.src = '';
+    }
+    modal.classList.add('hidden');
+}
+
+
+function openVideoAIPanel(item, event) {
+    if (event) event.stopPropagation();
     const modal = document.getElementById('videoAIPanel');
 
     const videoId = getYouTubeID(item.action);
