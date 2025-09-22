@@ -117,7 +117,7 @@
             <div class="sidebar-header flex items-center justify-between pb-4 px-2">
                 <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" alt="Logo" class="w-16 h-16">
                 <button id="sidebar-toggle" class="btn btn-ghost !p-2 hidden lg:inline-flex" title="Colapsar barra lateral">
-                     <i class="fas fa-angle-double-left"></i>
+                        <i class="fas fa-angle-double-left"></i>
                 </button>
             </div>
             
@@ -148,7 +148,7 @@
             <header class="header flex flex-col md:flex-row justify-between items-start mb-6 pb-4 gap-4">
                 <div class="flex items-center gap-4 w-full md:w-auto">
                     <button id="menu-toggle" class="lg:hidden btn btn-ghost !p-2">
-                          <i class="fas fa-bars text-xl"></i>
+                            <i class="fas fa-bars text-xl"></i>
                     </button>
                     <h1 id="main-title" class="text-2xl sm:text-3xl font-bold tracking-tight">INICIO</h1>
                 </div>
@@ -397,6 +397,11 @@ function debounce(func, delay) {
     };
 }
 
+// FIX: Helper function to get the currently visible section container
+function getActiveSectionContainer() {
+    return document.querySelector('.section:not(.hidden)');
+}
+
 function setupEventListeners() {
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.querySelector('main');
@@ -447,10 +452,12 @@ function setupEventListeners() {
         }
     });
     
-    // Listener para cerrar el dropdown de búsqueda
+    // FIX: Listener for closing dropdown now correctly finds elements in the active section
     document.addEventListener('click', (e) => {
-        const dropdown = document.getElementById('search-engine-dropdown');
-        const button = document.getElementById('search-engine-selector-button');
+        const activeContainer = getActiveSectionContainer();
+        if (!activeContainer) return;
+        const dropdown = activeContainer.querySelector('.search-engine-dropdown');
+        const button = activeContainer.querySelector('.search-engine-selector-button');
         if (dropdown && !dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && button && !button.contains(e.target)) {
             closeSearchEngineDropdown();
         }
@@ -513,7 +520,21 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
     // Add search bar to 'buscadores' section
     if (sectionName === 'buscadores') {
         container.innerHTML = getMainSearchBarHTML();
-        attachSearchBarListeners();
+        attachSearchBarListeners(container);
+        // Inicializar el selector de motor de búsqueda para esta sección
+        const searchEngines = data.items.filter(item => item.type === 'Buscador');
+        const currentSelectionIsValid = searchEngines.some(e => e.id === selectedSearchEngineId);
+        if (selectedSearchEngineId !== 'global' && (!selectedSearchEngineId || !currentSelectionIsValid)) {
+            const defaultEngine = searchEngines.find(engine => engine.title.toLowerCase() === 'google') || searchEngines[0];
+            if (defaultEngine) {
+                selectSearchEngine(defaultEngine.id, false);
+            } else {
+                selectSearchEngine('global', false); // Fallback a búsqueda global si no hay motores
+            }
+        } else {
+            // Asegurarse de que el placeholder esté actualizado
+            selectSearchEngine(selectedSearchEngineId, false);
+        }
     }
     
     const currentView = viewModes[sectionName] || 'grid';
@@ -640,8 +661,8 @@ function renderInicioSection() {
     // Renderizar diseño único
     renderDisenoClasico(container);
 
-    // Re-vincular eventos para la barra de búsqueda
-    attachSearchBarListeners();
+    // FIX: Pass the container to ensure listeners are attached to the correct search bar
+    attachSearchBarListeners(container);
     
     // Inicializar el selector de motor de búsqueda
     const searchEngines = data.items.filter(item => item.type === 'Buscador');
@@ -764,25 +785,26 @@ function renderHomeScratchpadWidget(container, gridClasses) {
     container.appendChild(widget);
 }
 
+// FIX: Changed all IDs to classes to prevent duplicates
 function getMainSearchBarHTML() {
     return `
-    <div id="main-search-bar-container" class="mb-12 relative z-10 max-w-3xl mx-auto w-full">
+    <div class="main-search-bar-container mb-12 relative z-20 max-w-3xl mx-auto w-full">
         <div class="flex relative w-full text-lg bg-card-background border border-border rounded-xl shadow-lg focus-within:ring-4 focus-within:ring-purple-500/20 transition-shadow">
             <div class="relative flex-shrink-0">
-                <button id="search-engine-selector-button" class="flex items-center gap-2 h-full pl-5 pr-4 text-sm font-medium text-foreground bg-secondary/50 rounded-l-xl hover:bg-muted focus:outline-none border-r border-border" type="button">
+                <button class="search-engine-selector-button flex items-center gap-2 h-full pl-5 pr-4 text-sm font-medium text-foreground bg-secondary/50 rounded-l-xl hover:bg-muted focus:outline-none border-r border-border" type="button">
                     <!-- JS will populate this -->
                 </button>
-                <div id="search-engine-dropdown" style="background-color: var(--card-background);" class="absolute top-full left-0 mt-2 w-72 border border-border rounded-lg shadow-lg z-[1001] hidden">
+                <div style="background-color: var(--card-background);" class="search-engine-dropdown absolute top-full left-0 mt-2 w-72 border border-border rounded-lg shadow-lg z-[1001] hidden">
                     <div class="p-2 border-b border-border">
-                        <input type="text" id="dropdown-search-input" placeholder="Buscar motor..." class="input-base w-full text-sm">
+                        <input type="text" class="dropdown-search-input input-base w-full text-sm" placeholder="Buscar motor...">
                     </div>
-                    <div id="dropdown-options-container" class="max-h-60 overflow-y-auto p-1">
+                    <div class="dropdown-options-container max-h-60 overflow-y-auto p-1">
                         <!-- Options generated by JS -->
                     </div>
                 </div>
             </div>
-            <input type="text" id="main-search-input" class="relative w-full p-4 bg-transparent border-0 focus:ring-0 text-foreground placeholder:text-muted-foreground" placeholder="Busca con...">
-            <button id="main-search-button" type="submit" class="flex-shrink-0 px-6 text-white bg-primary rounded-r-xl border-l border-primary-hover hover:bg-primary-hover focus:outline-none">
+            <input type="text" class="main-search-input relative w-full p-4 bg-transparent border-0 focus:ring-0 text-foreground placeholder:text-muted-foreground" placeholder="Busca con...">
+            <button class="main-search-button flex-shrink-0 px-6 text-white bg-primary rounded-r-xl border-l border-primary-hover hover:bg-primary-hover focus:outline-none" type="submit">
                 <i class="fas fa-search text-lg"></i>
             </button>
         </div>
@@ -1093,7 +1115,7 @@ function handleCardClick(id, event) {
         if(activeSection !== 'inicio') {
             switchTab('inicio')
         }
-        document.getElementById('main-search-input')?.focus();
+        getActiveSectionContainer()?.querySelector('.main-search-input')?.focus();
     } else if (item.type === "Promp") {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = item.action;
@@ -1104,14 +1126,15 @@ function handleCardClick(id, event) {
 }
 
 // --- BUSCADOR MEJORADO & ATAJOS ---
-function attachSearchBarListeners() {
-    const searchBar = document.querySelector('#main-search-bar-container');
+// FIX: Function now accepts a container to scope its querySelectors
+function attachSearchBarListeners(container) {
+    const searchBar = container.querySelector('.main-search-bar-container');
     if (!searchBar) return;
 
-    const searchButton = searchBar.querySelector('#main-search-button');
+    const searchButton = searchBar.querySelector('.main-search-button');
     if (searchButton) searchButton.addEventListener('click', performMainSearch);
     
-    const searchInput = searchBar.querySelector('#main-search-input');
+    const searchInput = searchBar.querySelector('.main-search-input');
     if(searchInput) {
         searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') performMainSearch();
@@ -1119,10 +1142,10 @@ function attachSearchBarListeners() {
         searchInput.addEventListener('input', handleSearchInputShortcut);
     }
     
-    const selectorButton = searchBar.querySelector('#search-engine-selector-button');
+    const selectorButton = searchBar.querySelector('.search-engine-selector-button');
     if (selectorButton) selectorButton.addEventListener('click', toggleSearchEngineDropdown);
 
-    const dropdownInput = searchBar.querySelector('#dropdown-search-input');
+    const dropdownInput = searchBar.querySelector('.dropdown-search-input');
     if (dropdownInput) dropdownInput.addEventListener('input', renderSearchEngineDropdown);
 }
 
@@ -1149,9 +1172,12 @@ function handleSearchInputShortcut(e) {
     }
 }
 
+// FIX: All functions below now use getActiveSectionContainer() to avoid conflicts
 function toggleSearchEngineDropdown() {
-    const dropdown = document.getElementById('search-engine-dropdown');
-    const button = document.getElementById('search-engine-selector-button');
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const dropdown = activeContainer.querySelector('.search-engine-dropdown');
+    const button = activeContainer.querySelector('.search-engine-selector-button');
     if(!dropdown || !button) return;
     
     const isOpen = !dropdown.classList.contains('hidden');
@@ -1160,15 +1186,17 @@ function toggleSearchEngineDropdown() {
     } else {
         dropdown.classList.remove('hidden');
         button.querySelector('.chevron-icon')?.classList.add('rotate-180');
-        document.getElementById('dropdown-search-input').value = '';
+        activeContainer.querySelector('.dropdown-search-input').value = '';
         renderSearchEngineDropdown();
-        document.getElementById('dropdown-search-input').focus();
+        activeContainer.querySelector('.dropdown-search-input').focus();
     }
 }
 
 function closeSearchEngineDropdown() {
-    const dropdown = document.getElementById('search-engine-dropdown');
-    const button = document.getElementById('search-engine-selector-button');
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const dropdown = activeContainer.querySelector('.search-engine-dropdown');
+    const button = activeContainer.querySelector('.search-engine-selector-button');
     if (dropdown) {
         dropdown.classList.add('hidden');
     }
@@ -1178,8 +1206,10 @@ function closeSearchEngineDropdown() {
 }
 
 function renderSearchEngineDropdown() {
-    const container = document.getElementById('dropdown-options-container');
-    const searchTerm = document.getElementById('dropdown-search-input').value.toLowerCase();
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const container = activeContainer.querySelector('.dropdown-options-container');
+    const searchTerm = activeContainer.querySelector('.dropdown-search-input').value.toLowerCase();
     const engines = data.items.filter(item => item.type === 'Buscador');
 
     const filteredEngines = engines.filter(engine => 
@@ -1231,24 +1261,37 @@ function renderSearchEngineDropdown() {
 function selectSearchEngine(itemId, focusInput = true) {
     selectedSearchEngineId = (itemId === 'global') ? 'global' : parseInt(itemId);
     
-    let engine;
-    const searchInput = document.getElementById('main-search-input');
-    
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const searchInput = activeContainer.querySelector('.main-search-input');
+
     if(selectedSearchEngineId === 'global') {
-        engine = { title: 'Búsqueda Global', icon: 'https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png' };
         if (searchInput) searchInput.placeholder = `Buscar en todo...`;
     } else {
-        engine = data.items.find(i => i.id === selectedSearchEngineId);
+        const engine = data.items.find(i => i.id === selectedSearchEngineId);
         if (engine && searchInput) {
             searchInput.placeholder = `Buscar con ${engine.title}...`;
         }
     }
     
     updateSearchEngineSelectorButton();
-    const activeSection = document.querySelector('#main-nav .active')?.dataset.section
-    if (activeSection === 'buscadores') {
-        applyGlobalFilter(); // Refresca para mostrar la selección
+    const activeSectionName = document.querySelector('#main-nav .active')?.dataset.section;
+
+    // FIX: Replaced applyGlobalFilter() to prevent infinite recursion.
+    // Now it just updates the visual selection state directly.
+    if (activeSectionName === 'buscadores') {
+        const sectionContainer = document.getElementById('section-buscadores');
+        sectionContainer.querySelectorAll('.card.is-selected, .list-item.is-selected, .table-item.is-selected').forEach(el => {
+            el.classList.remove('is-selected');
+        });
+        if (selectedSearchEngineId !== 'global') {
+            const selectedCard = sectionContainer.querySelector(`[data-id="${selectedSearchEngineId}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('is-selected');
+            }
+        }
     }
+
     closeSearchEngineDropdown();
     if (focusInput) {
         searchInput?.focus();
@@ -1256,7 +1299,9 @@ function selectSearchEngine(itemId, focusInput = true) {
 }
 
 function updateSearchEngineSelectorButton() {
-    const button = document.getElementById('search-engine-selector-button');
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const button = activeContainer.querySelector('.search-engine-selector-button');
     if (!button) return;
 
     let engine;
@@ -1283,11 +1328,17 @@ function updateSearchEngineSelectorButton() {
 }
 
 function performMainSearch() {
-    const term = document.getElementById('main-search-input').value;
-    if (!term.trim() || !selectedSearchEngineId) {
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const term = activeContainer.querySelector('.main-search-input').value;
+    if (!term.trim()) {
          showToast("Por favor, escribe un término de búsqueda.", 'error');
         return;
     }
+    if (!selectedSearchEngineId) {
+        showToast("Por favor, selecciona un motor de búsqueda.", 'error');
+       return;
+   }
 
     if (selectedSearchEngineId === 'global') {
         renderGlobalSearchResultsInHome(term);
@@ -1404,7 +1455,7 @@ function renderGlobalSearchResultsInHome(searchTerm) {
     });
 
     // Clear everything except search bar
-    const searchBarHTML = container.querySelector('#main-search-bar-container').outerHTML;
+    const searchBarHTML = container.querySelector('.main-search-bar-container').outerHTML;
     container.innerHTML = searchBarHTML;
 
     const resultsContainer = document.createElement('div');
@@ -1440,18 +1491,13 @@ function renderGlobalSearchResultsInHome(searchTerm) {
             resultsContainer.appendChild(wrapper);
         }
     }
-     // Re-add event listeners for the recreated elements
-     const activeSearchBar = document.querySelector(`#main-search-bar-container`);
-     if (activeSearchBar) {
-        const mainSearchInput = activeSearchBar.querySelector('#main-search-input');
-        mainSearchInput.value = searchTerm;
-        mainSearchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') performMainSearch(); });
-        mainSearchInput.addEventListener('input', handleSearchInputShortcut);
-        activeSearchBar.querySelector('#main-search-button').addEventListener('click', performMainSearch);
-        activeSearchBar.querySelector('#search-engine-selector-button').addEventListener('click', toggleSearchEngineDropdown);
-        const dropdownSearch = document.getElementById('dropdown-search-input');
-        if (dropdownSearch) dropdownSearch.addEventListener('input', renderSearchEngineDropdown);
-     }
+    // FIX: Re-attach event listeners by reusing the main function
+    const activeContainer = getActiveSectionContainer();
+    if (activeContainer) {
+        const mainSearchInput = activeContainer.querySelector('.main-search-input');
+        if (mainSearchInput) mainSearchInput.value = searchTerm;
+        attachSearchBarListeners(activeContainer);
+    }
 }
 
 
