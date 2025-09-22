@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v43 - Widgets y Diseños de Inicio</title>
+    <title>Centro de Accesos v44 - Inicio Refinado</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -39,8 +39,8 @@
         /* --- LAYOUT Y ANIMACIÓN SIDEBAR MEJORADA --- */
         .sidebar { background-color: var(--sidebar-background); border-right: 1px solid var(--border); width: 280px; transition: width 0.3s ease-in-out, transform 0.3s ease-in-out; }
         .sidebar.is-collapsed { width: 80px; }
-        .sidebar .sidebar-header .font-bold, .sidebar .nav-link span, .sidebar .sidebar-footer .nav-link-text, .sidebar #global-search-container, .sidebar #agenda-widget .agenda-header-title, .sidebar #agenda-widget .agenda-content { transition: opacity 0.2s ease, visibility 0.2s ease; opacity: 1; visibility: visible; }
-        .sidebar.is-collapsed .sidebar-header .font-bold, .sidebar.is-collapsed .nav-link span, .sidebar.is-collapsed .sidebar-footer .nav-link-text, .sidebar.is-collapsed #global-search-container, .sidebar.is-collapsed #agenda-widget .agenda-header-title, .sidebar.is-collapsed #agenda-widget .agenda-content { opacity: 0; visibility: hidden; pointer-events: none; }
+        .sidebar .sidebar-header .font-bold, .sidebar .nav-link span, .sidebar .sidebar-footer .nav-link-text { transition: opacity 0.2s ease, visibility 0.2s ease; opacity: 1; visibility: visible; }
+        .sidebar.is-collapsed .sidebar-header .font-bold, .sidebar.is-collapsed .nav-link span, .sidebar.is-collapsed .sidebar-footer .nav-link-text { opacity: 0; visibility: hidden; pointer-events: none; }
         .sidebar.is-collapsed .sidebar-header, .sidebar.is-collapsed #agenda-widget .agenda-header { justify-content: center; }
         .sidebar.is-collapsed .nav-link, .sidebar.is-collapsed .sidebar-footer a { justify-content: center; }
         .sidebar.is-collapsed .sidebar-footer { align-items: center; }
@@ -68,7 +68,6 @@
         .btn-ghost { background-color: transparent; color: var(--muted-foreground); } .btn-ghost:hover { background-color: var(--secondary); color: var(--secondary-foreground); }
         .input-base { background: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.75rem; width: 100%; transition: all 0.2s; color: var(--foreground); }
         .dark .input-base { background: #27272a; } .input-base:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
-        #global-search-input { background-color: var(--muted); } .dark #global-search-input { background-color: #202023; } #global-search-input:focus { background-color: var(--card-background); }
         .nav-link { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: var(--radius); font-weight: 500; color: var(--muted-foreground); transition: background-color 0.2s, color 0.2s; }
         .nav-link:hover { background-color: var(--muted); color: var(--foreground); } .nav-link.active { background-color: var(--accent); color: var(--accent-foreground); font-weight: 600; }
         .card-actions, .list-item-actions, .table-item-actions { opacity: 0; transition: opacity 0.2s; z-index: 10; }
@@ -80,22 +79,17 @@
         .modal-container { background-color: var(--card-background); border-radius: var(--radius); box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
         .fade-in { animation: fadeIn 0.3s ease-out forwards; } @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         ::-webkit-scrollbar { width: 8px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: var(--muted-foreground); }
-        #global-view-switcher button.active, #home-design-switcher button.active { background-color: var(--accent-foreground); color: var(--accent); }
-        .agenda-header .actions .btn, .event-item .actions { opacity: 0; transition: opacity 0.2s ease; }
-        .agenda-header:hover .actions .btn, .event-item:hover .actions { opacity: 1; }
+        #global-view-switcher button.active { background-color: var(--accent-foreground); color: var(--accent); }
         kbd { background-color: var(--secondary); border-radius: 4px; border: 1px solid var(--border); color: var(--secondary-foreground); display: inline-block; font-family: monospace; font-size: .85em; font-weight: 700; line-height: 1; padding: 2px 6px; }
         .dark kbd { background-color: #3f3f46; border-color: #52525b; }
         
         /* ESTILOS WIDGETS Y DISEÑOS INICIO */
         .widget { background-color: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
-        .design-layout.hidden { display: none; }
-        .fav-item-large { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1rem; border-radius: var(--radius); background-color: var(--card-background); border: 1px solid var(--border); width: 120px; height: 120px; justify-content: center; cursor: pointer; transition: all 0.2s ease; }
-        .fav-item-large:hover { transform: translateY(-4px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-        .dark .fav-item-large:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .fav-item-large .icon-container { width: 48px; height: 48px; background-color: var(--secondary); border-radius: 99px; display: flex; align-items: center; justify-content: center; }
-        .fav-item-large .icon-container i { font-size: 1.5rem; color: var(--foreground); }
-        .fav-item-large .icon-container img { width: 28px; height: 28px; }
-        .fav-item-large span { font-weight: 600; text-align: center; }
+        .event-item .actions { opacity: 0; transition: opacity 0.2s ease; }
+        .event-item:hover .actions { opacity: 1; }
+        #scratchpad-textarea { background-color: var(--secondary); color: var(--foreground); }
+        .dark #scratchpad-textarea { background-color: #27272a; color: var(--foreground); border-color: #3f3f46; }
+        .dark #scratchpad-textarea::placeholder { color: var(--muted-foreground); }
     </style>
 </head>
 <body class="dark"> <!-- Inicia en modo oscuro por defecto -->
@@ -112,15 +106,6 @@
                 </button>
             </div>
             
-            <!-- Global Search -->
-            <div id="global-search-container" class="px-2 pb-4">
-                <div class="relative">
-                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 z-10"></i>
-                    <input type="text" id="global-search-input" placeholder="Buscar en todo..." class="input-base w-full !pl-9 !pr-14">
-                    <kbd id="search-shortcut" class="absolute right-2.5 top-1/2 -translate-y-1/2 opacity-60 pointer-events-none hidden sm:inline-flex items-center gap-1 text-xs"></kbd>
-                </div>
-            </div>
-
             <!-- Main Navigation -->
             <nav id="main-nav" class="flex-grow space-y-2 px-2">
                 <a href="#" data-section="inicio" class="nav-link active"><i class="fas fa-home w-5 text-center"></i><span>Inicio</span></a>
@@ -130,11 +115,8 @@
                 <a href="#" data-section="notes-tasks" class="nav-link"><i class="fas fa-check-double w-5 text-center"></i><span>Notas y Tareas</span></a>
             </nav>
             
-            <!-- Agenda Widget Container -->
-            <div id="sidebar-agenda-container" class="px-2 mt-4 border-t border-border pt-4"></div>
-
             <!-- Sidebar Footer -->
-            <div class="sidebar-footer mt-auto flex flex-col gap-2 px-2">
+            <div class="sidebar-footer mt-auto flex flex-col gap-2 px-2 pt-4 border-t border-border">
                 <a href="#" id="open-settings-help" class="nav-link"><i class="fas fa-cog w-5 text-center"></i><span class="nav-link-text">Ajustes y Ayuda</span></a>
                 <a href="#" id="fab-theme" class="nav-link"><i class="fas fa-palette w-5 text-center"></i><span class="nav-link-text">Cambiar Tema</span></a>
                 <div id="sync-status" class="text-xs flex items-center gap-2 opacity-70 p-2 justify-center">
@@ -426,8 +408,6 @@ function setupEventListeners() {
             if (window.innerWidth < 1024) toggleMobileSidebar();
         }
     });
-
-    document.getElementById('global-search-input').addEventListener('input', debounce(applyGlobalFilter, 300));
     
     document.getElementById('addNewButton').addEventListener('click', () => openEditPanel());
     document.getElementById('fab-theme').addEventListener('click', changeTheme);
@@ -470,9 +450,11 @@ function initializeUI() {
         document.querySelector('main').style.marginLeft = '280px';
     }
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-    document.getElementById('search-shortcut').innerHTML = `<kbd>${isMac ? '⌘' : 'Ctrl'}</kbd><kbd>B</kbd>`;
+    const shortcutEl = document.getElementById('search-shortcut');
+    if (shortcutEl) {
+        shortcutEl.innerHTML = `<kbd>${isMac ? '⌘' : 'Ctrl'}</kbd><kbd>B</kbd>`;
+    }
     switchTab('inicio');
-    renderAgendaWidget();
 }
 
 function refreshUI() {
@@ -482,7 +464,6 @@ function refreshUI() {
     } else {
         applyGlobalFilter();
     }
-    renderAgendaWidget();
 }
 
 function switchTab(tabName) {
@@ -637,45 +618,11 @@ function renderInicioSection() {
     const container = document.getElementById('section-inicio');
     container.innerHTML = ''; // Limpiar contenido
 
-    // 1. Añadir el selector de diseño
-    const designSwitcherHTML = `
-        <div class="flex justify-center mb-8">
-            <div id="home-design-switcher" class="flex items-center bg-secondary p-1 rounded-lg">
-                <button data-design="clasico" class="btn btn-sm btn-ghost !rounded-md px-3 py-1">Clásico</button>
-                <button data-design="minimalista" class="btn btn-sm btn-ghost !rounded-md px-3 py-1">Minimalista</button>
-            </div>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', designSwitcherHTML);
-    
-    document.querySelectorAll('#home-design-switcher button').forEach(button => {
-        if (button.dataset.design === homeDesign) {
-            button.classList.add('active');
-        }
-        button.addEventListener('click', (e) => {
-            homeDesign = e.target.dataset.design;
-            localStorage.setItem('homeDesign', homeDesign);
-            renderInicioSection(); // Re-render to apply the new design
-        });
-    });
+    // Renderizar diseño clásico (único diseño ahora)
+    renderDisenoClasico(container);
 
-    // 2. Crear contenedores para cada diseño
-    const clasicoContainer = document.createElement('div');
-    clasicoContainer.id = 'design-clasico';
-    clasicoContainer.className = `design-layout ${homeDesign !== 'clasico' ? 'hidden' : ''}`;
-    container.appendChild(clasicoContainer);
-    
-    const minimalistaContainer = document.createElement('div');
-    minimalistaContainer.id = 'design-minimalista';
-    minimalistaContainer.className = `design-layout ${homeDesign !== 'minimalista' ? 'hidden' : ''}`;
-    container.appendChild(minimalistaContainer);
-
-    // 3. Renderizar el contenido en los contenedores apropiados
-    renderDisenoClasico(clasicoContainer);
-    renderDisenoMinimalista(minimalistaContainer);
-
-    // 4. Re-vincular eventos para la barra de búsqueda (que ahora está dentro de un diseño)
-    const activeSearchBar = document.querySelector(`.design-layout:not(.hidden) #main-search-bar-container`);
+    // Re-vincular eventos para la barra de búsqueda
+    const activeSearchBar = container.querySelector(`#main-search-bar-container`);
     if(activeSearchBar) {
         activeSearchBar.querySelector('#main-search-button').addEventListener('click', performMainSearch);
         const mainSearchInput = activeSearchBar.querySelector('#main-search-input');
@@ -684,18 +631,19 @@ function renderInicioSection() {
         });
         mainSearchInput.addEventListener('input', handleSearchInputShortcut);
         activeSearchBar.querySelector('#search-engine-selector-button').addEventListener('click', toggleSearchEngineDropdown);
-        // El dropdown es global, no necesita re-vincularse
         const dropdownSearch = document.getElementById('dropdown-search-input');
         if(dropdownSearch) dropdownSearch.addEventListener('input', renderSearchEngineDropdown);
     }
     
-    // 5. Inicializar el selector de motor de búsqueda
+    // Inicializar el selector de motor de búsqueda
     const searchEngines = data.items.filter(item => item.type === 'Buscador');
     const currentSelectionIsValid = searchEngines.some(e => e.id === selectedSearchEngineId);
-    if (!selectedSearchEngineId || !currentSelectionIsValid) {
+    if (selectedSearchEngineId !== 'global' && (!selectedSearchEngineId || !currentSelectionIsValid)) {
         const defaultEngine = searchEngines.find(engine => engine.title.toLowerCase() === 'google') || searchEngines[0];
         if (defaultEngine) {
             selectSearchEngine(defaultEngine.id, false);
+        } else {
+            selectSearchEngine('global', false); // Fallback a búsqueda global si no hay motores
         }
     } else {
         // Asegurarse de que el placeholder esté actualizado
@@ -762,59 +710,37 @@ function renderDisenoClasico(container) {
     }
 }
 
-function renderDisenoMinimalista(container) {
-    container.className += ' flex flex-col items-center justify-center';
-    container.innerHTML = getMainSearchBarHTML();
-
-    const widgetsContainer = document.createElement('div');
-    widgetsContainer.className = "grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 w-full max-w-5xl";
-    container.appendChild(widgetsContainer);
-    
-    renderHomeAgendaWidget(widgetsContainer, 'md:col-span-1');
-    renderHomeScratchpadWidget(widgetsContainer, 'md:col-span-2');
-
-    const favoritesWrapper = document.createElement('div');
-    favoritesWrapper.className = 'w-full';
-    
-    let allFavorites = [];
-    Object.keys(data.favoriteOrders).forEach(sectionName => {
-        if(sectionName === 'buscadores') return;
-        const favIds = data.favoriteOrders[sectionName] || [];
-        allFavorites.push(...favIds.map(id => data.items.find(item => item.id === id && item.isFavorite)).filter(Boolean));
-    });
-
-    if (allFavorites.length > 0) {
-        favoritesWrapper.innerHTML = `<h3 class="text-sm font-bold uppercase text-muted-foreground tracking-wider mb-4 text-center">FAVORITOS</h3>`;
-        const favContainer = document.createElement('div');
-        favContainer.className = 'flex flex-wrap justify-center gap-4';
-        allFavorites.forEach(item => {
-            favContainer.appendChild(createFavItemLarge(item));
-        });
-        favoritesWrapper.appendChild(favContainer);
-    }
-    
-    container.appendChild(favoritesWrapper);
-}
-
 function renderHomeAgendaWidget(container, gridClasses) {
     const widget = document.createElement('div');
-    widget.className = `widget ${gridClasses}`;
+    widget.className = `widget ${gridClasses} flex flex-col`;
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todaysEvents = getUpcomingEvents(0).filter(e => {
-        const eventDate = new Date(e.date);
-        eventDate.setHours(0, 0, 0, 0);
-        return eventDate.getTime() === today.getTime();
-    });
-            
-    let eventsHTML = todaysEvents.length > 0
-        ? todaysEvents.map(event => `<li class="flex items-center gap-2 text-sm"><i class="fas fa-circle text-primary text-[6px]"></i>${event.title}</li>`).join('')
-        : '<p class="text-sm text-muted-foreground">No hay eventos para hoy.</p>';
+    const upcomingEvents = getUpcomingEvents(30);
+    
+    let eventsHTML = upcomingEvents.length > 0
+        ? upcomingEvents.map(event => {
+            const noteIcon = event.note ? `<i class="fas fa-sticky-note text-gray-500 text-xs ml-1" title="${event.note}"></i>` : '';
+            return `
+            <div class="event-item flex items-center gap-2 text-sm py-1">
+                <div class="flex-grow overflow-hidden">
+                    <p class="font-medium truncate">${event.title} ${noteIcon}</p>
+                    <p class="text-xs text-muted-foreground">${event.date.toLocaleDateString('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'long' })}</p>
+                </div>
+                <div class="actions flex items-center">
+                    <button onclick="openEventPanel(${event.id})" class="btn btn-ghost !p-1"><i class="fas fa-pencil-alt text-xs"></i></button>
+                    <button onclick="deleteEvent(event, ${event.id})" class="btn btn-ghost !p-1"><i class="fas fa-trash-alt text-xs"></i></button>
+                </div>
+            </div>`;
+        }).join('')
+        : '<p class="text-sm text-muted-foreground">No hay eventos próximos.</p>';
 
     widget.innerHTML = `
-        <h3 class="font-bold mb-3 text-lg">Agenda del Día</h3>
-        <ul class="space-y-2">${eventsHTML}</ul>
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-lg">Agenda</h3>
+            <button onclick="openEventPanel()" class="btn btn-ghost !p-2" title="Añadir evento"><i class="fas fa-plus"></i></button>
+        </div>
+        <div class="flex-grow overflow-y-auto max-h-48 space-y-2 pr-2">
+            ${eventsHTML}
+        </div>
     `;
     container.appendChild(widget);
 }
@@ -824,7 +750,7 @@ function renderHomeScratchpadWidget(container, gridClasses) {
     widget.className = `widget ${gridClasses}`;
     widget.innerHTML = `
         <h3 class="font-bold mb-3 text-lg">Bloc de Notas Rápido</h3>
-        <textarea class="w-full h-32 p-2 bg-secondary/50 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none resize-none text-sm" placeholder="Apunta algo...">${localStorage.getItem('scratchpadContent') || ''}</textarea>
+        <textarea id="scratchpad-textarea" class="w-full h-full min-h-[145px] p-2 bg-secondary/50 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none resize-none text-sm" placeholder="Apunta algo...">${localStorage.getItem('scratchpadContent') || ''}</textarea>
     `;
     widget.querySelector('textarea').addEventListener('input', debounce((e) => {
         localStorage.setItem('scratchpadContent', e.target.value);
@@ -1226,6 +1152,19 @@ function renderSearchEngineDropdown() {
     );
 
     container.innerHTML = '';
+    
+    // Add Global Search option
+    const globalSearchHTML = `
+        <div class="dropdown-item ${selectedSearchEngineId === 'global' ? 'is-selected' : ''}" onclick="selectSearchEngine('global')">
+            <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" class="w-5 h-5" alt="Logo">
+            <span class="truncate">Búsqueda Global</span>
+            <kbd class="ml-auto">todo</kbd>
+        </div>
+    `;
+    if ('búsqueda global'.includes(searchTerm)) {
+        container.innerHTML += globalSearchHTML;
+    }
+
     if (filteredEngines.length > 0) {
         filteredEngines.forEach((engine, index) => {
             const itemEl = document.createElement('div');
@@ -1247,19 +1186,29 @@ function renderSearchEngineDropdown() {
             itemEl.onclick = () => selectSearchEngine(engine.id);
             container.appendChild(itemEl);
         });
-    } else {
-        container.innerHTML = `<p class="text-sm text-muted-foreground text-center p-4">No se encontraron motores.</p>`;
+    }
+
+    if(container.innerHTML === '' && !'búsqueda global'.includes(searchTerm)) {
+         container.innerHTML = `<p class="text-sm text-muted-foreground text-center p-4">No se encontraron motores.</p>`;
     }
 }
 
 function selectSearchEngine(itemId, focusInput = true) {
-    selectedSearchEngineId = parseInt(itemId);
-    const engine = data.items.find(i => i.id === selectedSearchEngineId);
+    selectedSearchEngineId = (itemId === 'global') ? 'global' : parseInt(itemId);
+    
+    let engine;
     const searchInput = document.getElementById('main-search-input');
-    if (engine && searchInput) {
-        searchInput.placeholder = `Buscar con ${engine.title}...`;
+    
+    if(selectedSearchEngineId === 'global') {
+        engine = { title: 'Búsqueda Global', icon: 'https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png' };
+        if (searchInput) searchInput.placeholder = `Buscar en todo...`;
+    } else {
+        engine = data.items.find(i => i.id === selectedSearchEngineId);
+        if (engine && searchInput) {
+            searchInput.placeholder = `Buscar con ${engine.title}...`;
+        }
     }
-
+    
     updateSearchEngineSelectorButton();
     const activeSection = document.querySelector('#main-nav .active')?.dataset.section
     if (activeSection === 'buscadores') {
@@ -1274,7 +1223,14 @@ function selectSearchEngine(itemId, focusInput = true) {
 function updateSearchEngineSelectorButton() {
     const button = document.getElementById('search-engine-selector-button');
     if (!button) return;
-    const engine = data.items.find(i => i.id === selectedSearchEngineId);
+
+    let engine;
+    if(selectedSearchEngineId === 'global') {
+        engine = { title: 'Búsqueda Global', icon: 'https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png' };
+    } else {
+        engine = data.items.find(i => i.id === selectedSearchEngineId);
+    }
+    
     if (engine) {
         button.innerHTML = `
             <div class="flex items-center gap-2 pointer-events-none">
@@ -1294,7 +1250,12 @@ function updateSearchEngineSelectorButton() {
 function performMainSearch() {
     const term = document.getElementById('main-search-input').value;
     if (!term.trim() || !selectedSearchEngineId) {
-         showToast("Por favor, escribe un término y selecciona un motor de búsqueda.", 'error');
+         showToast("Por favor, escribe un término de búsqueda.", 'error');
+        return;
+    }
+
+    if (selectedSearchEngineId === 'global') {
+        renderGlobalSearchResultsInHome(term);
         return;
     }
 
@@ -1332,9 +1293,6 @@ function handleGlobalShortcuts(e) {
                 }
                 break;
         }
-    } else if (modifier && e.key.toLowerCase() === 'b' && !isInputFocused) {
-        e.preventDefault();
-        document.getElementById('global-search-input').focus();
     }
 }
 
@@ -1380,26 +1338,28 @@ function toggleFavorite(event, itemId) {
 }
 
 function applyGlobalFilter() {
-    const searchTerm = document.getElementById('global-search-input').value.toLowerCase();
+    // This function is now only for sidebar search, which is removed. 
+    // Kept for potential future re-implementation.
+    const searchTerm = ""; // No longer a global input
     const activeNavBtn = document.querySelector('.nav-link.active');
     if (!activeNavBtn) return;
     
     const activeSectionName = activeNavBtn.dataset.section;
 
-    if (!searchTerm) {
-        const activeType = typeMap[activeSectionName];
-        const itemsToFilter = data.items.filter(item => 
-            Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
-        );
-        renderSection(activeSectionName, itemsToFilter, '');
-        return;
-    }
+    const activeType = typeMap[activeSectionName];
+    const itemsToFilter = data.items.filter(item => 
+        Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
+    );
+    renderSection(activeSectionName, itemsToFilter, searchTerm);
+}
 
+function renderGlobalSearchResultsInHome(searchTerm) {
+    const container = document.getElementById('section-inicio');
+    
     const allResults = data.items.filter(card => {
         const titleMatch = card.title.toLowerCase().includes(searchTerm);
         const categoryNameMatch = (card.category || '').toLowerCase().includes(searchTerm);
         const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(searchTerm);
-        
         let contentMatch = false;
         if (typeof card.action === 'string') {
             const tempDiv = document.createElement('div');
@@ -1411,58 +1371,23 @@ function applyGlobalFilter() {
         return titleMatch || categoryNameMatch || tagListMatch || contentMatch;
     });
 
-    const activeType = typeMap[activeSectionName];
-    const primaryResults = allResults.filter(item => 
-        Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
-    );
-    const secondaryResults = allResults.filter(item => !primaryResults.includes(item));
+    // Clear everything except search bar and design switcher
+    const searchBarHTML = container.querySelector('#main-search-bar-container').outerHTML;
+    const designSwitcherHTML = container.querySelector('#home-design-switcher').parentElement.outerHTML;
+    container.innerHTML = designSwitcherHTML + searchBarHTML;
 
-    renderGlobalSearchResults(primaryResults, secondaryResults, activeSectionName);
-}
-
-function renderGlobalSearchResults(primary, secondary, activeSectionName) {
-    const container = document.getElementById(`section-${activeSectionName}`);
-    document.querySelectorAll(".section").forEach(s => {
-        if (s.id !== `section-${activeSectionName}`) s.classList.add("hidden");
-    });
-    container.classList.remove("hidden");
-    container.innerHTML = ''; // Limpiar el contenedor de la sección activa
-
-    if (primary.length === 0 && secondary.length === 0) {
-        container.innerHTML = `
+    const resultsContainer = document.createElement('div');
+    container.appendChild(resultsContainer);
+    
+    if (allResults.length === 0) {
+        resultsContainer.innerHTML = `
             <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
                 <h3 class="text-xl font-semibold">Sin resultados</h3>
-                <p class="text-muted-foreground mt-2">No se encontraron resultados para "${document.getElementById('global-search-input').value}" en ninguna sección.</p>
-            </div>
-        `;
-        return;
-    }
-
-    if (primary.length > 0) {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'mb-12';
-        const sectionTitle = document.querySelector(`[data-section="${activeSectionName}"] span`).textContent;
-        wrapper.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Resultados en ${sectionTitle}</h2>`;
-        const content = document.createElement('div');
-        content.className = 'table-view';
-        primary.forEach(item => content.appendChild(createTableItem(item, '', true)));
-        wrapper.appendChild(content);
-        container.appendChild(wrapper);
-    }
-
-    if (secondary.length > 0) {
-        if (primary.length > 0) {
-            const divider = document.createElement('hr');
-            divider.className = 'my-8 border-border';
-            container.appendChild(divider);
-        }
-
-        const otherResultsHeader = document.createElement('h2');
-        otherResultsHeader.className = 'text-xl font-bold mb-4 text-muted-foreground';
-        otherResultsHeader.textContent = 'Resultados en otras secciones';
-        container.appendChild(otherResultsHeader);
-        
-        const secondaryGrouped = secondary.reduce((acc, item) => {
+                <p class="text-muted-foreground mt-2">No se encontraron resultados para "${searchTerm}".</p>
+            </div>`;
+    } else {
+        resultsContainer.innerHTML = `<h2 class="text-2xl font-bold mb-6">Resultados para "${searchTerm}"</h2>`;
+        const secondaryGrouped = allResults.reduce((acc, item) => {
             const section = Object.keys(typeMap).find(key => {
                 const type = typeMap[key];
                 return Array.isArray(type) ? type.includes(item.type) : type === item.type;
@@ -1478,12 +1403,32 @@ function renderGlobalSearchResults(primary, secondary, activeSectionName) {
             const sectionTitle = document.querySelector(`[data-section="${sectionName}"] span`).textContent;
             wrapper.innerHTML = `<h3 class="text-lg font-semibold mb-3">${sectionTitle}</h3>`;
             const content = document.createElement('div');
-            content.className = 'table-view';
-            secondaryGrouped[sectionName].forEach(item => content.appendChild(createTableItem(item, '', true)));
+            content.className = 'list-view'; // Always list view for search results
+            secondaryGrouped[sectionName].forEach(item => content.appendChild(createListItem(item, '', true)));
             wrapper.appendChild(content);
-            container.appendChild(wrapper);
+            resultsContainer.appendChild(wrapper);
         }
     }
+     // Re-add event listeners for the recreated elements
+    document.querySelectorAll('#home-design-switcher button').forEach(button => {
+        if (button.dataset.design === homeDesign) button.classList.add('active');
+        button.addEventListener('click', (e) => {
+            homeDesign = e.target.dataset.design;
+            localStorage.setItem('homeDesign', homeDesign);
+            renderInicioSection();
+        });
+    });
+     const activeSearchBar = document.querySelector(`#main-search-bar-container`);
+     if (activeSearchBar) {
+        const mainSearchInput = activeSearchBar.querySelector('#main-search-input');
+        mainSearchInput.value = searchTerm;
+        mainSearchInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') performMainSearch(); });
+        mainSearchInput.addEventListener('input', handleSearchInputShortcut);
+        activeSearchBar.querySelector('#main-search-button').addEventListener('click', performMainSearch);
+        activeSearchBar.querySelector('#search-engine-selector-button').addEventListener('click', toggleSearchEngineDropdown);
+        const dropdownSearch = document.getElementById('dropdown-search-input');
+        if (dropdownSearch) dropdownSearch.addEventListener('input', renderSearchEngineDropdown);
+     }
 }
 
 
@@ -1511,64 +1456,6 @@ function renderEmptyState(container, sectionName) {
 }
 
 // --- AGENDA WIDGET ---
-function renderAgendaWidget() {
-    const container = document.getElementById('sidebar-agenda-container');
-    const upcomingEvents = getUpcomingEvents(30);
-    
-    const eventTypeIcons = {
-        birthday: 'fa-birthday-cake text-pink-400',
-        reminder: 'fa-bell text-blue-400',
-        anniversary: 'fa-heart text-red-400',
-        meeting: 'fa-users text-green-400',
-        payment: 'fa-credit-card text-yellow-400',
-        appointment: 'fa-stethoscope text-indigo-400'
-    };
-
-    let eventListHTML = '<div class="space-y-2">';
-    if (upcomingEvents.length > 0) {
-        upcomingEvents.forEach(event => {
-            const icon = eventTypeIcons[event.type] || 'fa-calendar-day text-gray-400';
-            const reminderIcon = event.isReminderActive ? `<i class="fas fa-bell text-yellow-400 text-xs" title="Aviso activo"></i>` : '';
-            const noteIcon = event.note ? `<i class="fas fa-sticky-note text-gray-500 text-xs ml-1" title="${event.note}"></i>` : '';
-
-            eventListHTML += `
-                <div class="event-item flex items-center gap-2 text-sm">
-                    <i class="fas ${icon} w-4 text-center"></i>
-                    <div class="flex-grow overflow-hidden">
-                        <p class="font-medium truncate">${event.title} ${noteIcon}</p>
-                        <p class="text-xs text-muted-foreground">${event.date.toLocaleDateString('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'long' })}</p>
-                    </div>
-                    ${reminderIcon}
-                    <div class="actions flex items-center">
-                         <button onclick="openEventPanel(${event.id})" class="btn btn-ghost !p-1"><i class="fas fa-pencil-alt text-xs"></i></button>
-                         <button onclick="deleteEvent(event, ${event.id})" class="btn btn-ghost !p-1"><i class="fas fa-trash-alt text-xs"></i></button>
-                    </div>
-                </div>
-            `;
-        });
-    } else {
-        eventListHTML += `<p class="text-sm text-muted-foreground text-center py-2">No hay eventos próximos.</p>`;
-    }
-    eventListHTML += '</div>';
-
-    container.innerHTML = `
-        <div id="agenda-widget">
-            <div class="agenda-header flex justify-between items-center mb-2">
-                <div class="flex items-center gap-2">
-                    <i class="fas fa-calendar-alt text-muted-foreground"></i>
-                    <h3 class="agenda-header-title font-semibold text-muted-foreground">Agenda</h3>
-                </div>
-                <div class="actions">
-                    <button onclick="openEventPanel()" class="btn btn-ghost !p-2" title="Añadir evento"><i class="fas fa-plus"></i></button>
-                </div>
-            </div>
-            <div class="agenda-content mt-2">
-                ${eventListHTML}
-            </div>
-        </div>
-    `;
-}
-
 function getUpcomingEvents(days) {
     if (!data.events || data.events.length === 0) return [];
     
@@ -2181,4 +2068,3 @@ function updateSyncStatus(status, message = '') {
 </script>
 </body>
 </html>
-
