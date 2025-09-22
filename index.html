@@ -194,7 +194,7 @@ let viewModes = {};
 const themes = ['dark', 'light'];
 let currentTheme = localStorage.getItem('theme') || 'dark';
 let previewTimeout = null;
-let selectedSearchEngineId = null;
+let selectedSearchEngineId = 'global'; // Set global search as default
 const typeMap = { 'inicio': 'Inicio', 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'], 'ia': 'IA' };
 
 
@@ -1126,7 +1126,6 @@ function handleCardClick(id, event) {
 }
 
 // --- BUSCADOR MEJORADO & ATAJOS ---
-// FIX: Function now accepts a container to scope its querySelectors
 function attachSearchBarListeners(container) {
     const searchBar = container.querySelector('.main-search-bar-container');
     if (!searchBar) return;
@@ -1139,7 +1138,21 @@ function attachSearchBarListeners(container) {
         searchInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') performMainSearch();
         });
+        
+        // Listener for engine shortcuts like "g "
         searchInput.addEventListener('input', handleSearchInputShortcut);
+        
+        // Listener for live global search results, debounced
+        searchInput.addEventListener('input', debounce((e) => {
+            if (selectedSearchEngineId === 'global') {
+                const term = e.target.value.trim();
+                if (term) {
+                    renderGlobalSearchResults(term);
+                } else {
+                    refreshUI(); // Restore original view when search is cleared
+                }
+            }
+        }, 300));
     }
     
     const selectorButton = searchBar.querySelector('.search-engine-selector-button');
@@ -1220,13 +1233,12 @@ function renderSearchEngineDropdown() {
     
     // Add Global Search option
     const globalSearchHTML = `
-        <div class="dropdown-item ${selectedSearchEngineId === 'global' ? 'is-selected' : ''}" onclick="selectSearchEngine('global')">
+        <div class="dropdown-item flex items-center justify-between w-full ${selectedSearchEngineId === 'global' ? 'is-selected' : ''}" onclick="selectSearchEngine('global')" style="padding: 0.5rem; cursor:pointer;">
             <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" class="w-5 h-5" alt="Logo">
-            <span class="truncate">Búsqueda Global</span>
             <kbd class="ml-auto">todo</kbd>
         </div>
     `;
-    if ('búsqueda global'.includes(searchTerm)) {
+    if ('búsqueda global'.includes(searchTerm) || searchTerm === '') {
         container.innerHTML += globalSearchHTML;
     }
 
@@ -1253,7 +1265,7 @@ function renderSearchEngineDropdown() {
         });
     }
 
-    if(container.innerHTML === '' && !'búsqueda global'.includes(searchTerm)) {
+    if(container.innerHTML === '') {
          container.innerHTML = `<p class="text-sm text-muted-foreground text-center p-4">No se encontraron motores.</p>`;
     }
 }
@@ -1312,10 +1324,14 @@ function updateSearchEngineSelectorButton() {
     }
     
     if (engine) {
+        const titleHTML = selectedSearchEngineId === 'global' 
+            ? '' 
+            : `<span class="font-semibold text-sm text-foreground truncate max-w-[100px]">${engine.title}</span>`;
+
         button.innerHTML = `
             <div class="flex items-center gap-2 pointer-events-none">
                 ${getIconHtml(engine.icon, 'text-xl')}
-                <span class="font-semibold text-sm text-foreground truncate max-w-[100px]">${engine.title}</span>
+                ${titleHTML}
             </div>
             <i class="fas fa-chevron-down chevron-icon ml-auto text-xs transition-transform"></i>
         `;
@@ -1341,7 +1357,7 @@ function performMainSearch() {
    }
 
     if (selectedSearchEngineId === 'global') {
-        renderGlobalSearchResultsInHome(term);
+        renderGlobalSearchResults(term);
         return;
     }
 
@@ -1436,27 +1452,32 @@ function applyGlobalFilter() {
     renderSection(activeSectionName, itemsToFilter, "");
 }
 
-function renderGlobalSearchResultsInHome(searchTerm) {
-    const container = document.getElementById('section-inicio');
+function renderGlobalSearchResults(searchTerm) {
+    const container = getActiveSectionContainer();
+    if (!container) return;
     
     const allResults = data.items.filter(card => {
-        const titleMatch = card.title.toLowerCase().includes(searchTerm);
-        const categoryNameMatch = (card.category || '').toLowerCase().includes(searchTerm);
-        const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(searchTerm);
+        const lowerCaseSearchTerm = searchTerm.toLowerCase();
+        const titleMatch = card.title.toLowerCase().includes(lowerCaseSearchTerm);
+        const categoryNameMatch = (card.category || '').toLowerCase().includes(lowerCaseSearchTerm);
+        const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(lowerCaseSearchTerm);
         let contentMatch = false;
         if (typeof card.action === 'string') {
             const tempDiv = document.createElement('div');
             tempDiv.innerHTML = card.action;
-            contentMatch = (tempDiv.textContent || tempDiv.innerText).toLowerCase().includes(searchTerm);
+            contentMatch = (tempDiv.textContent || tempDiv.innerText).toLowerCase().includes(lowerCaseSearchTerm);
         } else if (Array.isArray(card.action)) {
-            contentMatch = card.action.some(task => task.text.toLowerCase().includes(searchTerm));
+            contentMatch = card.action.some(task => task.text.toLowerCase().includes(lowerCaseSearchTerm));
         }
         return titleMatch || categoryNameMatch || tagListMatch || contentMatch;
     });
 
-    // Clear everything except search bar
-    const searchBarHTML = container.querySelector('.main-search-bar-container').outerHTML;
-    container.innerHTML = searchBarHTML;
+    const searchBar = container.querySelector('.main-search-bar-container');
+    const searchBarHTML = searchBar ? searchBar.outerHTML : '';
+    
+    // Clear only the content area, keeping the search bar
+    const contentArea = Array.from(container.children).filter(el => !el.matches('.main-search-bar-container'));
+    contentArea.forEach(el => el.remove());
 
     const resultsContainer = document.createElement('div');
     container.appendChild(resultsContainer);
@@ -1474,8 +1495,10 @@ function renderGlobalSearchResultsInHome(searchTerm) {
                 const type = typeMap[key];
                 return Array.isArray(type) ? type.includes(item.type) : type === item.type;
             });
-            if (!acc[section]) acc[section] = [];
-            acc[section].push(item);
+            if (section && section !== 'inicio') { // Exclude 'inicio' pseudo-type
+                if (!acc[section]) acc[section] = [];
+                acc[section].push(item);
+            }
             return acc;
         }, {});
 
@@ -1486,17 +1509,19 @@ function renderGlobalSearchResultsInHome(searchTerm) {
             wrapper.innerHTML = `<h3 class="text-lg font-semibold mb-3">${sectionTitle}</h3>`;
             const content = document.createElement('div');
             content.className = 'list-view'; // Always list view for search results
-            secondaryGrouped[sectionName].forEach(item => content.appendChild(createListItem(item, '', true)));
+            secondaryGrouped[sectionName].forEach(item => content.appendChild(createListItem(item, searchTerm, true)));
             wrapper.appendChild(content);
             resultsContainer.appendChild(wrapper);
         }
     }
-    // FIX: Re-attach event listeners by reusing the main function
-    const activeContainer = getActiveSectionContainer();
-    if (activeContainer) {
-        const mainSearchInput = activeContainer.querySelector('.main-search-input');
-        if (mainSearchInput) mainSearchInput.value = searchTerm;
-        attachSearchBarListeners(activeContainer);
+    // Re-attach listeners if search bar was recreated (which it is not anymore, but good practice)
+    if (searchBar) {
+        attachSearchBarListeners(container);
+         const mainSearchInput = container.querySelector('.main-search-input');
+        if (mainSearchInput && mainSearchInput.value !== searchTerm) {
+             mainSearchInput.value = searchTerm;
+        }
+        updateSearchEngineSelectorButton();
     }
 }
 
@@ -2277,4 +2302,5 @@ function renderAISection(container) {
 </script>
 </body>
 </html>
+
 
