@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v45 - Pestaña de IA (Corregida)</title>
+    <title>Centro de Accesos v46 - Mejoras Estéticas</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,6 +21,7 @@
             --muted-foreground: #71717a; --accent: #f5f3ff; --accent-foreground: #4c1d95;
             --border: #e4e4e7; --ring: #6d28d9; --radius: 0.75rem;
             --note-bg: #fefce8; --task-bg: #eff6ff; --prompt-bg: #f0fdf4;
+            --note-border: #facc15; --task-border: #60a5fa; --prompt-border: #4ade80;
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -31,7 +32,8 @@
             --primary: #7c3aed; --primary-hover: #8b5cf6; --secondary: #27272a;
             --secondary-foreground: #fafafa; --muted: #27272a; --muted-foreground: #a1a1aa;
             --accent: #27272a; --accent-foreground: #a78bfa; --border: #27272a;
-            --ring: #7c3aed; --note-bg: #3f3f17; --task-bg: #1e293b; --prompt-bg: #162a1a;
+            --ring: #7c3aed; --note-bg: #27272a; --task-bg: #27272a; --prompt-bg: #27272a;
+            --note-border: #f59e0b; --task-border: #38bdf8; --prompt-border: #34d399;
         }
 
         body { font-family: 'Inter', sans-serif; background-color: var(--background); color: var(--foreground); }
@@ -60,8 +62,12 @@
         .card-overlay { padding: 1rem; width: 100%; position: relative; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.6) 50%, rgba(0,0,0,0) 100%); }
         .card-bg-preview { position: absolute; inset: 0; background-size: cover; background-position: center; transition: transform 0.3s ease; }
         .card:hover .card-bg-preview { transform: scale(1.05); }
-        .note-card, .task-card, .prompt-card { justify-content: flex-start; height: 250px; color: var(--card-foreground); padding: 1.25rem; }
-        .note-card { background: var(--note-bg); } .task-card { background: var(--task-bg); } .prompt-card { background: var(--prompt-bg); }
+        
+        .note-card, .task-card, .prompt-card { justify-content: flex-start; height: 250px; color: var(--card-foreground); padding: 1.25rem; border-left-width: 4px; }
+        .note-card { background-color: var(--note-bg); border-color: var(--note-border); }
+        .task-card { background-color: var(--task-bg); border-color: var(--task-border); }
+        .prompt-card { background-color: var(--prompt-bg); border-color: var(--prompt-border); }
+        
         .btn { display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius); font-weight: 600; transition: all 0.2s; padding: 0.5rem 1rem; border: 1px solid transparent; cursor: pointer; }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
         .btn-primary { background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary); } .btn-primary:hover { background-color: var(--primary-hover); }
@@ -83,6 +89,7 @@
         #global-view-switcher button.active { background-color: var(--accent-foreground); color: var(--accent); }
         kbd { background-color: var(--secondary); border-radius: 4px; border: 1px solid var(--border); color: var(--secondary-foreground); display: inline-block; font-family: monospace; font-size: .85em; font-weight: 700; line-height: 1; padding: 2px 6px; }
         .dark kbd { background-color: #3f3f46; border-color: #52525b; }
+        #main-title { background: linear-gradient(to right, var(--primary), var(--accent-foreground)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
         /* ESTILOS WIDGETS Y DISEÑOS INICIO */
         .widget { background-color: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
@@ -2207,4 +2214,5 @@ function renderAISection(container) {
 </script>
 </body>
 </html>
+
 
