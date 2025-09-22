@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v44 - Inicio Refinado</title>
+    <title>Centro de Accesos v45 - Pestaña de IA</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -87,9 +87,12 @@
         .widget { background-color: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
         .event-item .actions { opacity: 0; transition: opacity 0.2s ease; }
         .event-item:hover .actions { opacity: 1; }
-        #scratchpad-textarea { background-color: var(--secondary); color: var(--foreground); }
+        #scratchpad-textarea { background-color: var(--secondary); color: var(--foreground); box-sizing: border-box; }
         .dark #scratchpad-textarea { background-color: #27272a; color: var(--foreground); border-color: #3f3f46; }
         .dark #scratchpad-textarea::placeholder { color: var(--muted-foreground); }
+        .prose { color: var(--foreground); }
+        .prose pre { background-color: var(--secondary); padding: 1em; border-radius: var(--radius); }
+        .dark .prose-invert { color: var(--foreground); }
     </style>
 </head>
 <body class="dark"> <!-- Inicia en modo oscuro por defecto -->
@@ -113,6 +116,7 @@
                 <a href="#" data-section="links" class="nav-link"><i class="fas fa-link w-5 text-center"></i><span>Links</span></a>
                 <a href="#" data-section="prompts" class="nav-link"><i class="fas fa-brain w-5 text-center"></i><span>Prompts</span></a>
                 <a href="#" data-section="notes-tasks" class="nav-link"><i class="fas fa-check-double w-5 text-center"></i><span>Notas y Tareas</span></a>
+                <a href="#" data-section="ia" class="nav-link"><i class="fas fa-robot w-5 text-center"></i><span>IA</span></a>
             </nav>
             
             <!-- Sidebar Footer -->
@@ -154,6 +158,7 @@
             <div id="section-links" class="section hidden"></div>
             <div id="section-prompts" class="section hidden"></div>
             <div id="section-notes-tasks" class="section hidden"></div>
+            <div id="section-ia" class="section hidden"></div>
         </main>
     </div>
     
@@ -174,12 +179,11 @@
 const FILENAME_IN_GIST = 'Botones.json';
 let data = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [] };
 let viewModes = {};
-let homeDesign = localStorage.getItem('homeDesign') || 'clasico';
 const themes = ['dark', 'light'];
 let currentTheme = localStorage.getItem('theme') || 'dark';
 let previewTimeout = null;
 let selectedSearchEngineId = null;
-const typeMap = { 'inicio': 'Inicio', 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'] };
+const typeMap = { 'inicio': 'Inicio', 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'], 'ia': 'IA' };
 
 
 // --- MOCK DATA (Fallback) ---
@@ -449,11 +453,6 @@ function initializeUI() {
     if (window.innerWidth >= 1024) {
         document.querySelector('main').style.marginLeft = '280px';
     }
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-    const shortcutEl = document.getElementById('search-shortcut');
-    if (shortcutEl) {
-        shortcutEl.innerHTML = `<kbd>${isMac ? '⌘' : 'Ctrl'}</kbd><kbd>B</kbd>`;
-    }
     switchTab('inicio');
 }
 
@@ -482,10 +481,11 @@ function switchTab(tabName) {
     const currentView = viewModes[tabName] || (tabName === 'inicio' ? 'list' : 'grid');
     document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
     
-    if (tabName === 'inicio') {
-        viewSwitcher.classList.remove('hidden');
+    if (tabName === 'inicio' || tabName === 'ia') {
+        viewSwitcher.classList.toggle('hidden', tabName !== 'inicio');
         addNewBtn.classList.add('hidden');
-        renderInicioSection();
+        if(tabName === 'inicio') renderInicioSection();
+        if(tabName === 'ia') renderAISection(document.getElementById('section-ia'));
     } else {
         viewSwitcher.classList.remove('hidden');
         addNewBtn.classList.remove('hidden');
@@ -618,7 +618,7 @@ function renderInicioSection() {
     const container = document.getElementById('section-inicio');
     container.innerHTML = ''; // Limpiar contenido
 
-    // Renderizar diseño clásico (único diseño ahora)
+    // Renderizar diseño único
     renderDisenoClasico(container);
 
     // Re-vincular eventos para la barra de búsqueda
@@ -666,11 +666,14 @@ function renderDisenoClasico(container) {
     let favoritesFound = false;
     const currentView = viewModes['inicio'] || 'list';
 
-    Object.keys(data.categoryOrders).forEach(sectionName => {
-        if (sectionName === 'buscadores') return;
-
+    // MODIFICADO: Ahora se itera sobre un array de secciones para asegurar que se muestren todos los favoritos
+    ['links', 'prompts', 'notes-tasks'].forEach(sectionName => {
         const orderedFavoritesIds = (data.favoriteOrders && data.favoriteOrders[sectionName]) ? data.favoriteOrders[sectionName] : [];
-        const favoriteItems = orderedFavoritesIds.map(id => data.items.find(item => item.id === id && item.isFavorite)).filter(Boolean);
+        const favoriteItems = orderedFavoritesIds.map(id => {
+            const item = data.items.find(item => item.id === id && item.isFavorite);
+            if(item && (item.type !== 'Buscador')) return item;
+            return null;
+        }).filter(Boolean);
 
         if (favoriteItems.length > 0) {
             favoritesFound = true;
@@ -747,10 +750,10 @@ function renderHomeAgendaWidget(container, gridClasses) {
 
 function renderHomeScratchpadWidget(container, gridClasses) {
     const widget = document.createElement('div');
-    widget.className = `widget ${gridClasses}`;
+    widget.className = `widget ${gridClasses} flex flex-col`;
     widget.innerHTML = `
         <h3 class="font-bold mb-3 text-lg">Bloc de Notas Rápido</h3>
-        <textarea id="scratchpad-textarea" class="w-full h-full min-h-[145px] p-2 bg-secondary/50 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none resize-none text-sm" placeholder="Apunta algo...">${localStorage.getItem('scratchpadContent') || ''}</textarea>
+        <textarea id="scratchpad-textarea" class="w-full flex-grow p-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none resize-none text-sm" placeholder="Apunta algo...">${localStorage.getItem('scratchpadContent') || ''}</textarea>
     `;
     widget.querySelector('textarea').addEventListener('input', debounce((e) => {
         localStorage.setItem('scratchpadContent', e.target.value);
@@ -1101,6 +1104,13 @@ function handleCardClick(id, event) {
 function handleSearchInputShortcut(e) {
     const input = e.target;
     const value = input.value;
+    
+    if (value.toLowerCase() === 'todo ') {
+        e.preventDefault();
+        selectSearchEngine('global');
+        input.value = '';
+        return;
+    }
 
     if (value.length > 1 && value.endsWith(' ')) {
         const shortcut = value.slice(0, -1).toLowerCase();
@@ -1338,9 +1348,6 @@ function toggleFavorite(event, itemId) {
 }
 
 function applyGlobalFilter() {
-    // This function is now only for sidebar search, which is removed. 
-    // Kept for potential future re-implementation.
-    const searchTerm = ""; // No longer a global input
     const activeNavBtn = document.querySelector('.nav-link.active');
     if (!activeNavBtn) return;
     
@@ -1350,7 +1357,7 @@ function applyGlobalFilter() {
     const itemsToFilter = data.items.filter(item => 
         Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
     );
-    renderSection(activeSectionName, itemsToFilter, searchTerm);
+    renderSection(activeSectionName, itemsToFilter, "");
 }
 
 function renderGlobalSearchResultsInHome(searchTerm) {
@@ -1371,10 +1378,9 @@ function renderGlobalSearchResultsInHome(searchTerm) {
         return titleMatch || categoryNameMatch || tagListMatch || contentMatch;
     });
 
-    // Clear everything except search bar and design switcher
+    // Clear everything except search bar
     const searchBarHTML = container.querySelector('#main-search-bar-container').outerHTML;
-    const designSwitcherHTML = container.querySelector('#home-design-switcher').parentElement.outerHTML;
-    container.innerHTML = designSwitcherHTML + searchBarHTML;
+    container.innerHTML = searchBarHTML;
 
     const resultsContainer = document.createElement('div');
     container.appendChild(resultsContainer);
@@ -1410,14 +1416,6 @@ function renderGlobalSearchResultsInHome(searchTerm) {
         }
     }
      // Re-add event listeners for the recreated elements
-    document.querySelectorAll('#home-design-switcher button').forEach(button => {
-        if (button.dataset.design === homeDesign) button.classList.add('active');
-        button.addEventListener('click', (e) => {
-            homeDesign = e.target.dataset.design;
-            localStorage.setItem('homeDesign', homeDesign);
-            renderInicioSection();
-        });
-    });
      const activeSearchBar = document.querySelector(`#main-search-bar-container`);
      if (activeSearchBar) {
         const mainSearchInput = activeSearchBar.querySelector('#main-search-input');
@@ -1845,6 +1843,7 @@ function openSettingsHelpModal() {
     const modal = document.getElementById('settingsHelpPanel');
     const gistId = localStorage.getItem('gist_id') || '';
     const pat = localStorage.getItem('github_pat') || '';
+    const geminiKey = localStorage.getItem('gemini_api_key') || '';
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
     
     modal.innerHTML = `
@@ -1860,13 +1859,19 @@ function openSettingsHelpModal() {
             <div class="p-6 overflow-y-auto">
                 <div id="settings-tab-content" class="tab-content space-y-4">
                      <div>
+                        <h3 class="font-bold text-lg mb-2">Sincronización con GitHub</h3>
                         <label for="gistIdInput" class="font-semibold block mb-2">Gist ID</label>
-                        <input type="text" id="gistIdInput" class="input-base" value="${gistId}" placeholder="El ID de tu Gist de GitHub">
-                     </div>
-                    <div>
-                        <label for="githubPatInput" class="font-semibold block mb-2">Personal Access Token</label>
+                        <input type="text" id="gistIdInput" class="input-base mb-4" value="${gistId}" placeholder="El ID de tu Gist de GitHub">
+                        <label for="githubPatInput" class="font-semibold block mb-2">Personal Access Token (Clásico)</label>
                         <input type="password" id="githubPatInput" class="input-base" value="${pat}" placeholder="Token con permiso 'gist'">
-                    </div>
+                     </div>
+                     <hr class="border-border">
+                     <div>
+                        <h3 class="font-bold text-lg mb-2">Integración con IA</h3>
+                        <label for="geminiApiKeyInput" class="font-semibold block mb-2">Gemini API Key</label>
+                        <input type="password" id="geminiApiKeyInput" class="input-base" value="${geminiKey}" placeholder="Pega tu clave de API de Google AI Studio">
+                        <a href="https://aistudio.google.com/" target="_blank" class="text-xs text-primary hover:underline mt-1 block">Obtener una clave de API &rarr;</a>
+                     </div>
                     <div class="flex justify-end gap-2 pt-4">
                         <button id="saveSettingsButton" class="btn btn-primary">Guardar y Recargar</button>
                     </div>
@@ -1876,15 +1881,14 @@ function openSettingsHelpModal() {
                     <p>Es un dashboard personalizable para organizar tus links, buscadores, notas y tareas en un solo lugar. Sincroniza tus datos de forma segura usando un Gist de GitHub.</p>
                     <h3 class="font-bold text-lg mt-4">¿Cómo funciona?</h3>
                     <ul class="list-disc list-inside space-y-2">
-                        <li><b>Secciones:</b> Navega entre Inicio, Buscadores, Links, Prompts y Notas/Tareas usando el menú lateral.</li>
+                        <li><b>Secciones:</b> Navega entre Inicio, Buscadores, Links, Prompts, Notas/Tareas e IA usando el menú lateral.</li>
                         <li><b>Añadir Elementos:</b> Haz clic en el botón "+ Nuevo" para agregar cualquier tipo de elemento a la sección activa.</li>
-                        <li><b>Agenda:</b> Añade recordatorios y cumpleaños en la agenda de la barra lateral. Configura avisos para no olvidar nada.</li>
+                        <li><b>Agenda y Bloc de Notas:</b> Disponibles en la página de inicio para un acceso rápido.</li>
                         <li><b>Sincronización:</b> En la pestaña "Configuración", introduce tu Gist ID y un Personal Access Token de GitHub para guardar y cargar tus datos desde cualquier lugar.</li>
                     </ul>
                      <h3 class="font-bold text-lg mt-4">Atajos de Teclado</h3>
                      <ul class="list-disc list-inside space-y-1">
                           <li>Escribe el <b>atajo</b> de un buscador (ej: <kbd>g</kbd>) + <kbd>Espacio</kbd> en la barra principal para seleccionarlo.</li>
-                          <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>B</kbd> : Activar barra de búsqueda global</li>
                           <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
                           <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema (claro/oscuro)</li>
                           <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
@@ -1928,8 +1932,11 @@ function openSettingsHelpModal() {
 function saveSettings() {
     const gistId = document.getElementById('gistIdInput').value.trim();
     const pat = document.getElementById('githubPatInput').value.trim();
-    if (gistId) localStorage.setItem('gist_id', gistId);
-    if (pat) localStorage.setItem('github_pat', pat);
+    const geminiKey = document.getElementById('geminiApiKeyInput').value.trim();
+    if (gistId) localStorage.setItem('gist_id', gistId); else localStorage.removeItem('gist_id');
+    if (pat) localStorage.setItem('github_pat', pat); else localStorage.removeItem('github_pat');
+    if (geminiKey) localStorage.setItem('gemini_api_key', geminiKey); else localStorage.removeItem('gemini_api_key');
+
     document.getElementById('settingsHelpPanel').classList.add('hidden');
     showToast("Configuración guardada. Recargando...");
     loadData();
@@ -2065,6 +2072,54 @@ function updateSyncStatus(status, message = '') {
     }
 }
 
+// --- IA Section ---
+function renderAISection(container) {
+    container.innerHTML = '';
+    const apiKey = localStorage.getItem('gemini_api_key');
+
+    if (!apiKey) {
+        container.innerHTML = `
+            <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
+                <i class="fas fa-key text-4xl text-muted-foreground mb-4"></i>
+                <h3 class="text-xl font-semibold">Configuración Requerida</h3>
+                <p class="text-muted-foreground mt-2 mb-4">Para usar las funciones de IA, necesitas agregar tu API Key de Gemini en los ajustes.</p>
+                <button onclick="openSettingsHelpModal()" class="btn btn-primary">Ir a Ajustes</button>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = `
+        <div>
+            <h2 class="text-2xl font-bold mb-4">Playground de IA (Gemini)</h2>
+            <div class="widget">
+                <label for="ai-prompt" class="font-semibold block mb-2">Escribe tu prompt:</label>
+                <textarea id="ai-prompt" class="input-base w-full min-h-[150px]" placeholder="Ej: Crea una lista de 5 ideas para un video de YouTube sobre IA."></textarea>
+                <div class="flex justify-end mt-4">
+                    <button id="ai-generate-btn" class="btn btn-primary">
+                        <i class="fas fa-magic mr-2"></i>Generar
+                    </button>
+                </div>
+            </div>
+            <div id="ai-result-container" class="widget mt-6 hidden">
+                 <h3 class="font-bold mb-3 text-lg">Respuesta de la IA:</h3>
+                 <div id="ai-result" class="prose dark:prose-invert max-w-none"></div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('ai-generate-btn').addEventListener('click', () => {
+        // En un futuro, aquí iría la llamada a la API de Gemini
+        const resultContainer = document.getElementById('ai-result-container');
+        const resultDiv = document.getElementById('ai-result');
+        resultDiv.innerHTML = '<p>Función de IA en desarrollo. La llamada a la API se implementará próximamente.</p>';
+        resultContainer.classList.remove('hidden');
+        showToast("Llamando a la IA (simulación)...");
+    });
+}
+
+
 </script>
 </body>
 </html>
+
