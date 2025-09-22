@@ -128,6 +128,7 @@
                 <a href="#" data-section="links" class="nav-link"><i class="fas fa-link w-5 text-center"></i><span>Links</span></a>
                 <a href="#" data-section="prompts" class="nav-link"><i class="fas fa-brain w-5 text-center"></i><span>Prompts</span></a>
                 <a href="#" data-section="notes-tasks" class="nav-link"><i class="fas fa-check-double w-5 text-center"></i><span>Notas y Tareas</span></a>
+                <a href="#" data-section="videos" class="nav-link"><i class="fas fa-tv w-5 text-center"></i><span>Videos</span></a>
                 <a href="#" data-section="ia" class="nav-link"><i class="fas fa-robot w-5 text-center"></i><span>IA</span></a>
             </nav>
             
@@ -170,6 +171,7 @@
             <div id="section-links" class="section hidden"></div>
             <div id="section-prompts" class="section hidden"></div>
             <div id="section-notes-tasks" class="section hidden"></div>
+            <div id="section-videos" class="section hidden"></div>
             <div id="section-ia" class="section hidden"></div>
         </main>
     </div>
@@ -178,6 +180,7 @@
     <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="eventPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="settingsHelpPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="videoAIPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg font-bold z-[2000] shadow-lg" style="background-color: var(--primary); color: var(--primary-foreground);"></div>
     <div id="confirmModal" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="preview-modal" class="hidden fixed z-[1300] w-80 h-60 p-1 bg-card-background rounded-lg shadow-lg pointer-events-none transition-opacity duration-200 opacity-0">
@@ -195,7 +198,7 @@ const themes = ['dark', 'light'];
 let currentTheme = localStorage.getItem('theme') || 'dark';
 let previewTimeout = null;
 let selectedSearchEngineId = 'global'; // Set global search as default
-const typeMap = { 'inicio': 'Inicio', 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'], 'ia': 'IA' };
+const typeMap = { 'inicio': 'Inicio', 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': ['Nota', 'Tarea'], 'videos': 'Video', 'ia': 'IA' };
 
 
 // --- MOCK DATA (Fallback) ---
@@ -206,14 +209,16 @@ const mockData = {
         { id: 3, type: 'Link', title: 'GitHub', action: 'https://github.com', category: 'Desarrollo', icon: 'fab fa-github', tags: ['codigo', 'proyectos'], isFavorite: true },
         { id: 4, type: 'Promp', title: 'Generar Idea', action: 'Crea una lista de 5 ideas para un video de YouTube sobre IA.', category: 'Creatividad', icon: 'fas fa-lightbulb', tags: ['ideas'], isFavorite: false },
         { id: 5, type: 'Nota', title: 'Reunión Lunes', action: '<div>Discutir presupuesto Q3.</div><div>Revisar métricas.</div><div>Asignar tareas.</div>', category: 'Trabajo', icon: 'fas fa-sticky-note', tags: ['reunion'], isFavorite: false },
-        { id: 6, type: 'Tarea', title: 'Proyecto Web', action: [{text: 'Diseñar mockup', status: true}, {text: 'Desarrollar landing', status: false}], category: 'Proyectos', icon: 'fas fa-tasks', tags: ['web'], isFavorite: true }
+        { id: 6, type: 'Tarea', title: 'Proyecto Web', action: [{text: 'Diseñar mockup', status: true}, {text: 'Desarrollar landing', status: false}], category: 'Proyectos', icon: 'fas fa-tasks', tags: ['web'], isFavorite: true },
+        { id: 7, type: 'Video', title: 'Aprende Javascript en 10 minutos', action: 'https://www.youtube.com/watch?v=PkZNo7MFNFg', category: 'Educación', icon: 'fab fa-youtube', tags: ['dev', 'js'], isFavorite: true }
     ],
-    categories: { 'Video': {}, 'Desarrollo': {} },
-    categoryOrders: { buscadores: ["General", "Video"], links: ["Desarrollo"], prompts: ["Creatividad"], "notes-tasks": ["Trabajo", "Proyectos"] },
+    categories: { 'Video': {}, 'Desarrollo': {}, 'Educación': {} },
+    categoryOrders: { buscadores: ["General", "Video"], links: ["Desarrollo"], prompts: ["Creatividad"], "notes-tasks": ["Trabajo", "Proyectos"], "videos": ["Educación"] },
     favoriteOrders: {
         buscadores: [1],
         links: [3],
-        "notes-tasks": [6]
+        "notes-tasks": [6],
+        videos: [7]
     },
     events: [
         { id: 1, title: 'Cumpleaños de Ana', date: '2000-09-15', type: 'birthday', note: 'Comprar regalo.', reminderDays: 7 },
@@ -227,7 +232,7 @@ const mockData = {
 function ensureAllIcons() {
     if (!data.items) return;
     data.items.forEach(item => {
-        if ((item.type === 'Link' || item.type === 'Buscador') && !item.icon) {
+        if ((item.type === 'Link' || item.type === 'Buscador' || item.type === 'Video') && !item.icon) {
             try {
                 const url = new URL(item.action);
                 item.icon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
@@ -913,7 +918,7 @@ function createCard(item, searchTerm = '') {
     if (item.isFavorite) card.classList.add('is-favorite');
     if (item.id === selectedSearchEngineId) card.classList.add('is-selected');
 
-    const previewUrl = (item.type === 'Link' || item.type === 'Buscador') 
+    const previewUrl = (item.type === 'Link' || item.type === 'Buscador' || item.type === 'Video') 
         ? `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`
         : '';
 
@@ -1109,6 +1114,8 @@ function handleCardClick(id, event) {
 
     if (item.type === "Link") {
         window.open(item.action, "_blank");
+    } else if (item.type === "Video") {
+        openVideoAIPanel(item);
     } else if (item.type === "Buscador") {
         selectSearchEngine(item.id);
         const activeSection = document.querySelector('#main-nav .active')?.dataset.section
@@ -1374,7 +1381,7 @@ function handleGlobalShortcuts(e) {
     const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable;
 
     if (e.key === 'Escape') {
-        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal'];
+        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal', 'videoAIPanel'];
         modals.forEach(id => document.getElementById(id).classList.add('hidden'));
         closeSearchEngineDropdown();
         return;
@@ -1473,7 +1480,6 @@ function renderGlobalSearchResults(searchTerm) {
     });
 
     const searchBar = container.querySelector('.main-search-bar-container');
-    const searchBarHTML = searchBar ? searchBar.outerHTML : '';
     
     // Clear only the content area, keeping the search bar
     const contentArea = Array.from(container.children).filter(el => !el.matches('.main-search-bar-container'));
@@ -1514,7 +1520,7 @@ function renderGlobalSearchResults(searchTerm) {
             resultsContainer.appendChild(wrapper);
         }
     }
-    // Re-attach listeners if search bar was recreated (which it is not anymore, but good practice)
+    // Re-attach listeners and restore state
     if (searchBar) {
         attachSearchBarListeners(container);
          const mainSearchInput = container.querySelector('.main-search-input');
@@ -1531,13 +1537,15 @@ function renderEmptyState(container, sectionName) {
         buscadores: "Sin Buscadores",
         links: "Sin Links",
         prompts: "Sin Prompts",
-        'notes-tasks': "Sin Notas ni Tareas"
+        'notes-tasks': "Sin Notas ni Tareas",
+        videos: "Sin Videos"
     };
     const icons = {
         buscadores: "fa-search",
         links: "fa-link",
         prompts: "fa-brain",
-        'notes-tasks': "fa-check-double"
+        'notes-tasks': "fa-check-double",
+        videos: "fa-tv"
     };
     container.innerHTML = `
         <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
@@ -1731,7 +1739,7 @@ function openEditPanel(itemId = null) {
     const modal = document.getElementById('editPanel');
     const item = itemId ? data.items.find(i => String(i.id) === String(itemId)) : null;
     const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'links';
-    const defaultTypeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': 'Nota' };
+    const defaultTypeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': 'Nota', 'videos': 'Video' };
     const type = item ? item.type : defaultTypeMap[activeSection];
     
     modal.innerHTML = `
@@ -1745,7 +1753,7 @@ function openEditPanel(itemId = null) {
                 <div>
                     <label class="font-semibold block mb-2">Tipo</label>
                     <div class="flex flex-wrap gap-2 type-selector">
-                        ${['Buscador', 'Link', 'Promp', 'Nota', 'Tarea'].map(t => `
+                        ${['Buscador', 'Link', 'Promp', 'Nota', 'Tarea', 'Video'].map(t => `
                             <button type="button" data-type="${t}" class="btn ${type === t ? 'btn-primary' : 'btn-secondary'} type-btn">${t}</button>
                         `).join('')}
                     </div>
@@ -1759,7 +1767,10 @@ function openEditPanel(itemId = null) {
                     <label id="actionLabel" class="font-semibold block mb-2">Contenido / URL</label>
                     <textarea id="newActionText" class="input-base hidden" rows="3">${(item && typeof item.action === 'string') ? item.action : ''}</textarea>
                     <div id="newActionRich" class="input-base hidden min-h-[100px]" contenteditable="true"></div>
-                </div>
+                 </div>
+                 <div id="paste-button-container" class="hidden my-2">
+                    <button type="button" id="paste-url-btn" class="btn btn-secondary"><i class="fas fa-paste mr-2"></i>Pegar URL desde el portapapeles</button>
+                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div id="iconFieldContainer">
                         <label class="font-semibold block mb-2">Icono (URL o FontAwesome)</label>
@@ -1806,6 +1817,19 @@ function openEditPanel(itemId = null) {
             updateEditFormFields(newType);
         }
     });
+    
+    const pasteBtn = document.getElementById('paste-url-btn');
+    if (pasteBtn) {
+        pasteBtn.onclick = async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('newActionText').value = text;
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+                showToast('No se pudo leer el portapapeles.', 'error');
+            }
+        };
+    }
 
     updateEditFormFields(type, item);
     populateCategorySuggestions(type);
@@ -1817,11 +1841,14 @@ function updateEditFormFields(type, item = null) {
     const iconField = document.getElementById('iconFieldContainer');
     const shortcutField = document.getElementById('shortcutFieldContainer');
     const actionLabel = document.getElementById('actionLabel');
+    const pasteBtnContainer = document.getElementById('paste-button-container');
 
+    // Reset visibility
     richEditor.classList.add('hidden');
     textEditor.classList.add('hidden');
     iconField.style.display = 'block';
     shortcutField.classList.add('hidden');
+    pasteBtnContainer.classList.add('hidden');
 
     if(type === 'Buscador'){
         shortcutField.classList.remove('hidden');
@@ -1840,6 +1867,11 @@ function updateEditFormFields(type, item = null) {
         if (item && Array.isArray(item.action)) {
             richEditor.innerHTML = item.action.map(t => `<div>${t.text}</div>`).join('');
         }
+    } else if (type === 'Video') {
+        actionLabel.textContent = 'URL del Video';
+        textEditor.classList.remove('hidden');
+        pasteBtnContainer.classList.remove('hidden');
+        if (item) textEditor.value = item.action;
     } else { // Link
         actionLabel.textContent = 'URL / Acción';
         textEditor.classList.remove('hidden');
@@ -1872,11 +1904,14 @@ function handleSaveItem(event) {
     }
     
     let icon = document.getElementById("newIcon").value.trim();
-    if (!icon && (type === 'Link' || type === 'Buscador')) {
+    if (!icon && (type === 'Link' || type === 'Buscador' || type === 'Video')) {
         try {
             const url = new URL(action);
             icon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
         } catch (e) { console.error("URL inválida:", action); }
+    }
+    if (type === 'Video' && !icon.trim()) {
+        icon = 'fab fa-youtube'; // Default icon for videos
     }
 
     const newItemData = {
@@ -2100,7 +2135,7 @@ function saveCategoryChanges(event) {
 
 function showPreviewModal(item, event) {
     const modal = document.getElementById('preview-modal');
-    if (item.type !== 'Link' && item.type !== 'Buscador') return;
+    if (item.type !== 'Link' && item.type !== 'Buscador' && item.type !== 'Video') return;
     
     const modalContent = document.getElementById('preview-modal-content');
     const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
@@ -2167,6 +2202,113 @@ function updateSyncStatus(status, message = '') {
             break;
     }
 }
+
+// --- Video AI Panel ---
+function openVideoAIPanel(item) {
+    const modal = document.getElementById('videoAIPanel');
+    
+    function getYouTubeID(url) {
+        const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[2].length === 11) ? match[2] : null;
+    }
+
+    const videoId = getYouTubeID(item.action);
+    const embedHtml = videoId 
+        ? `<iframe class="w-full aspect-video rounded-lg" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
+        : '<div class="w-full aspect-video rounded-lg bg-secondary flex items-center justify-center text-muted-foreground"><p>No se pudo generar la vista previa del video.</p></div>';
+
+    const aiPrompts = [
+        { title: "Respuesta breve", prompt: `Basado en el título de este video, "${item.title}", ¿de qué crees que trata? Responde en un párrafo corto.` },
+        { title: "Resumen", prompt: `Resume el posible contenido del video titulado "${item.title}" en 3 puntos clave.` },
+        { title: "Enumerar", prompt: `Genera una lista de conceptos o temas que probablemente se traten en el video "${item.title}".` },
+        { title: "Quiz Rápido", prompt: `Crea un quiz de 3 preguntas de opción múltiple (A, B, C, D) para evaluar la comprensión de un video titulado "${item.title}". Indica la respuesta correcta.` },
+        { title: "Más Ejemplos", prompt: `El video se titula "${item.title}". Dame 3 ejemplos de temas relacionados o videos similares que podría buscar.` }
+    ];
+
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-4xl p-6 flex flex-col gap-6">
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 class="text-2xl font-bold">${item.title}</h2>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        ${(item.tags || []).map(tag => `<span class="bg-secondary text-secondary-foreground text-xs font-semibold px-2.5 py-0.5 rounded-full">${tag}</span>`).join('')}
+                    </div>
+                </div>
+                <button onclick="document.getElementById('videoAIPanel').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    ${embedHtml}
+                </div>
+                <div class="flex flex-col gap-4">
+                    <h3 class="font-bold text-lg">Interactuar con IA</h3>
+                    <div id="ai-video-buttons" class="flex flex-wrap gap-2">
+                        ${aiPrompts.map((p, index) => `<button data-prompt-index="${index}" class="btn btn-secondary ai-prompt-btn">${p.title}</button>`).join('')}
+                    </div>
+                    <div id="ai-video-result-container" class="widget mt-2 flex-grow hidden">
+                         <div id="ai-video-result" class="prose dark:prose-invert max-w-none text-sm overflow-y-auto h-48"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+
+    modal.querySelectorAll('.ai-prompt-btn').forEach(btn => {
+        btn.onclick = () => {
+            const promptIndex = btn.dataset.promptIndex;
+            const selectedPrompt = aiPrompts[promptIndex].prompt;
+            generateAIResponseForVideo(selectedPrompt);
+        };
+    });
+}
+
+async function generateAIResponseForVideo(prompt) {
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+        showToast("Configura tu API Key de Gemini en los ajustes.", 'error');
+        return;
+    }
+    
+    const resultContainer = document.getElementById('ai-video-result-container');
+    const resultDiv = document.getElementById('ai-video-result');
+    const buttons = document.querySelectorAll('#ai-video-buttons button');
+
+    buttons.forEach(b => b.disabled = true);
+    resultContainer.classList.remove('hidden');
+    resultDiv.innerHTML = '<p class="text-muted-foreground">Generando respuesta...</p>';
+
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+    try {
+        const response = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error.message || `Error HTTP: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const text = data.candidates[0].content.parts[0].text;
+        
+        resultDiv.innerHTML = simpleMarkdownToHtml(text);
+
+    } catch (error) {
+        console.error("Error llamando a la API de Gemini:", error);
+        resultDiv.innerHTML = `<p class="text-red-500"><strong>Error:</strong> ${error.message}</p>`;
+    } finally {
+        buttons.forEach(b => b.disabled = false);
+    }
+}
+
 
 // --- IA Section ---
 function simpleMarkdownToHtml(text) {
@@ -2302,5 +2444,4 @@ function renderAISection(container) {
 </script>
 </body>
 </html>
-
 
