@@ -558,8 +558,8 @@ function switchTab(tabName) {
         newBtn.classList.remove('hidden');
         
         if (tabName === 'videos') {
-            newBtn.innerHTML = `<i class="fab fa-youtube mr-2"></i> <span class="hidden sm:inline">Pegar Link</span>`;
-            newBtn.addEventListener('click', handlePasteYouTubeLink);
+            newBtn.innerHTML = `<i class="fab fa-youtube"></i><i class="fas fa-plus ml-1 mr-2"></i><span class="hidden sm:inline">Pegar Link</span>`;
+            newBtn.addEventListener('click', handlePasteYouTubeLinkFromClipboard);
         } else {
             newBtn.innerHTML = `<i class="fas fa-plus mr-2"></i> <span class="hidden sm:inline">Nuevo</span>`;
             newBtn.addEventListener('click', () => openEditPanel());
@@ -1208,41 +1208,19 @@ function handleCardClick(id, event) {
     }
 }
 
-function showPasteModal(callback) {
-    const modal = document.getElementById('confirmModal'); // Reusing a modal container
-    modal.innerHTML = `
-        <div class="modal-container w-full max-w-md p-6">
-            <h3 class="text-lg font-bold mb-4">Pegar enlace de YouTube</h3>
-            <p class="text-sm text-muted-foreground mb-4">Pega la URL del video de YouTube en el campo de abajo.</p>
-            <input type="text" id="paste-input" class="input-base w-full" placeholder="https://www.youtube.com/watch?v=...">
-            <div class="flex justify-end gap-4 mt-6">
-                <button id="pasteCancel" class="btn btn-secondary">Cancelar</button>
-                <button id="pasteOk" class="btn btn-primary">Añadir Video</button>
-            </div>
-        </div>
-    `;
-    modal.classList.remove('hidden');
-    const input = modal.querySelector('#paste-input');
-    input.focus();
-
-    modal.querySelector('#pasteOk').onclick = () => {
-        const url = input.value.trim();
-        if (url) {
-            modal.classList.add('hidden');
-            callback(url);
-        } else {
-            showToast("Por favor, pega una URL.", 'error');
+async function handlePasteYouTubeLinkFromClipboard() {
+    try {
+        const clipboardText = await navigator.clipboard.readText();
+        // Usar getYouTubeID para una validación más robusta
+        if (!clipboardText || !getYouTubeID(clipboardText)) {
+            showToast('El portapapeles no contiene un enlace de YouTube válido.', 'error');
+            return;
         }
-    };
-    modal.querySelector('#pasteCancel').onclick = () => {
-        modal.classList.add('hidden');
-        callback(null);
-    };
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            modal.querySelector('#pasteOk').click();
-        }
-    });
+        await processPastedYouTubeLink(clipboardText);
+    } catch (err) {
+        console.error('Failed to read clipboard:', err);
+        showToast('No se pudo acceder al portapapeles. Asegúrate de dar permiso.', 'error');
+    }
 }
 
 async function processPastedYouTubeLink(clipboardText) {
@@ -1293,17 +1271,9 @@ async function processPastedYouTubeLink(clipboardText) {
         console.error('Error al procesar el enlace de YouTube:', err);
         showToast(err.message || 'No se pudo añadir el video.', 'error');
     } finally {
-        addNewButton.innerHTML = `<i class="fab fa-youtube mr-2"></i> <span class="hidden sm:inline">Pegar Link</span>`;
+        addNewButton.innerHTML = `<i class="fab fa-youtube"></i><i class="fas fa-plus ml-1 mr-2"></i><span class="hidden sm:inline">Pegar Link</span>`;
         addNewButton.disabled = false;
     }
-}
-
-function handlePasteYouTubeLink() {
-    showPasteModal(url => {
-        if (url) {
-            processPastedYouTubeLink(url);
-        }
-    });
 }
 
 
