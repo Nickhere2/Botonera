@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v52 - IA Mejorada</title>
+    <title>Centro de Accesos v53 - Búsqueda con IA</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -848,6 +848,7 @@ function getMainSearchBarHTML() {
                 <i class="fas fa-search text-lg"></i>
             </button>
         </div>
+        <div id="ai-search-results-container"></div>
     </div>`;
 }
 
@@ -1195,74 +1196,6 @@ function handleCardClick(id, event) {
     }
 }
 
-async function handlePasteYouTubeLinkFromClipboard() {
-    try {
-        const clipboardText = await navigator.clipboard.readText();
-        if (!clipboardText || !getYouTubeID(clipboardText)) {
-            showToast('El portapapeles no contiene un enlace de YouTube válido.', 'error');
-            return;
-        }
-        await processPastedYouTubeLink(clipboardText);
-    } catch (err) {
-        console.error('Failed to read clipboard:', err);
-        showToast('No se pudo acceder al portapapeles. Asegúrate de dar permiso.', 'error');
-    }
-}
-
-async function processPastedYouTubeLink(clipboardText) {
-    const addNewButton = document.getElementById('addNewButton');
-    addNewButton.innerHTML = `<i class="fas fa-spinner fa-spin mr-2"></i> Obteniendo...`;
-    addNewButton.disabled = true;
-
-    try {
-        const videoId = getYouTubeID(clipboardText);
-
-        if (!videoId) {
-            throw new Error("La URL no parece ser un enlace de YouTube válido.");
-        }
-        
-        const oEmbedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(clipboardText)}&format=json`;
-        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(oEmbedUrl)}`;
-
-        const response = await fetch(proxyUrl);
-        if (!response.ok) {
-            throw new Error('No se pudo obtener la información del video via proxy.');
-        }
-        
-        const oembedData = await response.json();
-        const videoData = JSON.parse(oembedData.contents);
-        const videoTitle = videoData.title;
-
-        if (!videoTitle) {
-             throw new Error('No se pudo obtener el título del video.');
-        }
-
-        const newItem = {
-            id: Date.now(),
-            type: 'Video',
-            title: videoTitle,
-            action: clipboardText,
-            category: 'Videos Pegados',
-            icon: 'fab fa-youtube',
-            tags: ['clipboard'],
-            isFavorite: false
-        };
-
-        data.items.push(newItem);
-        await saveData();
-        refreshUI();
-        showToast(`Video "${videoTitle}" añadido.`, 'success');
-
-    } catch (err) {
-        console.error('Error al procesar el enlace de YouTube:', err);
-        showToast(err.message || 'No se pudo añadir el video.', 'error');
-    } finally {
-        addNewButton.innerHTML = `<i class="fab fa-youtube"></i><i class="fas fa-plus ml-1 mr-2"></i><span class="hidden sm:inline">Pegar Link</span>`;
-        addNewButton.disabled = false;
-    }
-}
-
-
 // --- BUSCADOR MEJORADO & ATAJOS ---
 function attachSearchBarListeners(container) {
     const searchBar = container.querySelector('.main-search-bar-container');
@@ -1282,13 +1215,19 @@ function attachSearchBarListeners(container) {
         searchInput.addEventListener('input', debounce((e) => {
             if (selectedSearchEngineId === 'global') {
                 const term = e.target.value.trim();
+                 const container = getActiveSectionContainer()?.querySelector('#ai-search-results-container');
                 if (term) {
-                    renderGlobalSearchResults(term);
-                } else {
-                    refreshUI();
+                    performAISearch(term);
+                } else if(container) {
+                     container.innerHTML = '';
+                     if(document.querySelector('#main-nav .active')?.dataset.section === 'inicio') {
+                         renderInicioSection();
+                     } else {
+                         applyGlobalFilter();
+                     }
                 }
             }
-        }, 300));
+        }, 500));
     }
     
     const selectorButton = searchBar.querySelector('.search-engine-selector-button');
@@ -1368,11 +1307,14 @@ function renderSearchEngineDropdown() {
     
     const globalSearchHTML = `
         <div class="dropdown-item flex items-center justify-between w-full ${selectedSearchEngineId === 'global' ? 'is-selected' : ''}" onclick="selectSearchEngine('global')" style="padding: 0.5rem; cursor:pointer;">
-            <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" class="w-5 h-5" alt="Logo">
+             <div class="flex items-center gap-2">
+                <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" class="w-5 h-5" alt="Logo">
+                <span>Búsqueda IA</span>
+             </div>
             <kbd class="ml-auto">todo</kbd>
         </div>
     `;
-    if ('búsqueda global'.includes(searchTerm) || searchTerm === '') {
+    if ('búsqueda ia'.includes(searchTerm) || searchTerm === '') {
         container.innerHTML += globalSearchHTML;
     }
 
@@ -1412,7 +1354,7 @@ function selectSearchEngine(itemId, focusInput = true) {
     const searchInput = activeContainer.querySelector('.main-search-input');
 
     if(selectedSearchEngineId === 'global') {
-        if (searchInput) searchInput.placeholder = `Buscar en todo...`;
+        if (searchInput) searchInput.placeholder = `Buscar con IA en tus elementos...`;
     } else {
         const engine = data.items.find(i => i.id === selectedSearchEngineId);
         if (engine && searchInput) {
@@ -1450,15 +1392,13 @@ function updateSearchEngineSelectorButton() {
 
     let engine;
     if(selectedSearchEngineId === 'global') {
-        engine = { title: 'Búsqueda Global', icon: 'https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png' };
+        engine = { title: 'Búsqueda IA', icon: 'https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png' };
     } else {
         engine = data.items.find(i => i.id === selectedSearchEngineId);
     }
     
     if (engine) {
-        const titleHTML = selectedSearchEngineId === 'global' 
-            ? '' 
-            : `<span class="font-semibold text-sm text-foreground truncate max-w-[100px]">${engine.title}</span>`;
+        const titleHTML = `<span class="font-semibold text-sm text-foreground truncate max-w-[100px]">${engine.title}</span>`;
 
         button.innerHTML = `
             <div class="flex items-center gap-2 pointer-events-none">
@@ -1489,7 +1429,7 @@ function performMainSearch() {
    }
 
     if (selectedSearchEngineId === 'global') {
-        renderGlobalSearchResults(term);
+        performAISearch(term);
         return;
     }
 
@@ -1587,73 +1527,55 @@ function applyGlobalFilter() {
     renderSection(activeSectionName, itemsToFilter, "");
 }
 
-function renderGlobalSearchResults(searchTerm) {
+function renderGlobalSearchResults(searchTerm, itemsToRender = null) {
     const container = getActiveSectionContainer();
     if (!container) return;
     
-    const allResults = data.items.filter(card => {
-        const lowerCaseSearchTerm = searchTerm.toLowerCase();
-        const titleMatch = card.title.toLowerCase().includes(lowerCaseSearchTerm);
-        const categoryNameMatch = (card.category || '').toLowerCase().includes(lowerCaseSearchTerm);
-        const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(lowerCaseSearchTerm);
-        let contentMatch = false;
-        if (typeof card.action === 'string') {
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = card.action;
-            contentMatch = (tempDiv.textContent || tempDiv.innerText).toLowerCase().includes(lowerCaseSearchTerm);
-        } else if (Array.isArray(card.action)) {
-            contentMatch = card.action.some(task => task.text.toLowerCase().includes(lowerCaseSearchTerm));
-        }
-        return titleMatch || categoryNameMatch || tagListMatch || contentMatch;
-    });
+    let allResults;
+    if (itemsToRender) {
+        allResults = itemsToRender;
+    } else {
+        allResults = data.items.filter(card => {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase();
+            const titleMatch = card.title.toLowerCase().includes(lowerCaseSearchTerm);
+            const categoryNameMatch = (card.category || '').toLowerCase().includes(lowerCaseSearchTerm);
+            const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(lowerCaseSearchTerm);
+            let contentMatch = false;
+            if (typeof card.action === 'string') {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = card.action;
+                contentMatch = (tempDiv.textContent || tempDiv.innerText).toLowerCase().includes(lowerCaseSearchTerm);
+            } else if (Array.isArray(card.action)) {
+                contentMatch = card.action.some(task => task.text.toLowerCase().includes(lowerCaseSearchTerm));
+            }
+            return titleMatch || categoryNameMatch || tagListMatch || contentMatch;
+        });
+    }
 
-    const searchBar = container.querySelector('.main-search-bar-container');
-    
-    const contentArea = Array.from(container.children).filter(el => !el.matches('.main-search-bar-container'));
-    contentArea.forEach(el => el.remove());
+    // This function can be called from the main search bar or from a section view
+    const resultsContainer = container.querySelector('#ai-search-results-container') || container;
 
-    const resultsContainer = document.createElement('div');
-    container.appendChild(resultsContainer);
+    // Clear previous results but preserve the search bar if it exists
+    if (resultsContainer.id === 'ai-search-results-container') {
+         resultsContainer.innerHTML = '';
+    } else {
+        const searchBar = container.querySelector('.main-search-bar-container');
+        container.innerHTML = '';
+        if (searchBar) container.appendChild(searchBar);
+    }
     
     if (allResults.length === 0) {
         resultsContainer.innerHTML = `
-            <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
+            <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border mt-8">
                 <h3 class="text-xl font-semibold">Sin resultados</h3>
                 <p class="text-muted-foreground mt-2">No se encontraron resultados para "${searchTerm}".</p>
             </div>`;
     } else {
-        resultsContainer.innerHTML = `<h2 class="text-2xl font-bold mb-6">Resultados para "${searchTerm}"</h2>`;
-        const secondaryGrouped = allResults.reduce((acc, item) => {
-            const section = Object.keys(typeMap).find(key => {
-                const type = typeMap[key];
-                return Array.isArray(type) ? type.includes(item.type) : type === item.type;
-            });
-            if (section && section !== 'inicio') { 
-                if (!acc[section]) acc[section] = [];
-                acc[section].push(item);
-            }
-            return acc;
-        }, {});
-
-        for (const sectionName in secondaryGrouped) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'mb-8';
-            const sectionTitle = document.querySelector(`[data-section="${sectionName}"] span`).textContent;
-            wrapper.innerHTML = `<h3 class="text-lg font-semibold mb-3">${sectionTitle}</h3>`;
-            const content = document.createElement('div');
-            content.className = 'list-view'; 
-            secondaryGrouped[sectionName].forEach(item => content.appendChild(createListItem(item, searchTerm, true)));
-            wrapper.appendChild(content);
-            resultsContainer.appendChild(wrapper);
-        }
-    }
-    if (searchBar) {
-        attachSearchBarListeners(container);
-         const mainSearchInput = container.querySelector('.main-search-input');
-        if (mainSearchInput && mainSearchInput.value !== searchTerm) {
-             mainSearchInput.value = searchTerm;
-        }
-        updateSearchEngineSelectorButton();
+        resultsContainer.innerHTML = `<h2 class="text-2xl font-bold mb-6 mt-8">Resultados para "${searchTerm}"</h2>`;
+        const content = document.createElement('div');
+        content.className = 'list-view';
+        allResults.forEach(item => content.appendChild(createListItem(item, searchTerm, true)));
+        resultsContainer.appendChild(content);
     }
 }
 
@@ -2178,8 +2100,9 @@ function openSettingsHelpModal() {
                 <div id="help-tab-content" class="tab-content hidden prose dark:prose-invert max-w-none">
                     <h3 class="font-bold text-lg">¿Qué es esto?</h3>
                     <p>Es un dashboard personalizable para organizar tus links, buscadores, notas y tareas en un solo lugar. Sincroniza tus datos de forma segura usando un Gist de GitHub.</p>
-                    <h3 class="font-bold text-lg mt-4">¿Cómo funciona?</h3>
+                    <h3 class="font-bold text-lg mt-4">Funciones de IA</h3>
                     <ul class="list-disc list-inside space-y-2">
+                        <li><b>Búsqueda con IA:</b> En la barra principal, selecciona el logo de la app para buscar con lenguaje natural (ej: "página para editar pdfs").</li>
                         <li><b>Añadir con IA:</b> El botón principal <i class="fas fa-wand-magic-sparkles"></i> lee tu portapapeles. Si encuentra una URL o texto, usa la IA para rellenar automáticamente un nuevo elemento. Si está vacío, abre el formulario manual.</li>
                         <li><b>Organizar Notas:</b> En la página de inicio, el Bloc de Notas tiene un botón "✨ Organizar" que convierte tus apuntes en Notas y Tareas estructuradas.</li>
                          <li><b>Sugerencias IA:</b> Al crear o editar, usa el botón ✨ para que la IA sugiera categorías y etiquetas.</li>
@@ -2204,7 +2127,7 @@ function openSettingsHelpModal() {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             modal.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.getElementById(`${tab.dataset.tab}-tab-content`).classList.remove('hidden');
+            document.getElementById(`${tab.dataset.tab}-content`).classList.remove('hidden');
         });
     });
     
@@ -2565,9 +2488,6 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
         payload.generationConfig = generationConfig;
     }
 
-    // The Gemini API does not support using tools (like Google Search) 
-    // when a specific JSON response MIME type is requested.
-    // Therefore, we only add the 'tools' property if we are not forcing a JSON output.
     if (!generationConfig || !generationConfig.responseMimeType) {
          payload.tools = [{ "google_search": {} }];
     }
@@ -2965,9 +2885,57 @@ Usa tu conocimiento y la herramienta de búsqueda de Google para obtener la info
     }
 }
 
+async function performAISearch(term) {
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+        showToast("La búsqueda con IA requiere una API Key. Usando búsqueda normal.", 'warning');
+        renderGlobalSearchResults(term);
+        return;
+    }
+    
+    const container = getActiveSectionContainer()?.querySelector('#ai-search-results-container');
+    if(container) {
+        container.innerHTML = `<div class="text-center p-8"><i class="fas fa-spinner fa-spin text-2xl text-muted-foreground"></i><p class="mt-2 text-muted-foreground">Buscando con IA...</p></div>`;
+    }
+
+    const itemsToSearch = data.items.map(i => ({
+        id: i.id,
+        title: i.title,
+        type: i.type,
+        category: i.category,
+        tags: i.tags
+    }));
+
+    const prompt = `Eres un asistente de búsqueda semántica para una aplicación personal. Te daré una consulta de búsqueda de un usuario y una lista de sus elementos guardados en formato JSON. Tu única tarea es devolver un array JSON con los IDs de los elementos que mejor respondan a la intención de la consulta del usuario. No devuelvas nada más que el array de IDs.
+
+Consulta del usuario: "${term}"
+
+Elementos disponibles:
+${JSON.stringify(itemsToSearch, null, 2)}
+
+Responde solo con el array de IDs.`;
+
+    const searchButton = getActiveSectionContainer()?.querySelector('.main-search-button');
+    let aiResult;
+
+    try {
+        aiResult = await callGeminiAPI(prompt, searchButton);
+        const resultIds = JSON.parse(aiResult);
+        if (Array.isArray(resultIds)) {
+            const foundItems = data.items.filter(item => resultIds.includes(item.id));
+            renderGlobalSearchResults(term, foundItems);
+        } else {
+             throw new Error("La IA no devolvió un array.");
+        }
+    } catch (e) {
+        console.error("Error en la búsqueda con IA, usando fallback:", e, aiResult);
+        showToast("La búsqueda con IA falló, usando búsqueda normal.", "error");
+        renderGlobalSearchResults(term);
+    }
+}
+
 
 </script>
 </body>
 </html>
-
 
