@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v50 - IA Avanzada para Videos</title>
+    <title>Centro de Accesos v51 - IA Mejorada</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -115,7 +115,7 @@
         .ai-chat-bubble { background-color: var(--secondary); padding: 0.75rem 1rem; border-radius: var(--radius); max-width: 90%; }
         .ai-chat-bubble.user { background-color: var(--primary); color: var(--primary-foreground); align-self: flex-end; }
         .ai-chat-bubble.gemini { background-color: var(--secondary); }
-
+        .ai-prompt-btn { font-size: 0.8rem; padding: 0.3rem 0.6rem; }
     </style>
 </head>
 <body class="dark"> <!-- Inicia en modo oscuro por defecto -->
@@ -963,7 +963,6 @@ function createCard(item, searchTerm = '') {
 
     let previewUrl = '';
     let videoPlayIcon = '';
-    // MODIFICACIÓN: Usar miniatura de YouTube para videos
     if (item.type === 'Video') {
         const videoId = getYouTubeID(item.action);
         if (videoId) {
@@ -974,7 +973,6 @@ function createCard(item, searchTerm = '') {
         previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
     }
     
-    // MODIFICACIÓN: Añadir botón de IA para Videos
     let extraActions = '';
     if (item.type === 'Video') {
         extraActions = `<button onclick="openVideoAIPanel(data.items.find(i=>i.id===${item.id}), event)" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20" title="Analizar con IA"><i class="fas fa-magic"></i></button>`;
@@ -1015,7 +1013,6 @@ function createListItem(item, searchTerm = '') {
     if (item.isFavorite) listItem.classList.add('is-favorite');
     if (item.id === selectedSearchEngineId) listItem.classList.add('is-selected');
 
-    // MODIFICACIÓN: Añadir botón de IA para Videos en la vista de lista
     let extraActions = '';
     if (item.type === 'Video') {
         extraActions = `<button onclick="openVideoAIPanel(data.items.find(i=>i.id===${item.id}), event)" class="btn btn-ghost !p-2" title="Analizar con IA"><i class="fas fa-magic"></i></button>`;
@@ -1049,7 +1046,6 @@ function createTableItem(item, searchTerm = '', isGlobalSearch = false) {
         ? `<span class="absolute bottom-1 right-1 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">${item.type}</span>`
         : '';
         
-    // MODIFICACIÓN: Añadir botón de IA para Videos en la vista de tabla
     let extraActions = '';
     if (item.type === 'Video') {
         extraActions = `<button onclick="openVideoAIPanel(data.items.find(i=>i.id===${item.id}), event)" class="btn btn-ghost !p-1 !text-xs" title="Analizar con IA"><i class="fas fa-magic"></i></button>`;
@@ -1190,7 +1186,6 @@ function handleCardClick(id, event) {
     if (item.type === "Link") {
         window.open(item.action, "_blank");
     } else if (item.type === "Video") {
-        // MODIFICACIÓN: La acción principal ahora es abrir el reproductor
         openVideoPlayerModal(item);
     } else if (item.type === "Buscador") {
         selectSearchEngine(item.id);
@@ -1211,7 +1206,6 @@ function handleCardClick(id, event) {
 async function handlePasteYouTubeLinkFromClipboard() {
     try {
         const clipboardText = await navigator.clipboard.readText();
-        // Usar getYouTubeID para una validación más robusta
         if (!clipboardText || !getYouTubeID(clipboardText)) {
             showToast('El portapapeles no contiene un enlace de YouTube válido.', 'error');
             return;
@@ -1291,17 +1285,15 @@ function attachSearchBarListeners(container) {
             if (e.key === 'Enter') performMainSearch();
         });
         
-        // Listener for engine shortcuts like "g "
         searchInput.addEventListener('input', handleSearchInputShortcut);
         
-        // Listener for live global search results, debounced
         searchInput.addEventListener('input', debounce((e) => {
             if (selectedSearchEngineId === 'global') {
                 const term = e.target.value.trim();
                 if (term) {
                     renderGlobalSearchResults(term);
                 } else {
-                    refreshUI(); // Restore original view when search is cleared
+                    refreshUI();
                 }
             }
         }, 300));
@@ -1382,7 +1374,6 @@ function renderSearchEngineDropdown() {
 
     container.innerHTML = '';
     
-    // Add Global Search option
     const globalSearchHTML = `
         <div class="dropdown-item flex items-center justify-between w-full ${selectedSearchEngineId === 'global' ? 'is-selected' : ''}" onclick="selectSearchEngine('global')" style="padding: 0.5rem; cursor:pointer;">
             <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" class="w-5 h-5" alt="Logo">
@@ -1525,7 +1516,6 @@ function handleGlobalShortcuts(e) {
     if (e.key === 'Escape') {
         const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal', 'videoAIPanel', 'videoPlayerModal'];
         modals.forEach(id => document.getElementById(id).classList.add('hidden'));
-        // Novedad: Detener video al presionar ESC
         const videoPlayer = document.getElementById('videoPlayerModal')?.querySelector('iframe');
         if (videoPlayer) {
             videoPlayer.src = '';
@@ -1579,12 +1569,10 @@ function toggleFavorite(event, itemId) {
     const indexInFavorites = favoritesArray.indexOf(numericId);
 
     if (item.isFavorite) {
-        // Add to favorites if it's not already there (safety check)
         if (indexInFavorites === -1) {
             favoritesArray.unshift(numericId);
         }
     } else {
-        // Remove from favorites if it exists
         if (indexInFavorites > -1) {
             favoritesArray.splice(indexInFavorites, 1);
         }
@@ -1629,7 +1617,6 @@ function renderGlobalSearchResults(searchTerm) {
 
     const searchBar = container.querySelector('.main-search-bar-container');
     
-    // Clear only the content area, keeping the search bar
     const contentArea = Array.from(container.children).filter(el => !el.matches('.main-search-bar-container'));
     contentArea.forEach(el => el.remove());
 
@@ -1649,7 +1636,7 @@ function renderGlobalSearchResults(searchTerm) {
                 const type = typeMap[key];
                 return Array.isArray(type) ? type.includes(item.type) : type === item.type;
             });
-            if (section && section !== 'inicio') { // Exclude 'inicio' pseudo-type
+            if (section && section !== 'inicio') { 
                 if (!acc[section]) acc[section] = [];
                 acc[section].push(item);
             }
@@ -1662,13 +1649,12 @@ function renderGlobalSearchResults(searchTerm) {
             const sectionTitle = document.querySelector(`[data-section="${sectionName}"] span`).textContent;
             wrapper.innerHTML = `<h3 class="text-lg font-semibold mb-3">${sectionTitle}</h3>`;
             const content = document.createElement('div');
-            content.className = 'list-view'; // Always list view for search results
+            content.className = 'list-view'; 
             secondaryGrouped[sectionName].forEach(item => content.appendChild(createListItem(item, searchTerm, true)));
             wrapper.appendChild(content);
             resultsContainer.appendChild(wrapper);
         }
     }
-    // Re-attach listeners and restore state
     if (searchBar) {
         attachSearchBarListeners(container);
          const mainSearchInput = container.querySelector('.main-search-input');
@@ -1748,7 +1734,6 @@ function openEventPanel(eventId = null) {
     
     let dateValue = '';
     if (event) {
-        // Corrección de zona horaria para mostrar la fecha correcta en el input
         dateValue = event.date;
     }
 
@@ -1938,6 +1923,8 @@ function openEditPanel(itemId = null) {
                     <label class="font-semibold block mb-2">Etiquetas (separadas por coma)</label>
                     <input type="text" id="newTags" class="input-base" placeholder="trabajo, personal" value="${item?.tags?.join(', ') || ''}">
                 </div>
+                <div id="ai-actions-container" class="mt-4 pt-4 border-t border-border hidden"></div>
+                <div id="ai-result-panel-edit" class="mt-4 p-4 bg-secondary rounded-lg hidden"></div>
                 <div class="flex justify-end gap-2 pt-4">
                     ${item ? `<button type="button" id="deleteItemButton" class="btn btn-secondary !bg-red-500/10 !text-red-500 mr-auto">Eliminar</button>` : ''}
                     <button type="button" onclick="document.getElementById('editPanel').classList.add('hidden')" class="btn btn-secondary">Cancelar</button>
@@ -1962,7 +1949,7 @@ function openEditPanel(itemId = null) {
             modal.querySelectorAll('.type-btn').forEach(b => b.classList.replace('btn-primary', 'btn-secondary'));
             button.classList.replace('btn-secondary', 'btn-primary');
             document.getElementById('newType').value = newType;
-            updateEditFormFields(newType);
+            updateEditFormFields(newType, item);
         }
     });
     
@@ -1990,24 +1977,41 @@ function updateEditFormFields(type, item = null) {
     const shortcutField = document.getElementById('shortcutFieldContainer');
     const actionLabel = document.getElementById('actionLabel');
     const pasteBtnContainer = document.getElementById('paste-button-container');
+    const aiActionsContainer = document.getElementById('ai-actions-container');
+    const aiResultPanel = document.getElementById('ai-result-panel-edit');
 
-    // Reset visibility
     richEditor.classList.add('hidden');
     textEditor.classList.add('hidden');
     iconField.style.display = 'block';
     shortcutField.classList.add('hidden');
     pasteBtnContainer.classList.add('hidden');
+    aiActionsContainer.classList.add('hidden');
+    aiResultPanel.classList.add('hidden');
 
     if(type === 'Buscador'){
         shortcutField.classList.remove('hidden');
         actionLabel.textContent = 'URL / Acción';
         textEditor.classList.remove('hidden');
         if (item) textEditor.value = item.action;
-    } else if (type === 'Nota' || type === 'Promp') {
+    } else if (type === 'Nota') {
         actionLabel.textContent = 'Contenido';
         richEditor.classList.remove('hidden');
         iconField.style.display = 'none';
         if (item && typeof item.action === 'string') richEditor.innerHTML = item.action;
+        
+        aiActionsContainer.classList.remove('hidden');
+        aiActionsContainer.innerHTML = `
+            <h3 class="font-semibold mb-2 text-muted-foreground">✨ Asistente de IA para Notas</h3>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" id="ai-summarize-btn" class="btn btn-secondary"><i class="fas fa-compress-alt mr-2"></i>Resumir</button>
+                <button type="button" id="ai-continue-btn" class="btn btn-secondary"><i class="fas fa-pen-fancy mr-2"></i>Continuar</button>
+                <button type="button" id="ai-fix-btn" class="btn btn-secondary"><i class="fas fa-check-double mr-2"></i>Corregir</button>
+            </div>
+        `;
+        document.getElementById('ai-summarize-btn').onclick = () => handleNoteAction('summarize');
+        document.getElementById('ai-continue-btn').onclick = () => handleNoteAction('continue');
+        document.getElementById('ai-fix-btn').onclick = () => handleNoteAction('fix');
+
     } else if (type === 'Tarea') {
         actionLabel.textContent = 'Tareas (una por línea)';
         richEditor.classList.remove('hidden');
@@ -2015,6 +2019,19 @@ function updateEditFormFields(type, item = null) {
         if (item && Array.isArray(item.action)) {
             richEditor.innerHTML = item.action.map(t => `<div>${t.text}</div>`).join('');
         }
+        
+        aiActionsContainer.classList.remove('hidden');
+        aiActionsContainer.innerHTML = `
+            <h3 class="font-semibold mb-2 text-muted-foreground">✨ Asistente de IA para Tareas</h3>
+            <button type="button" id="ai-suggest-tasks-btn" class="btn btn-secondary"><i class="fas fa-list-ol mr-2"></i>Sugerir Pasos</button>
+        `;
+        document.getElementById('ai-suggest-tasks-btn').onclick = handleTaskSuggestion;
+
+    } else if (type === 'Promp') {
+        actionLabel.textContent = 'Contenido del Prompt';
+        richEditor.classList.remove('hidden');
+        iconField.style.display = 'none';
+        if (item && typeof item.action === 'string') richEditor.innerHTML = item.action;
     } else if (type === 'Video') {
         actionLabel.textContent = 'URL del Video';
         textEditor.classList.remove('hidden');
@@ -2046,7 +2063,7 @@ function handleSaveItem(event) {
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = document.getElementById('newActionRich').innerHTML;
         const existingTasks = id ? (data.items.find(i => String(i.id) === id)?.action || []) : [];
-        action = Array.from(tempDiv.children).map((child, index) => ({ text: child.textContent || child.innerText, status: existingTasks[index]?.status || false })).filter(t => t.text.trim());
+        action = Array.from(tempDiv.children).map((child, index) => ({ text: (child.textContent || child.innerText).trim(), status: existingTasks[index]?.status || false })).filter(t => t.text);
     } else {
         action = document.getElementById('newActionText').value;
     }
@@ -2360,7 +2377,6 @@ function updateSyncStatus(status, message = '') {
 }
 
 // --- Video AI Panel & Player ---
-// Novedad: Modal para reproducir videos
 function openVideoPlayerModal(item) {
     const modal = document.getElementById('videoPlayerModal');
     const videoId = getYouTubeID(item.action);
@@ -2384,7 +2400,6 @@ function openVideoPlayerModal(item) {
 
 function closeVideoPlayerModal() {
     const modal = document.getElementById('videoPlayerModal');
-    // Detener el video al cerrar
     const iframe = modal.querySelector('iframe');
     if (iframe) {
         iframe.src = '';
@@ -2402,22 +2417,14 @@ function openVideoAIPanel(item, event) {
         ? `<iframe class="w-full aspect-video rounded-lg" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
         : '<div class="w-full aspect-video rounded-lg bg-secondary flex items-center justify-center text-muted-foreground"><p>No se pudo generar la vista previa del video.</p></div>';
 
-    const aiPrompts = [
-        { title: "Respuesta breve", prompt: `Basado en el título de este video, "${item.title}", ¿de qué crees que trata? Responde en un párrafo corto.` },
-        { title: "Resumen", prompt: `Resume el posible contenido del video titulado "${item.title}" en 3 puntos clave.` },
-        { title: "Enumerar", prompt: `Genera una lista de conceptos o temas que probablemente se traten en el video "${item.title}".` },
-        { title: "Quiz Rápido", prompt: `Crea un quiz de 3 preguntas de opción múltiple (A, B, C, D) para evaluar la comprensión de un video titulado "${item.title}". Indica la respuesta correcta.` },
-        { title: "Más Ejemplos", prompt: `El video se titula "${item.title}". Dame 3 ejemplos de temas relacionados o videos similares que podría buscar.` }
-    ];
-
     modal.innerHTML = `
-        <div class="modal-container w-full max-w-4xl p-6 flex flex-col gap-6">
+        <div class="modal-container w-full max-w-5xl p-6 flex flex-col gap-6">
             <div class="flex justify-between items-start">
                 <div>
                     <h2 class="text-2xl font-bold">${item.title}</h2>
-                    <div class="flex flex-wrap gap-2 mt-2">
-                        ${(item.tags || []).map(tag => `<span class="bg-secondary text-secondary-foreground text-xs font-semibold px-2.5 py-0.5 rounded-full">${tag}</span>`).join('')}
-                    </div>
+                     <p class="text-sm text-muted-foreground mt-1">
+                        <i class="fas fa-info-circle mr-1"></i> La IA analiza desde el <strong>título</strong> (la transcripción no está disponible).
+                    </p>
                 </div>
                 <button onclick="document.getElementById('videoAIPanel').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
             </div>
@@ -2427,9 +2434,9 @@ function openVideoAIPanel(item, event) {
                     ${embedHtml}
                 </div>
                 <div class="flex flex-col gap-4">
-                    <h3 class="font-bold text-lg">Interactuar con IA</h3>
+                    <h3 class="font-bold text-lg">✨ Análisis con IA</h3>
                     <div id="ai-video-buttons" class="flex flex-wrap gap-2">
-                        ${aiPrompts.map((p, index) => `<button data-prompt-index="${index}" class="btn btn-secondary ai-prompt-btn">${p.title}</button>`).join('')}
+                        ${(data.aiPrompts || defaultAiPrompts).map(p => `<button data-prompt-id="${p.id}" class="btn btn-secondary ai-prompt-btn">${p.title}</button>`).join('')}
                     </div>
                     <div id="ai-video-result-container" class="widget mt-2 flex-grow hidden">
                          <div id="ai-video-result" class="prose dark:prose-invert max-w-none text-sm overflow-y-auto h-48"></div>
@@ -2442,63 +2449,45 @@ function openVideoAIPanel(item, event) {
 
     modal.querySelectorAll('.ai-prompt-btn').forEach(btn => {
         btn.onclick = () => {
-            const promptIndex = btn.dataset.promptIndex;
-            const selectedPrompt = aiPrompts[promptIndex].prompt;
-            generateAIResponseForVideo(selectedPrompt);
+            const promptId = parseInt(btn.dataset.promptId);
+            const selectedPrompt = (data.aiPrompts || defaultAiPrompts).find(p => p.id === promptId);
+            if (selectedPrompt) {
+                generateAIResponseForVideo(item, selectedPrompt.prompt);
+            }
         };
     });
 }
 
-async function generateAIResponseForVideo(prompt) {
-    const apiKey = localStorage.getItem('gemini_api_key');
-    if (!apiKey) {
-        showToast("Configura tu API Key de Gemini en los ajustes.", 'error');
-        return;
-    }
-    
+async function generateAIResponseForVideo(item, userPrompt) {
     const resultContainer = document.getElementById('ai-video-result-container');
     const resultDiv = document.getElementById('ai-video-result');
     const buttons = document.querySelectorAll('#ai-video-buttons button');
+    
+    const finalPrompt = `Eres un asistente experto en análisis de videos de YouTube. Basado SOLAMENTE en el título y la posible miniatura de un video (no tienes acceso al contenido), cuyo título es "${item.title}", responde a la siguiente petición del usuario de la forma más útil y completa posible.\n\nPetición del usuario: "${userPrompt}"`;
+    
+    const buttonElement = Array.from(buttons).find(b => {
+        const promptId = parseInt(b.dataset.promptId);
+        const p = (data.aiPrompts || defaultAiPrompts).find(pr => pr.id === promptId);
+        return p && p.prompt === userPrompt;
+    });
 
-    buttons.forEach(b => b.disabled = true);
+    const aiResult = await callGeminiAPI(finalPrompt, buttonElement, buttons);
+
     resultContainer.classList.remove('hidden');
-    resultDiv.innerHTML = '<p class="text-muted-foreground">Generando respuesta...</p>';
-
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-
-    try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error.message || `Error HTTP: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const text = data.candidates[0].content.parts[0].text;
-        
-        resultDiv.innerHTML = simpleMarkdownToHtml(text);
-
-    } catch (error) {
-        console.error("Error llamando a la API de Gemini:", error);
-        resultDiv.innerHTML = `<p class="text-red-500"><strong>Error:</strong> ${error.message}</p>`;
-    } finally {
-        buttons.forEach(b => b.disabled = false);
+    if (aiResult) {
+        resultDiv.innerHTML = simpleMarkdownToHtml(aiResult);
+    } else {
+        resultDiv.innerHTML = `<p class="text-red-500"><strong>Error:</strong> Hubo un problema al generar la respuesta.</p>`;
     }
 }
 
 
-// --- IA Section ---
+// --- IA Section & Helpers ---
 function simpleMarkdownToHtml(text) {
     let html = text
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/\*(.*?)\*/g, '<em>$1</em>');
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`([^`]+)`/g, '<code>$1</code>');
 
     let lines = html.split('\n');
     let inList = false;
@@ -2506,7 +2495,7 @@ function simpleMarkdownToHtml(text) {
 
     let processedHtml = lines.map(line => {
         const trimmedLine = line.trim();
-        const isUnordered = trimmedLine.startsWith('* ');
+        const isUnordered = trimmedLine.startsWith('* ') || trimmedLine.startsWith('- ');
         const isOrdered = /^\d+\. /.test(trimmedLine);
 
         if (isUnordered || isOrdered) {
@@ -2536,23 +2525,18 @@ function simpleMarkdownToHtml(text) {
     return processedHtml.replace(/<p><\/p>/g, '');
 }
 
-async function handleAIGeneration() {
+async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = []) {
     const apiKey = localStorage.getItem('gemini_api_key');
-    const prompt = document.getElementById('ai-prompt').value;
-    const generateBtn = document.getElementById('ai-generate-btn');
-    const resultContainer = document.getElementById('ai-result-container');
-    const resultDiv = document.getElementById('ai-result');
-
-    if (!prompt.trim()) {
-        showToast("Por favor, introduce un prompt.", 'error');
-        return;
+    if (!apiKey) {
+        showToast("Configura tu API Key de Gemini en los ajustes.", 'error');
+        return null;
     }
 
-    // Show loading state
-    generateBtn.disabled = true;
-    generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
-    resultContainer.classList.remove('hidden');
-    resultDiv.innerHTML = '<p class="text-muted-foreground">Pensando...</p>';
+    const originalButtonText = triggerButton.innerHTML;
+    const buttons = allButtonsToDisable.length > 0 ? allButtonsToDisable : [triggerButton];
+
+    buttons.forEach(b => b.disabled = true);
+    triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
 
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
@@ -2560,9 +2544,7 @@ async function handleAIGeneration() {
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
+            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
 
         if (!response.ok) {
@@ -2570,20 +2552,125 @@ async function handleAIGeneration() {
             throw new Error(errorData.error.message || `Error HTTP: ${response.status}`);
         }
 
-        const data = await response.json();
-        const text = data.candidates[0].content.parts[0].text;
-        
-        resultDiv.innerHTML = simpleMarkdownToHtml(text);
-
+        const responseData = await response.json();
+        return responseData.candidates[0].content.parts[0].text;
     } catch (error) {
         console.error("Error llamando a la API de Gemini:", error);
-        resultDiv.innerHTML = `<p class="text-red-500"><strong>Error:</strong> ${error.message}</p>`;
-        showToast("Hubo un error al generar la respuesta.", 'error');
+        showToast(`Error de IA: ${error.message}`, 'error');
+        return null;
     } finally {
-        // Restore button state
-        generateBtn.disabled = false;
-        generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Generar';
+        buttons.forEach(b => b.disabled = false);
+        triggerButton.innerHTML = originalButtonText;
     }
+}
+
+async function handleNoteAction(action) {
+    const editor = document.getElementById('newActionRich');
+    const text = editor.innerText;
+    if (!text.trim()) {
+        showToast('La nota está vacía.', 'error');
+        return;
+    }
+
+    let prompt = '';
+    let buttonId = '';
+    switch(action) {
+        case 'summarize':
+            prompt = `Resume el siguiente texto en un párrafo conciso:\n\n"${text}"`;
+            buttonId = 'ai-summarize-btn';
+            break;
+        case 'continue':
+            prompt = `Continúa escribiendo el siguiente texto de forma natural y coherente. Empieza directamente donde termina el texto original, sin añadir introducciones como "Claro, aquí tienes...".\n\nTexto original:\n"${text}"`;
+            buttonId = 'ai-continue-btn';
+            break;
+        case 'fix':
+            prompt = `Corrige la ortografía y gramática del siguiente texto, mejorando su redacción sin cambiar el significado. Devuelve solo el texto corregido, sin añadir introducciones como "Aquí tienes el texto corregido:".\n\nTexto original:\n"${text}"`;
+            buttonId = 'ai-fix-btn';
+            break;
+    }
+
+    const buttonElement = document.getElementById(buttonId);
+    const resultContainer = document.getElementById('ai-result-panel-edit');
+    resultContainer.classList.remove('hidden');
+    resultContainer.innerHTML = '<p class="text-muted-foreground">Generando...</p>';
+
+    const aiResult = await callGeminiAPI(prompt, buttonElement);
+
+    if (aiResult) {
+        let actionButtonHtml = '';
+        if (action === 'continue') {
+            actionButtonHtml = `<button type="button" class="btn btn-sm btn-primary mt-2" onclick="appendNoteText(this)">Añadir al final</button>`;
+        } else {
+            actionButtonHtml = `<button type="button" class="btn btn-sm btn-primary mt-2" onclick="replaceNoteText(this)">Reemplazar texto</button>`;
+        }
+        resultContainer.innerHTML = `
+            <div class="prose dark:prose-invert max-w-none prose-sm">${simpleMarkdownToHtml(aiResult)}</div>
+            <div class="hidden raw-result">${btoa(encodeURIComponent(aiResult))}</div>
+            ${actionButtonHtml}
+        `;
+    } else {
+        resultContainer.innerHTML = '<p>Hubo un error al generar la respuesta.</p>';
+    }
+}
+
+function replaceNoteText(button) {
+    const rawResult = button.parentElement.querySelector('.raw-result').innerText;
+    const decodedText = decodeURIComponent(atob(rawResult));
+    document.getElementById('newActionRich').innerHTML = simpleMarkdownToHtml(decodedText).replace(/<p>/g, '<div>').replace(/<\/p>/g, '</div>');
+}
+
+function appendNoteText(button) {
+    const rawResult = button.parentElement.querySelector('.raw-result').innerText;
+    const decodedText = decodeURIComponent(atob(rawResult));
+    const editor = document.getElementById('newActionRich');
+    editor.innerHTML += ` ${simpleMarkdownToHtml(decodedText).replace(/<p>/g, '<div>').replace(/<\/p>/g, '</div>')}`;
+}
+
+async function handleTaskSuggestion() {
+    const title = document.getElementById('newTitle').value;
+    const editor = document.getElementById('newActionRich');
+    const existingTasks = Array.from(editor.children).map(child => `- ${child.innerText}`).join('\n');
+
+    if (!title.trim()) {
+        showToast('La tarea necesita un título.', 'error');
+        return;
+    }
+
+    let prompt = `Soy un gestor de proyectos. Mi tarea actual se titula "${title}". Ya tengo las siguientes subtareas:\n${existingTasks}\n\nSugiere 3-5 subtareas adicionales que sean lógicas y relevantes para completar el proyecto. Devuelve solo una lista con guiones (-), sin encabezados, numeración ni texto introductorio.`;
+
+    const buttonElement = document.getElementById('ai-suggest-tasks-btn');
+    const resultContainer = document.getElementById('ai-result-panel-edit');
+    resultContainer.classList.remove('hidden');
+    resultContainer.innerHTML = '<p class="text-muted-foreground">Generando sugerencias...</p>';
+    
+    const aiResult = await callGeminiAPI(prompt, buttonElement);
+
+    if (aiResult) {
+        const suggestions = aiResult.split('\n').map(s => s.replace(/^- /, '').trim()).filter(Boolean);
+        resultContainer.innerHTML = `
+            <h4 class="font-semibold text-sm mb-2">Sugerencias (selecciona para añadir):</h4>
+            <div id="task-suggestions" class="space-y-2">
+                ${suggestions.map((s, i) => `
+                    <div class="flex items-center gap-2">
+                        <input type="checkbox" id="suggestion-${i}" value="${s.replace(/"/g, '&quot;')}" class="w-4 h-4 rounded accent-primary">
+                        <label for="suggestion-${i}" class="text-sm">${s}</label>
+                    </div>
+                `).join('')}
+            </div>
+            <button type="button" class="btn btn-sm btn-primary mt-3" onclick="addSelectedTasks()">Añadir Seleccionadas</button>
+        `;
+    } else {
+        resultContainer.innerHTML = '<p>Hubo un error al generar las sugerencias.</p>';
+    }
+}
+
+function addSelectedTasks() {
+    const suggestionsContainer = document.getElementById('task-suggestions');
+    const editor = document.getElementById('newActionRich');
+    suggestionsContainer.querySelectorAll('input:checked').forEach(checkbox => {
+        editor.innerHTML += `<div>${checkbox.value}</div>`;
+    });
+    document.getElementById('ai-result-panel-edit').classList.add('hidden');
 }
 
 function renderAISection(container) {
@@ -2621,7 +2708,28 @@ function renderAISection(container) {
         </div>
     `;
 
-    document.getElementById('ai-generate-btn').addEventListener('click', handleAIGeneration);
+    document.getElementById('ai-generate-btn').onclick = async () => {
+        const prompt = document.getElementById('ai-prompt').value;
+        const generateBtn = document.getElementById('ai-generate-btn');
+        const resultContainer = document.getElementById('ai-result-container');
+        const resultDiv = document.getElementById('ai-result');
+
+        if (!prompt.trim()) {
+            showToast("Por favor, introduce un prompt.", 'error');
+            return;
+        }
+        
+        resultContainer.classList.remove('hidden');
+        resultDiv.innerHTML = '<p class="text-muted-foreground">Pensando...</p>';
+
+        const aiResult = await callGeminiAPI(prompt, generateBtn);
+
+        if (aiResult) {
+            resultDiv.innerHTML = simpleMarkdownToHtml(aiResult);
+        } else {
+            resultDiv.innerHTML = '<p class="text-red-500"><strong>Error:</strong> Hubo un problema al generar la respuesta.</p>';
+        }
+    };
 }
 
 
