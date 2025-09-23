@@ -825,9 +825,13 @@ function renderHomeScratchpadWidget(container, gridClasses) {
     const widget = document.createElement('div');
     widget.className = `widget ${gridClasses} flex flex-col`;
     widget.innerHTML = `
-        <h3 class="font-bold mb-3 text-lg">Bloc de Notas Rápido</h3>
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-lg">Bloc de Notas Rápido</h3>
+            <button id="smart-scratchpad-btn" class="btn btn-secondary" title="Organizar con IA">✨ Organizar</button>
+        </div>
         <textarea id="scratchpad-textarea" class="w-full flex-grow p-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none resize-none text-sm" placeholder="Apunta algo...">${localStorage.getItem('scratchpadContent') || ''}</textarea>
     `;
+    widget.querySelector('#smart-scratchpad-btn').addEventListener('click', handleSmartScratchpad);
     widget.querySelector('textarea').addEventListener('input', debounce((e) => {
         localStorage.setItem('scratchpadContent', e.target.value);
     }, 500));
@@ -1916,12 +1920,18 @@ function openEditPanel(itemId = null) {
                 </div>
                 <div>
                     <label class="font-semibold block mb-2">Categoría</label>
-                    <input type="text" id="newCategory" class="input-base" list="category-suggestions" placeholder="Categoría nueva o existente" value="${item?.category || ''}">
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="newCategory" class="input-base" list="category-suggestions" placeholder="Categoría nueva o existente" value="${item?.category || ''}">
+                        <button type="button" onclick="handleSuggestCategory()" class="btn btn-secondary !p-2" title="Sugerir con IA">✨</button>
+                    </div>
                     <datalist id="category-suggestions"></datalist>
                 </div>
                 <div>
                     <label class="font-semibold block mb-2">Etiquetas (separadas por coma)</label>
-                    <input type="text" id="newTags" class="input-base" placeholder="trabajo, personal" value="${item?.tags?.join(', ') || ''}">
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="newTags" class="input-base" placeholder="trabajo, personal" value="${item?.tags?.join(', ') || ''}">
+                        <button type="button" onclick="handleSuggestTags()" class="btn btn-secondary !p-2" title="Sugerir con IA">✨</button>
+                    </div>
                 </div>
                 <div id="ai-actions-container" class="mt-4 pt-4 border-t border-border hidden"></div>
                 <div id="ai-result-panel-edit" class="mt-4 p-4 bg-secondary rounded-lg hidden"></div>
@@ -2438,6 +2448,15 @@ function openVideoAIPanel(item, event) {
                     <div id="ai-video-buttons" class="flex flex-wrap gap-2">
                         ${(data.aiPrompts || defaultAiPrompts).map(p => `<button data-prompt-id="${p.id}" class="btn btn-secondary ai-prompt-btn">${p.title}</button>`).join('')}
                     </div>
+                     <div class="mt-2 pt-4 border-t border-border">
+                        <label for="custom-ai-video-prompt" class="font-semibold block mb-2 text-sm text-muted-foreground">O escribe tu propia pregunta:</label>
+                        <div class="flex items-start gap-2">
+                            <textarea id="custom-ai-video-prompt" class="input-base w-full text-sm" rows="2" placeholder="Ej: ¿Este video menciona algún estudio científico?"></textarea>
+                            <button id="custom-ai-video-btn" class="btn btn-primary h-full">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
                     <div id="ai-video-result-container" class="widget mt-2 flex-grow hidden">
                          <div id="ai-video-result" class="prose dark:prose-invert max-w-none text-sm overflow-y-auto h-48"></div>
                     </div>
@@ -2448,30 +2467,36 @@ function openVideoAIPanel(item, event) {
     modal.classList.remove('hidden');
 
     modal.querySelectorAll('.ai-prompt-btn').forEach(btn => {
-        btn.onclick = () => {
+        btn.onclick = (e) => {
             const promptId = parseInt(btn.dataset.promptId);
             const selectedPrompt = (data.aiPrompts || defaultAiPrompts).find(p => p.id === promptId);
             if (selectedPrompt) {
-                generateAIResponseForVideo(item, selectedPrompt.prompt);
+                generateAIResponseForVideo(item, selectedPrompt.prompt, e.currentTarget);
             }
         };
     });
+
+    const customPromptBtn = modal.querySelector('#custom-ai-video-btn');
+    const customPromptTextarea = modal.querySelector('#custom-ai-video-prompt');
+    customPromptBtn.onclick = (e) => {
+        const customPrompt = customPromptTextarea.value.trim();
+        if (customPrompt) {
+            generateAIResponseForVideo(item, customPrompt, e.currentTarget);
+            customPromptTextarea.value = '';
+        } else {
+            showToast('Por favor, escribe una pregunta.', 'error');
+        }
+    };
 }
 
-async function generateAIResponseForVideo(item, userPrompt) {
+async function generateAIResponseForVideo(item, userPrompt, triggerButton) {
     const resultContainer = document.getElementById('ai-video-result-container');
     const resultDiv = document.getElementById('ai-video-result');
-    const buttons = document.querySelectorAll('#ai-video-buttons button');
+    const buttons = document.querySelectorAll('#videoAIPanel button');
     
     const finalPrompt = `Eres un asistente experto en análisis de videos de YouTube. Basado SOLAMENTE en el título y la posible miniatura de un video (no tienes acceso al contenido), cuyo título es "${item.title}", responde a la siguiente petición del usuario de la forma más útil y completa posible.\n\nPetición del usuario: "${userPrompt}"`;
     
-    const buttonElement = Array.from(buttons).find(b => {
-        const promptId = parseInt(b.dataset.promptId);
-        const p = (data.aiPrompts || defaultAiPrompts).find(pr => pr.id === promptId);
-        return p && p.prompt === userPrompt;
-    });
-
-    const aiResult = await callGeminiAPI(finalPrompt, buttonElement, buttons);
+    const aiResult = await callGeminiAPI(finalPrompt, triggerButton, Array.from(buttons));
 
     resultContainer.classList.remove('hidden');
     if (aiResult) {
@@ -2730,6 +2755,148 @@ function renderAISection(container) {
             resultDiv.innerHTML = '<p class="text-red-500"><strong>Error:</strong> Hubo un problema al generar la respuesta.</p>';
         }
     };
+}
+
+// --- NUEVAS FUNCIONES DE IA ---
+function cleanGeminiJsonResponse(rawResponse) {
+    const match = rawResponse.match(/```json\n([\s\S]*?)\n```/);
+    if (match && match[1]) {
+        return match[1];
+    }
+    return rawResponse;
+}
+
+async function handleSmartScratchpad() {
+    const scratchpad = document.getElementById('scratchpad-textarea');
+    const text = scratchpad.value.trim();
+    if (!text) {
+        showToast('El bloc de notas está vacío.', 'error');
+        return;
+    }
+
+    const triggerButton = document.getElementById('smart-scratchpad-btn');
+    const prompt = `Eres un asistente de organización personal. Analiza el siguiente texto de un bloc de notas. Identifica elementos distintos y clasifícalos como 'tarea' (algo que debe hacerse) o 'nota' (información para guardar). Extrae un título breve y descriptivo para cada uno. Formatea la salida como un array JSON de objetos. Cada objeto debe tener las claves 'type' ('task' o 'note'), 'title' (string), y 'content' (string). No incluyas nada más que el array JSON en tu respuesta.\n\nTexto:\n"${text}"`;
+
+    const rawResult = await callGeminiAPI(prompt, triggerButton);
+
+    if (rawResult) {
+        try {
+            const cleanedJson = cleanGeminiJsonResponse(rawResult);
+            const items = JSON.parse(cleanedJson);
+            if (items && items.length > 0) {
+                showGeneratedItemsModal(items);
+            } else {
+                showToast('No se encontraron elementos accionables.', 'info');
+            }
+        } catch (e) {
+            console.error("Error al parsear la respuesta de la IA:", e, rawResult);
+            showToast('La IA devolvió un formato inesperado.', 'error');
+        }
+    }
+}
+
+function showGeneratedItemsModal(items) {
+    const modal = document.getElementById('confirmModal');
+    
+    const itemsHtml = items.map(item => {
+        const icon = item.type === 'task' ? 'fa-tasks' : 'fa-sticky-note';
+        return `<li class="flex items-center gap-3 p-2 bg-secondary rounded-md">
+            <i class="fas ${icon} text-muted-foreground"></i>
+            <div>
+                <p class="font-semibold">${item.title}</p>
+                <p class="text-xs text-muted-foreground truncate">${item.content}</p>
+            </div>
+        </li>`;
+    }).join('');
+
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-lg p-6">
+            <h2 class="text-xl font-bold mb-4">✨ Items Encontrados</h2>
+            <p class="text-muted-foreground mb-4">Hemos encontrado los siguientes elementos en tu bloc de notas. ¿Quieres crearlos?</p>
+            <ul class="space-y-2 mb-6">${itemsHtml}</ul>
+            <div class="flex justify-end gap-4">
+                <button id="confirmCancel" class="btn btn-secondary">Cancelar</button>
+                <button id="confirmOk" class="btn btn-primary">Crear</button>
+            </div>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    modal.querySelector('#confirmOk').onclick = () => {
+        items.forEach(item => {
+            let action;
+            if (item.type === 'task') {
+                action = [{ text: item.content, status: false }];
+            } else { // note
+                action = `<div>${item.content}</div>`;
+            }
+            
+            const newItemData = {
+                id: Date.now() + Math.random(),
+                type: item.type === 'task' ? 'Tarea' : 'Nota',
+                title: item.title,
+                action: action,
+                category: 'Desde Bloc de Notas',
+                isFavorite: false,
+                tags: ['scratchpad']
+            };
+            data.items.push(newItemData);
+        });
+
+        saveData().then(() => {
+            const scratchpad = document.getElementById('scratchpad-textarea');
+            scratchpad.value = '';
+            localStorage.setItem('scratchpadContent', '');
+            refreshUI();
+            showToast(`${items.length} elementos creados.`, 'success');
+        });
+        modal.classList.add('hidden');
+    };
+    modal.querySelector('#confirmCancel').onclick = () => modal.classList.add('hidden');
+}
+
+async function handleSuggestCategory() {
+    const title = document.getElementById('newTitle').value;
+    const type = document.getElementById('newType').value;
+    const richEditor = document.getElementById('newActionRich');
+    const textEditor = document.getElementById('newActionText');
+    const content = (type === 'Nota' || type === 'Tarea' || type === 'Promp') ? richEditor.innerText : textEditor.value;
+    
+    if (!title && !content) {
+        showToast('Añade un título o contenido para obtener sugerencias.', 'error');
+        return;
+    }
+
+    const existingCategories = [...new Set(data.items.map(item => item.category).filter(Boolean))];
+    const prompt = `Dada la siguiente información de un elemento, sugiere una única y concisa categoría en español. Título: '${title}'. Contenido: '${content}'. Las categorías existentes son: [${existingCategories.join(', ')}]. Si una de las categorías existentes encaja bien, úsala. Si no, sugiere una nueva categoría relevante. Responde solo con el nombre de la categoría.`;
+
+    const triggerButton = document.querySelector('button[onclick="handleSuggestCategory()"]');
+    const suggestion = await callGeminiAPI(prompt, triggerButton);
+
+    if (suggestion) {
+        document.getElementById('newCategory').value = suggestion.trim().replace(/["'\*]/g, '');
+    }
+}
+
+async function handleSuggestTags() {
+    const title = document.getElementById('newTitle').value;
+    const type = document.getElementById('newType').value;
+    const richEditor = document.getElementById('newActionRich');
+    const textEditor = document.getElementById('newActionText');
+    const content = (type === 'Nota' || type === 'Tarea' || type === 'Promp') ? richEditor.innerText : textEditor.value;
+
+    if (!title && !content) {
+        showToast('Añade un título o contenido para obtener sugerencias.', 'error');
+        return;
+    }
+
+    const prompt = `Para un elemento con el título '${title}' y contenido '${content}', sugiere entre 3 y 5 etiquetas relevantes de una sola palabra en español. Sepáralas por comas. Ejemplo: 'cocina, receta, pasta'. Responde solo con las etiquetas.`;
+    
+    const triggerButton = document.querySelector('button[onclick="handleSuggestTags()"]');
+    const suggestions = await callGeminiAPI(prompt, triggerButton);
+
+    if (suggestions) {
+        document.getElementById('newTags').value = suggestions.trim();
+    }
 }
 
 
