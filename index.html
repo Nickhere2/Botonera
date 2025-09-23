@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v51 - IA Mejorada</title>
+    <title>Centro de Accesos v52 - IA Mejorada</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -169,9 +169,10 @@
                         <button data-view="list" class="btn btn-sm btn-ghost !rounded-md px-3 py-1"><i class="fas fa-bars"></i></button>
                         <button data-view="table" title="Vista de Iconos" class="btn btn-sm btn-ghost !rounded-md px-3 py-1"><i class="fas fa-th"></i></button>
                     </div>
-                    <button id="addNewButton" class="btn btn-primary">
-                        <i class="fas fa-plus mr-2"></i>
-                        <span class="hidden sm:inline">Nuevo</span>
+                    <!-- NUEVO BOTÓN INTELIGENTE -->
+                    <button id="smartAddButton" class="btn btn-primary">
+                        <i class="fas fa-wand-magic-sparkles mr-2"></i>
+                        <span class="hidden sm:inline">Añadir con IA</span>
                     </button>
                 </div>
             </header>
@@ -475,7 +476,7 @@ function setupEventListeners() {
         }
     });
     
-    document.getElementById('addNewButton').addEventListener('click', () => openEditPanel());
+    document.getElementById('smartAddButton').addEventListener('click', handleSmartAdd);
 
     document.getElementById('fab-theme').addEventListener('click', changeTheme);
     document.getElementById('open-settings-help').addEventListener('click', openSettingsHelpModal);
@@ -539,32 +540,19 @@ function switchTab(tabName) {
     document.getElementById(`section-${tabName}`).classList.remove("hidden");
     
     const viewSwitcher = document.getElementById('global-view-switcher');
-    const addNewBtn = document.getElementById('addNewButton');
+    const smartAddBtn = document.getElementById('smartAddButton');
 
     const currentView = viewModes[tabName] || (tabName === 'inicio' ? 'list' : 'grid');
     document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
     
-    // Clonar el botón para eliminar listeners antiguos y evitar duplicados
-    const newBtn = addNewBtn.cloneNode(true);
-    addNewBtn.parentNode.replaceChild(newBtn, addNewBtn);
-    
     if (tabName === 'inicio' || tabName === 'ia') {
         viewSwitcher.classList.toggle('hidden', tabName !== 'inicio');
-        newBtn.classList.add('hidden');
+        smartAddBtn.classList.add('hidden');
         if(tabName === 'inicio') renderInicioSection();
         if(tabName === 'ia') renderAISection(document.getElementById('section-ia'));
     } else {
         viewSwitcher.classList.remove('hidden');
-        newBtn.classList.remove('hidden');
-        
-        if (tabName === 'videos') {
-            newBtn.innerHTML = `<i class="fab fa-youtube"></i><i class="fas fa-plus ml-1 mr-2"></i><span class="hidden sm:inline">Pegar Link</span>`;
-            newBtn.addEventListener('click', handlePasteYouTubeLinkFromClipboard);
-        } else {
-            newBtn.innerHTML = `<i class="fas fa-plus mr-2"></i> <span class="hidden sm:inline">Nuevo</span>`;
-            newBtn.addEventListener('click', () => openEditPanel());
-        }
-        
+        smartAddBtn.classList.remove('hidden');
         applyGlobalFilter();
     }
 }
@@ -1001,7 +989,7 @@ function createCard(item, searchTerm = '') {
                 <div class="card-actions flex gap-1">
                      ${extraActions}
                      <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
-                     <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="fas fa-pencil-alt"></i></button>
+                     <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="fas fa-pencil-alt"></i></button>
                 </div>
             </div>
         </div>
@@ -1032,7 +1020,7 @@ function createListItem(item, searchTerm = '') {
         <div class="list-item-actions flex items-center gap-2">
             ${extraActions}
             <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
-            <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+            <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
         </div>
     `;
     listItem.addEventListener('click', (e) => handleCardClick(item.id, e));
@@ -1060,7 +1048,7 @@ function createTableItem(item, searchTerm = '', isGlobalSearch = false) {
         <div class="drag-handle absolute top-1 left-1 p-1 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
         <div class="table-item-actions absolute top-1 right-1 flex">
             ${extraActions}
-            <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+            <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-1 !text-xs" title="Editar"><i class="fas fa-pencil-alt"></i></button>
             <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Favorito"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
         </div>
         <div class="w-16 h-16 mb-2 flex items-center justify-center">${getIconHtml(item.icon, 'text-4xl')}</div>
@@ -1106,7 +1094,7 @@ function createNoteCard(item, searchTerm) {
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
                 <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
-                <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+                <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
             </div>
         </div>
         <div class="mt-2 text-sm text-muted-foreground overflow-y-auto h-full">${item.action}</div>
@@ -1126,7 +1114,7 @@ function createPromptCard(item, searchTerm) {
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
                 <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
-                <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+                <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
             </div>
         </div>
         <div class="mt-2 text-sm text-muted-foreground overflow-y-auto h-full">${item.action}</div>
@@ -1158,7 +1146,7 @@ function createTaskCard(item, searchTerm) {
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
                  <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
-                 <button onclick="openEditPanel('${item.id}')" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+                 <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
             </div>
         </div>
         <div class="overflow-y-auto h-full">${taskListHtml}</div>
@@ -1529,9 +1517,9 @@ function handleGlobalShortcuts(e) {
         return;
     }
 
-    if (modifier && e.altKey) {
+    if (modifier && e.altKey && !isInputFocused) {
         switch (e.key.toLowerCase()) {
-            case 'n': e.preventDefault(); openEditPanel(); break;
+            case 'n': e.preventDefault(); document.getElementById('smartAddButton').click(); break;
             case 't': e.preventDefault(); changeTheme(); break;
             case 'v':
                 e.preventDefault();
@@ -1690,7 +1678,7 @@ function renderEmptyState(container, sectionName) {
             <i class="fas ${icons[sectionName]} text-4xl text-muted-foreground mb-4"></i>
             <h3 class="text-xl font-semibold">${titles[sectionName]}</h3>
             <p class="text-muted-foreground mt-2 mb-4">Añade tu primer elemento para empezar.</p>
-            <button onclick="openEditPanel()" class="btn btn-primary">Añadir Nuevo</button>
+            <button onclick="handleSmartAdd()" class="btn btn-primary">Añadir con IA</button>
         </div>
     `;
 }
@@ -1872,21 +1860,25 @@ function getIconHtml(icon, sizeClass = 'text-2xl', isForCard = false) {
 }
 
 // --- MODAL IMPLEMENTATIONS ---
-function openEditPanel(itemId = null) {
+function openEditPanel(itemId = null, prefillData = null) {
     const modal = document.getElementById('editPanel');
     const item = itemId ? data.items.find(i => String(i.id) === String(itemId)) : null;
+    
+    const initialData = prefillData || item;
+    
     const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'links';
     const defaultTypeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': 'Nota', 'videos': 'Video' };
-    const type = item ? item.type : defaultTypeMap[activeSection];
+    
+    const type = initialData ? initialData.type : defaultTypeMap[activeSection];
     
     modal.innerHTML = `
         <div class="modal-container w-full max-w-2xl p-6">
             <div class="flex justify-between items-center mb-6">
-                <h2 id="editPanelTitle" class="text-2xl font-bold">${item ? 'Editar' : 'Nuevo'} Elemento</h2>
+                <h2 id="editPanelTitle" class="text-2xl font-bold">${(item || prefillData) ? 'Editar' : 'Nuevo'} Elemento</h2>
                 <button onclick="document.getElementById('editPanel').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
             </div>
             <form id="editForm" class="space-y-4">
-                <input type="hidden" id="editItemId" value="${item?.id || ''}">
+                <input type="hidden" id="editItemId" value="${initialData?.id || ''}">
                 <div>
                     <label class="font-semibold block mb-2">Tipo</label>
                     <div class="flex flex-wrap gap-2 type-selector">
@@ -1898,11 +1890,11 @@ function openEditPanel(itemId = null) {
                 </div>
                 <div>
                     <label class="font-semibold block mb-2">Título</label>
-                    <input type="text" id="newTitle" class="input-base" placeholder="Nombre del elemento" value="${item?.title || ''}">
+                    <input type="text" id="newTitle" class="input-base" placeholder="Nombre del elemento" value="${initialData?.title || ''}">
                 </div>
                  <div id="actionFieldContainer">
                     <label id="actionLabel" class="font-semibold block mb-2">Contenido / URL</label>
-                    <textarea id="newActionText" class="input-base hidden" rows="3">${(item && typeof item.action === 'string') ? item.action : ''}</textarea>
+                    <textarea id="newActionText" class="input-base hidden" rows="3">${(initialData && typeof initialData.action === 'string') ? initialData.action : ''}</textarea>
                     <div id="newActionRich" class="input-base hidden min-h-[100px]" contenteditable="true"></div>
                  </div>
                  <div id="paste-button-container" class="hidden my-2">
@@ -1911,17 +1903,17 @@ function openEditPanel(itemId = null) {
                 <div class="grid grid-cols-2 gap-4">
                     <div id="iconFieldContainer">
                         <label class="font-semibold block mb-2">Icono (URL o FontAwesome)</label>
-                        <input type="text" id="newIcon" class="input-base" placeholder="https://.../logo.png o fas fa-search" value="${item?.icon || ''}">
+                        <input type="text" id="newIcon" class="input-base" placeholder="https://.../logo.png o fas fa-search" value="${initialData?.icon || ''}">
                     </div>
                     <div id="shortcutFieldContainer" class="hidden">
                         <label class="font-semibold block mb-2">Atajo (1-2 caracteres)</label>
-                        <input type="text" id="newShortcut" class="input-base" placeholder="g" maxlength="2" value="${item?.shortcut || ''}">
+                        <input type="text" id="newShortcut" class="input-base" placeholder="g" maxlength="2" value="${initialData?.shortcut || ''}">
                     </div>
                 </div>
                 <div>
                     <label class="font-semibold block mb-2">Categoría</label>
                     <div class="flex items-center gap-2">
-                        <input type="text" id="newCategory" class="input-base" list="category-suggestions" placeholder="Categoría nueva o existente" value="${item?.category || ''}">
+                        <input type="text" id="newCategory" class="input-base" list="category-suggestions" placeholder="Categoría nueva o existente" value="${initialData?.category || ''}">
                         <button type="button" onclick="handleSuggestCategory()" class="btn btn-secondary !p-2" title="Sugerir con IA">✨</button>
                     </div>
                     <datalist id="category-suggestions"></datalist>
@@ -1929,7 +1921,7 @@ function openEditPanel(itemId = null) {
                 <div>
                     <label class="font-semibold block mb-2">Etiquetas (separadas por coma)</label>
                     <div class="flex items-center gap-2">
-                        <input type="text" id="newTags" class="input-base" placeholder="trabajo, personal" value="${item?.tags?.join(', ') || ''}">
+                        <input type="text" id="newTags" class="input-base" placeholder="trabajo, personal" value="${initialData?.tags?.join(', ') || ''}">
                         <button type="button" onclick="handleSuggestTags()" class="btn btn-secondary !p-2" title="Sugerir con IA">✨</button>
                     </div>
                 </div>
@@ -1959,7 +1951,7 @@ function openEditPanel(itemId = null) {
             modal.querySelectorAll('.type-btn').forEach(b => b.classList.replace('btn-primary', 'btn-secondary'));
             button.classList.replace('btn-secondary', 'btn-primary');
             document.getElementById('newType').value = newType;
-            updateEditFormFields(newType, item);
+            updateEditFormFields(newType, initialData);
         }
     });
     
@@ -1976,9 +1968,10 @@ function openEditPanel(itemId = null) {
         };
     }
 
-    updateEditFormFields(type, item);
+    updateEditFormFields(type, initialData);
     populateCategorySuggestions(type);
 }
+
 
 function updateEditFormFields(type, item = null) {
     const richEditor = document.getElementById('newActionRich');
@@ -2187,15 +2180,14 @@ function openSettingsHelpModal() {
                     <p>Es un dashboard personalizable para organizar tus links, buscadores, notas y tareas en un solo lugar. Sincroniza tus datos de forma segura usando un Gist de GitHub.</p>
                     <h3 class="font-bold text-lg mt-4">¿Cómo funciona?</h3>
                     <ul class="list-disc list-inside space-y-2">
-                        <li><b>Secciones:</b> Navega entre Inicio, Buscadores, Links, Prompts, Notas/Tareas e IA usando el menú lateral.</li>
-                        <li><b>Añadir Elementos:</b> Haz clic en el botón "+ Nuevo" para agregar cualquier tipo de elemento a la sección activa.</li>
-                        <li><b>Agenda y Bloc de Notas:</b> Disponibles en la página de inicio para un acceso rápido.</li>
-                        <li><b>Sincronización:</b> En la pestaña "Configuración", introduce tu Gist ID y un Personal Access Token de GitHub para guardar y cargar tus datos desde cualquier lugar.</li>
+                        <li><b>Añadir con IA:</b> El botón principal <i class="fas fa-wand-magic-sparkles"></i> lee tu portapapeles. Si encuentra una URL o texto, usa la IA para rellenar automáticamente un nuevo elemento. Si está vacío, abre el formulario manual.</li>
+                        <li><b>Organizar Notas:</b> En la página de inicio, el Bloc de Notas tiene un botón "✨ Organizar" que convierte tus apuntes en Notas y Tareas estructuradas.</li>
+                         <li><b>Sugerencias IA:</b> Al crear o editar, usa el botón ✨ para que la IA sugiera categorías y etiquetas.</li>
                     </ul>
                      <h3 class="font-bold text-lg mt-4">Atajos de Teclado</h3>
                      <ul class="list-disc list-inside space-y-1">
                           <li>Escribe el <b>atajo</b> de un buscador (ej: <kbd>g</kbd>) + <kbd>Espacio</kbd> en la barra principal para seleccionarlo.</li>
-                          <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Agregar nuevo elemento</li>
+                          <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Añadir con IA (desde portapapeles)</li>
                           <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema (claro/oscuro)</li>
                           <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
                           <li><kbd>Esc</kbd> : Cerrar ventanas y paneles</li>
@@ -2550,7 +2542,7 @@ function simpleMarkdownToHtml(text) {
     return processedHtml.replace(/<p><\/p>/g, '');
 }
 
-async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = []) {
+async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], generationConfig = null) {
     const apiKey = localStorage.getItem('gemini_api_key');
     if (!apiKey) {
         showToast("Configura tu API Key de Gemini en los ajustes.", 'error');
@@ -2565,11 +2557,21 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = []) {
 
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        tools: [{ "google_search": {} }]
+    };
+
+    if (generationConfig) {
+        payload.generationConfig = generationConfig;
+    }
+
+
     try {
         const response = await fetch(API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            body: JSON.stringify(payload)
         });
 
         if (!response.ok) {
@@ -2896,6 +2898,64 @@ async function handleSuggestTags() {
 
     if (suggestions) {
         document.getElementById('newTags').value = suggestions.trim();
+    }
+}
+
+async function handleSmartAdd() {
+    const smartAddButton = document.getElementById('smartAddButton');
+    const originalButtonHTML = smartAddButton.innerHTML;
+    let clipboardText = '';
+
+    try {
+        clipboardText = await navigator.clipboard.readText();
+    } catch (err) {
+        console.warn('No se pudo leer el portapapeles, abriendo panel manual.');
+        openEditPanel();
+        return;
+    }
+
+    if (!clipboardText.trim()) {
+        openEditPanel();
+        return;
+    }
+
+    smartAddButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Analizando...';
+    smartAddButton.disabled = true;
+    
+    const prompt = `Eres un asistente experto en clasificación de contenido. Analiza el siguiente texto del portapapeles de un usuario. Tu tarea es determinar qué es y extraer su información en un formato JSON estricto.
+    
+Texto de entrada: "${clipboardText}"
+
+Debes devolver un único objeto JSON con las siguientes claves:
+- "type": (String) Clasifica el contenido como uno de los siguientes: "Video", "Link", "Buscador", "Nota", "Tarea", "Promp". Si es una URL de YouTube, debe ser "Video". Si es cualquier otra URL, debe ser "Link". Si es texto plano que no parece una pregunta, es "Nota".
+- "title": (String) Un título conciso y descriptivo. Para URLs, usa el título de la página.
+- "action": (String) El contenido original o la URL.
+- "category": (String) Una categoría de una sola palabra, relevante y en español.
+- "tags": (Array of Strings) Un array de 3 a 5 etiquetas relevantes en minúsculas y en español.
+- "icon": (String) Una clase de Font Awesome v6 apropiada (ej: "fab fa-youtube", "fas fa-link", "fas fa-sticky-note").
+
+Usa tu conocimiento y la herramienta de búsqueda de Google para obtener la información más precisa. Responde únicamente con el objeto JSON.`;
+
+    const generationConfig = {
+      responseMimeType: "application/json",
+    };
+
+    try {
+        const rawResult = await callGeminiAPI(prompt, smartAddButton, [], generationConfig);
+        if (rawResult) {
+            const aiData = JSON.parse(rawResult);
+            openEditPanel(null, aiData);
+        } else {
+            // If AI fails, open the manual panel as a fallback
+            openEditPanel();
+        }
+    } catch (e) {
+        console.error("Error al procesar la respuesta de la IA para Smart Add:", e);
+        showToast('Hubo un error con la IA. Abriendo panel manual.', 'error');
+        openEditPanel();
+    } finally {
+        smartAddButton.innerHTML = originalButtonHTML;
+        smartAddButton.disabled = false;
     }
 }
 
