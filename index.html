@@ -169,10 +169,9 @@
                         <button data-view="list" class="btn btn-sm btn-ghost !rounded-md px-3 py-1"><i class="fas fa-bars"></i></button>
                         <button data-view="table" title="Vista de Iconos" class="btn btn-sm btn-ghost !rounded-md px-3 py-1"><i class="fas fa-th"></i></button>
                     </div>
-                    <!-- NUEVO BOTÓN INTELIGENTE -->
-                    <button id="smartAddButton" class="btn btn-primary">
-                        <i class="fas fa-wand-magic-sparkles mr-2"></i>
-                        <span class="hidden sm:inline">Añadir con IA</span>
+                    <!-- BOTÓN DE AÑADIR INTELIGENTE (AHORA SOLO "+") -->
+                    <button id="smartAddButton" class="btn btn-primary !rounded-full !p-0 w-10 h-10" title="Añadir con IA">
+                        <i class="fas fa-plus text-lg"></i>
                     </button>
                 </div>
             </header>
@@ -545,14 +544,15 @@ function switchTab(tabName) {
     const currentView = viewModes[tabName] || (tabName === 'inicio' ? 'list' : 'grid');
     document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
     
+    // Muestra el botón "+" solo en la pestaña de inicio
+    smartAddBtn.classList.toggle('hidden', tabName !== 'inicio');
+    
     if (tabName === 'inicio' || tabName === 'ia') {
         viewSwitcher.classList.toggle('hidden', tabName !== 'inicio');
-        smartAddBtn.classList.add('hidden');
         if(tabName === 'inicio') renderInicioSection();
         if(tabName === 'ia') renderAISection(document.getElementById('section-ia'));
     } else {
         viewSwitcher.classList.remove('hidden');
-        smartAddBtn.classList.remove('hidden');
         applyGlobalFilter();
     }
 }
@@ -2944,4 +2944,5 @@ Responde solo con el array de IDs en formato JSON.`;
 </script>
 </body>
 </html>
+
 
