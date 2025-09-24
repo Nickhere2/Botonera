@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v53 - Búsqueda con IA</title>
+    <title>Centro de Accesos v54 - Búsqueda Mejorada</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -1217,7 +1217,7 @@ function attachSearchBarListeners(container) {
                 const term = e.target.value.trim();
                  const container = getActiveSectionContainer()?.querySelector('#ai-search-results-container');
                 if (term) {
-                    performAISearch(term);
+                    renderGlobalSearchResults(term);
                 } else if(container) {
                      container.innerHTML = '';
                      if(document.querySelector('#main-nav .active')?.dataset.section === 'inicio') {
@@ -1227,7 +1227,7 @@ function attachSearchBarListeners(container) {
                      }
                 }
             }
-        }, 500));
+        }, 300));
     }
     
     const selectorButton = searchBar.querySelector('.search-engine-selector-button');
@@ -1309,12 +1309,12 @@ function renderSearchEngineDropdown() {
         <div class="dropdown-item flex items-center justify-between w-full ${selectedSearchEngineId === 'global' ? 'is-selected' : ''}" onclick="selectSearchEngine('global')" style="padding: 0.5rem; cursor:pointer;">
              <div class="flex items-center gap-2">
                 <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" class="w-5 h-5" alt="Logo">
-                <span>Búsqueda IA</span>
+                <span>Búsqueda Global</span>
              </div>
             <kbd class="ml-auto">todo</kbd>
         </div>
     `;
-    if ('búsqueda ia'.includes(searchTerm) || searchTerm === '') {
+    if ('búsqueda global'.includes(searchTerm) || searchTerm === '') {
         container.innerHTML += globalSearchHTML;
     }
 
@@ -1354,7 +1354,7 @@ function selectSearchEngine(itemId, focusInput = true) {
     const searchInput = activeContainer.querySelector('.main-search-input');
 
     if(selectedSearchEngineId === 'global') {
-        if (searchInput) searchInput.placeholder = `Buscar con IA en tus elementos...`;
+        if (searchInput) searchInput.placeholder = `Buscar en tus elementos... (pulsa la lupa para IA)`;
     } else {
         const engine = data.items.find(i => i.id === selectedSearchEngineId);
         if (engine && searchInput) {
@@ -1392,7 +1392,7 @@ function updateSearchEngineSelectorButton() {
 
     let engine;
     if(selectedSearchEngineId === 'global') {
-        engine = { title: 'Búsqueda IA', icon: 'https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png' };
+        engine = { title: 'Búsqueda Global', icon: 'https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png' };
     } else {
         engine = data.items.find(i => i.id === selectedSearchEngineId);
     }
@@ -2687,6 +2687,7 @@ function renderAISection(container) {
 
 // --- NUEVAS FUNCIONES DE IA ---
 function cleanGeminiJsonResponse(rawResponse) {
+    if (!rawResponse || typeof rawResponse !== 'string') return null;
     const match = rawResponse.match(/```json\n([\s\S]*?)\n```/);
     if (match && match[1]) {
         return match[1];
@@ -2906,23 +2907,28 @@ async function performAISearch(term) {
         tags: i.tags
     }));
 
-    const prompt = `Eres un asistente de búsqueda semántica para una aplicación personal. Te daré una consulta de búsqueda de un usuario y una lista de sus elementos guardados en formato JSON. Tu única tarea es devolver un array JSON con los IDs de los elementos que mejor respondan a la intención de la consulta del usuario. No devuelvas nada más que el array de IDs.
+    const prompt = `Eres un asistente de búsqueda semántica. Te daré una consulta y una lista de elementos JSON. Devuelve un array JSON con los IDs de los elementos que mejor respondan a la consulta. No devuelvas nada más que el array de IDs.
 
-Consulta del usuario: "${term}"
+Consulta: "${term}"
 
-Elementos disponibles:
+Elementos:
 ${JSON.stringify(itemsToSearch, null, 2)}
 
-Responde solo con el array de IDs.`;
+Responde solo con el array de IDs en formato JSON.`;
 
     const searchButton = getActiveSectionContainer()?.querySelector('.main-search-button');
     let aiResult;
+    
+    const generationConfig = {
+      responseMimeType: "application/json",
+    };
 
     try {
-        aiResult = await callGeminiAPI(prompt, searchButton);
+        aiResult = await callGeminiAPI(prompt, searchButton, [], generationConfig);
         const resultIds = JSON.parse(aiResult);
+        
         if (Array.isArray(resultIds)) {
-            const foundItems = data.items.filter(item => resultIds.includes(item.id));
+            const foundItems = data.items.filter(item => resultIds.map(String).includes(String(item.id)));
             renderGlobalSearchResults(term, foundItems);
         } else {
              throw new Error("La IA no devolvió un array.");
