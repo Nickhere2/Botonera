@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Botonera vFINAL - IA de Video</title>
+    <title>Botonera Definitiva - IA de Video</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -119,7 +119,7 @@
                 <a href="#" data-section="ia" class="nav-link flex items-center gap-3 p-3 rounded-lg"><i class="fas fa-robot w-5 text-center"></i><span>IA</span></a>
             </nav>
             <div class="mt-auto pt-4 border-t border-border px-2">
-                <a href="#" class="nav-link flex items-center gap-3 p-3 rounded-lg"><i class="fas fa-cog w-5 text-center"></i><span>Ajustes</span></a>
+                <a href="#" id="settings-button" class="nav-link flex items-center gap-3 p-3 rounded-lg"><i class="fas fa-cog w-5 text-center"></i><span>Ajustes</span></a>
             </div>
         </aside>
 
@@ -141,23 +141,22 @@
     </button>
     
     <!-- Modals -->
-    <div id="videoAIPanel" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center bg-black/70 backdrop-blur-sm"></div>
+    <div id="modal-container" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center bg-black/70 backdrop-blur-sm"></div>
     <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg font-bold z-[2000] shadow-lg"></div>
-
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- STATE & CONFIG ---
-    let data = {};
+    let data = { items: [], searchEngines: [], iaBots: [] };
     let currentSearchEngine = null;
+    const FILENAME_IN_GIST = 'Botonera.json';
     
     const mainNav = document.getElementById('main-nav');
     const sections = document.querySelectorAll('.section');
     const mainTitle = document.createElement('h1');
     mainTitle.className = 'text-3xl font-bold tracking-tight';
-
-    // DATOS DE EJEMPLO
+    
     const sampleData = {
         links: [ { id: 1, title: 'GitHub', category: 'Desarrollo', icon: 'fab fa-github', action: 'https://github.com' }, { id: 2, title: 'Vercel', category: 'Desarrollo', icon: 'fas fa-cloud-upload-alt', action: 'https://vercel.com' }, { id: 3, title: 'Stack Overflow', category: 'Desarrollo', icon: 'fab fa-stack-overflow', action: 'https://stackoverflow.com' }, { id: 4, title: 'Notion', category: 'Productividad', icon: 'fas fa-file-alt', action: 'https://notion.so' }, { id: 5, title: 'Figma', category: 'Diseño', icon: 'fab fa-figma', action: 'https://figma.com' } ],
         notes: [ { id: 6, title: 'Reunión Lunes', category: 'Trabajo', action: '- Discutir presupuesto Q3.<br>- Revisar métricas.' }, { id: 7, title: 'Ideas App', category: 'Proyectos', action: 'Añadir widget de clima.<br>Integrar calendario.' } ],
@@ -167,9 +166,36 @@ document.addEventListener('DOMContentLoaded', () => {
         searchEngines: [ { id: 'app', title: 'Búsqueda en la App', icon: 'https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png', isApp: true }, { id: 'google', title: 'Google', icon: 'fab fa-google', shortcut: 'g' }, { id: 'youtube', title: 'YouTube', icon: 'fab fa-youtube', iconColor: 'text-red-500', shortcut: 'y' } ],
         iaBots: [ { id: 15, title: 'Asistente WhatsApp', description: 'Escribe mensajes profesionales a clientes', icon: 'fab fa-whatsapp', iconColor: 'text-green-500' }, { id: 16, title: 'Generador de Emails', description: 'Crea correos de seguimiento de ventas', icon: 'fas fa-at', iconColor: 'text-blue-400' } ]
     };
-    
-    function loadData() {
-        data = sampleData;
+
+    // --- DATA HANDLING (GIST) ---
+    async function loadData() {
+        const gistId = localStorage.getItem('gist_id');
+        const token = localStorage.getItem('github_pat');
+
+        if (!gistId || !token) {
+            console.log("No Gist credentials, using sample data.");
+            data = sampleData; // FIX: Use sampleData directly
+            initializeUI();
+            return;
+        }
+
+        try {
+            const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+                headers: { 'Authorization': `token ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch Gist');
+            const gistData = await response.json();
+            const content = gistData.files[FILENAME_IN_GIST]?.content;
+            if (content) {
+                data = JSON.parse(content);
+            } else {
+                throw new Error('File not found in Gist');
+            }
+        } catch (error) {
+            console.error("Error loading from Gist, using sample data as fallback:", error);
+            showToast("Error al cargar Gist, usando datos de ejemplo.", "error");
+            data = sampleData; // FIX: Use sampleData directly
+        }
         initializeUI();
     }
     
@@ -181,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         switchTab('inicio');
     }
 
+    // --- RENDER FUNCTIONS ---
     function createHeader(title) {
         const header = document.createElement('header');
         header.className = 'flex justify-between items-center mb-8';
@@ -195,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="kebab-menu search-selector-menu" style="top: 100%; left:0; width: 240px; margin-top: 0.5rem; z-index: 30;">
                         ${(data.searchEngines || []).map((engine, index) => `
                             ${index === 1 ? '<div class="w-full h-px bg-border my-1"></div>' : ''}
-                            <a data-engine-id="${engine.id}" class="kebab-menu-item search-engine-option ${engine.id === currentSearchEngine.id ? 'bg-primary text-white' : ''}">
+                            <a data-engine-id="${engine.id}" class="kebab-menu-item search-engine-option ${currentSearchEngine && engine.id === currentSearchEngine.id ? 'bg-primary text-white' : ''}">
                                 ${engine.isApp ? `<img src="${engine.icon}" class="w-5 h-5">` : `<i class="${engine.icon} w-5 text-center ${engine.iconColor || ''}"></i>`}
                                 <span class="flex-grow">${engine.title}</span>
                                 ${engine.shortcut ? `<kbd>${engine.shortcut}</kbd>` : ''}
@@ -236,72 +263,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderLinkCard(item) {
         const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action)}?w=400`;
-        return `
-        <div class="card h-48 text-white flex flex-col justify-end p-5" data-id="${item.id}">
-            <div class="card-bg-fx" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${previewUrl}');"></div>
-            <div class="relative z-10" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">
-                <i class="${item.icon} text-2xl mb-2 opacity-80"></i>
-                <h4 class="font-bold truncate">${item.title}</h4>
-                <p class="text-sm text-white/80">${item.category}</p>
-            </div>
-            ${createKebabMenu(item)}
-        </div>`;
+        return `<div class="card h-48 text-white flex flex-col justify-end p-5" data-id="${item.id}"><div class="card-bg-fx" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${previewUrl}');"></div><div class="relative z-10" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);"><i class="${item.icon} text-2xl mb-2 opacity-80"></i><h4 class="font-bold truncate">${item.title}</h4><p class="text-sm text-white/80">${item.category}</p></div>${createKebabMenu(item)}</div>`;
     }
     
     function renderBuscadorCard(item) {
          const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(`https://www.${item.title.toLowerCase()}.com`)}?w=400`;
-         return `
-        <div class="card h-48 text-white flex flex-col justify-center items-center p-5 text-center" data-id="${item.id}">
-            <div class="card-bg-fx" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${previewUrl}'); filter: blur(4px);"></div>
-            <div class="relative z-10" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">
-                <i class="${item.icon} text-5xl mb-3 ${item.iconColor || ''}"></i>
-                <h4 class="font-bold text-xl truncate">${item.title}</h4>
-            </div>
-             ${createKebabMenu(item)}
-        </div>`;
+         return `<div class="card h-48 text-white flex flex-col justify-center items-center p-5 text-center" data-id="${item.id}"><div class="card-bg-fx" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${previewUrl}'); filter: blur(4px);"></div><div class="relative z-10" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);"><i class="${item.icon} text-5xl mb-3 ${item.iconColor || ''}"></i><h4 class="font-bold text-xl truncate">${item.title}</h4></div>${createKebabMenu(item)}</div>`;
     }
 
     function renderNoteTaskCard(item) {
-        const isTask = Array.isArray(item.action);
-        let contentHtml = '';
-        if (isTask) {
-            contentHtml = `<ul class="text-sm text-muted-foreground mt-4 space-y-2 flex-grow overflow-y-auto pr-2">${item.action.map(t => `<li class="${t.done ? 'line-through' : ''}"><i class="fas ${t.done ? 'fa-check-circle text-green-500' : 'fa-circle'} mr-2"></i>${t.text}</li>`).join('')}</ul>`;
-        } else {
-            contentHtml = `<div class="text-sm text-muted-foreground mt-4 flex-grow overflow-y-auto pr-2">${item.action}</div>`;
-        }
-        return `
-        <div class="card p-5 flex flex-col h-48 ${isTask ? 'border-l-4 border-blue-500' : 'border-l-4 border-yellow-500'}" data-id="${item.id}">
-            <div class="w-full flex justify-between items-start">
-                 <div class="flex-grow"><h4 class="font-bold">${item.title}</h4><p class="text-sm text-muted-foreground">${item.category}</p></div>
-                ${createKebabMenu(item)}
-            </div>
-            ${contentHtml}
-        </div>`;
+        const isTask = Array.isArray(item.tasks);
+        let contentHtml = isTask ? `<ul class="text-sm text-muted-foreground mt-4 space-y-2 flex-grow overflow-y-auto pr-2">${item.tasks.map(t => `<li class="${t.done ? 'line-through' : ''}"><i class="fas ${t.done ? 'fa-check-circle text-green-500' : 'fa-circle'} mr-2"></i>${t.text}</li>`).join('')}</ul>` : `<div class="text-sm text-muted-foreground mt-4 flex-grow overflow-y-auto pr-2">${item.action}</div>`;
+        return `<div class="card p-5 flex flex-col h-48 ${isTask ? 'border-l-4 border-blue-500' : 'border-l-4 border-yellow-500'}" data-id="${item.id}"><div class="w-full flex justify-between items-start"><div class="flex-grow"><h4 class="font-bold">${item.title}</h4><p class="text-sm text-muted-foreground">${item.category}</p></div>${createKebabMenu(item)}</div>${contentHtml}</div>`;
     }
 
     function renderVideoCard(item) {
         const videoId = getYouTubeID(item.action);
         const previewUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-        return `
-        <div class="card h-48 text-white flex flex-col justify-end p-5" data-id="${item.id}">
-            <div class="card-bg-fx" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${previewUrl}');"></div>
-            <div class="relative z-10" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">
-                <h4 class="font-bold truncate">${item.title}</h4>
-                <p class="text-sm text-white/80">${item.category}</p>
-            </div>
-            ${createKebabMenu(item)}
-        </div>`;
+        return `<div class="card h-48 text-white flex flex-col justify-end p-5" data-id="${item.id}"><div class="card-bg-fx" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${previewUrl}');"></div><div class="relative z-10" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);"><h4 class="font-bold truncate">${item.title}</h4><p class="text-sm text-white/80">${item.category}</p></div>${createKebabMenu(item)}</div>`;
     }
 
     function renderPromptCard(item) {
-         return `
-        <div class="card p-5 flex items-center gap-4 h-24 border-l-4 border-green-500" data-id="${item.id}">
-            <div class="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center flex-shrink-0"><i class="${item.icon} text-3xl"></i></div>
-            <div class="flex-grow overflow-hidden"><h4 class="font-bold truncate">${item.title}</h4><p class="text-sm text-muted-foreground truncate">${item.category}</p></div>
-            ${createKebabMenu(item)}
-        </div>`;
+         return `<div class="card p-5 flex items-center gap-4 h-24 border-l-4 border-green-500" data-id="${item.id}"><div class="w-12 h-12 bg-secondary rounded-lg flex items-center justify-center flex-shrink-0"><i class="${item.icon} text-3xl"></i></div><div class="flex-grow overflow-hidden"><h4 class="font-bold truncate">${item.title}</h4><p class="text-sm text-muted-foreground truncate">${item.category}</p></div>${createKebabMenu(item)}</div>`;
     }
-
+    
     function renderInicio() {
         const section = document.getElementById('section-inicio');
         section.innerHTML = '';
@@ -310,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
         content.className = 'space-y-12';
         content.innerHTML = `
             <section class="grid grid-cols-1 md:grid-cols-3 gap-8"><div class="widget md:col-span-1 p-6"><div class="flex justify-between items-center mb-3"><h3 class="font-bold text-lg">Agenda</h3><button class="text-muted-foreground hover:text-white"><i class="fas fa-plus"></i></button></div><div class="space-y-3"><div class="text-sm"><p class="font-medium">Cumpleaños de Ana</p><p class="text-xs text-muted-foreground">15 de septiembre</p></div><div class="text-sm"><p class="font-medium">Entrega Proyecto Final</p><p class="text-xs text-muted-foreground">22 de septiembre</p></div></div></div><div class="widget md:col-span-2 p-6"><div class="flex justify-between items-center mb-3"><h3 class="font-bold text-lg">Bloc de Notas Rápido</h3><button class="text-muted-foreground hover:text-white">✨ Organizar</button></div><textarea class="w-full h-24 bg-secondary p-2 rounded-md focus:ring-2 focus:ring-primary focus:outline-none resize-none text-sm" placeholder="Apunta algo..."></textarea></div></section>
-            <section><h2 class="text-xl font-bold mb-4 text-muted-foreground">Favoritos</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${data.links.slice(0, 3).map(renderLinkCard).join('')}</div></section>`;
+            <section><h2 class="text-xl font-bold mb-4 text-muted-foreground">Favoritos</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">${(data.links || []).slice(0, 3).map(renderLinkCard).join('')}</div></section>`;
         section.appendChild(content);
     }
     
@@ -320,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         section.appendChild(createHeader('IA'));
         const content = document.createElement('div');
         content.className = "grid grid-cols-1 lg:grid-cols-2 gap-8";
-        content.innerHTML = data.iaBots.map(bot => `
+        content.innerHTML = (data.iaBots || []).map(bot => `
             <div class="widget p-6 flex flex-col gap-4"><div class="flex justify-between items-start relative"><div class="flex items-center gap-4"><i class="${bot.icon} text-3xl ${bot.iconColor}"></i><div><h3 class="font-bold text-lg">${bot.title}</h3><p class="text-sm text-muted-foreground">${bot.description}</p></div></div><div class="kebab-menu-container"><button class="kebab-button"><i class="fas fa-ellipsis-v"></i></button><div class="kebab-menu"><a class="kebab-menu-item"><i class="fas fa-edit w-4"></i> Editar Bot</a><a class="kebab-menu-item delete"><i class="fas fa-trash-alt w-4"></i> Eliminar</a></div></div></div>
                 ${ bot.title.includes('WhatsApp') ? `<div><label class="text-sm font-medium text-muted-foreground">1. Escribe tu idea aquí:</label><textarea placeholder="Ej: decirle al cliente que su pedido está retrasado..." class="w-full h-24 mt-1 bg-secondary p-2 rounded-md focus:ring-2 focus:ring-primary focus:outline-none resize-none text-sm"></textarea></div><button class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white font-semibold py-2 px-4 rounded-lg">Generar Mensaje ✨</button><div class="flex-grow"><label class="text-sm font-medium text-muted-foreground">2. Mensaje generado:</label><div class="w-full h-36 mt-1 bg-background p-3 rounded-md text-sm overflow-y-auto"><p>¡Hola [Nombre Cliente]! 😊...</p></div></div><button class="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg mt-auto"><i class="fab fa-whatsapp"></i>Copiar y Abrir en WhatsApp</button>` : `<div class="h-full flex items-center justify-center text-center text-muted-foreground border-2 border-dashed border-border rounded-lg"><p>Configura este bot...</p></div>` }
             </div>`).join('');
@@ -328,17 +313,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderSectionContent(sectionId, title, items, cardRenderer) {
-        // FIX: The error happens here. `sectionId` is just "buscadores", but the element is "section-buscadores".
         const section = document.getElementById(`section-${sectionId}`);
-        if (!section) {
-            console.error(`La sección con ID 'section-${sectionId}' no fue encontrada.`);
-            return;
-        }
+        if (!section) { console.error(`Section with ID 'section-${sectionId}' not found.`); return; }
         section.innerHTML = '';
         section.appendChild(createHeader(title));
         const content = document.createElement('div');
         content.className = "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6";
-        content.innerHTML = items.map(cardRenderer).join('');
+        content.innerHTML = (items || []).map(cardRenderer).join('');
         section.appendChild(content);
     }
 
@@ -364,10 +345,10 @@ document.addEventListener('DOMContentLoaded', () => {
         switch(sectionId) {
             case 'inicio': renderInicio(); break;
             case 'ia': renderIA(); break;
-            case 'buscadores': renderSectionContent(sectionId, 'Buscadores', data.searchEngines.filter(s => !s.isApp), renderBuscadorCard); break;
+            case 'buscadores': renderSectionContent(sectionId, 'Buscadores', (data.searchEngines || []).filter(s => !s.isApp), renderBuscadorCard); break;
             case 'links': renderSectionContent(sectionId, 'Links', data.links, renderLinkCard); break;
             case 'prompts': renderSectionContent(sectionId, 'Prompts', data.prompts, renderPromptCard); break;
-            case 'notes-tasks': renderSectionContent(sectionId, 'Notas y Tareas', [...data.notes, ...data.tasks], renderNoteTaskCard); break;
+            case 'notes-tasks': renderSectionContent(sectionId, 'Notas y Tareas', [...(data.notes || []), ...(data.tasks || [])], renderNoteTaskCard); break;
             case 'videos': renderSectionContent(sectionId, 'Videos', data.videos, renderVideoCard); break;
         }
 
@@ -397,10 +378,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     window.app = {
         openVideoAIPanel: (item) => {
-            const modal = document.getElementById('videoAIPanel');
-            modal.innerHTML = `
+            const modalContainer = document.getElementById('modal-container');
+            modalContainer.innerHTML = `
             <div class="widget p-6 flex flex-col gap-4 w-full max-w-lg relative">
-                <button onclick="document.getElementById('videoAIPanel').classList.add('hidden')" class="absolute top-4 right-4 text-muted-foreground hover:text-white">&times;</button>
+                <button onclick="document.getElementById('modal-container').classList.add('hidden')" class="absolute top-4 right-4 text-muted-foreground hover:text-white">&times;</button>
                 <h3 class="font-bold text-lg">Analizar Video con IA</h3>
                 <p class="text-sm text-muted-foreground">Escribe qué quieres saber sobre el video "${item.title}":</p>
                 <textarea id="ai-video-prompt" class="w-full h-24 mt-1 bg-secondary p-2 rounded-md focus:ring-2 focus:ring-primary focus:outline-none resize-none text-sm" placeholder="Ej: Hazme un resumen en 5 puntos clave..."></textarea>
@@ -410,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div id="ai-video-result" class="w-full h-36 mt-1 bg-background p-3 rounded-md text-sm overflow-y-auto"></div>
                 </div>
             </div>`;
-            modal.classList.remove('hidden');
+            modalContainer.classList.remove('hidden');
 
             document.getElementById('ai-video-submit').onclick = () => {
                 const userPrompt = document.getElementById('ai-video-prompt').value;
@@ -440,12 +421,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ videoUrl: item.action })
             });
-
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Error desconocido del ayudante.');
-            
             transcriptText = data.transcript.map(t => t.text).join(' ');
-            
         } catch (error) {
             resultDiv.innerHTML = `<p class="text-red-500"><strong>Error del Ayudante:</strong> ${error.message}</p>`;
             triggerButton.disabled = false;
@@ -456,16 +434,63 @@ document.addEventListener('DOMContentLoaded', () => {
         triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Analizando con IA...';
         resultDiv.innerHTML = '<p class="text-muted-foreground">Transcripción obtenida. Enviando a Gemini...</p>';
         
-        // Simulación de llamada a Gemini
-        setTimeout(() => {
-             resultDiv.innerHTML = `Este es un resumen del video basado en la transcripción obtenida. El prompt del usuario fue: "${userPrompt}".`;
-             triggerButton.disabled = false;
-             triggerButton.innerHTML = 'Analizar ✨';
-        }, 2000);
+        const finalPrompt = `Eres un asistente experto. Te proporciono la transcripción completa de un video de YouTube. Basado en este contenido, responde a la siguiente petición del usuario de forma útil y completa.\n\n--- TRANSCRIPCIÓN ---\n${transcriptText}\n------------------\n\nPetición: "${userPrompt}"`;
+        
+        const aiResult = await callGeminiAPI(finalPrompt);
+
+        if (aiResult) {
+            resultDiv.innerHTML = simpleMarkdownToHtml(aiResult);
+        } else {
+            resultDiv.innerHTML = `<p class="text-red-500"><strong>Error:</strong> Hubo un problema al generar la respuesta de Gemini.</p>`;
+        }
+        triggerButton.disabled = false;
+        triggerButton.innerHTML = 'Analizar ✨';
     }
 
+    async function callGeminiAPI(prompt) {
+        const apiKey = localStorage.getItem('gemini_api_key');
+        if (!apiKey) {
+            showToast("Configura tu API Key de Gemini en los ajustes.", 'error');
+            return null;
+        }
+        
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+        const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error.message || `Error HTTP: ${response.status}`);
+            }
+            const responseData = await response.json();
+            return responseData.candidates[0].content.parts[0].text;
+        } catch (error) {
+            console.error("Error llamando a la API de Gemini:", error);
+            showToast(`Error de IA: ${error.message}`, 'error');
+            return null;
+        }
+    }
+
+    function simpleMarkdownToHtml(text) {
+        return text.replace(/\n/g, '<br>');
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.style.backgroundColor = type === 'error' ? '#ef4444' : 'var(--primary)';
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 3000);
+    }
+    
     loadData();
 });
 </script>
 </body>
 </html>
+
