@@ -173,8 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ],
             searchEngines: [
                 { id: 'app', title: 'Búsqueda en la App', icon: 'https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png', isApp: true },
-                { id: 'google', type: 'Buscador', title: 'Google', icon: 'fab fa-google', shortcut: 'g' },
-                { id: 'youtube', type: 'Buscador', title: 'YouTube', icon: 'fab fa-youtube', iconColor: 'text-red-500', shortcut: 'y' }
+                { id: 'google', type: 'Buscador', title: 'Google', icon: 'fab fa-google', shortcut: 'g', action: 'https://www.google.com/search?q={searchTerm}' },
+                { id: 'youtube', type: 'Buscador', title: 'YouTube', icon: 'fab fa-youtube', iconColor: 'text-red-500', shortcut: 'y', action: 'https://www.youtube.com/results?search_query={searchTerm}' }
             ],
             iaBots: [
                 { id: 15, title: 'Asistente WhatsApp', description: 'Escribe mensajes profesionales a clientes', icon: 'fab fa-whatsapp', iconColor: 'text-green-500' },
@@ -218,10 +218,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 data = {
                     ...defaults,
                     ...gistContent,
-                    items: regularItems.length > 0 ? regularItems : defaults.items,
+                    items: regularItems.length > 0 ? regularItems : (gistContent.items ? [] : defaults.items),
                     searchEngines: searchEnginesFromGist.length > 0 ? [defaults.searchEngines[0], ...searchEnginesFromGist] : defaults.searchEngines,
                     iaBots: gistContent.iaBots || defaults.iaBots,
-                    videoPrompts: gistContent.videoPrompts || defaults.videoPrompts
+                    videoPrompts: (gistContent.videoPrompts && gistContent.videoPrompts.length > 0) ? gistContent.videoPrompts : defaults.videoPrompts
                 };
                 showToast("Datos cargados desde Gist.", "success");
             } else {
@@ -258,7 +258,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button id="search-selector-button" class="flex items-center gap-2 pl-4 pr-3 h-full rounded-l-lg hover:bg-white/5 transition-colors"></button>
                     <div class="kebab-menu search-selector-menu" style="top: 100%; left:0; width: 240px; margin-top: 0.5rem; z-index: 30;">
                         ${(data.searchEngines || []).map((engine, index) => `
-                            ${index === 1 ? '<div class="w-full h-px bg-border my-1"></div>' : ''}
+                            ${index === 1 && data.searchEngines.length > 1 ? '<div class="w-full h-px bg-border my-1"></div>' : ''}
                             <a data-engine-id="${engine.id}" class="kebab-menu-item search-engine-option ${currentSearchEngine && engine.id === currentSearchEngine.id ? 'bg-primary text-white' : ''}">
                                 ${engine.isApp ? `<img src="${engine.icon}" class="w-5 h-5">` : `<i class="${engine.icon} w-5 text-center ${engine.iconColor || ''}"></i>`}
                                 <span class="flex-grow">${engine.title}</span>
@@ -391,7 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
         sectionElement.innerHTML = ''; 
         
         const typeMap = {
-            buscadores: 'Buscador', links: 'Link', prompts: 'Prompt', 
+            links: 'Link', prompts: 'Prompt', 
             'notes-tasks': ['Nota', 'Tarea'], videos: 'Video'
         };
         const rendererMap = {
@@ -401,6 +401,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (sectionId === 'inicio') renderInicio();
         else if (sectionId === 'ia') renderIA();
+        else if (sectionId === 'buscadores') {
+            const buscadores = (data.searchEngines || []).filter(s => !s.isApp);
+            renderSectionContent(sectionId, 'Buscadores', buscadores, renderBuscadorCard);
+        }
         else {
             const type = typeMap[sectionId];
             const items = (data.items || []).filter(item => Array.isArray(type) ? type.includes(item.type) : item.type === type);
