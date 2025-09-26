@@ -25,6 +25,7 @@
             border-radius: var(--radius);
             transition: all 0.2s ease-in-out;
             position: relative;
+            cursor: pointer;
         }
         .card:hover {
             transform: translateY(-4px);
@@ -37,6 +38,7 @@
             top: 0.75rem;
             right: 0.75rem;
             z-index: 10;
+            cursor: default;
         }
         .kebab-button {
             background-color: rgba(0,0,0,0.3);
@@ -124,7 +126,7 @@
         </aside>
 
         <!-- Contenido Principal -->
-        <main class="flex-1 p-8 overflow-y-auto">
+        <main id="main-content" class="flex-1 p-8 overflow-y-auto">
             <div id="section-inicio" class="section"></div>
             <div id="section-buscadores" class="section hidden"></div>
             <div id="section-links" class="section hidden"></div>
@@ -153,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let data = { items: [], searchEngines: [], iaBots: [] };
     let currentSearchEngine = null;
     const FILENAME_IN_GIST = 'Botonera.json';
+    const OLD_FILENAME_IN_GIST = 'Botones.json';
     
     const mainNav = document.getElementById('main-nav');
     const sections = document.querySelectorAll('.section');
@@ -162,23 +165,18 @@ document.addEventListener('DOMContentLoaded', () => {
     function getSampleData() {
         return {
             items: [
-                // Links
                 { id: 1, type: 'Link', title: 'GitHub', category: 'Desarrollo', icon: 'fab fa-github', action: 'https://github.com' },
                 { id: 2, type: 'Link', title: 'Vercel', category: 'Desarrollo', icon: 'fas fa-cloud-upload-alt', action: 'https://vercel.com' },
                 { id: 3, type: 'Link', title: 'Stack Overflow', category: 'Desarrollo', icon: 'fab fa-stack-overflow', action: 'https://stackoverflow.com' },
                 { id: 4, type: 'Link', title: 'Notion', category: 'Productividad', icon: 'fas fa-file-alt', action: 'https://notion.so' },
                 { id: 5, type: 'Link', title: 'Figma', category: 'Diseño', icon: 'fab fa-figma', action: 'https://figma.com' },
-                // Notas
                 { id: 6, type: 'Nota', title: 'Reunión Lunes', category: 'Trabajo', icon: 'fas fa-sticky-note', action: '- Discutir presupuesto Q3.<br>- Revisar métricas.' },
                 { id: 7, type: 'Nota', title: 'Ideas App', category: 'Proyectos', icon: 'fas fa-lightbulb', action: 'Añadir widget de clima.<br>Integrar calendario.' },
-                // Tareas
                 { id: 8, type: 'Tarea', title: 'Proyecto Web', category: 'Proyectos', icon: 'fas fa-tasks', action: [{ text: 'Diseñar mockup', done: true }, { text: 'Desarrollar landing', done: false }] },
                 { id: 9, type: 'Tarea', title: 'Tareas Hogar', category: 'Personal', icon: 'fas fa-home', action: [{ text: 'Comprar leche', done: false }, { text: 'Llamar al fontanero', done: false }] },
-                // Videos
                 { id: 10, type: 'Video', title: 'Aprende Javascript en 10 minutos', category: 'Educación', icon: 'fab fa-youtube', action: 'https://www.youtube.com/watch?v=PkZNo7MFNFg' },
                 { id: 11, type: 'Video', title: 'Curso de React.js', category: 'Educación', icon: 'fab fa-youtube', action: 'https://www.youtube.com/watch?v=6Jfk8ic3_Lw' },
                 { id: 12, type: 'Video', title: 'Qué es una API REST', category: 'Desarrollo', icon: 'fab fa-youtube', action: 'https://www.youtube.com/watch?v=Q-B_jpf_k_g' },
-                // Prompts
                 { id: 13, type: 'Prompt', title: 'Generar Idea Video', category: 'Creatividad', icon: 'fas fa-lightbulb', action: 'Genera 5 ideas...' },
                 { id: 14, type: 'Prompt', title: 'Crear Tweet Viral', category: 'Marketing', icon: 'fab fa-twitter', action: 'Crea un tweet...' }
             ],
@@ -213,10 +211,10 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             if (!response.ok) throw new Error(`Error de red: ${response.status}`);
             const gistData = await response.json();
-            const content = gistData.files[FILENAME_IN_GIST]?.content;
+            const content = gistData.files[FILENAME_IN_GIST]?.content || gistData.files[OLD_FILENAME_IN_GIST]?.content;
+            
             if (content) {
                 const gistContent = JSON.parse(content);
-                // Merge loaded data with defaults to ensure all keys exist
                 data = {
                     ...defaults,
                     ...gistContent,
@@ -226,7 +224,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 };
                  showToast("Datos cargados desde Gist.", "success");
             } else {
-                throw new Error('Archivo no encontrado en Gist. Creando uno nuevo con datos de ejemplo.');
+                throw new Error('Archivo no encontrado en Gist. Revisa el nombre del archivo en tu Gist.');
             }
         } catch (error) {
             console.error("Error loading from Gist, using sample data as fallback:", error);
@@ -241,9 +239,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (searchEngines.length > 0) {
             currentSearchEngine = searchEngines[0];
         }
+        setupEventListeners();
         switchTab('inicio');
     }
-
+    
     // --- RENDER FUNCTIONS ---
     function createHeader(title) {
         const header = document.createElement('header');
@@ -279,15 +278,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (item.action && typeof item.action === 'string' && item.action.includes('youtube.com')) {
             aiAction = `<a onclick='window.app.openVideoAIPanel(${JSON.stringify(item)})' class="kebab-menu-item"><i class="fas fa-magic w-4"></i> Analizar con IA</a>`;
         }
-        let videoAction = '';
-        if (item.action && typeof item.action === 'string' && item.action.includes('youtube.com')) {
-            videoAction = `<a onclick='window.app.openVideoPlayerModal(${JSON.stringify(item)})' class="kebab-menu-item"><i class="fas fa-play w-4"></i> Ver Video</a>`;
-        }
         return `
         <div class="kebab-menu-container">
             <button class="kebab-button"><i class="fas fa-ellipsis-v"></i></button>
             <div class="kebab-menu">
-                ${videoAction}
                 <a class="kebab-menu-item"><i class="fas fa-pencil-alt w-4"></i> Editar</a>
                 <a class="kebab-menu-item"><i class="far fa-star w-4"></i> Favorito</a>
                 ${aiAction}
@@ -321,8 +315,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderVideoCard(item) {
         const videoId = getYouTubeID(item.action);
-        const previewUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-        return `<div class="card h-48 text-white flex flex-col justify-end p-5" data-id="${item.id}"><div class="card-bg-fx" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${previewUrl}');"></div><div class="relative z-10" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);"><h4 class="font-bold truncate">${item.title}</h4><p class="text-sm text-white/80">${item.category}</p></div>${createKebabMenu(item)}</div>`;
+        const previewUrl = videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '';
+        return `
+        <div class="card h-48 text-white flex flex-col justify-end p-5 group" data-id="${item.id}">
+            <div class="card-bg-fx" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${previewUrl}');"></div>
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <i class="fas fa-play text-5xl text-white/70 backdrop-blur-sm bg-black/20 rounded-full p-4 transition-all duration-300 group-hover:text-white group-hover:scale-110"></i>
+            </div>
+            <div class="relative z-10" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">
+                <h4 class="font-bold truncate">${item.title}</h4>
+                <p class="text-sm text-white/80">${item.category}</p>
+            </div>
+            ${createKebabMenu(item)}
+        </div>`;
     }
 
     function renderPromptCard(item) {
@@ -414,18 +419,37 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
+    
+    // --- EVENT LISTENERS ---
+    function setupEventListeners() {
+        document.getElementById('main-content').addEventListener('click', (e) => {
+            const card = e.target.closest('.card');
+            if (card && !e.target.closest('.kebab-menu-container, a, button')) {
+                const id = parseInt(card.dataset.id, 10);
+                const item = (data.items || []).find(i => i.id === id);
+                if (!item) return;
 
-    mainNav.addEventListener('click', (e) => {
-        const navLink = e.target.closest('.nav-link');
-        if (navLink && navLink.dataset.section) {
-            e.preventDefault();
-            switchTab(navLink.dataset.section);
-        }
-    });
+                if (item.type === 'Video') {
+                    window.app.openVideoPlayerModal(item);
+                } else if (item.type === 'Link') {
+                    window.open(item.action, '_blank');
+                }
+            }
+        });
 
-    // --- SETTINGS MODAL ---
-    document.getElementById('settings-button').addEventListener('click', openSettingsPanel);
+        mainNav.addEventListener('click', (e) => {
+            const navLink = e.target.closest('.nav-link');
+            if (navLink && navLink.dataset.section) {
+                e.preventDefault();
+                switchTab(navLink.dataset.section);
+            }
+        });
 
+        document.getElementById('settings-button').addEventListener('click', openSettingsPanel);
+    }
+
+
+    // --- MODAL & UI FUNCTIONS ---
     function openSettingsPanel() {
         const modalContainer = document.getElementById('modal-container');
         const gistId = localStorage.getItem('gist_id') || '';
@@ -455,7 +479,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => location.reload(), 1500);
     }
     
-    // --- VIDEO PLAYER LOGIC ---
     function openVideoPlayerModal(item) {
         const videoId = getYouTubeID(item.action);
         if (!videoId) return;
@@ -475,6 +498,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const iframe = modal.querySelector('iframe');
         if (iframe) iframe.src = '';
         modal.classList.add('hidden');
+    }
+
+    function showToast(message, type = 'success') {
+        const toast = document.getElementById("toast");
+        toast.textContent = message;
+        toast.style.backgroundColor = type === 'error' ? '#ef4444' : 'var(--primary)';
+        toast.classList.remove("hidden");
+        setTimeout(() => toast.classList.add("hidden"), 3000);
     }
 
 
@@ -593,6 +624,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => toast.classList.add("hidden"), 3000);
     }
     
+    // --- INICIALIZACIÓN ---
     loadData();
 });
 </script>
