@@ -66,6 +66,7 @@
             z-index: 20;
             padding: 0.5rem;
         }
+        /* FIX: Hovering the container (button OR menu) keeps it open */
         .kebab-menu-container:hover .kebab-menu { display: block; }
         .kebab-menu-item {
             display: flex;
@@ -142,6 +143,8 @@
     
     <!-- Modals -->
     <div id="modal-container" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center bg-black/70 backdrop-blur-sm"></div>
+    <!-- Video Player Modal -->
+    <div id="videoPlayerModal" class="hidden fixed inset-0 z-[1200] p-4 flex items-center justify-center bg-black/70 backdrop-blur-sm"></div>
     <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg font-bold z-[2000] shadow-lg"></div>
 
 <script>
@@ -174,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!gistId || !token) {
             console.log("No Gist credentials, using sample data.");
-            data = sampleData; // FIX: Use sampleData directly
+            data = sampleData;
             initializeUI();
             return;
         }
@@ -194,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             console.error("Error loading from Gist, using sample data as fallback:", error);
             showToast("Error al cargar Gist, usando datos de ejemplo.", "error");
-            data = sampleData; // FIX: Use sampleData directly
+            data = sampleData;
         }
         initializeUI();
     }
@@ -242,10 +245,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (item.action && typeof item.action === 'string' && item.action.includes('youtube.com')) {
             aiAction = `<a onclick='window.app.openVideoAIPanel(${JSON.stringify(item)})' class="kebab-menu-item"><i class="fas fa-magic w-4"></i> Analizar con IA</a>`;
         }
+        let videoAction = '';
+        if (item.action && typeof item.action === 'string' && item.action.includes('youtube.com')) {
+            videoAction = `<a onclick='window.app.openVideoPlayerModal(${JSON.stringify(item)})' class="kebab-menu-item"><i class="fas fa-play w-4"></i> Ver Video</a>`;
+        }
         return `
         <div class="kebab-menu-container">
             <button class="kebab-button"><i class="fas fa-ellipsis-v"></i></button>
             <div class="kebab-menu">
+                ${videoAction}
                 <a class="kebab-menu-item"><i class="fas fa-pencil-alt w-4"></i> Editar</a>
                 <a class="kebab-menu-item"><i class="far fa-star w-4"></i> Favorito</a>
                 ${aiAction}
@@ -342,14 +350,25 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!sectionElement) return;
         sectionElement.innerHTML = ''; 
         
-        switch(sectionId) {
-            case 'inicio': renderInicio(); break;
-            case 'ia': renderIA(); break;
-            case 'buscadores': renderSectionContent(sectionId, 'Buscadores', (data.searchEngines || []).filter(s => !s.isApp), renderBuscadorCard); break;
-            case 'links': renderSectionContent(sectionId, 'Links', data.links, renderLinkCard); break;
-            case 'prompts': renderSectionContent(sectionId, 'Prompts', data.prompts, renderPromptCard); break;
-            case 'notes-tasks': renderSectionContent(sectionId, 'Notas y Tareas', [...(data.notes || []), ...(data.tasks || [])], renderNoteTaskCard); break;
-            case 'videos': renderSectionContent(sectionId, 'Videos', data.videos, renderVideoCard); break;
+        const itemsMap = {
+            buscadores: (data.searchEngines || []).filter(s => !s.isApp),
+            links: data.links,
+            prompts: data.prompts,
+            'notes-tasks': [...(data.notes || []), ...(data.tasks || [])],
+            videos: data.videos
+        };
+        const rendererMap = {
+            buscadores: renderBuscadorCard,
+            links: renderLinkCard,
+            prompts: renderPromptCard,
+            'notes-tasks': renderNoteTaskCard,
+            videos: renderVideoCard
+        };
+
+        if (sectionId === 'inicio') renderInicio();
+        else if (sectionId === 'ia') renderIA();
+        else {
+            renderSectionContent(sectionId, sectionId.replace('-', ' y '), itemsMap[sectionId], rendererMap[sectionId]);
         }
 
         const currentHeader = sectionElement.querySelector('header');
@@ -374,8 +393,62 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- LÓGICA DE LA IA ---
+    // --- SETTINGS MODAL ---
+    document.getElementById('settings-button').addEventListener('click', openSettingsPanel);
+
+    function openSettingsPanel() {
+        const modalContainer = document.getElementById('modal-container');
+        const gistId = localStorage.getItem('gist_id') || '';
+        const pat = localStorage.getItem('github_pat') || '';
+        const geminiKey = localStorage.getItem('gemini_api_key') || '';
+
+        modalContainer.innerHTML = `
+            <div class="widget p-6 w-full max-w-lg relative">
+                <button onclick="document.getElementById('modal-container').classList.add('hidden')" class="absolute top-4 right-4 text-muted-foreground hover:text-white">&times;</button>
+                <h3 class="font-bold text-lg mb-4">Ajustes</h3>
+                <div class="space-y-4">
+                    <div><label for="gistIdInput" class="font-semibold block mb-2 text-sm">Gist ID</label><input type="text" id="gistIdInput" class="w-full bg-secondary p-2 rounded-md" value="${gistId}" placeholder="El ID de tu Gist de GitHub"></div>
+                    <div><label for="githubPatInput" class="font-semibold block mb-2 text-sm">GitHub Personal Access Token</label><input type="password" id="githubPatInput" class="w-full bg-secondary p-2 rounded-md" value="${pat}" placeholder="Token con permiso 'gist'"></div>
+                    <div><label for="geminiApiKeyInput" class="font-semibold block mb-2 text-sm">Gemini API Key</label><input type="password" id="geminiApiKeyInput" class="w-full bg-secondary p-2 rounded-md" value="${geminiKey}" placeholder="Pega tu clave de API de Google AI Studio"></div>
+                    <div class="flex justify-end"><button id="save-settings-btn" class="bg-primary hover:bg-primary-hover text-white font-semibold py-2 px-4 rounded-lg">Guardar y Recargar</button></div>
+                </div>
+            </div>`;
+        modalContainer.classList.remove('hidden');
+        document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
+    }
+
+    function saveSettings() {
+        localStorage.setItem('gist_id', document.getElementById('gistIdInput').value.trim());
+        localStorage.setItem('github_pat', document.getElementById('githubPatInput').value.trim());
+        localStorage.setItem('gemini_api_key', document.getElementById('geminiApiKeyInput').value.trim());
+        showToast("Configuración guardada. Recargando...");
+        setTimeout(() => location.reload(), 1500);
+    }
     
+    // --- VIDEO PLAYER LOGIC ---
+    function openVideoPlayerModal(item) {
+        const videoId = getYouTubeID(item.action);
+        if (!videoId) return;
+        const modal = document.getElementById('videoPlayerModal');
+        modal.innerHTML = `
+            <div class="w-full max-w-4xl p-4 flex flex-col gap-4 relative">
+                 <button onclick="window.app.closeVideoPlayerModal()" class="absolute -top-2 -right-2 bg-gray-800 text-white rounded-full w-8 h-8 z-10">&times;</button>
+                 <div class="w-full aspect-video">
+                    <iframe class="w-full h-full rounded-lg" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                 </div>
+            </div>`;
+        modal.classList.remove('hidden');
+    }
+
+    function closeVideoPlayerModal() {
+        const modal = document.getElementById('videoPlayerModal');
+        const iframe = modal.querySelector('iframe');
+        if (iframe) iframe.src = ''; // This stops the video
+        modal.classList.add('hidden');
+    }
+
+
+    // --- LÓGICA DE LA IA ---
     window.app = {
         openVideoAIPanel: (item) => {
             const modalContainer = document.getElementById('modal-container');
@@ -397,7 +470,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const userPrompt = document.getElementById('ai-video-prompt').value;
                 generateAIResponseForVideo(item, userPrompt, document.getElementById('ai-video-submit'));
             };
-        }
+        },
+        openVideoPlayerModal,
+        closeVideoPlayerModal
     };
 
     async function generateAIResponseForVideo(item, userPrompt, triggerButton) {
