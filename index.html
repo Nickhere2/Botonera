@@ -49,37 +49,37 @@
         <nav class="mt-6">
           <ul>
             <li>
-              <a href="#" class="flex items-center px-4 py-3 bg-purple-900/50 text-white rounded-lg">
+              <a href="#" class="nav-link flex items-center px-4 py-3 bg-purple-900/50 text-white rounded-lg">
                 <i class="fas fa-home mr-3"></i> Inicio
               </a>
             </li>
             <li>
-              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+              <a href="#" class="nav-link flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
                 <i class="fas fa-search mr-3"></i> Buscadores
               </a>
             </li>
             <li>
-              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+              <a href="#" class="nav-link flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
                 <i class="fas fa-link mr-3"></i> Links
               </a>
             </li>
             <li>
-              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+              <a href="#" class="nav-link flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
                 <i class="fas fa-brain mr-3"></i> Prompts
               </a>
             </li>
             <li>
-              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+              <a href="#" class="nav-link flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
                 <i class="fas fa-check-double mr-3"></i> Notas y Tareas
               </a>
             </li>
             <li>
-              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+              <a href="#" class="nav-link flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
                 <i class="fas fa-tv mr-3"></i> Videos
               </a>
             </li>
             <li>
-              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+              <a href="#" class="nav-link flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
                 <i class="fas fa-robot mr-3"></i> IA
               </a>
             </li>
@@ -99,7 +99,7 @@
     <main class="flex-1 bg-gray-900 overflow-auto p-6">
       <!-- Header -->
       <div class="flex justify-between items-center mb-6">
-        <h1 class="text-3xl font-extrabold uppercase">Inicio</h1>
+        <h1 id="mainTitle" class="text-3xl font-extrabold uppercase">Inicio</h1>
 
         <!-- Hybrid Search Bar -->
         <div class="relative w-2/5">
@@ -275,7 +275,7 @@
     </div>
   </div>
 
-  <!-- Interactividad -->
+  <!-- Scripts de interactividad -->
   <script>
     // Dropdown del buscador híbrido
     const engineBtn = document.getElementById('engineBtn');
@@ -289,23 +289,15 @@
       e.stopPropagation();
       engineMenu.classList.toggle('hidden');
     });
-
     menuItems.forEach(item => {
       item.addEventListener('click', () => {
-        const icon = item.dataset.icon;
-        const label = item.dataset.label;
-        const placeholder = item.dataset.placeholder;
-
-        engineIcon.className = icon;
-        engineLabel.textContent = label;
-        searchInput.placeholder = placeholder;
+        engineIcon.className = item.dataset.icon;
+        engineLabel.textContent = item.dataset.label;
+        searchInput.placeholder = item.dataset.placeholder;
         engineMenu.classList.add('hidden');
       });
     });
-
-    document.addEventListener('click', () => {
-      engineMenu.classList.add('hidden');
-    });
+    document.addEventListener('click', () => engineMenu.classList.add('hidden'));
 
     // Modal de Ajustes
     const openSettings = document.getElementById('openSettings');
@@ -316,6 +308,27 @@
     closeSettings.addEventListener('click', () => settingsModal.classList.add('hidden'));
     settingsModal.addEventListener('click', e => {
       if (e.target === settingsModal) settingsModal.classList.add('hidden');
+    });
+
+    // Interactividad del menú izquierdo
+    const navLinks = document.querySelectorAll('.nav-link');
+    const mainTitle = document.getElementById('mainTitle');
+
+    navLinks.forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        // Quitar estado activo de todos
+        navLinks.forEach(l => {
+          l.classList.remove('bg-purple-900/50', 'text-white');
+          l.classList.add('hover:bg-gray-700');
+        });
+        // Añadir estado activo al clicado
+        link.classList.add('bg-purple-900/50', 'text-white');
+        link.classList.remove('hover:bg-gray-700');
+        // Actualizar título principal
+        const texto = link.textContent.trim().toUpperCase();
+        mainTitle.textContent = texto;
+      });
     });
   </script>
 </body>
