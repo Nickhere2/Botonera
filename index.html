@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Centro de Accesos v54 - Búsqueda Mejorada</title>
+    <title>Centro de Accesos v54 - Fábrica de Asistentes de IA</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -116,6 +116,75 @@
         .ai-chat-bubble.user { background-color: var(--primary); color: var(--primary-foreground); align-self: flex-end; }
         .ai-chat-bubble.gemini { background-color: var(--secondary); }
         .ai-prompt-btn { font-size: 0.8rem; padding: 0.3rem 0.6rem; }
+        
+        /* Estilos específicos para la Fábrica de Asistentes de IA */
+        .ai-bot-card {
+            display: flex;
+            flex-direction: column;
+            background: var(--card-background);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            position: relative;
+        }
+        .ai-bot-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        .ai-bot-card .dropdown-menu {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background-color: var(--card-background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            z-index: 10;
+            min-width: 120px;
+        }
+        .ai-bot-card .dropdown-menu button {
+            display: block;
+            width: 100%;
+            padding: 0.5rem 1rem;
+            text-align: left;
+            font-weight: 500;
+            color: var(--foreground);
+            transition: background-color 0.1s ease;
+        }
+        .ai-bot-card .dropdown-menu button:hover {
+            background-color: var(--muted);
+        }
+        .ai-bot-card .result-area {
+            background-color: var(--secondary);
+            border-radius: var(--radius);
+            padding: 0.75rem;
+            min-height: 80px;
+            max-height: 200px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 0.9rem;
+            position: relative; /* For copy button positioning */
+        }
+        .ai-bot-card .copy-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            background-color: rgba(0,0,0,0.3);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.75rem;
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        .ai-bot-card .result-area:hover .copy-button {
+            opacity: 1;
+        }
+        .ai-bot-card .result-area.has-content .copy-button {
+            opacity: 1; /* Always visible if content */
+        }
     </style>
 </head>
 <body class="dark"> <!-- Inicia en modo oscuro por defecto -->
@@ -193,8 +262,9 @@
     <div id="videoAIPanel" class="hidden fixed inset-0 z-[1100] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="promptManagerPanel" class="hidden fixed inset-0 z-[1200] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="videoPlayerModal" class="hidden fixed inset-0 z-[1300] p-4 flex items-center justify-center modal-overlay"></div>
-    <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg font-bold z-[2000] shadow-lg" style="background-color: var(--primary); color: var(--primary-foreground);"></div>
     <div id="confirmModal" class="hidden fixed inset-0 z-[1400] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="iaBotManagerPanel" class="hidden fixed inset-0 z-[1500] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg font-bold z-[2000] shadow-lg" style="background-color: var(--primary); color: var(--primary-foreground);"></div>
     <div id="preview-modal" class="hidden fixed z-[1500] w-80 h-60 p-1 bg-card-background rounded-lg shadow-lg pointer-events-none transition-opacity duration-200 opacity-0">
         <div id="preview-modal-content" class="relative w-full h-full bg-cover bg-center rounded-md border border-border">
              <div id="preview-modal-tags"></div>
@@ -204,7 +274,7 @@
 <script>
 // --- STATE & CONFIG ---
 const FILENAME_IN_GIST = 'Botones.json';
-let data = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [], aiPrompts: [] };
+let data = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [], iaBots: [] }; // Renamed aiPrompts to iaBots
 let viewModes = {};
 const themes = ['dark', 'light'];
 let currentTheme = localStorage.getItem('theme') || 'dark';
@@ -215,7 +285,7 @@ let videoTranscriptCache = null; // Cache for the current video transcript
 let aiChatHistory = []; // Cache for the current AI chat history
 
 // --- MOCK DATA & DEFAULTS ---
-const defaultAiPrompts = [
+const defaultAiPrompts = [ // Kept for video AI analysis
     { id: 1, isDefault: true, title: "ANTI-CLICKBAIT 2.0", prompt: "Analiza el título, la miniatura y el contenido del video. Identifica la afirmación o pregunta sensacionalista del título/thumb. Luego, encuentra en el video DÓNDE y CÓMO se responde eso. Si la respuesta es simple (una frase) pero el video dura mucho (ej. 1 hora), señálalo con ironía y eficiencia. Responde en este formato:\n➤ “Te están vendiendo [resumir hype del título/thumb]. Pero en el minuto [X] dice: ‘[frase real]’. No necesitabas [duración] para eso. Respuesta real en 5-10 palabras: [respuesta ultra breve].”" },
     { id: 2, isDefault: true, title: "📌 RESUMEN MUY BREVE", prompt: "Resume el video en UNA sola frase o máximo 3 líneas. Debe incluir: qué es lo más importante que dice, por qué importa, y qué debes recordar. Sé conciso, claro y directo. Evita tecnicismos." },
     { id: 3, isDefault: true, title: "📖 RESUMEN COMPLETO", prompt: "Genera un resumen estructurado del video con estas secciones:\n- Introducción: ¿Cuál es el propósito o problema que plantea?\n- Desarrollo: ¿Qué argumentos, ejemplos o estudios presenta? Menciona momentos clave (minutos si es posible).\n- Conclusión: ¿Qué propone, recomienda o concluye?\nMáximo 150 palabras. Usa lenguaje claro y organizado con bullets o párrafos cortos." },
@@ -248,12 +318,29 @@ const mockData = {
         "notes-tasks": [6],
         videos: [7]
     },
-    events: [
-        { id: 1, title: 'Cumpleaños de Ana', date: '2000-09-15', type: 'birthday', note: 'Comprar regalo.', reminderDays: 7 },
-        { id: 2, title: 'Entrega Proyecto Final', date: '2025-09-22', type: 'reminder', note: '', reminderDays: 3 },
-        { id: 3, title: 'Llamar a Juan', date: '2025-09-22', type: 'reminder', note: '', reminderDays: 1 }
-    ],
-    aiPrompts: defaultAiPrompts
+    iaBots: [ // Renamed from aiPrompts and updated structure
+        {
+            id: 1,
+            title: "Asistente WhatsApp",
+            description: "Ayuda a redactar mensajes para clientes de WhatsApp, manteniendo un tono profesional y amable.",
+            icon: "fab fa-whatsapp",
+            systemPrompt: "Eres un asistente de comunicación para WhatsApp. Tu objetivo es redactar mensajes concisos, profesionales y amables para clientes. Si el cliente está molesto, empatiza antes de dar la solución. Siempre sé directo al grano. Utiliza emojis ocasionalmente para suavizar el tono, pero sin abusar.",
+        },
+        {
+            id: 2,
+            title: "Generador de Ideas",
+            description: "Propone ideas creativas para cualquier tema, desde proyectos hasta contenido.",
+            icon: "fas fa-lightbulb",
+            systemPrompt: "Eres un generador de ideas creativo. Dada una temática o un problema, tu tarea es proponer al menos 5 ideas innovadoras y variadas. No te limites a lo obvio. Puedes incluir ideas disruptivas o poco convencionales.",
+        },
+        {
+            id: 3,
+            title: "Corrector de Estilo",
+            description: "Mejora la gramática, ortografía y fluidez de cualquier texto en español.",
+            icon: "fas fa-spell-check",
+            systemPrompt: "Eres un corrector de estilo y gramática para textos en español. Tu objetivo es mejorar la fluidez, coherencia y corrección gramatical y ortográfica de cualquier texto que te proporcionen. Mantén el significado original, pero optimiza la redacción para que sea más clara y profesional. Presenta el texto corregido sin introducciones, solo el texto final.",
+        }
+    ]
 };
 
 
@@ -278,12 +365,20 @@ async function loadData() {
     viewModes = JSON.parse(localStorage.getItem('viewModes')) || {};
 
     const processLoadedData = (loadedData) => {
-        const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [], aiPrompts: defaultAiPrompts };
+        const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [], iaBots: [] };
         data = { ...defaults, ...loadedData };
         data.items = (data.items || []).map(i => ({...i, isFavorite: i.isFavorite || false}));
 
-        if (!data.aiPrompts || data.aiPrompts.length === 0) {
-            data.aiPrompts = defaultAiPrompts;
+        // Ensure default iaBots are present if none exist or if a new default is added
+        if (!data.iaBots || data.iaBots.length === 0) {
+            data.iaBots = mockData.iaBots; // Use mockData's iaBots as default if empty
+        } else {
+            // Merge in new default iaBots if they don't exist in saved data
+            mockData.iaBots.forEach(defaultBot => {
+                if (!data.iaBots.some(bot => bot.id === defaultBot.id)) {
+                    data.iaBots.push(defaultBot);
+                }
+            });
         }
 
         // Generar atajos para buscadores si no existen
@@ -523,7 +618,10 @@ function refreshUI() {
     const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'inicio';
     if (activeSection === 'inicio') {
         renderInicioSection();
-    } else {
+    } else if (activeSection === 'ia') {
+        renderAISection(document.getElementById('section-ia'));
+    }
+    else {
         applyGlobalFilter();
     }
 }
@@ -544,14 +642,17 @@ function switchTab(tabName) {
     const currentView = viewModes[tabName] || (tabName === 'inicio' ? 'list' : 'grid');
     document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
     
-    // Muestra el botón "+" solo en la pestaña de inicio
-    smartAddBtn.classList.toggle('hidden', tabName !== 'inicio');
+    // Muestra el botón "+" solo en la pestaña de inicio o IA (para crear nuevos bots)
+    smartAddBtn.classList.toggle('hidden', !(tabName === 'inicio' || tabName === 'ia'));
     
-    if (tabName === 'inicio' || tabName === 'ia') {
-        viewSwitcher.classList.toggle('hidden', tabName !== 'inicio');
-        if(tabName === 'inicio') renderInicioSection();
-        if(tabName === 'ia') renderAISection(document.getElementById('section-ia'));
-    } else {
+    if (tabName === 'inicio') {
+        viewSwitcher.classList.remove('hidden');
+        renderInicioSection();
+    } else if (tabName === 'ia') {
+        viewSwitcher.classList.add('hidden'); // No view switcher for AI section
+        renderAISection(document.getElementById('section-ia'));
+    }
+    else {
         viewSwitcher.classList.remove('hidden');
         applyGlobalFilter();
     }
@@ -988,9 +1089,9 @@ function createCard(item, searchTerm = '') {
                     </div>
                 </div>
                 <div class="card-actions flex gap-1">
-                     ${extraActions}
-                     <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
-                     <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="fas fa-pencil-alt"></i></button>
+                    ${extraActions}
+                    <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                    <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="fas fa-pencil-alt"></i></button>
                 </div>
             </div>
         </div>
@@ -1146,8 +1247,8 @@ function createTaskCard(item, searchTerm) {
         <div class="flex justify-between items-start">
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
-                 <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
-                 <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+                   <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                   <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
             </div>
         </div>
         <div class="overflow-y-auto h-full">${taskListHtml}</div>
@@ -1172,7 +1273,7 @@ function createTaskCard(item, searchTerm) {
 
 // --- ACTIONS & EVENT HANDLERS ---
 function handleCardClick(id, event) {
-    if (event.target.closest('button, input, .drag-handle')) return; 
+    if (event.target.closest('button, input, .drag-handle')) return;    
     const item = data.items.find(i => String(i.id) === String(id));
     if (!item) return;
 
@@ -1215,16 +1316,16 @@ function attachSearchBarListeners(container) {
         searchInput.addEventListener('input', debounce((e) => {
             if (selectedSearchEngineId === 'global') {
                 const term = e.target.value.trim();
-                 const container = getActiveSectionContainer()?.querySelector('#ai-search-results-container');
+                   const container = getActiveSectionContainer()?.querySelector('#ai-search-results-container');
                 if (term) {
                     renderGlobalSearchResults(term);
                 } else if(container) {
-                     container.innerHTML = '';
-                     if(document.querySelector('#main-nav .active')?.dataset.section === 'inicio') {
-                         renderInicioSection();
-                     } else {
-                         applyGlobalFilter();
-                     }
+                       container.innerHTML = '';
+                       if(document.querySelector('#main-nav .active')?.dataset.section === 'inicio') {
+                           renderInicioSection();
+                       } else {
+                           applyGlobalFilter();
+                       }
                 }
             }
         }, 300));
@@ -1342,7 +1443,7 @@ function renderSearchEngineDropdown() {
     }
 
     if(container.innerHTML === '') {
-         container.innerHTML = `<p class="text-sm text-muted-foreground text-center p-4">No se encontraron motores.</p>`;
+           container.innerHTML = `<p class="text-sm text-muted-foreground text-center p-4">No se encontraron motores.</p>`;
     }
 }
 
@@ -1420,7 +1521,7 @@ function performMainSearch() {
     if (!activeContainer) return;
     const term = activeContainer.querySelector('.main-search-input').value;
     if (!term.trim()) {
-         showToast("Por favor, escribe un término de búsqueda.", 'error');
+           showToast("Por favor, escribe un término de búsqueda.", 'error');
         return;
     }
     if (!selectedSearchEngineId) {
@@ -1446,7 +1547,7 @@ function handleGlobalShortcuts(e) {
     const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable;
 
     if (e.key === 'Escape') {
-        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal', 'videoAIPanel', 'videoPlayerModal'];
+        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal', 'videoAIPanel', 'videoPlayerModal', 'iaBotManagerPanel'];
         modals.forEach(id => document.getElementById(id).classList.add('hidden'));
         const videoPlayer = document.getElementById('videoPlayerModal')?.querySelector('iframe');
         if (videoPlayer) {
@@ -1557,7 +1658,7 @@ function renderGlobalSearchResults(searchTerm, itemsToRender = null) {
 
     // Clear previous results but preserve the search bar if it exists
     if (resultsContainer.id === 'ai-search-results-container') {
-         resultsContainer.innerHTML = '';
+           resultsContainer.innerHTML = '';
     } else {
         const searchBar = container.querySelector('.main-search-bar-container');
         container.innerHTML = '';
@@ -1586,21 +1687,23 @@ function renderEmptyState(container, sectionName) {
         links: "Sin Links",
         prompts: "Sin Prompts",
         'notes-tasks': "Sin Notas ni Tareas",
-        videos: "Sin Videos"
+        videos: "Sin Videos",
+        ia: "Sin Asistentes de IA"
     };
     const icons = {
         buscadores: "fa-search",
         links: "fa-link",
         prompts: "fa-brain",
         'notes-tasks': "fa-check-double",
-        videos: "fa-tv"
+        videos: "fa-tv",
+        ia: "fa-robot"
     };
     container.innerHTML = `
         <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
             <i class="fas ${icons[sectionName]} text-4xl text-muted-foreground mb-4"></i>
             <h3 class="text-xl font-semibold">${titles[sectionName]}</h3>
             <p class="text-muted-foreground mt-2 mb-4">Añade tu primer elemento para empezar.</p>
-            <button onclick="handleSmartAdd()" class="btn btn-primary">Añadir con IA</button>
+            <button onclick="${sectionName === 'ia' ? 'openBotManagerModal()' : 'handleSmartAdd()'}" class="btn btn-primary">Añadir con IA</button>
         </div>
     `;
 }
@@ -1630,11 +1733,11 @@ function getUpcomingEvents(days) {
         }
         
         if (nextOccurrence >= today && nextOccurrence <= limitDate) {
-             const diffTime = nextOccurrence - today;
-             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-             const reminderDays = parseInt(event.reminderDays) || 0;
-             const isReminderActive = reminderDays > 0 && diffDays <= reminderDays;
-             return { ...event, date: nextOccurrence, isReminderActive };
+               const diffTime = nextOccurrence - today;
+               const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+               const reminderDays = parseInt(event.reminderDays) || 0;
+               const isReminderActive = reminderDays > 0 && diffDays <= reminderDays;
+               return { ...event, date: nextOccurrence, isReminderActive };
         }
         return null;
     }).filter(Boolean);
@@ -1674,7 +1777,7 @@ function openEventPanel(eventId = null) {
                         <label for="eventDate" class="font-semibold block mb-2">Fecha</label>
                         <input type="date" id="eventDate" class="input-base" value="${dateValue}" required>
                     </div>
-                     <div>
+                    <div>
                         <label for="eventType" class="font-semibold block mb-2">Tipo</label>
                         <select id="eventType" class="input-base">
                             ${Object.entries(eventTypes).map(([key, value]) => 
@@ -1683,14 +1786,14 @@ function openEventPanel(eventId = null) {
                         </select>
                     </div>
                 </div>
-                 <div>
-                    <label for="eventNote" class="font-semibold block mb-2">Nota (Opcional)</label>
-                    <textarea id="eventNote" class="input-base" rows="2">${event?.note || ''}</textarea>
-                </div>
-                 <div>
-                    <label for="eventReminder" class="font-semibold block mb-2">Avisar con días de antelación</label>
-                    <input type="number" id="eventReminder" class="input-base" min="0" value="${event?.reminderDays || 0}">
-                </div>
+                    <div>
+                        <label for="eventNote" class="font-semibold block mb-2">Nota (Opcional)</label>
+                        <textarea id="eventNote" class="input-base" rows="2">${event?.note || ''}</textarea>
+                    </div>
+                    <div>
+                        <label for="eventReminder" class="font-semibold block mb-2">Avisar con días de antelación</label>
+                        <input type="number" id="eventReminder" class="input-base" min="0" value="${event?.reminderDays || 0}">
+                    </div>
                 <div class="flex justify-end gap-2 pt-4 mt-2">
                     <button type="button" onclick="document.getElementById('eventPanel').classList.add('hidden')" class="btn btn-secondary">Cancelar</button>
                     <button type="submit" class="btn btn-primary">Guardar</button>
@@ -1814,14 +1917,14 @@ function openEditPanel(itemId = null, prefillData = null) {
                     <label class="font-semibold block mb-2">Título</label>
                     <input type="text" id="newTitle" class="input-base" placeholder="Nombre del elemento" value="${initialData?.title || ''}">
                 </div>
-                 <div id="actionFieldContainer">
+                   <div id="actionFieldContainer">
                     <label id="actionLabel" class="font-semibold block mb-2">Contenido / URL</label>
                     <textarea id="newActionText" class="input-base hidden" rows="3">${(initialData && typeof initialData.action === 'string') ? initialData.action : ''}</textarea>
                     <div id="newActionRich" class="input-base hidden min-h-[100px]" contenteditable="true"></div>
-                 </div>
-                 <div id="paste-button-container" class="hidden my-2">
+                   </div>
+                   <div id="paste-button-container" class="hidden my-2">
                     <button type="button" id="paste-url-btn" class="btn btn-secondary"><i class="fas fa-paste mr-2"></i>Pegar URL desde el portapapeles</button>
-                 </div>
+                   </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div id="iconFieldContainer">
                         <label class="font-semibold block mb-2">Icono (URL o FontAwesome)</label>
@@ -2079,20 +2182,20 @@ function openSettingsHelpModal() {
             </div>
             <div class="p-6 overflow-y-auto">
                 <div id="settings-tab-content" class="tab-content space-y-4">
-                     <div>
+                    <div>
                         <h3 class="font-bold text-lg mb-2">Sincronización con GitHub</h3>
                         <label for="gistIdInput" class="font-semibold block mb-2">Gist ID</label>
                         <input type="text" id="gistIdInput" class="input-base mb-4" value="${gistId}" placeholder="El ID de tu Gist de GitHub">
                         <label for="githubPatInput" class="font-semibold block mb-2">Personal Access Token (Clásico)</label>
                         <input type="password" id="githubPatInput" class="input-base" value="${pat}" placeholder="Token con permiso 'gist'">
-                     </div>
+                    </div>
                     <hr class="border-border">
-                     <div>
+                    <div>
                         <h3 class="font-bold text-lg mb-2">Integración con IA</h3>
                         <label for="geminiApiKeyInput" class="font-semibold block mb-2">Gemini API Key</label>
                         <input type="password" id="geminiApiKeyInput" class="input-base" value="${geminiKey}" placeholder="Pega tu clave de API de Google AI Studio">
                         <a href="https://aistudio.google.com/" target="_blank" class="text-xs text-primary hover:underline mt-1 block">Obtener una clave de API &rarr;</a>
-                     </div>
+                    </div>
                     <div class="flex justify-end gap-2 pt-4">
                         <button id="saveSettingsButton" class="btn btn-primary">Guardar y Recargar</button>
                     </div>
@@ -2105,16 +2208,16 @@ function openSettingsHelpModal() {
                         <li><b>Búsqueda con IA:</b> En la barra principal, selecciona el logo de la app para buscar con lenguaje natural (ej: "página para editar pdfs").</li>
                         <li><b>Añadir con IA:</b> El botón principal <i class="fas fa-wand-magic-sparkles"></i> lee tu portapapeles. Si encuentra una URL o texto, usa la IA para rellenar automáticamente un nuevo elemento. Si está vacío, abre el formulario manual.</li>
                         <li><b>Organizar Notas:</b> En la página de inicio, el Bloc de Notas tiene un botón "✨ Organizar" que convierte tus apuntes en Notas y Tareas estructuradas.</li>
-                         <li><b>Sugerencias IA:</b> Al crear o editar, usa el botón ✨ para que la IA sugiera categorías y etiquetas.</li>
+                        <li><b>Sugerencias IA:</b> Al crear o editar, usa el botón ✨ para que la IA sugiera categorías y etiquetas.</li>
                     </ul>
-                     <h3 class="font-bold text-lg mt-4">Atajos de Teclado</h3>
-                     <ul class="list-disc list-inside space-y-1">
-                          <li>Escribe el <b>atajo</b> de un buscador (ej: <kbd>g</kbd>) + <kbd>Espacio</kbd> en la barra principal para seleccionarlo.</li>
-                          <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Añadir con IA (desde portapapeles)</li>
-                          <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema (claro/oscuro)</li>
-                          <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
-                          <li><kbd>Esc</kbd> : Cerrar ventanas y paneles</li>
-                     </ul>
+                    <h3 class="font-bold text-lg mt-4">Atajos de Teclado</h3>
+                    <ul class="list-disc list-inside space-y-1">
+                        <li>Escribe el <b>atajo</b> de un buscador (ej: <kbd>g</kbd>) + <kbd>Espacio</kbd> en la barra principal para seleccionarlo.</li>
+                        <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>N</kbd> : Añadir con IA (desde portapapeles)</li>
+                        <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>T</kbd> : Cambiar tema (claro/oscuro)</li>
+                        <li><kbd>${isMac ? '⌘' : 'Ctrl'}</kbd> + <kbd>Alt</kbd> + <kbd>V</kbd> : Cambiar modo de vista</li>
+                        <li><kbd>Esc</kbd> : Cerrar ventanas y paneles</li>
+                    </ul>
                 </div>
             </div>
         </div>
@@ -2135,7 +2238,7 @@ function openSettingsHelpModal() {
       if(t.classList.contains('active')) t.style.borderBottom = '2px solid var(--primary)';
       else t.style.borderBottom = 'none';
     });
-     tabs.forEach(tab => {
+      tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => {
                 t.classList.remove('active');
@@ -2247,15 +2350,15 @@ function showPreviewModal(item, event) {
         tagsContainer.style.display = 'none';
     }
 
-    const modalWidth = 320; 
+    const modalWidth = 320;    
     const modalHeight = 240;
-    const cursorX = event.clientX; 
+    const cursorX = event.clientX;    
     const cursorY = event.clientY;
-    const viewportWidth = window.innerWidth; 
+    const viewportWidth = window.innerWidth;    
     const viewportHeight = window.innerHeight;
     const offset = 20;
 
-    let top = cursorY + offset; 
+    let top = cursorY + offset;    
     let left = cursorX + offset;
 
     if (top + modalHeight > viewportHeight - offset) top = cursorY - modalHeight - offset;
@@ -2276,7 +2379,7 @@ function hidePreviewModal() {
 function updateSyncStatus(status, message = '') {
     const iconEl = document.getElementById('sync-icon');
     const textEl = document.getElementById('sync-text');
-    iconEl.className = 'fas'; 
+    iconEl.className = 'fas';    
     switch (status) {
         case 'loading':
             iconEl.classList.add('fa-spinner', 'fa-spin');
@@ -2338,7 +2441,7 @@ function openVideoAIPanel(item, event) {
     const modal = document.getElementById('videoAIPanel');
 
     const videoId = getYouTubeID(item.action);
-    const embedHtml = videoId 
+    const embedHtml = videoId    
         ? `<iframe class="w-full aspect-video rounded-lg" src="https://www.youtube.com/embed/${videoId}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`
         : '<div class="w-full aspect-video rounded-lg bg-secondary flex items-center justify-center text-muted-foreground"><p>No se pudo generar la vista previa del video.</p></div>';
 
@@ -2347,7 +2450,7 @@ function openVideoAIPanel(item, event) {
             <div class="flex justify-between items-start">
                 <div>
                     <h2 class="text-2xl font-bold">${item.title}</h2>
-                     <p class="text-sm text-muted-foreground mt-1">
+                    <p class="text-sm text-muted-foreground mt-1">
                         <i class="fas fa-info-circle mr-1"></i> La IA analiza desde el <strong>título</strong> (la transcripción no está disponible).
                     </p>
                 </div>
@@ -2361,9 +2464,9 @@ function openVideoAIPanel(item, event) {
                 <div class="flex flex-col gap-4">
                     <h3 class="font-bold text-lg">✨ Análisis con IA</h3>
                     <div id="ai-video-buttons" class="flex flex-wrap gap-2">
-                        ${(data.aiPrompts || defaultAiPrompts).map(p => `<button data-prompt-id="${p.id}" class="btn btn-secondary ai-prompt-btn">${p.title}</button>`).join('')}
+                        ${(defaultAiPrompts).map(p => `<button data-prompt-id="${p.id}" class="btn btn-secondary ai-prompt-btn">${p.title}</button>`).join('')}
                     </div>
-                     <div class="mt-2 pt-4 border-t border-border">
+                    <div class="mt-2 pt-4 border-t border-border">
                         <label for="custom-ai-video-prompt" class="font-semibold block mb-2 text-sm text-muted-foreground">O escribe tu propia pregunta:</label>
                         <div class="flex items-start gap-2">
                             <textarea id="custom-ai-video-prompt" class="input-base w-full text-sm" rows="2" placeholder="Ej: ¿Este video menciona algún estudio científico?"></textarea>
@@ -2373,7 +2476,7 @@ function openVideoAIPanel(item, event) {
                         </div>
                     </div>
                     <div id="ai-video-result-container" class="widget mt-2 flex-grow hidden">
-                         <div id="ai-video-result" class="prose dark:prose-invert max-w-none text-sm overflow-y-auto h-48"></div>
+                            <div id="ai-video-result" class="prose dark:prose-invert max-w-none text-sm overflow-y-auto h-48"></div>
                     </div>
                 </div>
             </div>
@@ -2384,7 +2487,7 @@ function openVideoAIPanel(item, event) {
     modal.querySelectorAll('.ai-prompt-btn').forEach(btn => {
         btn.onclick = (e) => {
             const promptId = parseInt(btn.dataset.promptId);
-            const selectedPrompt = (data.aiPrompts || defaultAiPrompts).find(p => p.id === promptId);
+            const selectedPrompt = (defaultAiPrompts).find(p => p.id === promptId);
             if (selectedPrompt) {
                 generateAIResponseForVideo(item, selectedPrompt.prompt, e.currentTarget);
             }
@@ -2445,8 +2548,8 @@ function simpleMarkdownToHtml(text) {
                 itemHtml = `<${listType}>` + itemHtml;
                 inList = true;
             } else if ((isUnordered && listType !== 'ul') || (isOrdered && listType !== 'ol')) {
-                 itemHtml = `</${listType}><${isUnordered ? 'ul' : 'ol'}>` + itemHtml;
-                 listType = isUnordered ? 'ul' : 'ol';
+                   itemHtml = `</${listType}><${isUnordered ? 'ul' : 'ol'}>` + itemHtml;
+                   listType = isUnordered ? 'ul' : 'ol';
             }
             return itemHtml;
         } else {
@@ -2489,7 +2592,7 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
     }
 
     if (!generationConfig || !generationConfig.responseMimeType) {
-         payload.tools = [{ "google_search": {} }];
+           payload.tools = [{ "google_search": {} }];
     }
 
 
@@ -2626,6 +2729,7 @@ function addSelectedTasks() {
     document.getElementById('ai-result-panel-edit').classList.add('hidden');
 }
 
+// --- Nueva Fábrica de Asistentes de IA ---
 function renderAISection(container) {
     container.innerHTML = '';
     const apiKey = localStorage.getItem('gemini_api_key');
@@ -2643,47 +2747,230 @@ function renderAISection(container) {
     }
 
     container.innerHTML = `
-        <div>
-            <h2 class="text-2xl font-bold mb-4">Playground de IA (Gemini)</h2>
-            <div class="widget">
-                <label for="ai-prompt" class="font-semibold block mb-2">Escribe tu prompt:</label>
-                <textarea id="ai-prompt" class="input-base w-full min-h-[150px]" placeholder="Ej: Crea una lista de 5 ideas para un video de YouTube sobre IA."></textarea>
-                <div class="flex justify-end mt-4">
-                    <button id="ai-generate-btn" class="btn btn-primary">
-                        <i class="fas fa-magic mr-2"></i>Generar
-                    </button>
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold">Fábrica de Asistentes de IA</h2>
+            <!-- El botón flotante de añadir se gestiona globalmente con smartAddButton -->
+        </div>
+        <div id="ia-bots-grid" class="card-grid">
+            <!-- Bot cards will be rendered here -->
+        </div>
+    `;
+
+    const iaBotsGrid = document.getElementById('ia-bots-grid');
+    if (data.iaBots && data.iaBots.length > 0) {
+        data.iaBots.forEach(bot => {
+            iaBotsGrid.appendChild(renderBotCard(bot));
+        });
+    } else {
+        // Fallback to empty state if iaBots array is empty even after defaults
+        renderEmptyState(container, 'ia');
+    }
+
+    // Attach listener to the smartAddButton (now "Crear Bot") when on IA section
+    const smartAddButton = document.getElementById('smartAddButton');
+    if (smartAddButton) {
+        smartAddButton.onclick = () => openBotManagerModal(); // Open empty modal for new bot
+    }
+}
+
+function renderBotCard(bot) {
+    const card = document.createElement('div');
+    card.className = 'ai-bot-card flex flex-col gap-4';
+    card.dataset.id = bot.id;
+
+    card.innerHTML = `
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-secondary rounded-full flex items-center justify-center flex-shrink-0">
+                ${getIconHtml(bot.icon, 'text-2xl')}
+            </div>
+            <div class="flex-grow">
+                <h3 class="font-bold text-lg">${bot.title}</h3>
+                <p class="text-sm text-muted-foreground">${bot.description}</p>
+            </div>
+            <div class="relative">
+                <button class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" onclick="toggleBotMenu(event, '${bot.id}')">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div id="bot-menu-${bot.id}" class="dropdown-menu hidden">
+                    <button onclick="openBotManagerModal('${bot.id}', event)"><i class="fas fa-pencil-alt mr-2"></i>Editar Bot</button>
+                    <button onclick="deleteIABot('${bot.id}', event)"><i class="fas fa-trash-alt mr-2"></i>Eliminar</button>
                 </div>
             </div>
-            <div id="ai-result-container" class="widget mt-6 hidden">
-                 <h3 class="font-bold mb-3 text-lg">Respuesta de la IA:</h3>
-                 <div id="ai-result" class="prose dark:prose-invert max-w-none"></div>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label for="bot-input-${bot.id}" class="font-semibold text-sm">Tu Petición:</label>
+            <textarea id="bot-input-${bot.id}" class="input-base w-full min-h-[80px]" rows="3" placeholder="Ej: decirle al cliente que su pedido está retrasado"></textarea>
+            <button id="bot-generate-${bot.id}" class="btn btn-primary w-full mt-2">
+                <i class="fas fa-paper-plane mr-2"></i>Generar Respuesta
+            </button>
+        </div>
+        <div class="flex flex-col gap-2 mt-4">
+            <label class="font-semibold text-sm">Respuesta del Asistente:</label>
+            <div id="bot-result-${bot.id}" class="result-area bg-secondary text-foreground relative">
+                <p class="text-muted-foreground">Esperando petición...</p>
+                <button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>
             </div>
         </div>
     `;
 
-    document.getElementById('ai-generate-btn').onclick = async () => {
-        const prompt = document.getElementById('ai-prompt').value;
-        const generateBtn = document.getElementById('ai-generate-btn');
-        const resultContainer = document.getElementById('ai-result-container');
-        const resultDiv = document.getElementById('ai-result');
-
-        if (!prompt.trim()) {
-            showToast("Por favor, introduce un prompt.", 'error');
-            return;
-        }
-        
-        resultContainer.classList.remove('hidden');
-        resultDiv.innerHTML = '<p class="text-muted-foreground">Pensando...</p>';
-
-        const aiResult = await callGeminiAPI(prompt, generateBtn);
-
-        if (aiResult) {
-            resultDiv.innerHTML = simpleMarkdownToHtml(aiResult);
-        } else {
-            resultDiv.innerHTML = '<p class="text-red-500"><strong>Error:</strong> Hubo un problema al generar la respuesta.</p>';
-        }
-    };
+    card.querySelector(`#bot-generate-${bot.id}`).addEventListener('click', (e) => generateBotResponse(bot.id, e.currentTarget));
+    return card;
 }
+
+function toggleBotMenu(event, botId) {
+    event.stopPropagation();
+    const menu = document.getElementById(`bot-menu-${botId}`);
+    menu.classList.toggle('hidden');
+
+    // Close other open menus
+    document.querySelectorAll('.dropdown-menu').forEach(otherMenu => {
+        if (otherMenu.id !== `bot-menu-${botId}`) {
+            otherMenu.classList.add('hidden');
+        }
+    });
+
+    // Close menu when clicking outside
+    document.addEventListener('click', function closeMenuOnClickOutside(e) {
+        if (!menu.contains(e.target) && !event.currentTarget.contains(e.target)) {
+            menu.classList.add('hidden');
+            document.removeEventListener('click', closeMenuOnClickOutside);
+        }
+    });
+}
+
+async function generateBotResponse(botId, triggerButton) {
+    const bot = data.iaBots.find(b => b.id === botId);
+    if (!bot) return;
+
+    const userInput = document.getElementById(`bot-input-${bot.id}`).value.trim();
+    const resultDiv = document.getElementById(`bot-result-${bot.id}`);
+
+    if (!userInput) {
+        showToast('Por favor, escribe tu petición al bot.', 'error');
+        return;
+    }
+
+    resultDiv.innerHTML = `<p class="text-muted-foreground"><i class="fas fa-spinner fa-spin mr-2"></i>Generando respuesta...</p>`;
+    resultDiv.classList.remove('has-content'); // Reset class
+
+    const finalPrompt = `${bot.systemPrompt}\n\nMi petición: ${userInput}`;
+    const aiResult = await callGeminiAPI(finalPrompt, triggerButton);
+
+    if (aiResult) {
+        resultDiv.innerHTML = `<div class="prose dark:prose-invert max-w-none text-sm">${simpleMarkdownToHtml(aiResult)}</div><button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>`;
+        resultDiv.classList.add('has-content');
+    } else {
+        resultDiv.innerHTML = `<p class="text-red-500"><strong>Error:</strong> No se pudo generar la respuesta.</p><button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>`;
+    }
+}
+
+function copyBotResponse(botId, event) {
+    event.stopPropagation(); // Prevent card click if it's on a card
+    const resultDiv = document.getElementById(`bot-result-${botId}`);
+    const textToCopy = resultDiv.querySelector('.prose')?.textContent || resultDiv.textContent;
+
+    if (!textToCopy.trim()) {
+        showToast('No hay contenido para copiar.', 'info');
+        return;
+    }
+
+    // Use document.execCommand('copy') for broader compatibility in iframes
+    const tempTextarea = document.createElement('textarea');
+    tempTextarea.value = textToCopy;
+    document.body.appendChild(tempTextarea);
+    tempTextarea.select();
+    try {
+        document.execCommand('copy');
+        showToast('Respuesta copiada al portapapeles.');
+    } catch (err) {
+        console.error('Failed to copy text: ', err);
+        showToast('Error al copiar el texto.', 'error');
+    } finally {
+        document.body.removeChild(tempTextarea);
+    }
+}
+
+
+function openBotManagerModal(botId = null, event) {
+    if (event) event.stopPropagation(); // Prevent menu close or other actions
+    const modal = document.getElementById('iaBotManagerPanel');
+    const bot = botId ? data.iaBots.find(b => b.id === parseInt(botId)) : null;
+
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">${bot ? 'Editar Asistente de IA' : 'Crear Nuevo Asistente de IA'}</h2>
+                <button onclick="document.getElementById('iaBotManagerPanel').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
+            </div>
+            <form id="botManagerForm" class="space-y-4">
+                <input type="hidden" id="botId" value="${bot?.id || ''}">
+                <div>
+                    <label for="botTitle" class="font-semibold block mb-2">Título del Asistente</label>
+                    <input type="text" id="botTitle" class="input-base" value="${bot?.title || ''}" required>
+                </div>
+                <div>
+                    <label for="botDescription" class="font-semibold block mb-2">Descripción</label>
+                    <textarea id="botDescription" class="input-base" rows="2" placeholder="Una breve descripción de lo que hace este asistente">${bot?.description || ''}</textarea>
+                </div>
+                <div>
+                    <label for="botIcon" class="font-semibold block mb-2">Icono (Clase FontAwesome, ej: fas fa-robot)</label>
+                    <input type="text" id="botIcon" class="input-base" value="${bot?.icon || 'fas fa-robot'}" placeholder="fas fa-robot">
+                </div>
+                <div>
+                    <label for="botSystemPrompt" class="font-semibold block mb-2">Prompt de Sistema (Instrucciones para el Asistente)</label>
+                    <textarea id="botSystemPrompt" class="input-base" rows="8" placeholder="Ej: Eres un asistente de ventas profesional y amable...">${bot?.systemPrompt || ''}</textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button" onclick="document.getElementById('iaBotManagerPanel').classList.add('hidden')" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Asistente</button>
+                </div>
+            </form>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    document.getElementById('botManagerForm').onsubmit = handleSaveBot;
+}
+
+function handleSaveBot(event) {
+    event.preventDefault();
+    const id = document.getElementById('botId').value;
+    const newBot = {
+        id: id ? parseInt(id) : Date.now(),
+        title: document.getElementById('botTitle').value.trim(),
+        description: document.getElementById('botDescription').value.trim(),
+        icon: document.getElementById('botIcon').value.trim(),
+        systemPrompt: document.getElementById('botSystemPrompt').value.trim(),
+    };
+
+    if (!newBot.title || !newBot.systemPrompt) {
+        showToast('El título y el prompt de sistema son obligatorios.', 'error');
+        return;
+    }
+
+    if (id) {
+        const index = data.iaBots.findIndex(b => b.id === newBot.id);
+        if (index !== -1) data.iaBots[index] = newBot;
+    } else {
+        if (!data.iaBots) data.iaBots = [];
+        data.iaBots.push(newBot);
+    }
+    document.getElementById('iaBotManagerPanel').classList.add('hidden');
+    saveData().then(refreshUI);
+    showToast('Asistente de IA guardado.');
+}
+
+function deleteIABot(botId, event) {
+    if (event) event.stopPropagation();
+    showConfirmModal('¿Seguro que quieres eliminar este asistente de IA?', (confirmed) => {
+        if (confirmed) {
+            const numericId = parseInt(botId, 10);
+            data.iaBots = data.iaBots.filter(bot => bot.id !== numericId);
+            saveData().then(refreshUI);
+            showToast('Asistente de IA eliminado.');
+        }
+    });
+}
+
 
 // --- NUEVAS FUNCIONES DE IA ---
 function cleanGeminiJsonResponse(rawResponse) {
@@ -2833,6 +3120,12 @@ async function handleSmartAdd() {
     const originalButtonHTML = smartAddButton.innerHTML;
     let clipboardText = '';
 
+    // If in "IA" section, "smartAddButton" is used to create a new AI Bot
+    if (document.querySelector('#main-nav .active')?.dataset.section === 'ia') {
+        openBotManagerModal();
+        return;
+    }
+
     try {
         clipboardText = await navigator.clipboard.readText();
     } catch (err) {
@@ -2931,7 +3224,7 @@ Responde solo con el array de IDs en formato JSON.`;
             const foundItems = data.items.filter(item => resultIds.map(String).includes(String(item.id)));
             renderGlobalSearchResults(term, foundItems);
         } else {
-             throw new Error("La IA no devolvió un array.");
+               throw new Error("La IA no devolvió un array.");
         }
     } catch (e) {
         console.error("Error en la búsqueda con IA, usando fallback:", e, aiResult);
@@ -2944,4 +3237,3 @@ Responde solo con el array de IDs en formato JSON.`;
 </script>
 </body>
 </html>
-
