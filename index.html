@@ -161,7 +161,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 { id: 5, type: 'Link', title: 'Figma', category: 'Diseño', icon: 'fab fa-figma', action: 'https://figma.com' },
                 { id: 6, type: 'Nota', title: 'Reunión Lunes', category: 'Trabajo', icon: 'fas fa-sticky-note', action: '- Discutir presupuesto Q3.<br>- Revisar métricas.' },
                 { id: 8, type: 'Tarea', title: 'Proyecto Web', category: 'Proyectos', icon: 'fas fa-tasks', action: [{ text: 'Diseñar mockup', done: true }, { text: 'Desarrollar landing', done: false }] },
-                { id: 10, type: 'Video', title: 'Aprende Javascript en 10 minutos', category: 'Educación', icon: 'fab fa-youtube', action: 'https://www.youtube.com/watch?v=PkZNo7MFNFg' }
+                { id: 10, type: 'Video', title: 'Aprende Javascript en 10 minutos', category: 'Educación', icon: 'fab fa-youtube', action: 'https://www.youtube.com/watch?v=PkZNo7MFNFg' },
+                { id: 13, type: 'Prompt', title: 'Generar Idea Video', category: 'Creatividad', icon: 'fas fa-lightbulb', action: 'Genera 5 ideas...' },
             ],
             searchEngines: [
                 { id: 'app', title: 'Búsqueda en la App', icon: 'https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png', isApp: true },
@@ -295,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function renderBuscadorCard(item) {
          const previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(`https://www.${item.title.toLowerCase()}.com`)}?w=400`;
-         return `<div class="card h-48 text-white flex flex-col justify-center items-center p-5 text-center" data-id="${item.id}"><div class="card-bg-fx" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${previewUrl}'); filter: blur(4px);"></div><div class="relative z-10" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);"><i class="${item.icon} text-5xl mb-3 ${item.iconColor || ''}"></i><h4 class="font-bold text-xl truncate">${item.title}</h4></div>${createKebabMenu(item)}</div>`;
+         return `<div class="card h-48 text-white flex flex-col justify-center items-center p-5 text-center" data-id="${item.id || item.title}"><div class="card-bg-fx" style="background-image: linear-gradient(to top, rgba(0,0,0,0.85), transparent), url('${previewUrl}'); filter: blur(4px);"></div><div class="relative z-10" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);"><i class="${item.icon} text-5xl mb-3 ${item.iconColor || ''}"></i><h4 class="font-bold text-xl truncate">${item.title}</h4></div>${createKebabMenu(item)}</div>`;
     }
 
     function renderNoteTaskCard(item) {
