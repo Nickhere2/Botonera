@@ -2771,12 +2771,6 @@ function renderAISection(container) {
         // Fallback to empty state if iaBots array is empty even after defaults
         renderEmptyState(container, 'ia');
     }
-
-    // Attach listener to the smartAddButton (now "Crear Bot") when on IA section
-    const smartAddButton = document.getElementById('smartAddButton');
-    if (smartAddButton) {
-        smartAddButton.onclick = () => openBotManagerModal(); // Open empty modal for new bot
-    }
 }
 
 function renderBotCard(bot) {
