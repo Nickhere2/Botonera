@@ -81,7 +81,7 @@
         .kebab-menu-item:hover { background-color: var(--primary); color: white; }
         .kebab-menu-item.delete:hover { background-color: #ef4444; }
 
-        .search-selector-container:hover .search-selector-menu { display: block; }
+        .search-selector-container.is-open .search-selector-menu { display: block; }
         .search-selector-menu .kebab-menu-item img { border-radius: 4px; }
         kbd {
              background-color: #4b5563; border-radius: 4px; border: 1px solid #6b7280;
@@ -428,25 +428,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- EVENT LISTENERS ---
     function setupEventListeners() {
         document.addEventListener('click', (e) => {
-            const kebabButton = e.target.closest('.kebab-button');
-            const openMenuContainer = document.querySelector('.kebab-menu-container.is-open');
-
-            if (openMenuContainer && !openMenuContainer.contains(e.target)) {
-                openMenuContainer.classList.remove('is-open');
+            // Close Kebab menu if clicked outside
+            const openKebab = document.querySelector('.kebab-menu-container.is-open');
+            if (openKebab && !openKebab.contains(e.target)) {
+                openKebab.classList.remove('is-open');
             }
 
+            // Toggle Kebab menu
+            const kebabButton = e.target.closest('.kebab-button');
             if (kebabButton) {
                 e.stopPropagation();
                 const container = kebabButton.closest('.kebab-menu-container');
                 const wasOpen = container.classList.contains('is-open');
-                
-                document.querySelectorAll('.kebab-menu-container.is-open').forEach(menu => {
-                    menu.classList.remove('is-open');
-                });
-
-                if (!wasOpen) {
-                    container.classList.add('is-open');
-                }
+                document.querySelectorAll('.kebab-menu-container.is-open').forEach(menu => menu.classList.remove('is-open'));
+                if (!wasOpen) container.classList.add('is-open');
             }
         });
 
@@ -454,13 +449,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = e.target.closest('.card');
             if (card && !e.target.closest('.kebab-menu-container, a, button')) {
                 const id = parseInt(card.dataset.id, 10);
-                const item = (data.items || []).find(i => i.id === id);
+                let item = (data.items || []).find(i => i.id === id);
+                if(!item) item = (data.searchEngines || []).find(i => i.id === id); // Also check search engines
+                
                 if (!item) return;
 
                 if (item.type === 'Video') {
                     window.app.openVideoPlayerModal(item);
                 } else if (item.type === 'Link') {
                     window.open(item.action, '_blank');
+                } else if (item.type === 'Buscador') {
+                    // Implement search action
                 }
             }
         });
@@ -661,7 +660,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function simpleMarkdownToHtml(text) {
         return text.replace(/\n/g, '<br>');
     }
-
+    
     // --- INICIALIZACIÓN ---
     loadData();
 });
