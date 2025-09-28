@@ -352,7 +352,1804 @@ const mockData = {
 
 
 // --- DATA HANDLING ---
-// ... existing code ... -->
+function ensureAllIcons() {
+    if (!data.items) return;
+    data.items.forEach(item => {
+        if ((item.type === 'Link' || item.type === 'Buscador' || item.type === 'Video') && !item.icon) {
+            try {
+                const url = new URL(item.action);
+                item.icon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
+            } catch (e) {
+                console.error(`URL inválida para auto-generar favicon para "${item.title}":`, item.action);
+            }
+        }
+    });
+}
+
+async function loadData() {
+    let gistId = localStorage.getItem('gist_id');
+    const localData = localStorage.getItem('appData');
+    viewModes = JSON.parse(localStorage.getItem('viewModes')) || {};
+
+    const processLoadedData = (loadedData) => {
+        const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [], iaBots: [] };
+        data = { ...defaults, ...loadedData };
+        data.items = (data.items || []).map(i => ({...i, isFavorite: i.isFavorite || false}));
+
+        // Ensure default iaBots are present if none exist or if a new default is added
+        if (!data.iaBots || data.iaBots.length === 0) {
+            data.iaBots = mockData.iaBots; // Use mockData's iaBots as default if empty
+        } else {
+            // Merge in new default iaBots if they don't exist in saved data
+            mockData.iaBots.forEach(defaultBot => {
+                if (!data.iaBots.some(bot => bot.id === defaultBot.id)) {
+                    data.iaBots.push(defaultBot);
+                }
+            });
+        }
+
+        // Generar atajos para buscadores si no existen
+        const searchEngines = data.items.filter(item => item.type === 'Buscador');
+        const usedShortcuts = new Set(searchEngines.map(e => e.shortcut).filter(Boolean));
+        searchEngines.forEach(engine => {
+            if (!engine.shortcut) {
+                let potentialShortcut = engine.title.charAt(0).toLowerCase();
+                let counter = 1;
+                while (usedShortcuts.has(potentialShortcut)) {
+                    if (counter < engine.title.length) {
+                        potentialShortcut = engine.title.charAt(counter).toLowerCase();
+                        counter++;
+                    } else {
+                        potentialShortcut = `${engine.title.charAt(0).toLowerCase()}${counter - engine.title.length + 1}`;
+                    }
+                }
+                engine.shortcut = potentialShortcut;
+                usedShortcuts.add(potentialShortcut);
+            }
+        });
+
+        if (data.favoriteOrder && !data.favoriteOrders) {
+            data.favoriteOrders = {};
+            data.favoriteOrder.forEach(id => {
+                const item = data.items.find(i => i.id === id);
+                if (item) {
+                    const sectionName = Object.keys(typeMap).find(key => {
+                        const type = typeMap[key];
+                        return Array.isArray(type) ? type.includes(item.type) : type === item.type;
+                    });
+                    if (sectionName) {
+                        if (!data.favoriteOrders[sectionName]) {
+                            data.favoriteOrders[sectionName] = [];
+                        }
+                        data.favoriteOrders[sectionName].push(id);
+                    }
+                }
+            });
+            delete data.favoriteOrder;
+        }
+        if (!data.favoriteOrders) {
+            data.favoriteOrders = {};
+        }
+    };
+
+    if (!gistId && localData) {
+        processLoadedData(JSON.parse(localData));
+        showToast("Datos cargados desde guardado local.");
+        updateSyncStatus('local');
+        ensureAllIcons();
+        initializeUI();
+        return;
+    }
+
+    if (!gistId) {
+        processLoadedData(JSON.parse(JSON.stringify(mockData)));
+        ensureAllIcons();
+        initializeUI();
+        return;
+    }
+    
+    updateSyncStatus('loading');
+    const token = localStorage.getItem('github_pat');
+    const headers = { 'Accept': 'application/vnd.github.v3+json' };
+    if (token) { headers['Authorization'] = `token ${token}`; }
+
+    try {
+        const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const gistData = await response.json();
+        const fileContent = gistData.files[FILENAME_IN_GIST]?.content;
+        if (!fileContent) {
+            showToast("Archivo no encontrado en Gist. Usando datos de ejemplo.");
+            processLoadedData(mockData);
+        } else {
+            processLoadedData(JSON.parse(fileContent));
+            showToast("Datos cargados desde Gist.");
+        }
+        updateSyncStatus('synced');
+    } catch (error) {
+        console.error("Fallo al cargar datos:", error);
+        showToast(`Error al cargar: ${error.message}.`, 'error');
+        processLoadedData(mockData);
+    }
+    ensureAllIcons();
+    initializeUI();
+}
+
+async function saveData() {
+    const gistId = localStorage.getItem('gist_id');
+    const dataString = JSON.stringify(data, null, 2);
+
+    localStorage.setItem('appData', dataString);
+
+    if (!gistId) {
+        updateSyncStatus('local');
+        return;
+    }
+    
+    let token = localStorage.getItem('github_pat');
+    if (!token) {
+        showToast("Falta token de GitHub. Guardado localmente.", 'error');
+        updateSyncStatus('error', 'Falta token');
+        return;
+    }
+    
+    updateSyncStatus('saving');
+
+    try {
+        const response = await fetch(`https://api.github.com/gists/${gistId}`, {
+            method: 'PATCH',
+            headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+            body: JSON.stringify({
+                files: {
+                    [FILENAME_IN_GIST]: {
+                        content: dataString
+                    }
+                }
+            })
+        });
+        if (!response.ok) {
+             if(response.status === 401 || response.status === 404) {
+                 showToast("Token inválido. Revisa la configuración.", 'error');
+                 updateSyncStatus('error', 'Token inválido');
+             }
+             throw new Error(`Error al guardar: ${response.status}`)
+        };
+        showToast("Cambios guardados en Gist.");
+        updateSyncStatus('synced');
+    } catch (error) {
+        console.error("Fallo al guardar en Gist:", error);
+        showToast("Error al guardar en Gist.", 'error');
+        updateSyncStatus('error', 'Error al guardar');
+    }
+}
+
+// --- UTILITY FUNCTIONS ---
+function debounce(func, delay) {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), delay);
+    };
+}
+
+function getActiveSectionContainer() {
+    return document.querySelector('.section:not(.hidden)');
+}
+
+function getYouTubeID(url) {
+    if (!url || typeof url !== 'string') return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+}
+
+// --- UI INITIALIZATION & EVENT LISTENERS ---
+document.addEventListener("DOMContentLoaded", () => {
+    loadData();
+    setupEventListeners();
+});
+
+function setupEventListeners() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.querySelector('main');
+    document.getElementById('sidebar-toggle').addEventListener('click', () => {
+        sidebar.classList.toggle('is-collapsed');
+        if (window.innerWidth >= 1024) {
+           mainContent.style.marginLeft = sidebar.classList.contains('is-collapsed') ? '80px' : '280px';
+        }
+    });
+
+    const overlay = document.getElementById('sidebar-overlay');
+    const menuToggle = document.getElementById('menu-toggle');
+    const toggleMobileSidebar = () => {
+        sidebar.classList.toggle('-translate-x-full');
+        overlay.classList.toggle('hidden');
+    };
+    menuToggle.addEventListener('click', toggleMobileSidebar);
+    overlay.addEventListener('click', toggleMobileSidebar);
+
+    document.getElementById('main-nav').addEventListener('click', (e) => {
+        const navLink = e.target.closest('.nav-link');
+        if (navLink) {
+            e.preventDefault();
+            switchTab(navLink.dataset.section);
+            if (window.innerWidth < 1024) toggleMobileSidebar();
+        }
+    });
+    
+    document.getElementById('smartAddButton').addEventListener('click', handleSmartAdd);
+
+    document.getElementById('fab-theme').addEventListener('click', changeTheme);
+    document.getElementById('open-settings-help').addEventListener('click', openSettingsHelpModal);
+    
+    document.getElementById('global-view-switcher').addEventListener('click', (e) => {
+        const button = e.target.closest('button');
+        if(button && button.dataset.view) {
+            const activeSection = document.querySelector('#main-nav .active')?.dataset.section;
+            if (activeSection) {
+                viewModes[activeSection] = button.dataset.view;
+                localStorage.setItem('viewModes', JSON.stringify(viewModes));
+            }
+            document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.remove('active'));
+            button.classList.add('active');
+            if (activeSection === 'inicio') {
+                renderInicioSection();
+            } else {
+                applyGlobalFilter();
+            }
+        }
+    });
+    
+    document.addEventListener('click', (e) => {
+        const activeContainer = getActiveSectionContainer();
+        if (!activeContainer) return;
+        const dropdown = activeContainer.querySelector('.search-engine-dropdown');
+        const button = activeContainer.querySelector('.search-engine-selector-button');
+        if (dropdown && !dropdown.classList.contains('hidden') && !dropdown.contains(e.target) && button && !button.contains(e.target)) {
+            closeSearchEngineDropdown();
+        }
+    });
+
+    document.addEventListener('keydown', handleGlobalShortcuts);
+}
+
+function initializeUI() {
+    applyTheme(currentTheme);
+    if (window.innerWidth >= 1024) {
+        document.querySelector('main').style.marginLeft = '280px';
+    }
+    switchTab('inicio');
+}
+
+function refreshUI() {
+    const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'inicio';
+    if (activeSection === 'inicio') {
+        renderInicioSection();
+    } else if (activeSection === 'ia') {
+        renderAISection(document.getElementById('section-ia'));
+    }
+    else {
+        applyGlobalFilter();
+    }
+}
+
+function switchTab(tabName) {
+    document.querySelectorAll("#main-nav .nav-link").forEach(b => b.classList.remove("active"));
+    const activeLink = document.querySelector(`#main-nav .nav-link[data-section="${tabName}"]`);
+    activeLink.classList.add("active");
+    
+    document.getElementById('main-title').textContent = activeLink.querySelector('span').textContent.toUpperCase();
+
+    document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
+    document.getElementById(`section-${tabName}`).classList.remove("hidden");
+    
+    const viewSwitcher = document.getElementById('global-view-switcher');
+    const smartAddBtn = document.getElementById('smartAddButton');
+
+    const currentView = viewModes[tabName] || (tabName === 'inicio' ? 'list' : 'grid');
+    document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
+    
+    // Muestra el botón "+" solo en la pestaña de inicio o IA (para crear nuevos bots)
+    smartAddBtn.classList.toggle('hidden', !(tabName === 'inicio' || tabName === 'ia'));
+    
+    if (tabName === 'inicio') {
+        viewSwitcher.classList.remove('hidden');
+        renderInicioSection();
+    } else if (tabName === 'ia') {
+        viewSwitcher.classList.add('hidden'); // No view switcher for AI section
+        renderAISection(document.getElementById('section-ia'));
+    }
+    else {
+        viewSwitcher.classList.remove('hidden');
+        applyGlobalFilter();
+    }
+}
+
+// --- RENDER FUNCTIONS ---
+function renderSection(sectionName, itemsToRender, searchTerm = '') {
+    const container = document.getElementById(`section-${sectionName}`);
+    container.innerHTML = '';
+    
+    if (sectionName === 'buscadores') {
+        container.innerHTML = getMainSearchBarHTML();
+        attachSearchBarListeners(container);
+        const searchEngines = data.items.filter(item => item.type === 'Buscador');
+        const currentSelectionIsValid = searchEngines.some(e => e.id === selectedSearchEngineId);
+        if (selectedSearchEngineId !== 'global' && (!selectedSearchEngineId || !currentSelectionIsValid)) {
+            const defaultEngine = searchEngines.find(engine => engine.title.toLowerCase() === 'google') || searchEngines[0];
+            if (defaultEngine) {
+                selectSearchEngine(defaultEngine.id, false);
+            } else {
+                selectSearchEngine('global', false);
+            }
+        } else {
+            selectSearchEngine(selectedSearchEngineId, false);
+        }
+    }
+    
+    const currentView = viewModes[sectionName] || 'grid';
+
+    if (sectionName === 'notes-tasks') {
+        renderNotesAndTasksSection(container, itemsToRender, searchTerm, currentView);
+        return;
+    }
+
+    if (itemsToRender.length === 0 && searchTerm === '') {
+        renderEmptyState(container, sectionName);
+        return;
+    }
+    
+    renderFavoritesBar(container);
+
+    if (itemsToRender.length === 0 && searchTerm !== '') {
+        return;
+    }
+
+    const categorized = itemsToRender.reduce((acc, item) => {
+        const category = item.category || 'Sin Categoría';
+        if (!acc[category]) acc[category] = [];
+        acc[category].push(item);
+        return acc;
+    }, {});
+
+    const sectionOrders = data.categoryOrders?.[sectionName] || [];
+    const sortedCategories = [...new Set([...sectionOrders, ...Object.keys(categorized).filter(c => !sectionOrders.includes(c))])];
+    
+    const categoryContainerWrapper = document.createElement('div');
+    container.appendChild(categoryContainerWrapper);
+
+    sortedCategories.forEach(categoryName => {
+        if (categorized[categoryName] && categorized[categoryName].length > 0) {
+            const catWrapper = document.createElement('div');
+            catWrapper.className = 'mb-12 category-wrapper';
+            catWrapper.dataset.categoryName = categoryName;
+            
+            let editButtonHTML = '';
+            if (categoryName !== 'Sin Categoría') {
+                editButtonHTML = `<button onclick="openCategoryEditModal(event, '${categoryName}')" class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" title="Editar categoría"><i class="fas fa-pencil-alt text-sm"></i></button>`;
+            }
+            catWrapper.innerHTML = `<div class="flex items-center gap-2 mb-4"><h2 class="text-xl font-bold text-muted-foreground category-drag-handle">${categoryName}</h2>${editButtonHTML}</div>`;
+
+            const contentContainer = document.createElement('div');
+            
+            const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
+            contentContainer.className = `item-container ${viewClasses[currentView] || 'card-grid'}`;
+            
+            categorized[categoryName].forEach(item => {
+                let element;
+                if (currentView === 'grid') {
+                     if (item.type === 'Nota') element = createNoteCard(item, searchTerm);
+                     else if (item.type === 'Tarea') element = createTaskCard(item, searchTerm);
+                     else if (item.type === 'Promp') element = createPromptCard(item, searchTerm);
+                     else element = createCard(item, searchTerm);
+                } else if (currentView === 'list') {
+                    element = createListItem(item, searchTerm);
+                } else if (currentView === 'table') {
+                    element = createTableItem(item, searchTerm);
+                }
+                
+                if (element) {
+                    contentContainer.appendChild(element);
+                }
+            });
+
+            catWrapper.appendChild(contentContainer);
+            categoryContainerWrapper.appendChild(catWrapper);
+
+             new Sortable(contentContainer, {
+                group: sectionName,
+                animation: 150,
+                handle: '.drag-handle',
+                onEnd: (evt) => {
+                    const movedItemId = parseInt(evt.item.dataset.id);
+                    const toCategoryName = evt.to.closest('.category-wrapper').dataset.categoryName;
+                    
+                    const itemToUpdate = data.items.find(i => i.id === movedItemId);
+                    if (itemToUpdate) {
+                        itemToUpdate.category = toCategoryName;
+                    }
+
+                    const allDomItemIds = Array.from(document.querySelectorAll(`#section-${sectionName} .item-container > [data-id]`)).map(el => parseInt(el.dataset.id));
+                    
+                    const activeType = typeMap[sectionName];
+                    const sectionItems = data.items.filter(item => Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType);
+                    const otherItems = data.items.filter(item => !sectionItems.find(i => i.id === item.id));
+
+                    const sortedSectionItems = sectionItems.sort((a, b) => {
+                        let indexA = allDomItemIds.indexOf(a.id);
+                        let indexB = allDomItemIds.indexOf(b.id);
+                        if (indexA === -1) indexA = Infinity;
+                        if (indexB === -1) indexB = Infinity;
+                        return indexA - indexB;
+                    });
+                    
+                    data.items = [...otherItems, ...sortedSectionItems];
+
+                    saveData();
+                }
+            });
+        }
+    });
+    
+    new Sortable(categoryContainerWrapper, {
+        animation: 150,
+        handle: '.category-drag-handle',
+        onEnd: (evt) => {
+            const newOrder = Array.from(evt.target.children).map(child => child.dataset.categoryName);
+            if (!data.categoryOrders) data.categoryOrders = {};
+            data.categoryOrders[sectionName] = newOrder;
+            saveData();
+        }
+    });
+}
+
+// --- NUEVA SECCIÓN DE INICIO ---
+function renderInicioSection() {
+    const container = document.getElementById('section-inicio');
+    container.innerHTML = ''; // Limpiar contenido
+
+    renderDisenoClasico(container);
+    attachSearchBarListeners(container);
+    
+    const searchEngines = data.items.filter(item => item.type === 'Buscador');
+    const currentSelectionIsValid = searchEngines.some(e => e.id === selectedSearchEngineId);
+    if (selectedSearchEngineId !== 'global' && (!selectedSearchEngineId || !currentSelectionIsValid)) {
+        const defaultEngine = searchEngines.find(engine => engine.title.toLowerCase() === 'google') || searchEngines[0];
+        if (defaultEngine) {
+            selectSearchEngine(defaultEngine.id, false);
+        } else {
+            selectSearchEngine('global', false);
+        }
+    } else {
+        selectSearchEngine(selectedSearchEngineId, false);
+    }
+}
+
+function renderDisenoClasico(container) {
+    container.innerHTML = getMainSearchBarHTML();
+    
+    const widgetsContainer = document.createElement('div');
+    widgetsContainer.className = "grid grid-cols-1 md:grid-cols-3 gap-8 mb-12";
+    container.appendChild(widgetsContainer);
+
+    renderHomeAgendaWidget(widgetsContainer, 'md:col-span-1');
+    renderHomeScratchpadWidget(widgetsContainer, 'md:col-span-2');
+
+    const favoritesWrapper = document.createElement('div');
+    favoritesWrapper.className = 'mt-12 space-y-8';
+    let favoritesFound = false;
+    const currentView = viewModes['inicio'] || 'list';
+
+    ['links', 'prompts', 'notes-tasks', 'videos'].forEach(sectionName => {
+        const orderedFavoritesIds = (data.favoriteOrders && data.favoriteOrders[sectionName]) ? data.favoriteOrders[sectionName] : [];
+        const favoriteItems = orderedFavoritesIds.map(id => data.items.find(item => item.id === id && item.isFavorite)).filter(Boolean);
+        
+        if (favoriteItems.length > 0) {
+            favoritesFound = true;
+            const sectionWrapper = document.createElement('div');
+            const sectionTitleText = document.querySelector(`#main-nav .nav-link[data-section="${sectionName}"] span`).textContent;
+            sectionWrapper.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Favoritos de ${sectionTitleText}</h2>`;
+            
+            const itemsContainer = document.createElement('div');
+            const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
+            itemsContainer.className = viewClasses[currentView] || 'list-view';
+
+            favoriteItems.forEach(item => {
+                let element;
+                if (currentView === 'list') element = createListItem(item);
+                else if (currentView === 'grid') {
+                    if (item.type === 'Nota') element = createNoteCard(item);
+                    else if (item.type === 'Tarea') element = createTaskCard(item);
+                    else if (item.type === 'Promp') element = createPromptCard(item);
+                    else element = createCard(item);
+                } else element = createTableItem(item);
+                
+                if (element) itemsContainer.appendChild(element);
+            });
+            
+            sectionWrapper.appendChild(itemsContainer);
+            favoritesWrapper.appendChild(sectionWrapper);
+        }
+    });
+
+    if (favoritesFound) {
+        container.appendChild(favoritesWrapper);
+    } else {
+        const emptyState = document.createElement('div');
+        emptyState.className = 'text-center py-16 px-6 mt-8 rounded-lg border-2 border-dashed border-border';
+        emptyState.innerHTML = `<i class="fas fa-star text-4xl text-muted-foreground mb-4"></i><h3 class="text-xl font-semibold">Aún no tienes favoritos</h3><p class="text-muted-foreground mt-2">Haz clic en la estrella <i class="far fa-star text-yellow-400"></i> en cualquier elemento para agregarlo aquí.</p>`;
+        container.appendChild(emptyState);
+    }
+}
+
+function renderHomeAgendaWidget(container, gridClasses) {
+    const widget = document.createElement('div');
+    widget.className = `widget ${gridClasses} flex flex-col`;
+    
+    const upcomingEvents = getUpcomingEvents(30);
+    
+    let eventsHTML = upcomingEvents.length > 0
+        ? upcomingEvents.map(event => {
+            const noteIcon = event.note ? `<i class="fas fa-sticky-note text-gray-500 text-xs ml-1" title="${event.note}"></i>` : '';
+            return `
+            <div class="event-item flex items-center gap-2 text-sm py-1">
+                <div class="flex-grow overflow-hidden">
+                    <p class="font-medium truncate">${event.title} ${noteIcon}</p>
+                    <p class="text-xs text-muted-foreground">${event.date.toLocaleDateString('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'long' })}</p>
+                </div>
+                <div class="actions flex items-center">
+                    <button onclick="openEventPanel(${event.id})" class="btn btn-ghost !p-1"><i class="fas fa-pencil-alt text-xs"></i></button>
+                    <button onclick="deleteEvent(event, ${event.id})" class="btn btn-ghost !p-1"><i class="fas fa-trash-alt text-xs"></i></button>
+                </div>
+            </div>`;
+        }).join('')
+        : '<p class="text-sm text-muted-foreground">No hay eventos próximos.</p>';
+
+    widget.innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-lg">Agenda</h3>
+            <button onclick="openEventPanel()" class="btn btn-ghost !p-2" title="Añadir evento"><i class="fas fa-plus"></i></button>
+        </div>
+        <div class="flex-grow overflow-y-auto max-h-48 space-y-2 pr-2">
+            ${eventsHTML}
+        </div>
+    `;
+    container.appendChild(widget);
+}
+
+function renderHomeScratchpadWidget(container, gridClasses) {
+    const widget = document.createElement('div');
+    widget.className = `widget ${gridClasses} flex flex-col`;
+    widget.innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+            <h3 class="font-bold text-lg">Bloc de Notas Rápido</h3>
+            <button id="smart-scratchpad-btn" class="btn btn-secondary" title="Organizar con IA">✨ Organizar</button>
+        </div>
+        <textarea id="scratchpad-textarea" class="w-full flex-grow p-2 border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none resize-none text-sm" placeholder="Apunta algo...">${localStorage.getItem('scratchpadContent') || ''}</textarea>
+    `;
+    widget.querySelector('#smart-scratchpad-btn').addEventListener('click', handleSmartScratchpad);
+    widget.querySelector('textarea').addEventListener('input', debounce((e) => {
+        localStorage.setItem('scratchpadContent', e.target.value);
+    }, 500));
+    container.appendChild(widget);
+}
+
+function getMainSearchBarHTML() {
+    return `
+    <div class="main-search-bar-container mb-12 relative z-20 max-w-3xl mx-auto w-full">
+        <div class="flex relative w-full text-lg bg-card-background border border-border rounded-xl shadow-lg focus-within:ring-4 focus-within:ring-purple-500/20 transition-shadow">
+            <div class="relative flex-shrink-0">
+                <button class="search-engine-selector-button flex items-center gap-2 h-full pl-5 pr-4 text-sm font-medium text-foreground bg-secondary/50 rounded-l-xl hover:bg-muted focus:outline-none border-r border-border" type="button">
+                    <!-- JS will populate this -->
+                </button>
+                <div style="background-color: var(--card-background);" class="search-engine-dropdown absolute top-full left-0 mt-2 w-72 border border-border rounded-lg shadow-lg z-[1001] hidden">
+                    <div class="p-2 border-b border-border">
+                        <input type="text" class="dropdown-search-input input-base w-full text-sm" placeholder="Buscar motor...">
+                    </div>
+                    <div class="dropdown-options-container max-h-60 overflow-y-auto p-1">
+                        <!-- Options generated by JS -->
+                    </div>
+                </div>
+            </div>
+            <input type="text" class="main-search-input relative w-full p-4 bg-transparent border-0 focus:ring-0 text-foreground placeholder:text-muted-foreground" placeholder="Busca con...">
+            <button class="main-search-button flex-shrink-0 px-6 text-white bg-primary rounded-r-xl border-l border-primary-hover hover:bg-primary-hover focus:outline-none" type="submit">
+                <i class="fas fa-search text-lg"></i>
+            </button>
+        </div>
+        <div id="ai-search-results-container"></div>
+    </div>`;
+}
+
+
+function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '', currentView) {
+    if (itemsToRender.length === 0) {
+        renderEmptyState(container, 'notes-tasks');
+        return;
+    }
+
+    renderFavoritesBar(container);
+
+    const notes = itemsToRender.filter(item => item.type === 'Nota');
+    const tasks = itemsToRender.filter(item => item.type === 'Tarea');
+    
+    const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
+    const viewClass = viewClasses[currentView] || 'card-grid';
+
+    if (notes.length > 0) {
+        const notesWrapper = document.createElement('div');
+        notesWrapper.className = 'mb-12';
+        notesWrapper.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Notas</h2>`;
+        const notesContainer = document.createElement('div');
+        notesContainer.className = viewClass;
+        notes.forEach(note => {
+            let element = (currentView === 'grid') ? createNoteCard(note, searchTerm) : createListItem(note, searchTerm);
+            if(element) notesContainer.appendChild(element);
+        });
+        notesWrapper.appendChild(notesContainer);
+        container.appendChild(notesWrapper);
+    }
+
+    if (tasks.length > 0) {
+        const tasksWrapper = document.createElement('div');
+        tasksWrapper.className = 'mb-12';
+        tasksWrapper.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Tareas</h2>`;
+        const tasksContainer = document.createElement('div');
+        tasksContainer.className = viewClass;
+        tasks.forEach(task => {
+            let element = (currentView === 'grid') ? createTaskCard(task, searchTerm) : createListItem(task, searchTerm);
+            if(element) tasksContainer.appendChild(element);
+        });
+        tasksWrapper.appendChild(tasksContainer);
+        container.appendChild(tasksWrapper);
+    }
+}
+
+function renderFavoritesBar(container) {
+    let bar = container.querySelector('.favorites-bar');
+    if (bar) bar.remove();
+
+    const activeNavBtn = document.querySelector('.nav-link.active');
+    if (!activeNavBtn) return;
+    const activeSectionName = activeNavBtn.dataset.section;
+    
+    const orderedFavoritesIds = (data.favoriteOrders && data.favoriteOrders[activeSectionName]) ? data.favoriteOrders[activeSectionName] : [];
+
+    const orderedFavorites = orderedFavoritesIds
+        .map(id => data.items.find(item => item.id === id && item.isFavorite))
+        .filter(Boolean);
+
+
+    if (orderedFavorites.length === 0) return;
+
+    bar = document.createElement('div');
+    bar.className = 'mb-8 favorites-bar';
+    bar.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Favoritos</h2>`;
+    const favContainer = document.createElement('div');
+    favContainer.className = 'flex flex-wrap gap-4';
+    
+    orderedFavorites.forEach(item => {
+        const favIcon = document.createElement('div');
+        favIcon.className = 'fav-item flex items-center gap-2 p-2 pr-4 rounded-full bg-secondary hover:bg-accent transition';
+        favIcon.dataset.id = item.id;
+        favIcon.innerHTML = `
+            <div class="w-8 h-8 bg-card-background rounded-full flex items-center justify-center">${getIconHtml(item.icon, 'text-lg')}</div>
+            <span class="font-semibold text-sm pointer-events-none">${item.title}</span>
+        `;
+        favIcon.onclick = (e) => handleCardClick(item.id, e);
+        favContainer.appendChild(favIcon);
+    });
+
+    bar.appendChild(favContainer);
+    container.prepend(bar);
+
+    new Sortable(favContainer, {
+        animation: 150,
+        onEnd: (evt) => {
+            const newOrderOfIds = Array.from(evt.target.children).map(child => parseInt(child.dataset.id));
+            if (data.favoriteOrders && data.favoriteOrders[activeSectionName]) {
+                data.favoriteOrders[activeSectionName] = newOrderOfIds;
+            }
+            saveData();
+        }
+    });
+}
+
+
+function createCard(item, searchTerm = '') {
+    const card = document.createElement("div");
+    card.className = 'card fade-in';
+    card.dataset.id = item.id;
+    if (item.isFavorite) card.classList.add('is-favorite');
+    if (item.id === selectedSearchEngineId) card.classList.add('is-selected');
+
+    let previewUrl = '';
+    let videoPlayIcon = '';
+    if (item.type === 'Video') {
+        const videoId = getYouTubeID(item.action);
+        if (videoId) {
+            previewUrl = `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+        }
+        videoPlayIcon = `<div class="video-play-icon"><i class="fas fa-play"></i></div>`;
+    } else if (item.type === 'Link' || item.type === 'Buscador') {
+        previewUrl = `https://s.wordpress.com/mshots/v1/${encodeURIComponent(item.action.split('?')[0])}?w=400`;
+    }
+    
+    let extraActions = '';
+    if (item.type === 'Video') {
+        extraActions = `<button onclick="openVideoAIPanel(data.items.find(i=>i.id===${item.id}), event)" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20" title="Analizar con IA"><i class="fas fa-magic"></i></button>`;
+    }
+
+
+    card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-white/50 hover:text-white"><i class="fas fa-grip-vertical"></i></div>
+        ${videoPlayIcon}
+        <div class="card-bg-preview" style="background-image: url('${previewUrl}')"></div>
+        <div class="card-overlay">
+            <div class="flex justify-between items-start">
+                <div class="flex items-center gap-3 overflow-hidden">
+                    <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center flex-shrink-0">
+                        ${getIconHtml(item.icon, 'text-2xl', true)}
+                    </div>
+                    <div class="overflow-hidden">
+                        <h4 class="font-bold text-base uppercase truncate text-white" style="text-shadow: 1px 1px 3px rgba(0,0,0,0.7);">${item.title}</h4>
+                        <p class="text-xs text-white/80 truncate">${item.category || ''}</p>
+                    </div>
+                </div>
+                <div class="card-actions flex gap-1">
+                    ${extraActions}
+                    <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                    <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2 !text-white/80 hover:!bg-white/20"><i class="fas fa-pencil-alt"></i></button>
+                </div>
+            </div>
+        </div>
+    `;
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+    return card;
+}
+
+function createListItem(item, searchTerm = '') {
+    const listItem = document.createElement("div");
+    listItem.className = 'list-item';
+    listItem.dataset.id = item.id;
+    if (item.isFavorite) listItem.classList.add('is-favorite');
+    if (item.id === selectedSearchEngineId) listItem.classList.add('is-selected');
+
+    let extraActions = '';
+    if (item.type === 'Video') {
+        extraActions = `<button onclick="openVideoAIPanel(data.items.find(i=>i.id===${item.id}), event)" class="btn btn-ghost !p-2" title="Analizar con IA"><i class="fas fa-magic"></i></button>`;
+    }
+
+    listItem.innerHTML = `
+        <div class="drag-handle p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
+        <div class="w-10 h-10 bg-secondary rounded-lg flex items-center justify-center flex-shrink-0">${getIconHtml(item.icon, 'text-xl')}</div>
+        <div class="flex-grow overflow-hidden">
+            <h4 class="font-bold truncate">${item.title}</h4>
+            <p class="text-sm text-muted-foreground truncate">${item.type} / ${item.category || 'Sin Categoría'}</p>
+        </div>
+        <div class="list-item-actions flex items-center gap-2">
+            ${extraActions}
+            <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+            <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+        </div>
+    `;
+    listItem.addEventListener('click', (e) => handleCardClick(item.id, e));
+    return listItem;
+}
+
+function createTableItem(item, searchTerm = '', isGlobalSearch = false) {
+    const tableItem = document.createElement("div");
+    tableItem.className = 'table-item';
+    tableItem.dataset.id = item.id;
+    if (item.isFavorite) tableItem.classList.add('is-favorite');
+    if (item.id === selectedSearchEngineId) tableItem.classList.add('is-selected');
+
+    const typeBadge = isGlobalSearch 
+        ? `<span class="absolute bottom-1 right-1 bg-primary text-primary-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">${item.type}</span>`
+        : '';
+        
+    let extraActions = '';
+    if (item.type === 'Video') {
+        extraActions = `<button onclick="openVideoAIPanel(data.items.find(i=>i.id===${item.id}), event)" class="btn btn-ghost !p-1 !text-xs" title="Analizar con IA"><i class="fas fa-magic"></i></button>`;
+    }
+
+
+    tableItem.innerHTML = `
+        <div class="drag-handle absolute top-1 left-1 p-1 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
+        <div class="table-item-actions absolute top-1 right-1 flex">
+            ${extraActions}
+            <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-1 !text-xs" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+            <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-1 !text-xs" title="Favorito"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+        </div>
+        <div class="w-16 h-16 mb-2 flex items-center justify-center">${getIconHtml(item.icon, 'text-4xl')}</div>
+        <h4 class="font-semibold text-sm text-center truncate w-full">${item.title}</h4>
+        ${typeBadge}
+    `;
+    tableItem.addEventListener('click', (e) => handleCardClick(item.id, e));
+    
+    tableItem.addEventListener('mouseenter', (e) => {
+        clearTimeout(previewTimeout);
+        previewTimeout = setTimeout(() => {
+            showPreviewModal(item, e);
+        }, 500);
+    });
+
+    tableItem.addEventListener('mouseleave', () => {
+        clearTimeout(previewTimeout);
+        hidePreviewModal();
+    });
+    
+    return tableItem;
+}
+
+function createFavItemLarge(item) {
+    const favItem = document.createElement('div');
+    favItem.className = 'fav-item-large';
+    favItem.onclick = (e) => handleCardClick(item.id, e);
+    favItem.innerHTML = `
+        <div class="icon-container">${getIconHtml(item.icon)}</div>
+        <span class="text-sm truncate w-full">${item.title}</span>
+    `;
+    return favItem;
+}
+
+function createNoteCard(item, searchTerm) {
+    const card = document.createElement('div');
+    card.className = 'card note-card';
+    card.dataset.id = item.id;
+    if (item.isFavorite) card.classList.add('is-favorite');
+    card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
+        <div class="flex justify-between items-start">
+            <h4 class="font-bold text-lg">${item.title}</h4>
+            <div class="card-actions flex gap-1">
+                <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+            </div>
+        </div>
+        <div class="mt-2 text-sm text-muted-foreground overflow-y-auto h-full">${item.action}</div>
+    `;
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+    return card;
+}
+
+function createPromptCard(item, searchTerm) {
+    const card = document.createElement('div');
+    card.className = 'card prompt-card';
+    card.dataset.id = item.id;
+    if (item.isFavorite) card.classList.add('is-favorite');
+    card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
+        <div class="flex justify-between items-start">
+            <h4 class="font-bold text-lg">${item.title}</h4>
+            <div class="card-actions flex gap-1">
+                <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+            </div>
+        </div>
+        <div class="mt-2 text-sm text-muted-foreground overflow-y-auto h-full">${item.action}</div>
+    `;
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+    return card;
+}
+
+function createTaskCard(item, searchTerm) {
+    const card = document.createElement('div');
+    card.className = 'card task-card';
+    card.dataset.id = item.id;
+    if (item.isFavorite) card.classList.add('is-favorite');
+    
+    const taskListHtml = Array.isArray(item.action) ? `
+        <ul class="space-y-2 mt-2">
+            ${item.action.map((task, index) => `
+                <li class="flex items-center gap-2">
+                    <input type="checkbox" id="task-${item.id}-${index}" data-item-id="${item.id}" data-task-index="${index}" ${task.status ? 'checked' : ''} class="w-4 h-4 rounded accent-primary">
+                    <label for="task-${item.id}-${index}" class="${task.status ? 'line-through text-muted-foreground' : ''}">${task.text}</label>
+                </li>
+            `).join('')}
+        </ul>
+    ` : '';
+
+    card.innerHTML = `
+        <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
+        <div class="flex justify-between items-start">
+            <h4 class="font-bold text-lg">${item.title}</h4>
+            <div class="card-actions flex gap-1">
+                   <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                   <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+            </div>
+        </div>
+        <div class="overflow-y-auto h-full">${taskListHtml}</div>
+    `;
+    card.addEventListener('click', (e) => handleCardClick(item.id, e));
+    card.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', (e) => {
+            e.stopPropagation();
+            const itemId = e.target.dataset.itemId;
+            const taskIndex = parseInt(e.target.dataset.taskIndex, 10);
+            const dataItem = data.items.find(d => String(d.id) === itemId);
+            if (dataItem && dataItem.action[taskIndex]) {
+                dataItem.action[taskIndex].status = e.target.checked;
+                saveData();
+                refreshUI();
+            }
+        });
+    });
+    return card;
+}
+
+
+// --- ACTIONS & EVENT HANDLERS ---
+function handleCardClick(id, event) {
+    if (event.target.closest('button, input, .drag-handle')) return;    
+    const item = data.items.find(i => String(i.id) === String(id));
+    if (!item) return;
+
+    if (item.type === "Link") {
+        window.open(item.action, "_blank");
+    } else if (item.type === "Video") {
+        openVideoPlayerModal(item);
+    } else if (item.type === "Buscador") {
+        selectSearchEngine(item.id);
+        const activeSection = document.querySelector('#main-nav .active')?.dataset.section
+        if(activeSection !== 'inicio') {
+            switchTab('inicio')
+        }
+        getActiveSectionContainer()?.querySelector('.main-search-input')?.focus();
+    } else if (item.type === "Promp") {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = item.action;
+        navigator.clipboard.writeText(tempDiv.textContent || tempDiv.innerText).then(() => showToast("Prompt copiado."));
+    } else {
+        openEditPanel(id);
+    }
+}
+
+// --- BUSCADOR MEJORADO & ATAJOS ---
+function attachSearchBarListeners(container) {
+    const searchBar = container.querySelector('.main-search-bar-container');
+    if (!searchBar) return;
+
+    const searchButton = searchBar.querySelector('.main-search-button');
+    if (searchButton) searchButton.addEventListener('click', performMainSearch);
+    
+    const searchInput = searchBar.querySelector('.main-search-input');
+    if(searchInput) {
+        searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') performMainSearch();
+        });
+        
+        searchInput.addEventListener('input', handleSearchInputShortcut);
+        
+        searchInput.addEventListener('input', debounce((e) => {
+            if (selectedSearchEngineId === 'global') {
+                const term = e.target.value.trim();
+                   const container = getActiveSectionContainer()?.querySelector('#ai-search-results-container');
+                if (term) {
+                    renderGlobalSearchResults(term);
+                } else if(container) {
+                       container.innerHTML = '';
+                       if(document.querySelector('#main-nav .active')?.dataset.section === 'inicio') {
+                           renderInicioSection();
+                       } else {
+                           applyGlobalFilter();
+                       }
+                }
+            }
+        }, 300));
+    }
+    
+    const selectorButton = searchBar.querySelector('.search-engine-selector-button');
+    if (selectorButton) selectorButton.addEventListener('click', toggleSearchEngineDropdown);
+
+    const dropdownInput = searchBar.querySelector('.dropdown-search-input');
+    if (dropdownInput) dropdownInput.addEventListener('input', renderSearchEngineDropdown);
+}
+
+function handleSearchInputShortcut(e) {
+    const input = e.target;
+    const value = input.value;
+    
+    if (value.toLowerCase() === 'todo ') {
+        e.preventDefault();
+        selectSearchEngine('global');
+        input.value = '';
+        return;
+    }
+
+    if (value.length > 1 && value.endsWith(' ')) {
+        const shortcut = value.slice(0, -1).toLowerCase();
+        const engine = data.items.find(item => item.type === 'Buscador' && item.shortcut === shortcut);
+
+        if (engine) {
+            e.preventDefault();
+            selectSearchEngine(engine.id);
+            input.value = '';
+        }
+    }
+}
+
+function toggleSearchEngineDropdown() {
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const dropdown = activeContainer.querySelector('.search-engine-dropdown');
+    const button = activeContainer.querySelector('.search-engine-selector-button');
+    if(!dropdown || !button) return;
+    
+    const isOpen = !dropdown.classList.contains('hidden');
+    if (isOpen) {
+        closeSearchEngineDropdown();
+    } else {
+        dropdown.classList.remove('hidden');
+        button.querySelector('.chevron-icon')?.classList.add('rotate-180');
+        activeContainer.querySelector('.dropdown-search-input').value = '';
+        renderSearchEngineDropdown();
+        activeContainer.querySelector('.dropdown-search-input').focus();
+    }
+}
+
+function closeSearchEngineDropdown() {
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const dropdown = activeContainer.querySelector('.search-engine-dropdown');
+    const button = activeContainer.querySelector('.search-engine-selector-button');
+    if (dropdown) {
+        dropdown.classList.add('hidden');
+    }
+    if (button) {
+        button.querySelector('.chevron-icon')?.classList.remove('rotate-180');
+    }
+}
+
+function renderSearchEngineDropdown() {
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const container = activeContainer.querySelector('.dropdown-options-container');
+    const searchTerm = activeContainer.querySelector('.dropdown-search-input').value.toLowerCase();
+    const engines = data.items.filter(item => item.type === 'Buscador');
+
+    const filteredEngines = engines.filter(engine => 
+        engine.title.toLowerCase().includes(searchTerm)
+    );
+
+    container.innerHTML = '';
+    
+    const globalSearchHTML = `
+        <div class="dropdown-item flex items-center justify-between w-full ${selectedSearchEngineId === 'global' ? 'is-selected' : ''}" onclick="selectSearchEngine('global')" style="padding: 0.5rem; cursor:pointer;">
+             <div class="flex items-center gap-2">
+                <img src="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png" class="w-5 h-5" alt="Logo">
+                <span>Búsqueda Global</span>
+             </div>
+            <kbd class="ml-auto">todo</kbd>
+        </div>
+    `;
+    if ('búsqueda global'.includes(searchTerm) || searchTerm === '') {
+        container.innerHTML += globalSearchHTML;
+    }
+
+    if (filteredEngines.length > 0) {
+        filteredEngines.forEach((engine, index) => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'dropdown-item';
+            if(engine.id === selectedSearchEngineId) {
+                itemEl.classList.add('is-selected');
+            }
+            
+            let shortcutHTML = '';
+            if (engine.shortcut) {
+                shortcutHTML = `<kbd class="ml-auto">${engine.shortcut}</kbd>`;
+            }
+
+            itemEl.innerHTML = `
+                ${getIconHtml(engine.icon, 'text-xl')}
+                <span class="truncate">${engine.title}</span>
+                ${shortcutHTML}
+            `;
+            itemEl.onclick = () => selectSearchEngine(engine.id);
+            container.appendChild(itemEl);
+        });
+    }
+
+    if(container.innerHTML === '') {
+           container.innerHTML = `<p class="text-sm text-muted-foreground text-center p-4">No se encontraron motores.</p>`;
+    }
+}
+
+function selectSearchEngine(itemId, focusInput = true) {
+    selectedSearchEngineId = (itemId === 'global') ? 'global' : parseInt(itemId);
+    
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const searchInput = activeContainer.querySelector('.main-search-input');
+
+    if(selectedSearchEngineId === 'global') {
+        if (searchInput) searchInput.placeholder = `Buscar en tus elementos... (pulsa la lupa para IA)`;
+    } else {
+        const engine = data.items.find(i => i.id === selectedSearchEngineId);
+        if (engine && searchInput) {
+            searchInput.placeholder = `Buscar con ${engine.title}...`;
+        }
+    }
+    
+    updateSearchEngineSelectorButton();
+    const activeSectionName = document.querySelector('#main-nav .active')?.dataset.section;
+
+    if (activeSectionName === 'buscadores') {
+        const sectionContainer = document.getElementById('section-buscadores');
+        sectionContainer.querySelectorAll('.card.is-selected, .list-item.is-selected, .table-item.is-selected').forEach(el => {
+            el.classList.remove('is-selected');
+        });
+        if (selectedSearchEngineId !== 'global') {
+            const selectedCard = sectionContainer.querySelector(`[data-id="${selectedSearchEngineId}"]`);
+            if (selectedCard) {
+                selectedCard.classList.add('is-selected');
+            }
+        }
+    }
+
+    closeSearchEngineDropdown();
+    if (focusInput) {
+        searchInput?.focus();
+    }
+}
+
+function updateSearchEngineSelectorButton() {
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const button = activeContainer.querySelector('.search-engine-selector-button');
+    if (!button) return;
+
+    let engine;
+    if(selectedSearchEngineId === 'global') {
+        engine = { title: 'Búsqueda Global', icon: 'https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png' };
+    } else {
+        engine = data.items.find(i => i.id === selectedSearchEngineId);
+    }
+    
+    if (engine) {
+        const titleHTML = `<span class="font-semibold text-sm text-foreground truncate max-w-[100px]">${engine.title}</span>`;
+
+        button.innerHTML = `
+            <div class="flex items-center gap-2 pointer-events-none">
+                ${getIconHtml(engine.icon, 'text-xl')}
+                ${titleHTML}
+            </div>
+            <i class="fas fa-chevron-down chevron-icon ml-auto text-xs transition-transform"></i>
+        `;
+    } else {
+        button.innerHTML = `
+             <span class="font-semibold text-sm">Seleccionar</span>
+             <i class="fas fa-chevron-down chevron-icon ml-auto text-xs transition-transform"></i>
+        `;
+    }
+}
+
+function performMainSearch() {
+    const activeContainer = getActiveSectionContainer();
+    if (!activeContainer) return;
+    const term = activeContainer.querySelector('.main-search-input').value;
+    if (!term.trim()) {
+           showToast("Por favor, escribe un término de búsqueda.", 'error');
+        return;
+    }
+    if (!selectedSearchEngineId) {
+        showToast("Por favor, selecciona un motor de búsqueda.", 'error');
+       return;
+   }
+
+    if (selectedSearchEngineId === 'global') {
+        performAISearch(term);
+        return;
+    }
+
+    const engine = data.items.find(i => i.id === selectedSearchEngineId);
+    if (engine) {
+        const url = engine.action.replace('{search_term}', encodeURIComponent(term));
+        window.open(url, '_blank');
+    }
+}
+
+function handleGlobalShortcuts(e) {
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+    const modifier = isMac ? e.metaKey : e.ctrlKey;
+    const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable;
+
+    if (e.key === 'Escape') {
+        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal', 'videoAIPanel', 'videoPlayerModal', 'iaBotManagerPanel'];
+        modals.forEach(id => document.getElementById(id).classList.add('hidden'));
+        const videoPlayer = document.getElementById('videoPlayerModal')?.querySelector('iframe');
+        if (videoPlayer) {
+            videoPlayer.src = '';
+        }
+
+        closeSearchEngineDropdown();
+        return;
+    }
+
+    if (modifier && e.altKey && !isInputFocused) {
+        switch (e.key.toLowerCase()) {
+            case 'n': e.preventDefault(); document.getElementById('smartAddButton').click(); break;
+            case 't': e.preventDefault(); changeTheme(); break;
+            case 'v':
+                e.preventDefault();
+                const viewButtons = Array.from(document.querySelectorAll('#global-view-switcher button'));
+                const activeButton = document.querySelector('#global-view-switcher button.active');
+                if (activeButton) {
+                    const currentIndex = viewButtons.indexOf(activeButton);
+                    const nextIndex = (currentIndex + 1) % viewButtons.length;
+                    viewButtons[nextIndex].click();
+                }
+                break;
+        }
+    }
+}
+
+
+function toggleFavorite(event, itemId) {
+    event.stopPropagation();
+    const numericId = parseInt(itemId, 10);
+    const item = data.items.find(i => i.id === numericId);
+    if (!item) return;
+
+    const itemSectionName = Object.keys(typeMap).find(key => {
+        const type = typeMap[key];
+        return Array.isArray(type) ? type.includes(item.type) : type === item.type;
+    });
+
+    if (!itemSectionName) {
+        console.error("No se pudo determinar la sección para el elemento:", item);
+        return;
+    }
+
+    item.isFavorite = !item.isFavorite;
+
+    if (!data.favoriteOrders) data.favoriteOrders = {};
+    if (!data.favoriteOrders[itemSectionName]) data.favoriteOrders[itemSectionName] = [];
+    
+    const favoritesArray = data.favoriteOrders[itemSectionName];
+    const indexInFavorites = favoritesArray.indexOf(numericId);
+
+    if (item.isFavorite) {
+        if (indexInFavorites === -1) {
+            favoritesArray.unshift(numericId);
+        }
+    } else {
+        if (indexInFavorites > -1) {
+            favoritesArray.splice(indexInFavorites, 1);
+        }
+    }
+    
+    showToast(item.isFavorite ? `"${item.title}" añadido a favoritos.` : `"${item.title}" quitado de favoritos.`);
+    saveData().then(refreshUI);
+}
+
+function applyGlobalFilter() {
+    const activeNavBtn = document.querySelector('.nav-link.active');
+    if (!activeNavBtn) return;
+    
+    const activeSectionName = activeNavBtn.dataset.section;
+
+    const activeType = typeMap[activeSectionName];
+    const itemsToFilter = data.items.filter(item => 
+        Array.isArray(activeType) ? activeType.includes(item.type) : item.type === activeType
+    );
+    renderSection(activeSectionName, itemsToFilter, "");
+}
+
+function renderGlobalSearchResults(searchTerm, itemsToRender = null) {
+    const container = getActiveSectionContainer();
+    if (!container) return;
+    
+    let allResults;
+    if (itemsToRender) {
+        allResults = itemsToRender;
+    } else {
+        allResults = data.items.filter(card => {
+            const lowerCaseSearchTerm = searchTerm.toLowerCase();
+            const titleMatch = card.title.toLowerCase().includes(lowerCaseSearchTerm);
+            const categoryNameMatch = (card.category || '').toLowerCase().includes(lowerCaseSearchTerm);
+            const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(lowerCaseSearchTerm);
+            let contentMatch = false;
+            if (typeof card.action === 'string') {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = card.action;
+                contentMatch = (tempDiv.textContent || tempDiv.innerText).toLowerCase().includes(lowerCaseSearchTerm);
+            } else if (Array.isArray(card.action)) {
+                contentMatch = card.action.some(task => task.text.toLowerCase().includes(lowerCaseSearchTerm));
+            }
+            return titleMatch || categoryNameMatch || tagListMatch || contentMatch;
+        });
+    }
+
+    // This function can be called from the main search bar or from a section view
+    const resultsContainer = container.querySelector('#ai-search-results-container') || container;
+
+    // Clear previous results but preserve the search bar if it exists
+    if (resultsContainer.id === 'ai-search-results-container') {
+           resultsContainer.innerHTML = '';
+    } else {
+        const searchBar = container.querySelector('.main-search-bar-container');
+        container.innerHTML = '';
+        if (searchBar) container.appendChild(searchBar);
+    }
+    
+    if (allResults.length === 0) {
+        resultsContainer.innerHTML = `
+            <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border mt-8">
+                <h3 class="text-xl font-semibold">Sin resultados</h3>
+                <p class="text-muted-foreground mt-2">No se encontraron resultados para "${searchTerm}".</p>
+            </div>`;
+    } else {
+        resultsContainer.innerHTML = `<h2 class="text-2xl font-bold mb-6 mt-8">Resultados para "${searchTerm}"</h2>`;
+        const content = document.createElement('div');
+        content.className = 'list-view';
+        allResults.forEach(item => content.appendChild(createListItem(item, searchTerm, true)));
+        resultsContainer.appendChild(content);
+    }
+}
+
+
+function renderEmptyState(container, sectionName) {
+    const titles = {
+        buscadores: "Sin Buscadores",
+        links: "Sin Links",
+        prompts: "Sin Prompts",
+        'notes-tasks': "Sin Notas ni Tareas",
+        videos: "Sin Videos",
+        ia: "Sin Asistentes de IA"
+    };
+    const icons = {
+        buscadores: "fa-search",
+        links: "fa-link",
+        prompts: "fa-brain",
+        'notes-tasks': "fa-check-double",
+        videos: "fa-tv",
+        ia: "fa-robot"
+    };
+    container.innerHTML = `
+        <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
+            <i class="fas ${icons[sectionName]} text-4xl text-muted-foreground mb-4"></i>
+            <h3 class="text-xl font-semibold">${titles[sectionName]}</h3>
+            <p class="text-muted-foreground mt-2 mb-4">Añade tu primer elemento para empezar.</p>
+            <button onclick="${sectionName === 'ia' ? 'openBotManagerModal()' : 'handleSmartAdd()'}" class="btn btn-primary">Añadir con IA</button>
+        </div>
+    `;
+}
+
+// --- AGENDA WIDGET ---
+function getUpcomingEvents(days) {
+    if (!data.events || data.events.length === 0) return [];
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const limitDate = new Date();
+    limitDate.setHours(0, 0, 0, 0);
+    limitDate.setDate(limitDate.getDate() + days);
+
+    const upcoming = data.events.map(event => {
+        const dateParts = event.date.split('-').map(Number);
+        const eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
+        eventDate.setHours(0,0,0,0);
+        
+        let nextOccurrence = new Date(eventDate);
+
+        if (event.type === 'birthday' || event.type === 'anniversary') {
+            nextOccurrence.setFullYear(today.getFullYear());
+            if (nextOccurrence < today) {
+                nextOccurrence.setFullYear(today.getFullYear() + 1);
+            }
+        }
+        
+        if (nextOccurrence >= today && nextOccurrence <= limitDate) {
+               const diffTime = nextOccurrence - today;
+               const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+               const reminderDays = parseInt(event.reminderDays) || 0;
+               const isReminderActive = reminderDays > 0 && diffDays <= reminderDays;
+               return { ...event, date: nextOccurrence, isReminderActive };
+        }
+        return null;
+    }).filter(Boolean);
+
+    return upcoming.sort((a, b) => a.date - b.date);
+}
+
+function openEventPanel(eventId = null) {
+    const modal = document.getElementById('eventPanel');
+    const event = eventId ? data.events.find(e => e.id === eventId) : null;
+    
+    let dateValue = '';
+    if (event) {
+        dateValue = event.date;
+    }
+
+    const eventTypes = {
+        reminder: 'Recordatorio',
+        birthday: 'Cumpleaños',
+        anniversary: 'Aniversario',
+        meeting: 'Reunión',
+        payment: 'Pago',
+        appointment: 'Cita Médica'
+    };
+
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">${event ? 'Editar' : 'Nuevo'} Evento</h2>
+            <form id="eventForm" class="space-y-4">
+                <input type="hidden" id="eventId" value="${event?.id || ''}">
+                <div>
+                    <label for="eventTitle" class="font-semibold block mb-2">Título</label>
+                    <input type="text" id="eventTitle" class="input-base" value="${event?.title || ''}" required>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="eventDate" class="font-semibold block mb-2">Fecha</label>
+                        <input type="date" id="eventDate" class="input-base" value="${dateValue}" required>
+                    </div>
+                    <div>
+                        <label for="eventType" class="font-semibold block mb-2">Tipo</label>
+                        <select id="eventType" class="input-base">
+                            ${Object.entries(eventTypes).map(([key, value]) => 
+                                `<option value="${key}" ${event?.type === key ? 'selected' : ''}>${value}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                </div>
+                    <div>
+                        <label for="eventNote" class="font-semibold block mb-2">Nota (Opcional)</label>
+                        <textarea id="eventNote" class="input-base" rows="2">${event?.note || ''}</textarea>
+                    </div>
+                    <div>
+                        <label for="eventReminder" class="font-semibold block mb-2">Avisar con días de antelación</label>
+                        <input type="number" id="eventReminder" class="input-base" min="0" value="${event?.reminderDays || 0}">
+                    </div>
+                <div class="flex justify-end gap-2 pt-4 mt-2">
+                    <button type="button" onclick="document.getElementById('eventPanel').classList.add('hidden')" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    document.getElementById('eventForm').onsubmit = handleSaveEvent;
+}
+
+function handleSaveEvent(event) {
+    event.preventDefault();
+    const id = document.getElementById('eventId').value;
+    const newEvent = {
+        id: id ? parseInt(id) : Date.now(),
+        title: document.getElementById('eventTitle').value,
+        date: document.getElementById('eventDate').value,
+        type: document.getElementById('eventType').value,
+        note: document.getElementById('eventNote').value,
+        reminderDays: parseInt(document.getElementById('eventReminder').value) || 0
+    };
+
+    if (id) {
+        const index = data.events.findIndex(e => e.id === newEvent.id);
+        if (index !== -1) data.events[index] = newEvent;
+    } else {
+        if (!data.events) data.events = [];
+        data.events.push(newEvent);
+    }
+    document.getElementById('eventPanel').classList.add('hidden');
+    saveData().then(refreshUI);
+    showToast('Evento guardado.');
+}
+
+function deleteEvent(event, eventId) {
+    event.stopPropagation();
+    showConfirmModal('¿Seguro que quieres eliminar este evento?', (confirmed) => {
+        if (confirmed) {
+            data.events = data.events.filter(e => e.id !== eventId);
+            saveData().then(refreshUI);
+            showToast('Evento eliminado.');
+        }
+    });
+}
+
+
+// --- THEME & MODALS ---
+function changeTheme() {
+    currentTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+    applyTheme(currentTheme);
+}
+
+function applyTheme(theme) {
+    document.body.classList.remove('light', 'dark');
+    document.body.classList.add(theme);
+    localStorage.setItem('theme', theme);
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    
+    toast.style.backgroundColor = '';
+    toast.style.color = '';
+
+    if (type === 'error') {
+        toast.style.backgroundColor = '#ef4444'; // red-500
+        toast.style.color = 'white';
+    } else {
+        toast.style.backgroundColor = 'var(--primary)';
+        toast.style.color = 'var(--primary-foreground)';
+    }
+
+    toast.classList.remove("hidden");
+    setTimeout(() => toast.classList.add("hidden"), 3000);
+}
+
+function getIconHtml(icon, sizeClass = 'text-2xl', isForCard = false) {
+    const colorClass = isForCard ? 'text-white/90' : 'text-foreground';
+    const errorColorClass = isForCard ? 'text-white/50' : 'text-muted-foreground';
+
+    if (!icon) return `<i class="fas fa-question-circle ${sizeClass} ${errorColorClass}"></i>`;
+    if (icon.startsWith('http')) {
+        const imgClass = { 'text-lg': 'w-5 h-5', 'text-xl': 'w-6 h-6', 'text-2xl': 'w-8 h-8', 'text-4xl': 'w-12 h-12' }[sizeClass] || 'w-6 h-6';
+        return `<img src="${icon}" class="${imgClass} object-contain" alt="Icono" onerror="this.onerror=null;this.parentElement.innerHTML='<i class=\\'fas fa-question-circle ${sizeClass} ${errorColorClass}\\'></i>';">`;
+    }
+    return `<i class="${icon} ${sizeClass} ${colorClass}"></i>`;
+}
+
+// --- MODAL IMPLEMENTATIONS ---
+function openEditPanel(itemId = null, prefillData = null) {
+    const modal = document.getElementById('editPanel');
+    const item = itemId ? data.items.find(i => String(i.id) === String(itemId)) : null;
+    
+    const initialData = prefillData || item;
+    
+    const activeSection = document.querySelector('#main-nav .active')?.dataset.section || 'links';
+    const defaultTypeMap = { 'buscadores': 'Buscador', 'links': 'Link', 'prompts': 'Promp', 'notes-tasks': 'Nota', 'videos': 'Video' };
+    
+    const type = initialData ? initialData.type : defaultTypeMap[activeSection];
+    
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 id="editPanelTitle" class="text-2xl font-bold">${(item || prefillData) ? 'Editar' : 'Nuevo'} Elemento</h2>
+                <button onclick="document.getElementById('editPanel').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
+            </div>
+            <form id="editForm" class="space-y-4">
+                <input type="hidden" id="editItemId" value="${initialData?.id || ''}">
+                <div>
+                    <label class="font-semibold block mb-2">Tipo</label>
+                    <div class="flex flex-wrap gap-2 type-selector">
+                        ${['Buscador', 'Link', 'Promp', 'Nota', 'Tarea', 'Video'].map(t => `
+                            <button type="button" data-type="${t}" class="btn ${type === t ? 'btn-primary' : 'btn-secondary'} type-btn">${t}</button>
+                        `).join('')}
+                    </div>
+                    <input type="hidden" id="newType" value="${type}">
+                </div>
+                <div>
+                    <label class="font-semibold block mb-2">Título</label>
+                    <input type="text" id="newTitle" class="input-base" placeholder="Nombre del elemento" value="${initialData?.title || ''}">
+                </div>
+                   <div id="actionFieldContainer">
+                    <label id="actionLabel" class="font-semibold block mb-2">Contenido / URL</label>
+                    <textarea id="newActionText" class="input-base hidden" rows="3">${(initialData && typeof initialData.action === 'string') ? initialData.action : ''}</textarea>
+                    <div id="newActionRich" class="input-base hidden min-h-[100px]" contenteditable="true"></div>
+                   </div>
+                   <div id="paste-button-container" class="hidden my-2">
+                    <button type="button" id="paste-url-btn" class="btn btn-secondary"><i class="fas fa-paste mr-2"></i>Pegar URL desde el portapapeles</button>
+                   </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div id="iconFieldContainer">
+                        <label class="font-semibold block mb-2">Icono (URL o FontAwesome)</label>
+                        <input type="text" id="newIcon" class="input-base" placeholder="https://.../logo.png o fas fa-search" value="${initialData?.icon || ''}">
+                    </div>
+                    <div id="shortcutFieldContainer" class="hidden">
+                        <label class="font-semibold block mb-2">Atajo (1-2 caracteres)</label>
+                        <input type="text" id="newShortcut" class="input-base" placeholder="g" maxlength="2" value="${initialData?.shortcut || ''}">
+                    </div>
+                </div>
+                <div>
+                    <label class="font-semibold block mb-2">Categoría</label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="newCategory" class="input-base" list="category-suggestions" placeholder="Categoría nueva o existente" value="${initialData?.category || ''}">
+                        <button type="button" onclick="handleSuggestCategory()" class="btn btn-secondary !p-2" title="Sugerir con IA">✨</button>
+                    </div>
+                    <datalist id="category-suggestions"></datalist>
+                </div>
+                <div>
+                    <label class="font-semibold block mb-2">Etiquetas (separadas por coma)</label>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="newTags" class="input-base" placeholder="trabajo, personal" value="${initialData?.tags?.join(', ') || ''}">
+                        <button type="button" onclick="handleSuggestTags()" class="btn btn-secondary !p-2" title="Sugerir con IA">✨</button>
+                    </div>
+                </div>
+                <div id="ai-actions-container" class="mt-4 pt-4 border-t border-border hidden"></div>
+                <div id="ai-result-panel-edit" class="mt-4 p-4 bg-secondary rounded-lg hidden"></div>
+                <div class="flex justify-end gap-2 pt-4">
+                    ${item ? `<button type="button" id="deleteItemButton" class="btn btn-secondary !bg-red-500/10 !text-red-500 mr-auto">Eliminar</button>` : ''}
+                    <button type="button" onclick="document.getElementById('editPanel').classList.add('hidden')" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                </div>
+            </form>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+
+    const form = modal.querySelector('#editForm');
+    form.onsubmit = handleSaveItem;
+
+    if (item) {
+        document.getElementById('deleteItemButton').onclick = (e) => deleteItem(e, item.id);
+    }
+    
+    modal.querySelector('.type-selector').addEventListener('click', e => {
+        const button = e.target.closest('.type-btn');
+        if (button) {
+            const newType = button.dataset.type;
+            modal.querySelectorAll('.type-btn').forEach(b => b.classList.replace('btn-primary', 'btn-secondary'));
+            button.classList.replace('btn-secondary', 'btn-primary');
+            document.getElementById('newType').value = newType;
+            updateEditFormFields(newType, initialData);
+        }
+    });
+    
+    const pasteBtn = document.getElementById('paste-url-btn');
+    if (pasteBtn) {
+        pasteBtn.onclick = async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                document.getElementById('newActionText').value = text;
+            } catch (err) {
+                console.error('Failed to read clipboard contents: ', err);
+                showToast('No se pudo leer el portapapeles.', 'error');
+            }
+        };
+    }
+
+    updateEditFormFields(type, initialData);
+    populateCategorySuggestions(type);
+}
+
+
+function updateEditFormFields(type, item = null) {
+    const richEditor = document.getElementById('newActionRich');
+    const textEditor = document.getElementById('newActionText');
+    const iconField = document.getElementById('iconFieldContainer');
+    const shortcutField = document.getElementById('shortcutFieldContainer');
+    const actionLabel = document.getElementById('actionLabel');
+    const pasteBtnContainer = document.getElementById('paste-button-container');
+    const aiActionsContainer = document.getElementById('ai-actions-container');
+    const aiResultPanel = document.getElementById('ai-result-panel-edit');
+
+    richEditor.classList.add('hidden');
+    textEditor.classList.add('hidden');
+    iconField.style.display = 'block';
+    shortcutField.classList.add('hidden');
+    pasteBtnContainer.classList.add('hidden');
+    aiActionsContainer.classList.add('hidden');
+    aiResultPanel.classList.add('hidden');
+
+    if(type === 'Buscador'){
+        shortcutField.classList.remove('hidden');
+        actionLabel.textContent = 'URL / Acción';
+        textEditor.classList.remove('hidden');
+        if (item) textEditor.value = item.action;
+    } else if (type === 'Nota') {
+        actionLabel.textContent = 'Contenido';
+        richEditor.classList.remove('hidden');
+        iconField.style.display = 'none';
+        if (item && typeof item.action === 'string') richEditor.innerHTML = item.action;
+        
+        aiActionsContainer.classList.remove('hidden');
+        aiActionsContainer.innerHTML = `
+            <h3 class="font-semibold mb-2 text-muted-foreground">✨ Asistente de IA para Notas</h3>
+            <div class="flex flex-wrap gap-2">
+                <button type="button" id="ai-summarize-btn" class="btn btn-secondary"><i class="fas fa-compress-alt mr-2"></i>Resumir</button>
+                <button type="button" id="ai-continue-btn" class="btn btn-secondary"><i class="fas fa-pen-fancy mr-2"></i>Continuar</button>
+                <button type="button" id="ai-fix-btn" class="btn btn-secondary"><i class="fas fa-check-double mr-2"></i>Corregir</button>
+            </div>
+        `;
+        document.getElementById('ai-summarize-btn').onclick = () => handleNoteAction('summarize');
+        document.getElementById('ai-continue-btn').onclick = () => handleNoteAction('continue');
+        document.getElementById('ai-fix-btn').onclick = () => handleNoteAction('fix');
+
+    } else if (type === 'Tarea') {
+        actionLabel.textContent = 'Tareas (una por línea)';
+        richEditor.classList.remove('hidden');
+        iconField.style.display = 'none';
+        if (item && Array.isArray(item.action)) {
+            richEditor.innerHTML = item.action.map(t => `<div>${t.text}</div>`).join('');
+        }
+        
+        aiActionsContainer.classList.remove('hidden');
+        aiActionsContainer.innerHTML = `
+            <h3 class="font-semibold mb-2 text-muted-foreground">✨ Asistente de IA para Tareas</h3>
+            <button type="button" id="ai-suggest-tasks-btn" class="btn btn-secondary"><i class="fas fa-list-ol mr-2"></i>Sugerir Pasos</button>
+        `;
+        document.getElementById('ai-suggest-tasks-btn').onclick = handleTaskSuggestion;
+
+    } else if (type === 'Promp') {
+        actionLabel.textContent = 'Contenido del Prompt';
+        richEditor.classList.remove('hidden');
+        iconField.style.display = 'none';
+        if (item && typeof item.action === 'string') richEditor.innerHTML = item.action;
+    } else if (type === 'Video') {
+        actionLabel.textContent = 'URL del Video';
+        textEditor.classList.remove('hidden');
+        pasteBtnContainer.classList.remove('hidden');
+        if (item) textEditor.value = item.action;
+    } else { // Link
+        actionLabel.textContent = 'URL / Acción';
+        textEditor.classList.remove('hidden');
+        if (item) textEditor.value = item.action;
+    }
+}
+
+function populateCategorySuggestions(itemType) {
+    const dataList = document.getElementById("category-suggestions");
+    if (!dataList) return;
+    dataList.innerHTML = '';
+    const categories = [...new Set(data.items.filter(item => item.type === itemType).map(item => item.category).filter(Boolean))].sort();
+    categories.forEach(cat => dataList.innerHTML += `<option value="${cat}"></option>`);
+}
+
+function handleSaveItem(event) {
+    event.preventDefault();
+    const id = document.getElementById("editItemId").value;
+    const type = document.getElementById("newType").value;
+    let action;
+    if (type === 'Nota' || type === 'Promp') {
+        action = document.getElementById('newActionRich').innerHTML;
+    } else if (type === 'Tarea') {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = document.getElementById('newActionRich').innerHTML;
+        const existingTasks = id ? (data.items.find(i => String(i.id) === id)?.action || []) : [];
+        action = Array.from(tempDiv.children).map((child, index) => ({ text: (child.textContent || child.innerText).trim(), status: existingTasks[index]?.status || false })).filter(t => t.text);
+    } else {
+        action = document.getElementById('newActionText').value;
+    }
+    
+    let icon = document.getElementById("newIcon").value.trim();
+    if (!icon && (type === 'Link' || type === 'Buscador' || type === 'Video')) {
+        try {
+            const url = new URL(action);
+            icon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
+        } catch (e) { console.error("URL inválida:", action); }
+    }
+    if (type === 'Video' && !icon.trim()) {
+        icon = 'fab fa-youtube'; // Default icon for videos
+    }
+
+    const newItemData = {
+        title: document.getElementById("newTitle").value.trim() || 'Sin Título',
+        action, type,
+        category: document.getElementById("newCategory").value.trim() || 'Sin Categoría',
+        icon,
+        tags: document.getElementById("newTags").value.split(",").map(tag => tag.trim()).filter(Boolean)
+    };
+
+    if (type === 'Buscador') {
+        const shortcut = document.getElementById("newShortcut").value.trim().toLowerCase();
+        if (shortcut) {
+            const otherEngineWithShortcut = data.items.find(i => i.type === 'Buscador' && i.shortcut === shortcut && String(i.id) !== id);
+            if (otherEngineWithShortcut) {
+                showToast(`Atajo "${shortcut}" ya está en uso por "${otherEngineWithShortcut.title}".`, 'error');
+                return;
+            }
+            newItemData.shortcut = shortcut;
+        }
+    }
+
+    if (id) {
+        const index = data.items.findIndex(i => String(i.id) === id);
+        if (index !== -1) data.items[index] = { ...data.items[index], ...newItemData };
+    } else {
+        newItemData.id = Date.now();
+        newItemData.isFavorite = false;
+        data.items.push(newItemData);
+    }
+    
+    saveData().then(() => {
+        refreshUI();
+        document.getElementById("editPanel").classList.add("hidden");
+        showToast(`Elemento "${newItemData.title}" guardado.`);
+    });
+}
+
 function deleteItem(event, id) {
     event.stopPropagation();
     showConfirmModal("¿Seguro que quieres eliminar este elemento?", (confirmed) => {
