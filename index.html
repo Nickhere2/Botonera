@@ -2610,11 +2610,32 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error.message || `Error HTTP: ${response.status}`);
+            let errorMessage = `Error HTTP: ${response.status}`;
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error?.message || errorMessage;
+                if (response.status === 400 && errorMessage.includes('API key not valid')) {
+                    errorMessage = "API Key inválida o mal configurada. Revísala en Ajustes.";
+                } else if (response.status === 429) {
+                    errorMessage = "Límite de peticiones a la API alcanzado. Inténtalo más tarde.";
+                }
+            } catch(e) {
+                // Couldn't parse JSON, stick with the status code
+            }
+            throw new Error(errorMessage);
         }
 
         const responseData = await response.json();
+        // Check for empty or malformed response from Gemini
+        if (!responseData.candidates || !responseData.candidates[0].content || !responseData.candidates[0].content.parts) {
+            console.warn("Respuesta inesperada de la API de Gemini:", responseData);
+            // Check for safety ratings blocking the response
+            const finishReason = responseData.candidates?.[0]?.finishReason;
+            if (finishReason === 'SAFETY') {
+                 throw new Error("La respuesta fue bloqueada por filtros de seguridad.");
+            }
+            throw new Error("La IA devolvió una respuesta vacía o con formato incorrecto.");
+        }
         return responseData.candidates[0].content.parts[0].text;
     } catch (error) {
         console.error("Error llamando a la API de Gemini:", error);
@@ -3268,4 +3289,8 @@ Responde solo con el array de IDs en formato JSON.`;
 </script>
 </body>
 </html>
+" between the  and  in the "index.html" file, which is open in the Canvas on the right.
+
+### User Query:
+hay un error al cargar la api. corrige el codigo completo y dime que otras funciones te parece que deberia de tener la app?
 
