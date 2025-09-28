@@ -1,533 +1,322 @@
 <!DOCTYPE html>
-<html lang="es" class="h-full">
+<html lang="es">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard</title>
+  <title>Dashboard Prototype</title>
 
-  <!-- Inter font -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
 
-  <!-- Tailwind CSS -->
+  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#8b5cf6'
+          },
+          spacing: {
+            sidebar: '280px'
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
 
   <!-- Font Awesome 6 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://kit.fontawesome.com/yourkit.js" crossorigin="anonymous"></script>
 
   <style>
-    :root { color-scheme: dark; }
-    html, body { height: 100%; }
-    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans"; }
-    .card-hover { transition: transform 200ms ease, box-shadow 200ms ease, opacity 150ms ease; }
-    .card-hover:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,0.35); }
-    .dropdown-root { overflow: visible; position: relative; }
-    .kebab-btn { opacity: 0.5; transition: opacity 150ms ease; }
-    .card-hover:hover .kebab-btn { opacity: 1; }
-    .video-card .play-overlay { opacity: 0; transition: opacity 200ms ease; }
-    .video-card:hover .play-overlay { opacity: 1; }
-    .hidden-important { display: none !important; } /* Útil para filtros */
+    body { font-family: 'Inter', sans-serif; }
   </style>
 </head>
-<body class="bg-gray-900 text-gray-200">
+<body class="dark">
+  <div class="flex h-screen text-gray-200">
 
-  <!-- Layout -->
-  <div class="min-h-screen">
     <!-- Sidebar -->
-    <aside class="fixed left-0 top-0 h-screen w-[280px] bg-gray-800 border-r border-gray-700 flex flex-col">
-      <!-- Header -->
-      <div class="p-4 border-b border-gray-700">
-        <div class="flex items-center gap-3">
-          <img src="https://via.placeholder.com/64" alt="Logo" class="h-16 w-16 rounded-lg object-cover"/>
-          <div>
-            <div class="text-white font-bold text-lg">Mi Dashboard</div>
-            <div class="text-gray-400 text-sm">Productividad</div>
-          </div>
+    <aside class="w-sidebar bg-gray-800 flex flex-col justify-between">
+      <!-- Logo & nav -->
+      <div>
+        <div class="p-4">
+          <img src="https://via.placeholder.com/64" alt="Logo" class="mx-auto"/>
         </div>
+        <nav class="mt-6">
+          <ul>
+            <li>
+              <a href="#" class="flex items-center px-4 py-3 bg-purple-900/50 text-white rounded-lg">
+                <i class="fas fa-home mr-3"></i> Inicio
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+                <i class="fas fa-search mr-3"></i> Buscadores
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+                <i class="fas fa-link mr-3"></i> Links
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+                <i class="fas fa-brain mr-3"></i> Prompts
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+                <i class="fas fa-check-double mr-3"></i> Notas y Tareas
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+                <i class="fas fa-tv mr-3"></i> Videos
+              </a>
+            </li>
+            <li>
+              <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+                <i class="fas fa-robot mr-3"></i> IA
+              </a>
+            </li>
+          </ul>
+        </nav>
       </div>
 
-      <!-- Nav -->
-      <nav class="flex-1 py-3 px-2 space-y-1">
-        <a href="#inicio" class="group flex items-center gap-3 px-3 py-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white bg-purple-900/50">
-          <i class="fa-solid fa-house text-purple-400"></i>
-          <span class="font-medium">Inicio</span>
-        </a>
-        <a href="#buscadores" class="group flex items-center gap-3 px-3 py-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-          <i class="fa-solid fa-magnifying-glass text-gray-400 group-hover:text-white"></i>
-          <span class="font-medium">Buscadores</span>
-        </a>
-        <a href="#links" class="group flex items-center gap-3 px-3 py-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-          <i class="fa-solid fa-link text-gray-400 group-hover:text-white"></i>
-          <span class="font-medium">Links</span>
-        </a>
-        <a href="#prompts" class="group flex items-center gap-3 px-3 py-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-          <i class="fa-solid fa-brain text-gray-400 group-hover:text-white"></i>
-          <span class="font-medium">Prompts</span>
-        </a>
-        <a href="#notas" class="group flex items-center gap-3 px-3 py-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-          <i class="fa-solid fa-check-double text-gray-400 group-hover:text-white"></i>
-          <span class="font-medium">Notas y Tareas</span>
-        </a>
-        <a href="#videos" class="group flex items-center gap-3 px-3 py-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-          <i class="fa-solid fa-tv text-gray-400 group-hover:text-white"></i>
-          <span class="font-medium">Videos</span>
-        </a>
-        <a href="#ia" class="group flex items-center gap-3 px-3 py-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-          <i class="fa-solid fa-robot text-gray-400 group-hover:text-white"></i>
-          <span class="font-medium">IA</span>
-        </a>
-      </nav>
-
-      <!-- Footer -->
-      <div class="p-3 border-t border-gray-700 mt-auto">
-        <a href="#ajustes" class="flex items-center gap-3 px-3 py-2 rounded-md text-gray-300 hover:bg-gray-700 hover:text-white">
-          <i class="fa-solid fa-gear text-gray-400"></i>
-          <span class="font-medium">Ajustes</span>
-        </a>
+      <!-- Ajustes -->
+      <div class="p-4">
+        <button id="openSettings" class="w-full flex items-center px-4 py-3 hover:bg-gray-700 rounded-lg">
+          <i class="fas fa-cog mr-3"></i> Ajustes
+        </button>
       </div>
     </aside>
 
-    <!-- Main -->
-    <main class="ml-[280px] min-h-screen bg-gray-900" id="inicio">
+    <!-- Main content -->
+    <main class="flex-1 bg-gray-900 overflow-auto p-6">
       <!-- Header -->
-      <header class="sticky top-0 z-40 bg-gray-900/80 backdrop-blur border-b border-gray-800">
-        <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 class="text-xl sm:text-2xl font-extrabold tracking-wider text-white">INICIO</h1>
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-3xl font-extrabold uppercase">Inicio</h1>
 
-          <!-- Hybrid Search Bar -->
-          <div class="w-full max-w-xl">
-            <div class="dropdown-root flex items-center gap-2 bg-gray-800 border border-gray-700 rounded-xl px-2 py-2 focus-within:ring-2 ring-purple-500/50">
-              <!-- Engine selector -->
-              <button id="engineBtn" type="button" class="flex items-center gap-2 rounded-lg px-3 py-2 hover:bg-gray-700 text-gray-200">
-                <span id="engineIcon" class="inline-flex h-6 w-6 items-center justify-center rounded-md bg-purple-600 text-white">
-                  <i class="fa-solid fa-sparkles"></i>
-                </span>
-                <span id="engineLabel" class="text-sm font-semibold">Búsqueda en la App</span>
-                <i class="fa-solid fa-chevron-down text-gray-400 text-xs"></i>
-              </button>
-
-              <!-- Input -->
-              <input id="searchInput" type="text" class="flex-1 bg-transparent border-0 focus:outline-none text-gray-100 placeholder-gray-400 px-2 py-1"
-                     placeholder="Busca en tu contenido de la app..." />
-
-              <!-- Dropdown -->
-              <div id="engineMenu" class="hidden absolute left-2 top-[110%] w-64 bg-gray-800 border border-gray-700 rounded-lg shadow-xl z-50">
-                <div class="p-2">
-                  <button data-engine="app" class="flex items-center justify-between w-full gap-3 px-3 py-2 rounded-md hover:bg-gray-700 text-left">
-                    <span class="flex items-center gap-2">
-                      <span class="inline-flex h-5 w-5 items-center justify-center rounded bg-purple-600 text-white text-xs">
-                        <i class="fa-solid fa-sparkles"></i>
-                      </span>
-                      <span class="text-sm">Búsqueda en la App</span>
-                    </span>
-                    <kbd class="px-1.5 py-0.5 text-xs bg-gray-700 text-gray-300 rounded">a</kbd>
-                  </button>
-
-                  <div class="my-2 h-px bg-gray-700"></div>
-
-                  <button data-engine="google" class="flex items-center justify-between w-full gap-3 px-3 py-2 rounded-md hover:bg-gray-700 text-left">
-                    <span class="flex items-center gap-2">
-                      <i class="fa-brands fa-google text-red-400"></i>
-                      <span class="text-sm">Google</span>
-                    </span>
-                    <kbd class="px-1.5 py-0.5 text-xs bg-gray-700 text-gray-300 rounded">g</kbd>
-                  </button>
-
-                  <button data-engine="youtube" class="flex items-center justify-between w-full gap-3 px-3 py-2 rounded-md hover:bg-gray-700 text-left">
-                    <span class="flex items-center gap-2">
-                      <i class="fa-brands fa-youtube text-red-500"></i>
-                      <span class="text-sm">YouTube</span>
-                    </span>
-                    <kbd class="px-1.5 py-0.5 text-xs bg-gray-700 text-gray-300 rounded">y</kbd>
-                  </button>
-                </div>
-              </div>
-            </div>
+        <!-- Hybrid Search Bar -->
+        <div class="relative w-2/5">
+          <div class="flex bg-gray-800 rounded-lg border border-gray-700 ring-offset-2 focus-within:ring-2 focus-within:ring-primary">
+            <button id="engineBtn" class="flex items-center px-4 text-gray-200 hover:bg-gray-700 rounded-l-lg">
+              <i id="engineIcon" class="fas fa-app text-primary mr-2"></i>
+              <span id="engineLabel" class="mr-2">App</span>
+              <i class="fas fa-chevron-down text-sm"></i>
+            </button>
+            <input
+              id="searchInput"
+              type="text"
+              placeholder="Buscar en la App..."
+              class="flex-1 bg-transparent px-4 py-3 focus:outline-none text-gray-100 placeholder-gray-400"
+            />
           </div>
+
+          <!-- Engine Dropdown -->
+          <ul id="engineMenu" class="hidden absolute mt-1 w-full bg-gray-800 rounded-lg border border-gray-700 z-10">
+            <li
+              class="flex items-center justify-between px-4 py-3 hover:bg-gray-700 cursor-pointer"
+              data-icon="fas fa-app"
+              data-label="App"
+              data-placeholder="Buscar en la App..."
+            >
+              <span><i class="fas fa-app text-primary mr-2"></i> App</span>
+              <kbd class="text-xs bg-gray-700 px-1 rounded">a</kbd>
+            </li>
+            <li class="border-t border-gray-700"></li>
+            <li
+              class="flex items-center justify-between px-4 py-3 hover:bg-gray-700 cursor-pointer"
+              data-icon="fab fa-google"
+              data-label="Google"
+              data-placeholder="Buscar en Google..."
+            >
+              <span><i class="fab fa-google text-primary mr-2"></i> Google</span>
+              <kbd class="text-xs bg-gray-700 px-1 rounded">g</kbd>
+            </li>
+            <li
+              class="flex items-center justify-between px-4 py-3 hover:bg-gray-700 cursor-pointer"
+              data-icon="fab fa-youtube"
+              data-label="YouTube"
+              data-placeholder="Buscar en YouTube..."
+            >
+              <span><i class="fab fa-youtube text-primary mr-2"></i> YouTube</span>
+              <kbd class="text-xs bg-gray-700 px-1 rounded">y</kbd>
+            </li>
+          </ul>
         </div>
-      </header>
+      </div>
 
-      <!-- Content -->
-      <section class="max-w-7xl mx-auto px-6 py-6">
-        <div id="cardsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <!-- Link card -->
-          <article class="dropdown-root card-hover group relative rounded-xl border border-gray-700 overflow-hidden bg-gray-800"
-                   data-type="link" data-title="Guía de Diseño Minimal" data-tags="interfaz inspiración diseño">
-            <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=1200&auto=format&fit=crop');"></div>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
-
-            <button class="kebab-btn absolute top-3 right-3 z-50 p-2 rounded-md bg-black/30 hover:bg-black/50 text-white">
-              <i class="fa-solid fa-ellipsis-vertical"></i>
-            </button>
-            <div class="menu hidden absolute right-3 top-12 z-[60] w-44 bg-gray-800 border border-gray-700 rounded-md shadow-xl">
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="edit">Editar</button>
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="favorite">Favorito</button>
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="delete">Eliminar</button>
-            </div>
-
-            <div class="relative p-4 mt-28">
-              <div class="text-white font-bold text-lg">Guía de Diseño Minimal</div>
-              <div class="text-gray-300 text-sm">link • interfaz • inspiración</div>
-            </div>
-          </article>
-
-          <!-- Video card -->
-          <article class="dropdown-root card-hover video-card relative rounded-xl border border-gray-700 overflow-hidden bg-gray-800"
-                   data-type="video" data-title="Tips de UX para Dashboards" data-tags="video ux productividad">
-            <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1529107386315-3030e0b53cf9?q=80&w=1200&auto=format&fit=crop');"></div>
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent"></div>
-
-            <div class="play-overlay absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div class="h-16 w-16 rounded-full bg-black/50 border border-white/30 flex items-center justify-center">
-                <i class="fa-solid fa-play text-white text-xl ml-1"></i>
-              </div>
-            </div>
-
-            <button class="kebab-btn absolute top-3 right-3 z-50 p-2 rounded-md bg-black/30 hover:bg-black/50 text-white">
-              <i class="fa-solid fa-ellipsis-vertical"></i>
-            </button>
-            <div class="menu hidden absolute right-3 top-12 z-[60] w-52 bg-gray-800 border border-gray-700 rounded-md shadow-xl">
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="edit">Editar</button>
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="favorite">Favorito</button>
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="analyze">Analizar con IA</button>
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="delete">Eliminar</button>
-            </div>
-
-            <div class="relative p-4 mt-28">
-              <div class="text-white font-bold text-lg">Tips de UX para Dashboards</div>
-              <div class="text-gray-300 text-sm">video • ux • productividad</div>
-            </div>
-          </article>
-
-          <!-- Note card -->
-          <article class="dropdown-root card-hover relative rounded-xl border border-gray-700 bg-gray-800"
-                   data-type="note" data-title="Idea: Mejora de tarjetas" data-tags="notas ui interacción">
-            <div class="absolute left-0 top-0 h-full w-1 bg-yellow-400"></div>
-
-            <button class="kebab-btn absolute top-3 right-3 z-50 p-2 rounded-md bg-black/30 hover:bg-black/50 text-white">
-              <i class="fa-solid fa-ellipsis-vertical"></i>
-            </button>
-            <div class="menu hidden absolute right-3 top-12 z-[60] w-44 bg-gray-800 border border-gray-700 rounded-md shadow-xl">
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="edit">Editar</button>
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="favorite">Favorito</button>
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="delete">Eliminar</button>
-            </div>
-
-            <div class="p-4">
-              <div class="text-white font-semibold">Idea: Mejora de tarjetas</div>
-              <div class="text-gray-400 text-xs mb-2">Notas</div>
-              <p class="text-gray-300 text-sm line-clamp-3">Agregar efecto lift, bordes suaves y menú kebab con z-index alto. Probar overlay en tarjetas con imagen.</p>
-            </div>
-          </article>
-
-          <!-- Task card -->
-          <article class="dropdown-root card-hover relative rounded-xl border border-gray-700 bg-gray-800"
-                   data-type="task" data-title="Implementar barra de búsqueda híbrida" data-tags="tareas búsqueda motores">
-            <div class="absolute left-0 top-0 h-full w-1 bg-blue-400"></div>
-
-            <button class="kebab-btn absolute top-3 right-3 z-50 p-2 rounded-md bg-black/30 hover:bg-black/50 text-white">
-              <i class="fa-solid fa-ellipsis-vertical"></i>
-            </button>
-            <div class="menu hidden absolute right-3 top-12 z-[60] w-44 bg-gray-800 border border-gray-700 rounded-md shadow-xl">
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="edit">Editar</button>
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="favorite">Favorito</button>
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="delete">Eliminar</button>
-            </div>
-
-            <div class="p-4">
-              <div class="text-white font-semibold">Implementar barra de búsqueda híbrida</div>
-              <div class="text-gray-400 text-xs mb-2">Tareas</div>
-              <p class="text-gray-300 text-sm line-clamp-3">Selector de motor por clic, menú persistente, placeholders dinámicos y atajos de teclado para motores.</p>
-            </div>
-          </article>
-
-          <!-- Prompt card -->
-          <article class="dropdown-root card-hover relative rounded-xl border border-gray-700 bg-gray-800 flex items-center gap-4 p-4"
-                   data-type="prompt" data-title="Prompt: Título de video" data-tags="prompt creativo youtube">
-            <div class="flex-shrink-0 h-12 w-12 rounded-lg bg-purple-700/30 text-purple-400 flex items-center justify-center">
-              <i class="fa-solid fa-brain"></i>
-            </div>
-
-            <button class="kebab-btn absolute top-3 right-3 z-50 p-2 rounded-md bg-black/30 hover:bg-black/50 text-white">
-              <i class="fa-solid fa-ellipsis-vertical"></i>
-            </button>
-            <div class="menu hidden absolute right-3 top-12 z-[60] w-44 bg-gray-800 border border-gray-700 rounded-md shadow-xl">
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="edit">Editar</button>
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="favorite">Favorito</button>
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700" data-action="delete">Eliminar</button>
-            </div>
-
-            <div>
-              <div class="text-white font-semibold">Prompt: Título de video</div>
-              <div class="text-gray-400 text-sm">Genera 10 títulos atractivos</div>
-            </div>
-          </article>
+      <!-- Card Grid -->
+      <div class="grid grid-cols-3 gap-6">
+        <!-- Link/Video Card -->
+        <div class="relative group bg-gray-800 rounded-lg border border-gray-700 overflow-hidden h-48">
+          <img
+            src="https://via.placeholder.com/400x200"
+            alt="Visual"
+            class="object-cover w-full h-full"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-gray-900 to-transparent"></div>
+          <div class="absolute bottom-4 left-4 text-white">
+            <h2 class="font-bold">Video Título</h2>
+          </div>
+          <button
+            class="absolute top-3 right-3 text-gray-200 opacity-50 group-hover:opacity-100"
+          >
+            <i class="fas fa-ellipsis-vertical"></i>
+          </button>
+          <ul class="hidden group-hover:block absolute top-10 right-3 bg-gray-800 rounded-lg border border-gray-700 z-20">
+            <li class="px-4 py-2 hover:bg-gray-700 cursor-pointer">Editar</li>
+            <li class="px-4 py-2 hover:bg-gray-700 cursor-pointer">Favorito</li>
+            <li class="px-4 py-2 hover:bg-gray-700 cursor-pointer">Analizar con IA</li>
+            <li class="px-4 py-2 hover:bg-gray-700 cursor-pointer">Eliminar</li>
+          </ul>
         </div>
-      </section>
 
-      <!-- IA Section -->
-      <section class="max-w-7xl mx-auto px-6 pb-24" id="ia">
-        <h2 class="text-lg font-bold tracking-wide text-white mb-4">IA</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <!-- WhatsApp Assistant Card -->
-          <article class="dropdown-root card-hover relative rounded-xl border border-gray-700 bg-gray-800 p-4">
-            <button class="kebab-btn absolute top-3 right-3 z-50 p-2 rounded-md bg-black/30 hover:bg-black/50 text-white" aria-label="Más opciones">
-              <i class="fa-solid fa-ellipsis-vertical"></i>
-            </button>
-            <div class="menu hidden absolute right-3 top-12 z-[60] w-40 bg-gray-800 border border-gray-700 rounded-md shadow-xl">
-              <button class="w-full text-left px-3 py-2 hover:bg-gray-700">Editar Bot</button>
-            </div>
-
-            <div class="flex items-center gap-3 mb-3">
-              <div class="h-10 w-10 rounded-lg bg-green-600/20 text-green-400 flex items-center justify-center">
-                <i class="fa-brands fa-whatsapp"></i>
-              </div>
-              <div class="text-white font-semibold">Asistente WhatsApp</div>
-            </div>
-
-            <label for="wa-input" class="text-sm text-gray-300 mb-2 block">Tu mensaje / contexto</label>
-            <textarea id="wa-input" rows="4" class="w-full bg-gray-900 border border-gray-700 rounded-lg p-3 text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 ring-purple-500/50" placeholder="Escribe la intención y datos clave para generar el mensaje..."></textarea>
-
-            <div class="mt-3 flex items-center gap-2">
-              <button id="wa-generate" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#8b5cf6] text-white hover:scale-[1.02] transition-transform">
-                <i class="fa-solid fa-wand-magic-sparkles"></i>
-                Generar Mensaje
-              </button>
-            </div>
-
-            <div class="mt-4">
-              <div class="text-sm text-gray-400 mb-1">Salida IA</div>
-              <div id="wa-output" class="min-h-[96px] bg-gray-900 border border-gray-700 rounded-lg p-3 text-gray-100 text-sm whitespace-pre-wrap" aria-readonly="true"></div>
-            </div>
-
-            <div class="mt-4">
-              <button id="wa-copy-open" class="w-full inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-green-600 text-white hover:scale-[1.02] transition-transform">
-                <i class="fa-brands fa-whatsapp"></i>
-                Copiar y Abrir en WhatsApp
-              </button>
-            </div>
-          </article>
+        <!-- Note/Task Card -->
+        <div class="relative group bg-gray-800 rounded-lg border border-gray-700 p-5">
+          <div class="absolute top-0 left-0 h-full w-1 bg-yellow-400 rounded-l-lg"></div>
+          <button class="absolute top-3 right-3 text-gray-200 opacity-50 group-hover:opacity-100">
+            <i class="fas fa-ellipsis-vertical"></i>
+          </button>
+          <h3 class="font-semibold mb-2">Nota Importante</h3>
+          <p class="text-gray-400 text-sm line-clamp-3">
+            Aquí va un resumen breve del contenido de la nota o tarea...
+          </p>
         </div>
-      </section>
 
-      <!-- FAB -->
-      <button id="fabAdd" class="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-[#8b5cf6] text-white shadow-lg flex items-center justify-center hover:scale-105 transition-transform">
-        <i class="fa-solid fa-plus"></i>
-      </button>
+        <!-- Prompt/Buscador Card -->
+        <div class="relative group bg-gray-800 rounded-lg border border-gray-700 flex items-center justify-center p-6">
+          <i class="fas fa-brain text-primary text-3xl"></i>
+          <button class="absolute top-3 right-3 text-gray-200 opacity-50 group-hover:opacity-100">
+            <i class="fas fa-ellipsis-vertical"></i>
+          </button>
+          <span class="mt-2 block">Generar Prompt</span>
+        </div>
+
+        <!-- IA Bot Card -->
+        <div class="relative bg-gray-800 rounded-lg border border-gray-700 p-6">
+          <button class="absolute top-3 right-3 text-gray-200 opacity-50 group-hover:opacity-100">
+            <i class="fas fa-ellipsis-vertical"></i>
+          </button>
+          <h3 class="flex items-center text-lg font-semibold mb-4">
+            <i class="fab fa-whatsapp text-green-500 mr-2"></i> Asistente WhatsApp
+          </h3>
+          <textarea
+            rows="4"
+            class="w-full bg-gray-700 border border-gray-600 rounded-lg p-3 text-gray-100 placeholder-gray-400 focus:outline-none mb-4"
+            placeholder="Escribe tu mensaje..."
+          ></textarea>
+          <button class="bg-primary px-4 py-2 rounded-md text-white hover:bg-purple-700 mb-4">
+            Generar Mensaje
+          </button>
+          <div class="bg-gray-700 border border-gray-600 rounded-lg p-3 text-gray-100 mb-4">
+            Mensaje generado aparecerá aquí…
+          </div>
+          <button class="bg-green-600 px-4 py-2 rounded-md text-white hover:bg-green-500 w-full">
+            Copiar y Abrir en WhatsApp
+          </button>
+        </div>
+      </div>
     </main>
+
+    <!-- FAB -->
+    <button class="fixed bottom-6 right-6 bg-primary text-white rounded-full w-14 h-14 
+                   flex items-center justify-center text-2xl hover:scale-110 transition">
+      <i class="fas fa-plus"></i>
+    </button>
   </div>
 
-  <!-- JS -->
+  <!-- Settings Modal -->
+  <div id="settingsModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center
+                                 justify-center hidden z-30">
+    <div class="bg-gray-800 rounded-lg w-96 p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-xl font-semibold">Ajustes</h2>
+        <button id="closeSettings" class="text-gray-400 hover:text-gray-200">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <form class="space-y-6">
+        <div>
+          <h3 class="font-semibold mb-2">Sincronización con GitHub</h3>
+          <input
+            type="text"
+            placeholder="Gist ID"
+            class="w-full mb-2 bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100 focus:outline-none"
+          />
+          <input
+            type="password"
+            placeholder="GitHub Token"
+            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100 focus:outline-none"
+          />
+        </div>
+        <div>
+          <h3 class="font-semibold mb-2">Integración con IA</h3>
+          <input
+            type="password"
+            placeholder="Gemini API Key"
+            class="w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-gray-100 focus:outline-none"
+          />
+        </div>
+        <div class="flex justify-end">
+          <button
+            type="submit"
+            class="bg-primary px-4 py-2 rounded-md text-white hover:bg-purple-700"
+          >
+            Guardar y Recargar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Interactividad -->
   <script>
-    // --- Hybrid Search state/persistence ---
+    // Dropdown del buscador híbrido
     const engineBtn = document.getElementById('engineBtn');
     const engineMenu = document.getElementById('engineMenu');
-    const engineLabel = document.getElementById('engineLabel');
+    const menuItems = engineMenu.querySelectorAll('li[data-icon]');
     const engineIcon = document.getElementById('engineIcon');
+    const engineLabel = document.getElementById('engineLabel');
     const searchInput = document.getElementById('searchInput');
-    const cardsGrid = document.getElementById('cardsGrid');
 
-    const engineConfig = {
-      app: {
-        label: 'Búsqueda en la App',
-        placeholder: 'Busca en tu contenido de la app...',
-        iconHTML: '<i class="fa-solid fa-sparkles"></i>',
-        colorClass: 'bg-purple-600'
-      },
-      google: {
-        label: 'Google',
-        placeholder: 'Busca en Google...',
-        iconHTML: '<i class="fa-brands fa-google"></i>',
-        colorClass: 'bg-red-500'
-      },
-      youtube: {
-        label: 'YouTube',
-        placeholder: 'Busca en YouTube...',
-        iconHTML: '<i class="fa-brands fa-youtube"></i>',
-        colorClass: 'bg-red-600'
-      }
-    };
-
-    let currentEngine = localStorage.getItem('engine') || 'app';
-    setEngine(currentEngine); // inicializa
-
-    function setEngine(key) {
-      const cfg = engineConfig[key] || engineConfig.app;
-      currentEngine = key;
-      localStorage.setItem('engine', currentEngine);
-      engineLabel.textContent = cfg.label;
-      engineIcon.className = `inline-flex h-6 w-6 items-center justify-center rounded-md ${cfg.colorClass} text-white`;
-      engineIcon.innerHTML = cfg.iconHTML;
-      searchInput.placeholder = cfg.placeholder;
-      if (currentEngine === 'app') applyAppFilter(searchInput.value.trim());
-      else clearAppFilter();
-    }
-
-    function toggleMenu(menuEl, show) {
-      if (show) menuEl.classList.remove('hidden');
-      else menuEl.classList.add('hidden');
-    }
-
-    // Toggle engine dropdown
-    engineBtn.addEventListener('click', (e) => {
+    engineBtn.addEventListener('click', e => {
       e.stopPropagation();
-      toggleMenu(engineMenu, engineMenu.classList.contains('hidden'));
+      engineMenu.classList.toggle('hidden');
     });
 
-    // Engine menu selection
-    engineMenu.querySelectorAll('button[data-engine]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const key = e.currentTarget.getAttribute('data-engine');
-        setEngine(key);
-        toggleMenu(engineMenu, false);
-        searchInput.focus();
+    menuItems.forEach(item => {
+      item.addEventListener('click', () => {
+        const icon = item.dataset.icon;
+        const label = item.dataset.label;
+        const placeholder = item.dataset.placeholder;
+
+        engineIcon.className = icon;
+        engineLabel.textContent = label;
+        searchInput.placeholder = placeholder;
+        engineMenu.classList.add('hidden');
       });
     });
 
-    // Keyboard shortcuts for engines (fuera de inputs)
-    document.addEventListener('keydown', (e) => {
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
-      if (e.key === 'g') setEngine('google');
-      if (e.key === 'y') setEngine('youtube');
-      if (e.key === 'a') setEngine('app');
+    document.addEventListener('click', () => {
+      engineMenu.classList.add('hidden');
     });
 
-    // Global click-away: cierra menús
-    document.addEventListener('click', (e) => {
-      if (!engineMenu.contains(e.target) && !engineBtn.contains(e.target)) toggleMenu(engineMenu, false);
-      document.querySelectorAll('.menu').forEach(menu => {
-        const kebabBtn = menu.parentElement.querySelector('.kebab-btn');
-        if (!menu.contains(e.target) && !kebabBtn.contains(e.target)) menu.classList.add('hidden');
-      });
+    // Modal de Ajustes
+    const openSettings = document.getElementById('openSettings');
+    const closeSettings = document.getElementById('closeSettings');
+    const settingsModal = document.getElementById('settingsModal');
+
+    openSettings.addEventListener('click', () => settingsModal.classList.remove('hidden'));
+    closeSettings.addEventListener('click', () => settingsModal.classList.add('hidden'));
+    settingsModal.addEventListener('click', e => {
+      if (e.target === settingsModal) settingsModal.classList.add('hidden');
     });
-
-    // Kebab menus
-    document.querySelectorAll('.kebab-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const menu = btn.parentElement.querySelector('.menu');
-        const willShow = menu.classList.contains('hidden');
-        document.querySelectorAll('.menu').forEach(m => m.classList.add('hidden'));
-        if (willShow) menu.classList.remove('hidden');
-      });
-    });
-
-    // Kebab actions demo
-    document.querySelectorAll('.menu button[data-action]').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const action = e.currentTarget.getAttribute('data-action');
-        const card = e.currentTarget.closest('article');
-        const title = card?.getAttribute('data-title') || 'Elemento';
-        if (action === 'delete') {
-          card.classList.add('hidden-important');
-        } else if (action === 'favorite') {
-          card.classList.toggle('ring-2');
-          card.classList.toggle('ring-yellow-400');
-        } else if (action === 'edit') {
-          alert(`Editar: ${title}`);
-        } else if (action === 'analyze') {
-          alert(`Analizar con IA: ${title}`);
-        }
-        e.currentTarget.closest('.menu').classList.add('hidden');
-      });
-    });
-
-    // --- Búsqueda híbrida ---
-    // Enter: abre Google/YouTube; App: filtra tarjetas
-    searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        const query = searchInput.value.trim();
-        if (!query && currentEngine !== 'app') return;
-
-        if (currentEngine === 'google') {
-          window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank', 'noopener,noreferrer');
-        } else if (currentEngine === 'youtube') {
-          window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`, '_blank', 'noopener,noreferrer');
-        } else {
-          applyAppFilter(query);
-        }
-      }
-    });
-
-    // En modo App, filtra en vivo
-    searchInput.addEventListener('input', (e) => {
-      if (currentEngine === 'app') {
-        const q = e.target.value.trim();
-        applyAppFilter(q);
-      }
-    });
-
-    function applyAppFilter(query) {
-      const q = (query || '').toLowerCase();
-      const cards = cardsGrid.querySelectorAll('article[data-title]');
-      let matchCount = 0;
-      cards.forEach(card => {
-        const title = (card.getAttribute('data-title') || '').toLowerCase();
-        const tags = (card.getAttribute('data-tags') || '').toLowerCase();
-        const type = (card.getAttribute('data-type') || '').toLowerCase();
-        const matches = !q || title.includes(q) || tags.includes(q) || type.includes(q);
-        card.classList.toggle('hidden-important', !matches);
-        if (matches) matchCount++;
-      });
-      // Feedback mínimo en placeholder si no hay resultados
-      if (currentEngine === 'app') {
-        searchInput.title = matchCount === 0 ? 'Sin resultados en la app' : '';
-      }
-    }
-
-    function clearAppFilter() {
-      cardsGrid.querySelectorAll('article').forEach(card => {
-        card.classList.remove('hidden-important');
-      });
-      searchInput.title = '';
-    }
-
-    // --- IA: WhatsApp Assistant ---
-    const waInput = document.getElementById('wa-input');
-    const waGenerate = document.getElementById('wa-generate');
-    const waOutput = document.getElementById('wa-output');
-    const waCopyOpen = document.getElementById('wa-copy-open');
-
-    waGenerate.addEventListener('click', () => {
-      const text = waInput.value.trim();
-      if (!text) {
-        waOutput.textContent = 'Escribe contexto o datos para generar el mensaje.';
-        return;
-      }
-      const result =
-`Hola 👋,
-
-${text}
-
-Quedo atento/a. ¡Gracias!`;
-      waOutput.textContent = result;
-    });
-
-    waCopyOpen.addEventListener('click', async () => {
-      const msg = waOutput.textContent.trim();
-      if (!msg) return;
-      try { await navigator.clipboard.writeText(msg); } catch {}
-      const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-      window.open(url, '_blank', 'noopener,noreferrer');
-    });
-
-    // --- FAB demo ---
-    document.getElementById('fabAdd').addEventListener('click', () => {
-      alert('Acción rápida: crear nuevo elemento.');
-    });
-
-    // Restaurar filtro si engine app y hay texto guardado (opcional)
-    // Guardado del último término
-    searchInput.addEventListener('change', () => {
-      if (currentEngine === 'app') localStorage.setItem('appQuery', searchInput.value.trim());
-    });
-    if (currentEngine === 'app') {
-      const last = localStorage.getItem('appQuery');
-      if (last) {
-        searchInput.value = last;
-        applyAppFilter(last);
-      }
-    }
   </script>
 </body>
 </html>
