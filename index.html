@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="kebab-menu search-selector-menu" style="top: 100%; left:0; width: 240px; margin-top: 0.5rem; z-index: 30;">
                         ${(data.searchEngines || []).map((engine, index) => `
                             ${index === 1 && data.searchEngines.length > 1 ? '<div class="w-full h-px bg-border my-1"></div>' : ''}
-                            <a data-engine-id="${engine.id}" class="kebab-menu-item search-engine-option ${currentSearchEngine && engine.id === currentSearchEngine.id ? 'bg-primary text-white' : ''}">
+                            <a data-engine-id="${engine.id || engine.title}" class="kebab-menu-item search-engine-option ${currentSearchEngine && (engine.id === currentSearchEngine.id || engine.title === currentSearchEngine.title) ? 'bg-primary text-white' : ''}">
                                 ${engine.isApp ? `<img src="${engine.icon}" class="w-5 h-5">` : `<i class="${engine.icon} w-5 text-center ${engine.iconColor || ''}"></i>`}
                                 <span class="flex-grow">${engine.title}</span>
                                 ${engine.shortcut ? `<kbd>${engine.shortcut}</kbd>` : ''}
@@ -416,10 +416,13 @@ document.addEventListener('DOMContentLoaded', () => {
             currentHeader.addEventListener('click', (e) => {
                 const option = e.target.closest('.search-engine-option');
                 if (option) {
-                    currentSearchEngine = (data.searchEngines || []).find(eng => eng.id === option.dataset.engineId);
+                    const engineId = option.dataset.engineId;
+                    currentSearchEngine = (data.searchEngines || []).find(eng => String(eng.id) === engineId || eng.title === engineId);
                     updateSearchSelectorButton(currentHeader);
                     currentHeader.querySelectorAll('.search-engine-option').forEach(opt => opt.classList.remove('bg-primary', 'text-white'));
                     option.classList.add('bg-primary', 'text-white');
+                    const searchMenu = currentHeader.querySelector('.search-selector-container');
+                    if (searchMenu) searchMenu.classList.remove('is-open');
                 }
             });
         }
@@ -428,13 +431,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- EVENT LISTENERS ---
     function setupEventListeners() {
         document.addEventListener('click', (e) => {
-            // Close Kebab menu if clicked outside
             const openKebab = document.querySelector('.kebab-menu-container.is-open');
             if (openKebab && !openKebab.contains(e.target)) {
                 openKebab.classList.remove('is-open');
             }
 
-            // Toggle Kebab menu
             const kebabButton = e.target.closest('.kebab-button');
             if (kebabButton) {
                 e.stopPropagation();
@@ -443,6 +444,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.querySelectorAll('.kebab-menu-container.is-open').forEach(menu => menu.classList.remove('is-open'));
                 if (!wasOpen) container.classList.add('is-open');
             }
+
+            const searchSelectorBtn = e.target.closest('#search-selector-button');
+            const openSearchMenu = document.querySelector('.search-selector-container.is-open');
+            if (openSearchMenu && !openSearchMenu.contains(e.target)) {
+                openSearchMenu.classList.remove('is-open');
+            }
+            if (searchSelectorBtn) {
+                 e.stopPropagation();
+                 const container = searchSelectorBtn.closest('.search-selector-container');
+                 container.classList.toggle('is-open');
+            }
         });
 
         document.getElementById('main-content').addEventListener('click', (e) => {
@@ -450,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (card && !e.target.closest('.kebab-menu-container, a, button')) {
                 const id = parseInt(card.dataset.id, 10);
                 let item = (data.items || []).find(i => i.id === id);
-                if(!item) item = (data.searchEngines || []).find(i => i.id === id); // Also check search engines
+                if(!item) item = (data.searchEngines || []).find(i => i.id === id || i.title === id);
                 
                 if (!item) return;
 
@@ -459,7 +471,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 } else if (item.type === 'Link') {
                     window.open(item.action, '_blank');
                 } else if (item.type === 'Buscador') {
-                    // Implement search action
+                    currentSearchEngine = item;
+                    switchTab('inicio');
                 }
             }
         });
