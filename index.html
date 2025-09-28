@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Botonera Estable</title>
+    <title>Botonera Definitiva - IA de Video</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -450,9 +450,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('main-content').addEventListener('click', (e) => {
             const card = e.target.closest('.card');
             if (card && !e.target.closest('.kebab-menu-container, a, button')) {
-                const id = parseInt(card.dataset.id, 10);
-                let item = (data.items || []).find(i => i.id === id);
-                if(!item) item = (data.searchEngines || []).find(i => i.id === id || i.title === id);
+                const id = card.dataset.id;
+                let item = (data.items || []).find(i => String(i.id) === id);
+                if(!item) item = (data.searchEngines || []).find(i => String(i.id) === id || i.title === id);
                 
                 if (!item) return;
 
