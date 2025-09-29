@@ -383,22 +383,13 @@ async function loadData() {
         data = { ...defaults, ...loadedData };
         data.items = (data.items || []).map(i => ({...i, isFavorite: i.isFavorite || false}));
 
-        // Ensure default iaBots are present if none exist or if a new default is added
-        if (!data.iaBots) data.iaBots = [];
-        mockData.iaBots.forEach(defaultBot => {
-            if (!data.iaBots.some(bot => bot.id === defaultBot.id)) {
-                data.iaBots.push(defaultBot);
-            }
-        });
+        // Ensure default iaBots are present only if the user has none.
+        if (!data.iaBots || data.iaBots.length === 0) {
+            data.iaBots = mockData.iaBots;
+        }
         
-        // Ensure default events are present and merge them safely
-        if (!data.events) data.events = [];
-        mockData.events.forEach(defaultEvent => {
-            if (!data.events.some(event => event.id === defaultEvent.id)) {
-                data.events.push(defaultEvent);
-            }
-        });
-
+        // The user's saved events are now the source of truth.
+        // The merging logic that caused issues has been removed.
 
         // Generar atajos para buscadores si no existen
         const searchEngines = data.items.filter(item => item.type === 'Buscador');
@@ -3328,6 +3319,7 @@ Responde solo con el array de IDs en formato JSON.`;
 </script>
 </body>
 </html>
+
 
 
 
