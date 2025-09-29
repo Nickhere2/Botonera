@@ -169,7 +169,7 @@
                         </div>
                         <button id="close-help-button" class="mt-6 mx-auto block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Entendido</button>
                     </div>
-                    <iframe id="video-player" class="hidden absolute top-0 left-0 w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
+                    <iframe id="video-player" class="hidden absolute top-0 left-0 w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"></iframe>
                     <div id="floating-controls" class="absolute top-1/2 right-4 -translate-y-1/2 flex flex-col space-y-3 z-20"><button id="zap-prev" title="Canal anterior" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><button id="zap-next" title="Canal siguiente" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div>
                 </div>
             </div>
@@ -489,6 +489,10 @@
                     logo.src = channel.type === 'youtube-embed' ? `https://img.youtube.com/vi/${channel.id}/mqdefault.jpg` : generateLogoSvg(channel);
                     logo.alt = channel.name;
                     logo.className = "w-full h-full object-cover rounded-lg";
+                    logo.onerror = function() {
+                        this.onerror=null; 
+                        this.src=generateLogoSvg(channel);
+                    };
                     const overlay = document.createElement('div');
                     overlay.className = "absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-lg flex items-start justify-end p-1.5 space-x-1";
                     const nameEl = document.createElement('span');
@@ -681,6 +685,10 @@
                     return candidate.content.parts[0].text;
                 } else {
                     console.error("Invalid response structure from API:", result);
+                    // Check for blocked responses
+                    if (result.promptFeedback && result.promptFeedback.blockReason) {
+                        throw new Error(`Request blocked: ${result.promptFeedback.blockReason}`);
+                    }
                     throw new Error('Invalid response structure from API');
                 }
             }
@@ -694,8 +702,7 @@
                 repairContent.style.display = 'none';
 
                 const channelName = channelToRepair.name;
-                // Enhanced prompt for Gemini to find available, embeddable live streams
-                const prompt = `Eres un experto en YouTube. Encuentra el stream EN VIVO más reciente y actualmente disponible del canal llamado "${channelName}". Asegúrate de que el video sea público y pueda ser incrustado. Responde únicamente con un objeto JSON que contenga "name" (el título del video encontrado) y "videoId" (el ID del video de YouTube). Si no encuentras un stream en vivo válido, responde con la palabra "NULL".`;
+                const prompt = `Your task is to act as a YouTube search expert. Find the most recent and currently available LIVE stream from the channel named "${channelName}". Ensure the video is public and embeddable. Respond ONLY with a single, valid JSON object with two keys: "name" (the video title) and "videoId" (the YouTube video ID). If you cannot find a valid live stream, respond with the exact word "NULL".`;
 
                 try {
                     const response = await callGeminiAPI(prompt, true); // Use search grounding
@@ -780,9 +787,8 @@
                 if (!userInput) return;
 
                 showLoading('Procesando tu petición...');
-
-                // Enhanced prompt for Gemini to provide better search terms
-                const prompt = `Eres un asistente experto de YouTube. Tu tarea es convertir la petición de un usuario en una consulta de búsqueda de YouTube efectiva y concisa para encontrar videos relevantes y actualmente disponibles. La petición del usuario es: "${userInput}". Responde únicamente con los términos de búsqueda optimizados, sin comillas ni texto adicional.`;
+                
+                const prompt = `You are an expert YouTube search assistant. Convert the user's request into an effective, concise YouTube search query for finding relevant, currently available videos. The user's request is: "${userInput}". Respond ONLY with the optimized search terms, without quotes or additional text.`;
 
                 try {
                     const searchTerm = await callGeminiAPI(prompt, true); // Use search grounding
@@ -944,13 +950,19 @@
                 iaChannelModal.classList.add('hidden');
                 showLoading('Creando tu canal temático...');
                 
-                // Enhanced prompt for Gemini to find available, embeddable videos
-                const prompt = `Eres un experto en YouTube. Basado en el tema "${theme}", crea una lista de 8 videos de YouTube muy relevantes, **actualmente disponibles y públicos**, que puedan ser incrustados. Prioriza videos que sean streams en vivo si el tema lo sugiere. Responde únicamente con un array JSON válido de objetos. Cada objeto debe tener dos propiedades: "name" (un título corto y atractivo para el video) y "videoId" (el ID del video de YouTube). No incluyas nada más en tu respuesta.`;
+                const prompt = `Your task is to act as a YouTube search expert. Based on the theme "${theme}", create a list of 8 highly relevant, **currently available, public, and embeddable** YouTube videos. Prioritize live streams if the theme suggests it (e.g., "news," "live music"). Your response MUST BE ONLY a valid JSON array of objects. Do not include any other text, markdown, or explanations. If you cannot find 8 valid videos, return an empty array []. Each object in the array must have two properties: "name" (a short, attractive title for the video) and "videoId" (the YouTube video ID).`;
 
                 try {
                     const response = await callGeminiAPI(prompt, true); // Use search grounding
                     const cleanedResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const parsedVideos = JSON.parse(cleanedResponse);
+                    
+                    let parsedVideos;
+                    try {
+                        parsedVideos = JSON.parse(cleanedResponse);
+                    } catch (jsonError) {
+                         console.error("JSON parsing error:", jsonError);
+                         throw new Error("La IA devolvió un formato inesperado.");
+                    }
 
                     if (Array.isArray(parsedVideos) && parsedVideos.length > 0) {
                         thematicChannels = parsedVideos;
@@ -966,7 +978,7 @@
 
                 } catch(error) {
                     console.error("Failed to create IA channel:", error);
-                    showToast('Hubo un error al crear el canal con IA. Asegúrate de tener una clave API válida.', 'error'); // More specific error
+                    showToast(`Error al crear canal: ${error.message}`, 'error');
                 } finally {
                     hideLoading();
                 }
