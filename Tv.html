@@ -961,7 +961,7 @@
                         parsedVideos = JSON.parse(cleanedResponse);
                     } catch (jsonError) {
                          console.error("JSON parsing error:", jsonError);
-                         throw new Error("La IA devolvió un formato inesperado.");
+                         throw new Error("La IA devolvió un formato inesperado o no pudo encontrar videos. Intenta con otro tema.");
                     }
 
                     if (Array.isArray(parsedVideos) && parsedVideos.length > 0) {
