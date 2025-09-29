@@ -384,27 +384,20 @@ async function loadData() {
         data.items = (data.items || []).map(i => ({...i, isFavorite: i.isFavorite || false}));
 
         // Ensure default iaBots are present if none exist or if a new default is added
-        if (!data.iaBots || data.iaBots.length === 0) {
-            data.iaBots = mockData.iaBots; // Use mockData's iaBots as default if empty
-        } else {
-            // Merge in new default iaBots if they don't exist in saved data
-            mockData.iaBots.forEach(defaultBot => {
-                if (!data.iaBots.some(bot => bot.id === defaultBot.id)) {
-                    data.iaBots.push(defaultBot);
-                }
-            });
-        }
-        // Ensure default events are present if none exist
-        if (!data.events || data.events.length === 0) {
-             data.events = mockData.events;
-        } else {
-            // Merge in new default events if they don't exist in saved data
-            mockData.events.forEach(defaultEvent => {
-                if (!data.events.some(event => event.id === defaultEvent.id)) {
-                    data.events.push(defaultEvent);
-                }
-            });
-        }
+        if (!data.iaBots) data.iaBots = [];
+        mockData.iaBots.forEach(defaultBot => {
+            if (!data.iaBots.some(bot => bot.id === defaultBot.id)) {
+                data.iaBots.push(defaultBot);
+            }
+        });
+        
+        // Ensure default events are present and merge them safely
+        if (!data.events) data.events = [];
+        mockData.events.forEach(defaultEvent => {
+            if (!data.events.some(event => event.id === defaultEvent.id)) {
+                data.events.push(defaultEvent);
+            }
+        });
 
 
         // Generar atajos para buscadores si no existen
@@ -3335,5 +3328,6 @@ Responde solo con el array de IDs en formato JSON.`;
 </script>
 </body>
 </html>
+
 
 
