@@ -327,6 +327,8 @@
             const manualUrlInput = document.getElementById('manual-url-input');
             const updateStreamManualBtn = document.getElementById('update-stream-manual-btn');
             const cancelRepairModal = document.getElementById('cancel-repair-modal');
+            const geminiApiKeyInput = document.getElementById('gemini-api-key');
+
 
             // App State
             let allChannels = [], favorites = [], watchLaterList = [];
@@ -644,7 +646,7 @@
             }
 
             // --- Gemini API Functions ---
-            async function callGeminiAPI(prompt) {
+            async function callGeminiAPI(prompt, useSearch = false) {
                 const apiKey = geminiApiKey || "";
                 if (!apiKey) {
                     showToast('Falta la clave API de Gemini en los ajustes.', 'error');
@@ -657,6 +659,10 @@
                         parts: [{ text: prompt }]
                     }]
                 };
+
+                if (useSearch) {
+                    payload.tools = [{ "google_search": {} }];
+                }
 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -688,10 +694,11 @@
                 repairContent.style.display = 'none';
 
                 const channelName = channelToRepair.name;
-                const prompt = `Eres un experto en YouTube. Encuentra el stream EN VIVO más reciente del canal llamado "${channelName}". Responde únicamente con un objeto JSON que contenga "name" (el título del video) y "videoId" (el ID del video de YouTube). Si no encuentras un stream en vivo, responde con la palabra "NULL".`;
+                // Enhanced prompt for Gemini to find available, embeddable live streams
+                const prompt = `Eres un experto en YouTube. Encuentra el stream EN VIVO más reciente y actualmente disponible del canal llamado "${channelName}". Asegúrate de que el video sea público y pueda ser incrustado. Responde únicamente con un objeto JSON que contenga "name" (el título del video encontrado) y "videoId" (el ID del video de YouTube). Si no encuentras un stream en vivo válido, responde con la palabra "NULL".`;
 
                 try {
-                    const response = await callGeminiAPI(prompt);
+                    const response = await callGeminiAPI(prompt, true); // Use search grounding
                     const cleanedResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
 
                     if (cleanedResponse.toUpperCase() === 'NULL') {
@@ -706,11 +713,12 @@
                         iaResultTitle.textContent = parsedResponse.name;
                         updateStreamIaBtn.dataset.newVideoId = parsedResponse.videoId;
                     } else {
-                        throw new Error('AI response did not contain a videoId');
+                        throw new Error('AI response did not contain a valid videoId');
                     }
 
                 } catch (error) {
                     console.error("Stream repair failed:", error);
+                    showToast('Error en la reparación automática. Intenta manualmente.', 'error');
                     iaResultContainer.classList.add('hidden');
                     manualRepairContainer.classList.remove('hidden');
                     manualRepairTitle.textContent = "Búsqueda automática fallida. Introduce la URL manualmente:";
@@ -753,7 +761,7 @@
             settingsButton.addEventListener('click', () => {
                 document.getElementById('gist-id').value = gistId || '';
                 document.getElementById('gist-token').value = gistToken || '';
-                document.getElementById('gemini-api-key').value = geminiApiKey || '';
+                geminiApiKeyInput.value = geminiApiKey || ''; // Load API key
                 gistError.textContent = gistStartupError || '';
                 gistModal.classList.remove('hidden');
             });
@@ -773,10 +781,11 @@
 
                 showLoading('Procesando tu petición...');
 
-                const prompt = `Eres un asistente experto de YouTube. Tu tarea es convertir la petición de un usuario en una consulta de búsqueda de YouTube efectiva y concisa. La petición del usuario es: "${userInput}". Responde únicamente con los términos de búsqueda optimizados, sin comillas ni texto adicional.`;
+                // Enhanced prompt for Gemini to provide better search terms
+                const prompt = `Eres un asistente experto de YouTube. Tu tarea es convertir la petición de un usuario en una consulta de búsqueda de YouTube efectiva y concisa para encontrar videos relevantes y actualmente disponibles. La petición del usuario es: "${userInput}". Responde únicamente con los términos de búsqueda optimizados, sin comillas ni texto adicional.`;
 
                 try {
-                    const searchTerm = await callGeminiAPI(prompt);
+                    const searchTerm = await callGeminiAPI(prompt, true); // Use search grounding
                     const cleanedSearchTerm = searchTerm.replace(/["'`]/g, '').trim();
                     
                     let url = `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanedSearchTerm)}`;
@@ -786,6 +795,7 @@
                     window.open(url, '_blank');
                 } catch (error) {
                     console.error('Smart search failed:', error);
+                    showToast('La búsqueda inteligente falló. Intentando búsqueda normal.', 'error');
                     // Fallback to normal search if API fails
                     let url = `https://www.youtube.com/results?search_query=${encodeURIComponent(userInput)}`;
                     if (liveFilter.checked) { url += '&sp=EgJAAQ%253D%253D'; }
@@ -821,11 +831,11 @@
                 e.preventDefault();
                 const id = document.getElementById('gist-id').value.trim();
                 const token = document.getElementById('gist-token').value.trim();
-                const apiKey = document.getElementById('gemini-api-key').value.trim();
+                const apiKey = geminiApiKeyInput.value.trim(); // Get API key from input
                 
                 localStorage.setItem('gist_id', id);
                 localStorage.setItem('gist_token', token);
-                localStorage.setItem('gemini_api_key', apiKey);
+                localStorage.setItem('gemini_api_key', apiKey); // Save API key
 
                 gistModal.classList.add('hidden');
                 location.reload();
@@ -878,7 +888,7 @@
             });
 
             document.addEventListener('keydown', (e) => {
-                if (document.activeElement.tagName === 'INPUT' || !channelModal.classList.contains('hidden') || !gistModal.classList.contains('hidden')) return;
+                if (document.activeElement.tagName === 'INPUT' || !channelModal.classList.contains('hidden') || !gistModal.classList.contains('hidden') || !iaChannelModal.classList.contains('hidden') || !repairModal.classList.contains('hidden')) return;
                 
                 if (e.key === 'Escape' && document.fullscreenElement) {
                     document.exitFullscreen();
@@ -934,10 +944,11 @@
                 iaChannelModal.classList.add('hidden');
                 showLoading('Creando tu canal temático...');
                 
-                const prompt = `Basado en el tema "${theme}", crea una lista de 8 videos de YouTube muy relevantes. Responde únicamente con un array JSON válido de objetos. Cada objeto debe tener dos propiedades: "name" (un título corto y atractivo para el video) y "videoId" (el ID del video de YouTube). No incluyas nada más en tu respuesta.`;
+                // Enhanced prompt for Gemini to find available, embeddable videos
+                const prompt = `Eres un experto en YouTube. Basado en el tema "${theme}", crea una lista de 8 videos de YouTube muy relevantes, **actualmente disponibles y públicos**, que puedan ser incrustados. Prioriza videos que sean streams en vivo si el tema lo sugiere. Responde únicamente con un array JSON válido de objetos. Cada objeto debe tener dos propiedades: "name" (un título corto y atractivo para el video) y "videoId" (el ID del video de YouTube). No incluyas nada más en tu respuesta.`;
 
                 try {
-                    const response = await callGeminiAPI(prompt);
+                    const response = await callGeminiAPI(prompt, true); // Use search grounding
                     const cleanedResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
                     const parsedVideos = JSON.parse(cleanedResponse);
 
@@ -948,13 +959,14 @@
                         updateFilterButtons();
                         renderChannelList();
                         turnOffTv(); // Turn off current video to show the new list
+                        showToast('Canal temático creado con éxito!', 'success');
                     } else {
-                        showToast('No se pudieron encontrar videos para ese tema.', 'error');
+                        showToast('La IA no pudo encontrar videos disponibles para ese tema. Intenta con otro tema o reformula tu búsqueda.', 'error');
                     }
 
                 } catch(error) {
                     console.error("Failed to create IA channel:", error);
-                    hideLoading(); // Hide loading on error
+                    showToast('Hubo un error al crear el canal con IA. Asegúrate de tener una clave API válida.', 'error'); // More specific error
                 } finally {
                     hideLoading();
                 }
