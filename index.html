@@ -380,17 +380,36 @@ async function loadData() {
 
     const processLoadedData = (loadedData) => {
         const defaults = { items: [], categories: {}, categoryOrders: {}, favoriteOrders: {}, events: [], iaBots: [] };
-        data = { ...defaults, ...loadedData };
-        data.items = (data.items || []).map(i => ({...i, isFavorite: i.isFavorite || false}));
+        
+        // Start with a clean slate based on defaults
+        data = JSON.parse(JSON.stringify(defaults));
 
-        // Ensure default iaBots are present only if the user has none.
-        if (!data.iaBots || data.iaBots.length === 0) {
+        // Carefully merge properties from loaded data, ensuring data types are correct
+        if (loadedData) {
+            data.items = Array.isArray(loadedData.items) ? loadedData.items.map(i => ({...i, isFavorite: i.isFavorite || false})) : [];
+            data.categories = (typeof loadedData.categories === 'object' && loadedData.categories !== null) ? loadedData.categories : {};
+            data.categoryOrders = (typeof loadedData.categoryOrders === 'object' && loadedData.categoryOrders !== null) ? loadedData.categoryOrders : {};
+            data.favoriteOrders = (typeof loadedData.favoriteOrders === 'object' && loadedData.favoriteOrders !== null) ? loadedData.favoriteOrders : {};
+            data.events = Array.isArray(loadedData.events) ? loadedData.events : [];
+            data.iaBots = Array.isArray(loadedData.iaBots) ? loadedData.iaBots : [];
+        }
+
+        // --- Default Content Seeding ---
+        // Seed default bots only if the user has none
+        if (data.iaBots.length === 0) {
             data.iaBots = mockData.iaBots;
         }
-        
-        // The user's saved events are now the source of truth.
-        // The merging logic that caused issues has been removed.
 
+        // Seed default events only on the very first run to prevent overwriting user data.
+        const hasRunBefore = localStorage.getItem('appHasRunBefore');
+        if (!hasRunBefore) {
+            if (data.events.length === 0) {
+                 data.events = mockData.events;
+            }
+            localStorage.setItem('appHasRunBefore', 'true');
+        }
+
+        // --- Data Migration & Cleanup ---
         // Generar atajos para buscadores si no existen
         const searchEngines = data.items.filter(item => item.type === 'Buscador');
         const usedShortcuts = new Set(searchEngines.map(e => e.shortcut).filter(Boolean));
@@ -411,9 +430,10 @@ async function loadData() {
             }
         });
 
-        if (data.favoriteOrder && !data.favoriteOrders) {
+        // Migrate old favoriteOrder to new favoriteOrders structure
+        if (loadedData && loadedData.favoriteOrder && !loadedData.favoriteOrders) {
             data.favoriteOrders = {};
-            data.favoriteOrder.forEach(id => {
+            loadedData.favoriteOrder.forEach(id => {
                 const item = data.items.find(i => i.id === id);
                 if (item) {
                     const sectionName = Object.keys(typeMap).find(key => {
@@ -428,52 +448,53 @@ async function loadData() {
                     }
                 }
             });
-            delete data.favoriteOrder;
         }
         if (!data.favoriteOrders) {
             data.favoriteOrders = {};
         }
     };
 
+    // --- Loading Strategy ---
     if (!gistId && localData) {
+        // Standard case: load from local storage
         processLoadedData(JSON.parse(localData));
         showToast("Datos cargados desde guardado local.");
         updateSyncStatus('local');
-        ensureAllIcons();
-        initializeUI();
-        return;
-    }
+    } else if (gistId) {
+        // Gist is the source of truth if configured
+        updateSyncStatus('loading');
+        const token = localStorage.getItem('github_pat');
+        const headers = { 'Accept': 'application/vnd.github.v3+json' };
+        if (token) { headers['Authorization'] = `token ${token}`; }
 
-    if (!gistId) {
-        processLoadedData(JSON.parse(JSON.stringify(mockData)));
-        ensureAllIcons();
-        initializeUI();
-        return;
+        try {
+            const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const gistData = await response.json();
+            const fileContent = gistData.files[FILENAME_IN_GIST]?.content;
+            
+            if (!fileContent) {
+                showToast("Archivo no encontrado en Gist. Usando datos locales o de ejemplo.", 'warning');
+                // Fallback to local data or mock data if Gist file is empty
+                processLoadedData(localData ? JSON.parse(localData) : mockData);
+            } else {
+                processLoadedData(JSON.parse(fileContent));
+                showToast("Datos cargados desde Gist.");
+            }
+            updateSyncStatus('synced');
+        } catch (error) {
+            console.error("Fallo al cargar datos de Gist:", error);
+            showToast(`Error al cargar Gist. Usando datos locales.`, 'error');
+            // Critical fallback to local data if Gist fails
+            processLoadedData(localData ? JSON.parse(localData) : mockData);
+            updateSyncStatus('error', 'Error de Gist');
+        }
+    } else {
+        // First run ever: No Gist, no local data. Load mocks and save.
+        processLoadedData(mockData);
+        saveData(); // Immediately persist the initial state
     }
     
-    updateSyncStatus('loading');
-    const token = localStorage.getItem('github_pat');
-    const headers = { 'Accept': 'application/vnd.github.v3+json' };
-    if (token) { headers['Authorization'] = `token ${token}`; }
-
-    try {
-        const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const gistData = await response.json();
-        const fileContent = gistData.files[FILENAME_IN_GIST]?.content;
-        if (!fileContent) {
-            showToast("Archivo no encontrado en Gist. Usando datos de ejemplo.");
-            processLoadedData(mockData);
-        } else {
-            processLoadedData(JSON.parse(fileContent));
-            showToast("Datos cargados desde Gist.");
-        }
-        updateSyncStatus('synced');
-    } catch (error) {
-        console.error("Fallo al cargar datos:", error);
-        showToast(`Error al cargar: ${error.message}.`, 'error');
-        processLoadedData(mockData);
-    }
     ensureAllIcons();
     initializeUI();
 }
@@ -3319,6 +3340,7 @@ Responde solo con el array de IDs en formato JSON.`;
 </script>
 </body>
 </html>
+
 
 
 
