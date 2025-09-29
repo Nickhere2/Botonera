@@ -650,7 +650,7 @@
             }
 
             // --- Gemini API Functions ---
-            async function callGeminiAPI(prompt, useSearch = false) {
+            async function callGeminiAPI(prompt, useSearch = false, systemInstruction = null) {
                 const apiKey = geminiApiKey || "";
                 if (!apiKey) {
                     showToast('Falta la clave API de Gemini en los ajustes.', 'error');
@@ -666,6 +666,12 @@
 
                 if (useSearch) {
                     payload.tools = [{ "google_search": {} }];
+                }
+                
+                if (systemInstruction) {
+                    payload.systemInstruction = {
+                        parts: [{ text: systemInstruction }]
+                    };
                 }
 
                 const response = await fetch(apiUrl, {
@@ -685,7 +691,6 @@
                     return candidate.content.parts[0].text;
                 } else {
                     console.error("Invalid response structure from API:", result);
-                    // Check for blocked responses
                     if (result.promptFeedback && result.promptFeedback.blockReason) {
                         throw new Error(`Request blocked: ${result.promptFeedback.blockReason}`);
                     }
@@ -950,18 +955,23 @@
                 iaChannelModal.classList.add('hidden');
                 showLoading('Creando tu canal temático...');
                 
-                const prompt = `Your task is to act as a YouTube search expert. Based on the theme "${theme}", create a list of 8 highly relevant, **currently available, public, and embeddable** YouTube videos. Prioritize live streams if the theme suggests it (e.g., "news," "live music"). Your response MUST BE ONLY a valid JSON array of objects. Do not include any other text, markdown, or explanations. If you cannot find 8 valid videos, return an empty array []. Each object in the array must have two properties: "name" (a short, attractive title for the video) and "videoId" (the YouTube video ID).`;
+                const systemInstruction = `You are an API that returns data in JSON format. Your responses must be strictly valid JSON. Do not include any explanatory text, markdown formatting, or any characters outside of the JSON structure itself.`;
+                const prompt = `Based on the theme "${theme}", create a list of 8 highly relevant, currently available, public, and embeddable YouTube videos. Prioritize live streams if the theme suggests it (e.g., "news," "live music"). Your response MUST BE ONLY a valid JSON array of objects. If you cannot find 8 valid videos, return an empty array []. Each object must have two properties: "name" (a short, attractive title for the video) and "videoId" (the YouTube video ID).`;
 
                 try {
-                    const response = await callGeminiAPI(prompt, true); // Use search grounding
+                    const response = await callGeminiAPI(prompt, true, systemInstruction);
                     const cleanedResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
                     
                     let parsedVideos;
                     try {
-                        parsedVideos = JSON.parse(cleanedResponse);
+                        if (cleanedResponse === "") {
+                            parsedVideos = [];
+                        } else {
+                            parsedVideos = JSON.parse(cleanedResponse);
+                        }
                     } catch (jsonError) {
-                         console.error("JSON parsing error:", jsonError);
-                         throw new Error("La IA devolvió un formato inesperado o no pudo encontrar videos. Intenta con otro tema.");
+                         console.error("JSON parsing error:", jsonError, "Raw response was:", cleanedResponse);
+                         throw new Error("La IA devolvió un formato inesperado. Intenta con otro tema.");
                     }
 
                     if (Array.isArray(parsedVideos) && parsedVideos.length > 0) {
