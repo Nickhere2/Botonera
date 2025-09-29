@@ -233,7 +233,7 @@
                     <h1 id="main-title" class="text-2xl sm:text-3xl font-bold tracking-tight">INICIO</h1>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-4 w-full md:w-auto">
-                    <div id="global-view-switcher" class="view-switcher hidden items-center bg-secondary p-1 rounded-lg ml-auto">
+                    <div id="global-view-switcher" class="view-switcher flex items-center bg-secondary p-1 rounded-lg ml-auto">
                         <button data-view="grid" class="btn btn-sm btn-ghost !rounded-md px-3 py-1"><i class="fas fa-th-large"></i></button>
                         <button data-view="list" class="btn btn-sm btn-ghost !rounded-md px-3 py-1"><i class="fas fa-bars"></i></button>
                         <button data-view="table" title="Vista de Iconos" class="btn btn-sm btn-ghost !rounded-md px-3 py-1"><i class="fas fa-th"></i></button>
@@ -643,14 +643,24 @@ function switchTab(tabName) {
     document.querySelectorAll(".section").forEach(s => s.classList.add("hidden"));
     document.getElementById(`section-${tabName}`).classList.remove("hidden");
     
+    const viewSwitcher = document.getElementById('global-view-switcher');
     const smartAddBtn = document.getElementById('smartAddButton');
+
+    const currentView = viewModes[tabName] || (tabName === 'inicio' ? 'list' : 'grid');
+    document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
     
     // Muestra el botón "+" solo en la pestaña de inicio o IA (para crear nuevos bots)
     smartAddBtn.classList.toggle('hidden', !(tabName === 'inicio' || tabName === 'ia'));
     
-    if (tabName === 'ia') {
+    if (tabName === 'inicio') {
+        viewSwitcher.classList.remove('hidden');
+        renderInicioSection();
+    } else if (tabName === 'ia') {
+        viewSwitcher.classList.add('hidden'); // No view switcher for AI section
         renderAISection(document.getElementById('section-ia'));
-    } else {
+    }
+    else {
+        viewSwitcher.classList.remove('hidden');
         applyGlobalFilter();
     }
 }
@@ -677,8 +687,10 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
         }
     }
     
+    const currentView = viewModes[sectionName] || 'grid';
+
     if (sectionName === 'notes-tasks') {
-        renderNotesAndTasksSection(container, itemsToRender, searchTerm);
+        renderNotesAndTasksSection(container, itemsToRender, searchTerm, currentView);
         return;
     }
 
@@ -719,10 +731,23 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
             catWrapper.innerHTML = `<div class="flex items-center gap-2 mb-4"><h2 class="text-xl font-bold text-muted-foreground category-drag-handle">${categoryName}</h2>${editButtonHTML}</div>`;
 
             const contentContainer = document.createElement('div');
-            contentContainer.className = 'list-view'; // Always use list view now
+            
+            const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
+            contentContainer.className = `item-container ${viewClasses[currentView] || 'card-grid'}`;
             
             categorized[categoryName].forEach(item => {
-                const element = createListItem(item, searchTerm);
+                let element;
+                if (currentView === 'grid') {
+                     if (item.type === 'Nota') element = createNoteCard(item, searchTerm);
+                     else if (item.type === 'Tarea') element = createTaskCard(item, searchTerm);
+                     else if (item.type === 'Promp') element = createPromptCard(item, searchTerm);
+                     else element = createCard(item, searchTerm);
+                } else if (currentView === 'list') {
+                    element = createListItem(item, searchTerm);
+                } else if (currentView === 'table') {
+                    element = createTableItem(item, searchTerm);
+                }
+                
                 if (element) {
                     contentContainer.appendChild(element);
                 }
@@ -813,6 +838,7 @@ function renderDisenoClasico(container) {
     const favoritesWrapper = document.createElement('div');
     favoritesWrapper.className = 'mt-12 space-y-8';
     let favoritesFound = false;
+    const currentView = viewModes['inicio'] || 'list';
 
     ['links', 'prompts', 'notes-tasks', 'videos'].forEach(sectionName => {
         const orderedFavoritesIds = (data.favoriteOrders && data.favoriteOrders[sectionName]) ? data.favoriteOrders[sectionName] : [];
@@ -825,20 +851,19 @@ function renderDisenoClasico(container) {
             sectionWrapper.innerHTML = `<h2 class="text-xl font-bold mb-4 text-muted-foreground">Favoritos de ${sectionTitleText}</h2>`;
             
             const itemsContainer = document.createElement('div');
-            // For the home page, we can still use a card layout for favorites if we want
-            const useGridForFavs = sectionName === 'notes-tasks';
-            itemsContainer.className = useGridForFavs ? 'card-grid' : 'list-view';
+            const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
+            itemsContainer.className = viewClasses[currentView] || 'list-view';
 
             favoriteItems.forEach(item => {
                 let element;
-                if(useGridForFavs) {
-                     if (item.type === 'Nota') element = createNoteCard(item);
+                if (currentView === 'list') element = createListItem(item);
+                else if (currentView === 'grid') {
+                    if (item.type === 'Nota') element = createNoteCard(item);
                     else if (item.type === 'Tarea') element = createTaskCard(item);
                     else if (item.type === 'Promp') element = createPromptCard(item);
                     else element = createCard(item);
-                } else {
-                    element = createListItem(item);
-                }
+                } else element = createTableItem(item);
+                
                 if (element) itemsContainer.appendChild(element);
             });
             
@@ -936,7 +961,7 @@ function getMainSearchBarHTML() {
 }
 
 
-function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
+function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '', currentView) {
     if (itemsToRender.length === 0) {
         renderEmptyState(container, 'notes-tasks');
         return;
@@ -947,8 +972,8 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
     const notes = itemsToRender.filter(item => item.type === 'Nota');
     const tasks = itemsToRender.filter(item => item.type === 'Tarea');
     
-    // This section keeps its card-grid layout for better visual distinction
-    const viewClass = 'card-grid';
+    const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
+    const viewClass = viewClasses[currentView] || 'card-grid';
 
     if (notes.length > 0) {
         const notesWrapper = document.createElement('div');
@@ -957,7 +982,7 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
         const notesContainer = document.createElement('div');
         notesContainer.className = viewClass;
         notes.forEach(note => {
-            let element = createNoteCard(note, searchTerm);
+            let element = (currentView === 'grid') ? createNoteCard(note, searchTerm) : createListItem(note, searchTerm);
             if(element) notesContainer.appendChild(element);
         });
         notesWrapper.appendChild(notesContainer);
@@ -971,7 +996,7 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '') {
         const tasksContainer = document.createElement('div');
         tasksContainer.className = viewClass;
         tasks.forEach(task => {
-            let element = createTaskCard(task, searchTerm);
+            let element = (currentView === 'grid') ? createTaskCard(task, searchTerm) : createListItem(task, searchTerm);
             if(element) tasksContainer.appendChild(element);
         });
         tasksWrapper.appendChild(tasksContainer);
@@ -1108,22 +1133,6 @@ function createListItem(item, searchTerm = '') {
         </div>
     `;
     listItem.addEventListener('click', (e) => handleCardClick(item.id, e));
-    
-    // Add hover preview for specific types
-    if (item.type !== 'Nota' && item.type !== 'Promp' && item.type !== 'Tarea') {
-        listItem.addEventListener('mouseenter', (e) => {
-            clearTimeout(previewTimeout);
-            previewTimeout = setTimeout(() => {
-                showPreviewModal(item, e);
-            }, 500);
-        });
-
-        listItem.addEventListener('mouseleave', () => {
-            clearTimeout(previewTimeout);
-            hidePreviewModal();
-        });
-    }
-
     return listItem;
 }
 
@@ -1157,20 +1166,17 @@ function createTableItem(item, searchTerm = '', isGlobalSearch = false) {
     `;
     tableItem.addEventListener('click', (e) => handleCardClick(item.id, e));
     
-    // This logic is now in createListItem, but we keep it here in case table view is re-enabled
-    if (item.type !== 'Nota' && item.type !== 'Promp' && item.type !== 'Tarea') {
-        tableItem.addEventListener('mouseenter', (e) => {
-            clearTimeout(previewTimeout);
-            previewTimeout = setTimeout(() => {
-                showPreviewModal(item, e);
-            }, 500);
-        });
+    tableItem.addEventListener('mouseenter', (e) => {
+        clearTimeout(previewTimeout);
+        previewTimeout = setTimeout(() => {
+            showPreviewModal(item, e);
+        }, 500);
+    });
 
-        tableItem.addEventListener('mouseleave', () => {
-            clearTimeout(previewTimeout);
-            hidePreviewModal();
-        });
-    }
+    tableItem.addEventListener('mouseleave', () => {
+        clearTimeout(previewTimeout);
+        hidePreviewModal();
+    });
     
     return tableItem;
 }
@@ -1936,17 +1942,20 @@ function openEditPanel(itemId = null, prefillData = null) {
                         <input type="text" id="newShortcut" class="input-base" placeholder="g" maxlength="2" value="${initialData?.shortcut || ''}">
                     </div>
                 </div>
-                 <div>
+                <div>
                     <label class="font-semibold block mb-2">Categoría</label>
-                    <input type="text" id="newCategory" class="input-base" list="category-suggestions" placeholder="Categoría nueva o existente" value="${initialData?.category || ''}">
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="newCategory" class="input-base" list="category-suggestions" placeholder="Categoría nueva o existente" value="${initialData?.category || ''}">
+                        <button type="button" onclick="handleSuggestCategory()" class="btn btn-secondary !p-2" title="Sugerir con IA">✨</button>
+                    </div>
                     <datalist id="category-suggestions"></datalist>
                 </div>
                 <div>
                     <label class="font-semibold block mb-2">Etiquetas (separadas por coma)</label>
-                    <input type="text" id="newTags" class="input-base" placeholder="trabajo, personal" value="${initialData?.tags?.join(', ') || ''}">
-                </div>
-                 <div class="mt-2">
-                    <button type="button" onclick="handleSuggestCategoryAndTags()" class="btn btn-secondary text-sm"><i class="fas fa-magic mr-2"></i>Sugerir Categoría y Etiquetas con IA</button>
+                    <div class="flex items-center gap-2">
+                        <input type="text" id="newTags" class="input-base" placeholder="trabajo, personal" value="${initialData?.tags?.join(', ') || ''}">
+                        <button type="button" onclick="handleSuggestTags()" class="btn btn-secondary !p-2" title="Sugerir con IA">✨</button>
+                    </div>
                 </div>
                 <div id="ai-actions-container" class="mt-4 pt-4 border-t border-border hidden"></div>
                 <div id="ai-result-panel-edit" class="mt-4 p-4 bg-secondary rounded-lg hidden"></div>
@@ -2145,11 +2154,10 @@ function deleteItem(event, id) {
     event.stopPropagation();
     showConfirmModal("¿Seguro que quieres eliminar este elemento?", (confirmed) => {
         if (confirmed) {
-            const numericId = parseInt(id, 10);
-            data.items = data.items.filter(i => i.id !== numericId);
+            data.items = data.items.filter(i => String(i.id) !== String(id));
             if (data.favoriteOrders) {
                 for (const section in data.favoriteOrders) {
-                    data.favoriteOrders[section] = data.favoriteOrders[section].filter(favId => favId !== numericId);
+                    data.favoriteOrders[section] = data.favoriteOrders[section].filter(favId => String(favId) !== String(id));
                 }
             }
             saveData().then(() => {
@@ -2869,7 +2877,7 @@ function toggleBotMenu(event, botId) {
 }
 
 async function generateBotResponse(botId, triggerButton) {
-    const bot = data.iaBots.find(b => b.id === parseInt(botId));
+    const bot = data.iaBots.find(b => b.id === botId);
     if (!bot) return;
 
     const userInput = document.getElementById(`bot-input-${bot.id}`).value.trim();
@@ -3114,7 +3122,30 @@ function showGeneratedItemsModal(items) {
     modal.querySelector('#confirmCancel').onclick = () => modal.classList.add('hidden');
 }
 
-async function handleSuggestCategoryAndTags() {
+async function handleSuggestCategory() {
+    const title = document.getElementById('newTitle').value;
+    const type = document.getElementById('newType').value;
+    const richEditor = document.getElementById('newActionRich');
+    const textEditor = document.getElementById('newActionText');
+    const content = (type === 'Nota' || type === 'Tarea' || type === 'Promp') ? richEditor.innerText : textEditor.value;
+    
+    if (!title && !content) {
+        showToast('Añade un título o contenido para obtener sugerencias.', 'error');
+        return;
+    }
+
+    const existingCategories = [...new Set(data.items.map(item => item.category).filter(Boolean))];
+    const prompt = `Dada la siguiente información de un elemento, sugiere una única y concisa categoría en español. Título: '${title}'. Contenido: '${content}'. Las categorías existentes son: [${existingCategories.join(', ')}]. Si una de las categorías existentes encaja bien, úsala. Si no, sugiere una nueva categoría relevante. Responde solo con el nombre de la categoría.`;
+
+    const triggerButton = document.querySelector('button[onclick="handleSuggestCategory()"]');
+    const suggestion = await callGeminiAPI(prompt, triggerButton);
+
+    if (suggestion) {
+        document.getElementById('newCategory').value = suggestion.trim().replace(/["'\*]/g, '');
+    }
+}
+
+async function handleSuggestTags() {
     const title = document.getElementById('newTitle').value;
     const type = document.getElementById('newType').value;
     const richEditor = document.getElementById('newActionRich');
@@ -3126,37 +3157,13 @@ async function handleSuggestCategoryAndTags() {
         return;
     }
 
-    const triggerButton = document.querySelector('button[onclick="handleSuggestCategoryAndTags()"]');
+    const prompt = `Para un elemento con el título '${title}' y contenido '${content}', sugiere entre 3 y 5 etiquetas relevantes de una sola palabra en español. Sepáralas por comas. Ejemplo: 'cocina, receta, pasta'. Responde solo con las etiquetas.`;
+    
+    const triggerButton = document.querySelector('button[onclick="handleSuggestTags()"]');
+    const suggestions = await callGeminiAPI(prompt, triggerButton);
 
-    const existingCategories = [...new Set(data.items.map(item => item.category).filter(Boolean))];
-    
-    const prompt = `Analiza el siguiente elemento. Título: '${title}'. Contenido: '${content}'. Tipo: '${type}'.
-    Basado en esto, genera una categoría y una lista de etiquetas.
-    - Para la categoría, elige una de las existentes si encaja bien: [${existingCategories.join(', ')}]. Si ninguna encaja, crea una nueva, concisa y en español.
-    - Para las etiquetas, genera un array de 3 a 5 etiquetas relevantes de una sola palabra en español y minúsculas.
-    
-    Devuelve tu respuesta como un único objeto JSON con el formato: {"category": "nombre_categoria", "tags": ["tag1", "tag2", "tag3"]}`;
-
-    const generationConfig = {
-        responseMimeType: "application/json",
-    };
-    
-    const rawResult = await callGeminiAPI(prompt, triggerButton, [], generationConfig);
-    
-    if (rawResult) {
-        try {
-            const result = JSON.parse(rawResult);
-            if (result.category) {
-                document.getElementById('newCategory').value = result.category;
-            }
-            if (result.tags && Array.isArray(result.tags)) {
-                document.getElementById('newTags').value = result.tags.join(', ');
-            }
-            showToast("Sugerencias de IA aplicadas.");
-        } catch (e) {
-            console.error("Error al parsear sugerencias de IA:", e, rawResult);
-            showToast("La IA devolvió un formato inesperado.", "error");
-        }
+    if (suggestions) {
+        document.getElementById('newTags').value = suggestions.trim();
     }
 }
 
@@ -3282,3 +3289,5 @@ Responde solo con el array de IDs en formato JSON.`;
 </script>
 </body>
 </html>
+
+
