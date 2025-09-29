@@ -347,6 +347,13 @@ const mockData = {
             icon: "fas fa-drafting-compass",
             systemPrompt: "Eres un experto en ingeniería de prompts. Tu tarea es ayudar al usuario a construir un 'System Prompt' (instrucciones del sistema) para otro asistente de IA. Basado en la descripción del usuario de lo que quiere que haga su bot, genera un 'System Prompt' detallado y efectivo. El prompt debe definir claramente el rol, la personalidad, las capacidades, las limitaciones y el formato de respuesta del bot. Utiliza un lenguaje claro y estructurado.",
         }
+    ],
+    events: [ // Added mock events for testing agenda
+        { id: 101, title: 'Reunión de Equipo', date: '2025-09-30', type: 'meeting', note: 'Revisar sprint actual', reminderDays: 1 },
+        { id: 102, title: 'Cumpleaños de Juan', date: '2025-10-05', type: 'birthday', note: 'Comprar regalo', reminderDays: 3 },
+        { id: 103, title: 'Pago Factura Internet', date: '2025-10-10', type: 'payment', note: 'Vencimiento', reminderDays: 7 },
+        { id: 104, title: 'Cita con el dentista', date: '2025-10-15', type: 'appointment', note: 'Recordar 2 días antes', reminderDays: 2 },
+        { id: 105, title: 'Aniversario de Empresa', date: '2025-11-01', type: 'anniversary', note: 'Celebración', reminderDays: 0 }
     ]
 };
 
@@ -387,6 +394,18 @@ async function loadData() {
                 }
             });
         }
+        // Ensure default events are present if none exist
+        if (!data.events || data.events.length === 0) {
+             data.events = mockData.events;
+        } else {
+            // Merge in new default events if they don't exist in saved data
+            mockData.events.forEach(defaultEvent => {
+                if (!data.events.some(event => event.id === defaultEvent.id)) {
+                    data.events.push(defaultEvent);
+                }
+            });
+        }
+
 
         // Generar atajos para buscadores si no existen
         const searchEngines = data.items.filter(item => item.type === 'Buscador');
@@ -646,21 +665,29 @@ function switchTab(tabName) {
     const viewSwitcher = document.getElementById('global-view-switcher');
     const smartAddBtn = document.getElementById('smartAddButton');
 
-    const currentView = viewModes[tabName] || (tabName === 'inicio' ? 'list' : 'grid');
+    let currentView;
+    // Forzar la vista de 'iconos' (table) para las secciones especificadas y ocultar el selector
+    if (['inicio', 'buscadores', 'links'].includes(tabName)) {
+        currentView = 'table';
+        viewModes[tabName] = 'table'; // Establecerlo para que las funciones de renderizado lo usen
+        viewSwitcher.classList.add('hidden'); // Ocultar el selector de vista
+    } else {
+        // Lógica original para las otras pestañas
+        currentView = viewModes[tabName] || 'grid'; // El resto por defecto a 'grid'
+        viewSwitcher.classList.remove('hidden');
+    }
+    
     document.querySelectorAll('#global-view-switcher button').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
     
     // Muestra el botón "+" solo en la pestaña de inicio o IA (para crear nuevos bots)
     smartAddBtn.classList.toggle('hidden', !(tabName === 'inicio' || tabName === 'ia'));
     
-    if (tabName === 'inicio') {
-        viewSwitcher.classList.remove('hidden');
-        renderInicioSection();
-    } else if (tabName === 'ia') {
-        viewSwitcher.classList.add('hidden'); // No view switcher for AI section
+    if (tabName === 'ia') {
+        viewSwitcher.classList.add('hidden'); // También ocultar para la sección de IA
         renderAISection(document.getElementById('section-ia'));
-    }
-    else {
-        viewSwitcher.classList.remove('hidden');
+    } else if (tabName === 'inicio') {
+        renderInicioSection();
+    } else {
         applyGlobalFilter();
     }
 }
@@ -887,12 +914,25 @@ function renderHomeAgendaWidget(container, gridClasses) {
     widget.className = `widget ${gridClasses} flex flex-col`;
     
     const upcomingEvents = getUpcomingEvents(30);
+
+    const eventIcons = {
+        reminder: 'fas fa-bell',
+        birthday: 'fas fa-birthday-cake',
+        anniversary: 'fas fa-glass-cheers',
+        meeting: 'fas fa-users',
+        payment: 'fas fa-file-invoice-dollar',
+        appointment: 'fas fa-calendar-check'
+    };
     
     let eventsHTML = upcomingEvents.length > 0
         ? upcomingEvents.map(event => {
             const noteIcon = event.note ? `<i class="fas fa-sticky-note text-gray-500 text-xs ml-1" title="${event.note}"></i>` : '';
+            const typeIconClass = eventIcons[event.type] || 'fa-calendar-day'; // Icono por defecto
             return `
-            <div class="event-item flex items-center gap-2 text-sm py-1">
+            <div class="event-item flex items-center gap-3 text-sm py-1">
+                <div class="w-6 text-center flex-shrink-0">
+                   <i class="${typeIconClass} text-muted-foreground"></i>
+                </div>
                 <div class="flex-grow overflow-hidden">
                     <p class="font-medium truncate">${event.title} ${noteIcon}</p>
                     <p class="text-xs text-muted-foreground">${event.date.toLocaleDateString('es-ES', { timeZone: 'UTC', day: 'numeric', month: 'long' })}</p>
@@ -1254,8 +1294,8 @@ function createTaskCard(item, searchTerm) {
         <div class="flex justify-between items-start">
             <h4 class="font-bold text-lg">${item.title}</h4>
             <div class="card-actions flex gap-1">
-                   <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
-                   <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+                    <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                    <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
             </div>
         </div>
         <div class="overflow-y-auto h-full">${taskListHtml}</div>
@@ -1327,12 +1367,12 @@ function attachSearchBarListeners(container) {
                 if (term) {
                     renderGlobalSearchResults(term);
                 } else if(container) {
-                       container.innerHTML = '';
-                       if(document.querySelector('#main-nav .active')?.dataset.section === 'inicio') {
-                           renderInicioSection();
-                       } else {
-                           applyGlobalFilter();
-                       }
+                     container.innerHTML = '';
+                     if(document.querySelector('#main-nav .active')?.dataset.section === 'inicio') {
+                         renderInicioSection();
+                     } else {
+                         applyGlobalFilter();
+                     }
                 }
             }
         }, 300));
@@ -1450,7 +1490,7 @@ function renderSearchEngineDropdown() {
     }
 
     if(container.innerHTML === '') {
-           container.innerHTML = `<p class="text-sm text-muted-foreground text-center p-4">No se encontraron motores.</p>`;
+            container.innerHTML = `<p class="text-sm text-muted-foreground text-center p-4">No se encontraron motores.</p>`;
     }
 }
 
@@ -1528,13 +1568,13 @@ function performMainSearch() {
     if (!activeContainer) return;
     const term = activeContainer.querySelector('.main-search-input').value;
     if (!term.trim()) {
-           showToast("Por favor, escribe un término de búsqueda.", 'error');
+            showToast("Por favor, escribe un término de búsqueda.", 'error');
         return;
     }
     if (!selectedSearchEngineId) {
         showToast("Por favor, selecciona un motor de búsqueda.", 'error');
-       return;
-   }
+        return;
+    }
 
     if (selectedSearchEngineId === 'global') {
         performAISearch(term);
@@ -1665,7 +1705,7 @@ function renderGlobalSearchResults(searchTerm, itemsToRender = null) {
 
     // Clear previous results but preserve the search bar if it exists
     if (resultsContainer.id === 'ai-search-results-container') {
-           resultsContainer.innerHTML = '';
+            resultsContainer.innerHTML = '';
     } else {
         const searchBar = container.querySelector('.main-search-bar-container');
         container.innerHTML = '';
@@ -1720,22 +1760,28 @@ function getUpcomingEvents(days) {
     if (!data.events || data.events.length === 0) return [];
     
     const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0); // Normalize today to start of day
     const limitDate = new Date();
-    limitDate.setHours(0, 0, 0, 0);
+    limitDate.setHours(0, 0, 0, 0); // Normalize limitDate to start of day
     limitDate.setDate(limitDate.getDate() + days);
 
     const upcoming = data.events.map(event => {
         const dateParts = event.date.split('-').map(Number);
         const eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-        eventDate.setHours(0,0,0,0);
+        eventDate.setHours(0,0,0,0); // Normalize event date to start of day
         
         let nextOccurrence = new Date(eventDate);
 
         if (event.type === 'birthday' || event.type === 'anniversary') {
             nextOccurrence.setFullYear(today.getFullYear());
+            // If the event for this year has already passed, set it for next year
             if (nextOccurrence < today) {
                 nextOccurrence.setFullYear(today.getFullYear() + 1);
+            }
+            // If the event for next year is too far (beyond limitDate), don't show it for this cycle
+            // This implicitly handles events that already occurred this year and would appear far in the future if only setFullYear(today.getFullYear() + 1) was done
+            if (nextOccurrence > limitDate) {
+                 return null; // Don't include this recurring event if next occurrence is too far
             }
         }
         
@@ -2422,11 +2468,11 @@ function openVideoPlayerModal(item) {
     
     modal.innerHTML = `
         <div class="modal-container w-full max-w-4xl p-4 flex flex-col gap-4 relative">
-             <button onclick="closeVideoPlayerModal()" class="absolute -top-3 -right-3 btn btn-secondary !rounded-full !p-0 w-8 h-8 z-10">&times;</button>
-             <div class="w-full aspect-video">
+            <button onclick="closeVideoPlayerModal()" class="absolute -top-3 -right-3 btn btn-secondary !rounded-full !p-0 w-8 h-8 z-10">&times;</button>
+            <div class="w-full aspect-video">
                 <iframe class="w-full h-full rounded-lg" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-             </div>
-             <h3 class="text-xl font-bold">${item.title}</h3>
+            </div>
+            <h3 class="text-xl font-bold">${item.title}</h3>
         </div>
     `;
     modal.classList.remove('hidden');
@@ -2598,7 +2644,7 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
     }
 
     if (!generationConfig || !generationConfig.responseMimeType) {
-           payload.tools = [{ "google_search": {} }];
+            payload.tools = [{ "google_search": {} }];
     }
 
 
@@ -2632,7 +2678,7 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
             // Check for safety ratings blocking the response
             const finishReason = responseData.candidates?.[0]?.finishReason;
             if (finishReason === 'SAFETY') {
-                 throw new Error("La respuesta fue bloqueada por filtros de seguridad.");
+                    throw new Error("La respuesta fue bloqueada por filtros de seguridad.");
             }
             throw new Error("La IA devolvió una respuesta vacía o con formato incorrecto.");
         }
@@ -3276,7 +3322,7 @@ Responde solo con el array de IDs en formato JSON.`;
             const foundItems = data.items.filter(item => resultIds.map(String).includes(String(item.id)));
             renderGlobalSearchResults(term, foundItems);
         } else {
-               throw new Error("La IA no devolvió un array.");
+                throw new Error("La IA no devolvió un array.");
         }
     } catch (e) {
         console.error("Error en la búsqueda con IA, usando fallback:", e, aiResult);
