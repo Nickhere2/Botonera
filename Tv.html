@@ -19,7 +19,7 @@
         #video-container .scanline-overlay { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(rgba(255,255,255,0.03) 50%, rgba(0,0,0,0.05) 50%), linear-gradient(90deg, rgba(0,0,0,0.05) 50%, rgba(255,255,255,0.03) 50%); background-size: 100% 3px, 3px 100%; pointer-events: none; z-index: 10; transition: opacity 0.3s ease-in-out; opacity: 1;}
         #floating-controls { opacity: 0; pointer-events: none; transition: opacity 0.3s ease-in-out; }
         #video-container:hover #floating-controls { opacity: 1; pointer-events: auto; }
-        #loading-overlay span { animation: spin 1s linear infinite; }
+        #loading-overlay span, #repair-loading span { animation: spin 1s linear infinite; }
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         .channel-card.dragging { opacity: 0.5; }
         .channel-card.drag-over-active { border: 2px dashed var(--accent-color, #3b82f6); }
@@ -107,7 +107,7 @@
                     <button id="help-button" title="Ayuda" class="p-2 rounded-full hover:bg-slate-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
                 </div>
             </header>
-            <form id="youtube-search-form" class="mb-2"><div class="relative"><input type="search" id="youtube-search-input" placeholder="Buscar en YouTube..." class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2"><button type="submit" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></button></div><div class="mt-2 flex items-center justify-center"><input type="checkbox" id="live-filter" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2"><label for="live-filter" class="ml-2 text-sm font-medium">Sólo "En Vivo"</label></div></form>
+            <form id="youtube-search-form" class="mb-2"><div class="relative"><input type="search" id="youtube-search-input" placeholder="✨ Pedí algo como 'noticias en vivo'..." class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2"><button type="submit" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></button></div><div class="mt-2 flex items-center justify-center"><input type="checkbox" id="live-filter" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2"><label for="live-filter" class="ml-2 text-sm font-medium">Sólo "En Vivo"</label></div></form>
             <div id="filter-container" class="my-4 flex justify-center bg-slate-700 rounded-lg p-1"><button data-filter="all" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Todos</button><button data-filter="favorites" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Favoritos</button><button data-filter="watchLater" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Ver Después</button></div>
             <div id="watch-later-container" class="mb-4 hidden">
                 <button id="add-from-clipboard-btn" class="w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold flex items-center justify-center space-x-2">
@@ -124,7 +124,13 @@
             </div>
             <div class="relative mb-2"><input type="search" id="channel-search-input" placeholder="Buscar en la lista..." class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2 text-sm"></div>
             <nav id="channel-list" class="flex-grow overflow-y-auto custom-scroll grid grid-cols-2 gap-2 pr-2"></nav>
-            <div id="add-channel-container" class="mt-4"><button id="add-channel-button" class="w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold">+ Agregar Canal</button></div>
+            <div id="add-channel-container" class="mt-4 flex gap-2">
+                <button id="add-channel-button" class="w-1/2 py-2 px-4 rounded-lg transition-colors text-sm font-semibold">+ Agregar Canal</button>
+                <button id="add-ia-channel-button" class="w-1/2 py-2 px-4 rounded-lg transition-colors text-sm font-semibold flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                    <span>Crear Canal IA</span>
+                </button>
+            </div>
         </aside>
 
         <main class="flex-1 flex flex-col p-4 md:p-6 lg:p-8 justify-center">
@@ -139,12 +145,43 @@
                 <div id="video-container" class="w-full flex-1 bg-black rounded-lg shadow-2xl flex items-center justify-center relative overflow-hidden">
                     <div class="scanline-overlay"></div>
                     <div id="placeholder" class="text-center text-slate-400 p-4 w-full h-full flex flex-col justify-center items-center"><p class="z-10 font-mono">SELECCIONE UN CANAL</p></div>
-                    <div id="help-screen" class="hidden p-8 text-slate-300 overflow-y-auto custom-scroll w-full h-full z-20 bg-slate-900/90 backdrop-blur-sm"><h3 class="text-2xl font-bold text-center mb-4">Guía de Uso</h3><div class="space-y-4 text-sm"><div><h4 class="font-semibold text-blue-400">✨ Nuevas Funciones</h4><p>Ahora puedes reordenar tu lista de 'Ver Después' arrastrando los videos. La app también recordará y sintonizará el último canal que viste.</p></div><div><h4 class="font-semibold text-blue-400">🎨 Temas Visuales</h4><p>Cambia la apariencia de la app desde el menú de ajustes ⚙️. En pantalla completa, los efectos se desactivan para una visión limpia.</p></div><div><h4 class="font-semibold text-blue-400">☁️ Sincronización (Opcional)</h4><p>Usa la app en modo local o conéctala a tu Gist de GitHub (en ajustes ⚙️) para sincronizar tus datos.</p></div></div><button id="close-help-button" class="mt-6 mx-auto block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Entendido</button></div>
+                    <div id="help-screen" class="hidden p-8 text-slate-300 overflow-y-auto custom-scroll w-full h-full z-20 bg-slate-900/90 backdrop-blur-sm">
+                        <h3 class="text-2xl font-bold text-center mb-4">Guía de Uso</h3>
+                        <div class="space-y-4 text-sm">
+                           <div>
+                                <h4 class="font-semibold text-purple-400">✨ Funciones Inteligentes</h4>
+                                <p><strong>Búsqueda Mágica:</strong> Pide lo que quieras ver en la barra de búsqueda (ej: "música relajante") y la IA encontrará lo mejor para ti.</p>
+                                <p><strong>Canales Temáticos:</strong> Usa el botón 'Crear Canal IA' para generar una lista de reproducción instantánea sobre cualquier tema que imagines (ej: "documentales del espacio").</p>
+                                <p><strong>Reparación de Streams:</strong> Si un canal en vivo se corta, haz clic en el ícono 🔄 junto al título para que la IA busque el nuevo stream automáticamente.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-blue-400">⭐ Organización</h4>
+                                <p>Puedes reordenar tu lista de 'Ver Después' arrastrando los videos. La app también recordará y sintonizará el último canal que viste.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-blue-400">🎨 Temas Visuales</h4>
+                                <p>Cambia la apariencia de la app desde el menú de ajustes ⚙️. En pantalla completa, los efectos se desactivan para una visión limpia.</p>
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-blue-400">☁️ Sincronización (Opcional)</h4>
+                                <p>Usa la app en modo local o conéctala a tu Gist de GitHub (en ajustes ⚙️) para sincronizar tus datos.</p>
+                            </div>
+                        </div>
+                        <button id="close-help-button" class="mt-6 mx-auto block bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg">Entendido</button>
+                    </div>
                     <iframe id="video-player" class="hidden absolute top-0 left-0 w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe>
                     <div id="floating-controls" class="absolute top-1/2 right-4 -translate-y-1/2 flex flex-col space-y-3 z-20"><button id="zap-prev" title="Canal anterior" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><button id="zap-next" title="Canal siguiente" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div>
                 </div>
             </div>
-            <div id="controls-container" class="mt-4 flex flex-col items-center space-y-2"><h2 id="channel-title" class="text-xl h-7 font-semibold text-center truncate"></h2><div class="flex items-center space-x-3 md:space-x-4"><button id="power-button" title="Apagar TV" class="p-2 rounded-full bg-slate-700 hover:bg-red-600/50 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"></path></svg></button><button id="fullscreen-button" title="Pantalla Completa" class="p-2 rounded-full bg-slate-700 hover:bg-slate-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" /></svg></button></div></div>
+            <div id="controls-container" class="mt-4 flex flex-col items-center space-y-2">
+                <div class="flex items-center gap-2">
+                    <h2 id="channel-title" class="text-xl h-7 font-semibold text-center truncate"></h2>
+                    <button id="repair-stream-button" title="Reparar Stream Caído" class="hidden p-1 rounded-full bg-slate-700 hover:bg-yellow-600/50 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.899 2.186l-1.42.474a5.002 5.002 0 00-8.23-1.422l.744.744a1 1 0 01-1.414 1.414l-2.5-2.5a1 1 0 010-1.414l2.5-2.5a1 1 0 011.414 0l-.744.744A6.993 6.993 0 019 5.05V3a1 1 0 012 0v2.05a6.993 6.993 0 012.386.76l.744-.744a1 1 0 111.414 1.414l-2.5 2.5a1 1 0 01-1.414 0l2.5-2.5a1 1 0 010-1.414l-2.5-2.5a1 1 0 11-1.414 1.414l.744.744a5.002 5.002 0 00-8.23 1.422l-1.42-.474A7.002 7.002 0 014 5.101V3a1 1 0 01-1-1zm12 16a1 1 0 01-1-1v-2.101a7.002 7.002 0 01-11.899-2.186l1.42-.474a5.002 5.002 0 008.23 1.422l-.744-.744a1 1 0 011.414-1.414l2.5 2.5a1 1 0 010 1.414l-2.5 2.5a1 1 0 01-1.414 0l.744-.744A6.993 6.993 0 0111 14.95V17a1 1 0 01-2 0v-2.05a6.993 6.993 0 01-2.386-.76l-.744.744a1 1 0 11-1.414-1.414l2.5-2.5a1 1 0 011.414 0l-2.5 2.5a1 1 0 010 1.414l2.5 2.5a1 1 0 111.414-1.414l-.744-.744a5.002 5.002 0 008.23-1.422l1.42.474A7.002 7.002 0 0116 14.899V17a1 1 0 011 1z" clip-rule="evenodd" /></svg>
+                    </button>
+                </div>
+                <div class="flex items-center space-x-3 md:space-x-4"><button id="power-button" title="Apagar TV" class="p-2 rounded-full bg-slate-700 hover:bg-red-600/50 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"></path></svg></button><button id="fullscreen-button" title="Pantalla Completa" class="p-2 rounded-full bg-slate-700 hover:bg-slate-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" /></svg></button></div>
+            </div>
         </main>
     </div>
 
@@ -172,6 +209,47 @@
             <button id="sync-button" class="w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold mt-4">Sincronizar Ahora</button>
         </div>
     </div></div>
+    <!-- IA Channel Modal -->
+    <div id="ia-channel-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div class="modal-content bg-slate-800 rounded-lg p-6 w-full max-w-md shadow-xl border border-slate-700">
+            <h3 class="text-xl font-bold mb-4">Crear Canal con IA</h3>
+            <form id="ia-channel-form">
+                <div class="mb-4">
+                    <label for="ia-channel-theme" class="block mb-2 text-sm font-medium">¿Qué te gustaría ver hoy?</label>
+                    <input type="text" id="ia-channel-theme" placeholder="Ej: documentales del espacio, F1, etc." class="w-full border border-slate-600 rounded-lg p-2.5" required>
+                </div>
+                <div class="flex justify-end gap-3">
+                    <button type="button" id="cancel-ia-channel-modal" class="py-2 px-4 bg-slate-600 hover:bg-slate-500 rounded-lg">Cancelar</button>
+                    <button type="submit" class="py-2 px-4 bg-purple-600 hover:bg-purple-700 rounded-lg">Crear Canal</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Stream Repair Modal -->
+    <div id="repair-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+        <div class="modal-content bg-slate-800 rounded-lg p-6 w-full max-w-md shadow-xl border border-slate-700">
+            <h3 class="text-xl font-bold mb-4">Reparar Stream Caído</h3>
+            <div id="repair-loading" class="hidden flex-col items-center text-center">
+                <span class="block w-8 h-8 border-4 border-slate-500 border-t-white rounded-full mb-4 mx-auto"></span>
+                <p>Buscando nuevo stream con IA...</p>
+            </div>
+            <div id="repair-content">
+                <div id="ia-result-container" class="hidden mb-4 p-3 bg-slate-700 rounded-lg">
+                    <p class="text-sm text-slate-300 mb-2">IA encontró un nuevo stream:</p>
+                    <p id="ia-result-title" class="font-semibold mb-3 truncate"></p>
+                    <button id="update-stream-ia-btn" class="w-full py-2 px-4 bg-green-600 hover:bg-green-700 rounded-lg">Actualizar y Sintonizar</button>
+                </div>
+                <div id="manual-repair-container">
+                     <p id="manual-repair-title" class="block mb-2 text-sm font-medium">O introduce la nueva URL manualmente:</p>
+                    <input type="url" id="manual-url-input" placeholder="https://www.youtube.com/watch?v=..." class="w-full border border-slate-600 rounded-lg p-2.5 mb-3">
+                    <button id="update-stream-manual-btn" class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg">Guardar Manualmente</button>
+                </div>
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="button" id="cancel-repair-modal" class="py-2 px-4 bg-slate-600 hover:bg-slate-500 rounded-lg">Cancelar</button>
+            </div>
+        </div>
+    </div>
     <div id="loading-overlay" class="hidden fixed inset-0 bg-black/70 flex-col flex items-center justify-center z-[60] text-white"><span class="block w-12 h-12 border-4 border-slate-500 border-t-white rounded-full mb-4"></span><p id="loading-text">Cargando...</p></div>
 
     <script>
@@ -183,6 +261,7 @@
             const videoPlayer = document.getElementById('video-player');
             const placeholder = document.getElementById('placeholder');
             const channelTitle = document.getElementById('channel-title');
+            const repairStreamButton = document.getElementById('repair-stream-button');
             const powerButton = document.getElementById('power-button');
             const fullscreenButton = document.getElementById('fullscreen-button');
             const helpButton = document.getElementById('help-button');
@@ -190,6 +269,7 @@
             const closeHelpButton = document.getElementById('close-help-button');
             const channelModal = document.getElementById('channel-modal');
             const addChannelButton = document.getElementById('add-channel-button');
+            const addIaChannelButton = document.getElementById('add-ia-channel-button');
             const addChannelContainer = document.getElementById('add-channel-container');
             const cancelChannelModal = document.getElementById('cancel-channel-modal');
             const channelForm = document.getElementById('channel-form');
@@ -213,6 +293,20 @@
             const addFromClipboardBtn = document.getElementById('add-from-clipboard-btn');
             const syncErrorIndicator = document.getElementById('sync-error-indicator');
             const toastContainer = document.getElementById('toast-container');
+            const iaChannelModal = document.getElementById('ia-channel-modal');
+            const iaChannelForm = document.getElementById('ia-channel-form');
+            const cancelIaChannelModal = document.getElementById('cancel-ia-channel-modal');
+            const repairModal = document.getElementById('repair-modal');
+            const repairLoading = document.getElementById('repair-loading');
+            const repairContent = document.getElementById('repair-content');
+            const iaResultContainer = document.getElementById('ia-result-container');
+            const iaResultTitle = document.getElementById('ia-result-title');
+            const updateStreamIaBtn = document.getElementById('update-stream-ia-btn');
+            const manualRepairContainer = document.getElementById('manual-repair-container');
+            const manualRepairTitle = document.getElementById('manual-repair-title');
+            const manualUrlInput = document.getElementById('manual-url-input');
+            const updateStreamManualBtn = document.getElementById('update-stream-manual-btn');
+            const cancelRepairModal = document.getElementById('cancel-repair-modal');
 
             // App State
             let allChannels = [], favorites = [], watchLaterList = [];
@@ -221,7 +315,9 @@
             let dragStartIndex;
             let cursorTimeout = null;
             let gistStartupError = null;
-
+            let isThematicChannelActive = false;
+            let thematicChannels = [];
+            let channelToRepair = null;
             
             // Gist State
             let gistId = null, gistToken = null;
@@ -257,8 +353,8 @@
             }
             
             // --- Data Handling ---
-            const showLoading = (text = 'Cargando...') => { loadingOverlay.classList.remove('hidden'); loadingText.textContent = text; };
-            const hideLoading = () => loadingOverlay.classList.add('hidden');
+            const showLoading = (text = 'Cargando...') => { loadingOverlay.classList.remove('hidden'); loadingOverlay.classList.add('flex'); loadingText.textContent = text; };
+            const hideLoading = () => { loadingOverlay.classList.add('hidden'); loadingOverlay.classList.remove('flex');};
 
             async function fetchDataFromGist() {
                 if (!gistId || !gistToken) return null;
@@ -338,12 +434,21 @@
                 let itemsToRender = [];
                 let message = '';
                 const searchTerm = channelSearchInput.value.toLowerCase();
-
-                if (currentFilter === 'all') { itemsToRender = allChannels; } 
-                else if (currentFilter === 'favorites') { itemsToRender = allChannels.filter(c => c.type === 'youtube-embed' && favorites.includes(c.id)); message = 'No has agregado canales a favoritos.'; } 
-                else if (currentFilter === 'watchLater') { itemsToRender = watchLaterList.map((item, index) => ({...item, name: `Video ${index + 1}`, isWatchLater: true})); message = 'No tienes videos para ver después.'; }
                 
-                if (searchTerm) { itemsToRender = itemsToRender.filter(item => item.name.toLowerCase().includes(searchTerm)); }
+                if(isThematicChannelActive) {
+                    itemsToRender = thematicChannels.map(v => ({...v, name: v.name, id: v.videoId, type: 'youtube-embed' }));
+                    message = 'La IA no encontró videos para este tema.';
+                } else if (currentFilter === 'all') {
+                    itemsToRender = allChannels; 
+                } else if (currentFilter === 'favorites') {
+                    itemsToRender = allChannels.filter(c => c.type === 'youtube-embed' && favorites.includes(c.id)); message = 'No has agregado canales a favoritos.'; 
+                } else if (currentFilter === 'watchLater') {
+                    itemsToRender = watchLaterList.map((item, index) => ({...item, name: `Video ${index + 1}`, isWatchLater: true})); message = 'No tienes videos para ver después.'; 
+                }
+                
+                if (searchTerm && !isThematicChannelActive) {
+                     itemsToRender = itemsToRender.filter(item => item.name.toLowerCase().includes(searchTerm)); 
+                }
 
                 if (itemsToRender.length === 0) {
                     channelListEl.innerHTML = `<p class="text-center text-slate-400 text-sm p-4 col-span-2">${message}</p>`;
@@ -352,7 +457,7 @@
 
                 itemsToRender.forEach((item, renderIndex) => {
                     const channel = item.isWatchLater ? { id: item.id, name: item.name, type: 'youtube-embed' } : item;
-                    const realIndex = item.isWatchLater ? -1 : allChannels.findIndex(c => (c.id || c.url) === (item.id || item.url));
+                    const realIndex = item.isWatchLater || isThematicChannelActive ? -1 : allChannels.findIndex(c => (c.id || c.url) === (item.id || item.url));
                     const isFavorite = channel.type === 'youtube-embed' && favorites.includes(channel.id);
                     const button = document.createElement('div');
                     button.className = "channel-card w-full group rounded-lg transition-all duration-200 bg-slate-700/50 focus:outline-none cursor-pointer relative aspect-[16/9]";
@@ -383,7 +488,7 @@
                         deleteBtn.className = 'cursor-pointer text-white/70 hover:text-red-500 transition-colors z-10';
                         deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); watchLaterList.splice(parseInt(button.dataset.index), 1); debouncedSave(); renderChannelList(); });
                         overlay.appendChild(deleteBtn);
-                    } else {
+                    } else if (!isThematicChannelActive) {
                         if (channel.type === 'youtube-embed') {
                             const star = document.createElement('span');
                             star.innerHTML = '★';
@@ -427,26 +532,42 @@
                 if(currentFilter === 'favorites') renderChannelList();
             }
             function switchChannel(channel) {
-                 if(!channel || channel.type !== 'youtube-embed') return;
+                if(!channel || channel.type !== 'youtube-embed') return;
                 placeholder.classList.add('hidden');
                 helpScreen.classList.add('hidden');
                 videoPlayer.classList.remove('hidden');
+                repairStreamButton.classList.remove('hidden');
                 const embedUrl = `https://www.youtube.com/embed/${channel.id}?autoplay=1&mute=0`;
                 if (videoPlayer.src !== embedUrl) videoPlayer.src = embedUrl;
                 channelTitle.textContent = channel.name;
-                currentChannelIndex = allChannels.findIndex(c => c.id === channel.id);
+                
+                if (isThematicChannelActive) {
+                    currentChannelIndex = thematicChannels.findIndex(c => c.videoId === channel.id);
+                } else {
+                    currentChannelIndex = allChannels.findIndex(c => c.id === channel.id);
+                }
                 localStorage.setItem('tv_last_watched_id', channel.id);
                 updateActiveButtonState();
             }
             function updateActiveButtonState() {
                 document.querySelectorAll('.channel-card.ring-2').forEach(el => el.classList.remove('ring-2', 'ring-blue-500'));
-                if (currentChannelIndex > -1 && allChannels[currentChannelIndex] && allChannels[currentChannelIndex].type === 'youtube-embed') {
-                    const currentChannelId = allChannels[currentChannelIndex].id;
+                let currentChannelId;
+
+                if (isThematicChannelActive && currentChannelIndex > -1 && thematicChannels[currentChannelIndex]) {
+                    currentChannelId = thematicChannels[currentChannelIndex].videoId;
+                } else if (!isThematicChannelActive && currentChannelIndex > -1 && allChannels[currentChannelIndex]) {
+                    currentChannelId = allChannels[currentChannelIndex].id;
+                }
+                
+                if (currentChannelId) {
                     const activeChannelButton = channelListEl.querySelector(`[data-id="${currentChannelId}"]`);
                     if (activeChannelButton) activeChannelButton.classList.add('ring-2', 'ring-blue-500');
                 }
             }
             function getZappableChannels() {
+                if (isThematicChannelActive) {
+                    return thematicChannels.map(v => ({...v, id: v.videoId, type: 'youtube-embed' }));
+                }
                 const embeddableChannels = allChannels.filter(c => c.type === 'youtube-embed');
                 if (currentFilter === 'favorites' && favorites.length > 0) {
                     return embeddableChannels.filter(c => favorites.includes(c.id));
@@ -459,6 +580,7 @@
                 helpScreen.classList.add('hidden');
                 placeholder.classList.remove('hidden');
                 channelTitle.textContent = '';
+                repairStreamButton.classList.add('hidden');
                 currentChannelIndex = -1;
                 updateActiveButtonState();
             }
@@ -498,6 +620,80 @@
                 appEl.removeEventListener('mousemove', cursorMoveHandler);
                 if (cursorTimeout) clearTimeout(cursorTimeout);
                 appEl.classList.remove('hide-cursor');
+            }
+
+            // --- Gemini API Functions ---
+            async function callGeminiAPI(prompt) {
+                const apiKey = ""; // Leave as-is
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+                const payload = {
+                    contents: [{
+                        parts: [{ text: prompt }]
+                    }]
+                };
+
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`API call failed with status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                const candidate = result.candidates?.[0];
+
+                if (candidate && candidate.content?.parts?.[0]?.text) {
+                    return candidate.content.parts[0].text;
+                } else {
+                    console.error("Invalid response structure from API:", result);
+                    throw new Error('Invalid response structure from API');
+                }
+            }
+
+            // --- Stream Repair Logic ---
+            async function handleRepairStream() {
+                if (!channelToRepair) return;
+
+                repairLoading.classList.remove('hidden');
+                repairLoading.classList.add('flex');
+                repairContent.style.display = 'none';
+
+                const channelName = channelToRepair.name;
+                const prompt = `Eres un experto en YouTube. Encuentra el stream EN VIVO más reciente del canal llamado "${channelName}". Responde únicamente con un objeto JSON que contenga "name" (el título del video) y "videoId" (el ID del video de YouTube). Si no encuentras un stream en vivo, responde con la palabra "NULL".`;
+
+                try {
+                    const response = await callGeminiAPI(prompt);
+                    const cleanedResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
+
+                    if (cleanedResponse.toUpperCase() === 'NULL') {
+                        throw new Error('No live stream found by AI');
+                    }
+                    
+                    const parsedResponse = JSON.parse(cleanedResponse);
+
+                    if (parsedResponse.videoId) {
+                        iaResultContainer.classList.remove('hidden');
+                        manualRepairContainer.classList.add('hidden');
+                        iaResultTitle.textContent = parsedResponse.name;
+                        updateStreamIaBtn.dataset.newVideoId = parsedResponse.videoId;
+                    } else {
+                        throw new Error('AI response did not contain a videoId');
+                    }
+
+                } catch (error) {
+                    console.error("Stream repair failed:", error);
+                    iaResultContainer.classList.add('hidden');
+                    manualRepairContainer.classList.remove('hidden');
+                    manualRepairTitle.textContent = "Búsqueda automática fallida. Introduce la URL manualmente:";
+                } finally {
+                    repairLoading.classList.add('hidden');
+                    repairLoading.classList.remove('flex');
+                    repairContent.style.display = 'block';
+                }
             }
 
             // Event Listeners
@@ -543,13 +739,34 @@
             });
             closeSettingsButton.addEventListener('click', () => gistModal.classList.add('hidden'));
             
-            youtubeSearchForm.addEventListener('submit', (e) => {
+            youtubeSearchForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
-                const query = youtubeSearchInput.value.trim();
-                if (!query) return;
-                let url = `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
-                if (liveFilter.checked) { url += '&sp=EgJAAQ%253D%253D'; }
-                window.open(url, '_blank');
+                const userInput = youtubeSearchInput.value.trim();
+                if (!userInput) return;
+
+                showLoading('Procesando tu petición...');
+
+                const prompt = `Eres un asistente experto de YouTube. Tu tarea es convertir la petición de un usuario en una consulta de búsqueda de YouTube efectiva y concisa. La petición del usuario es: "${userInput}". Responde únicamente con los términos de búsqueda optimizados, sin comillas ni texto adicional.`;
+
+                try {
+                    const searchTerm = await callGeminiAPI(prompt);
+                    const cleanedSearchTerm = searchTerm.replace(/["'`]/g, '').trim();
+                    
+                    let url = `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanedSearchTerm)}`;
+                    if (liveFilter.checked) {
+                        url += '&sp=EgJAAQ%253D%253D';
+                    }
+                    window.open(url, '_blank');
+                } catch (error) {
+                    console.error('Smart search failed:', error);
+                    showToast('La búsqueda inteligente falló. Intentando búsqueda normal.', 'error');
+                    // Fallback to normal search if API fails
+                    let url = `https://www.youtube.com/results?search_query=${encodeURIComponent(userInput)}`;
+                    if (liveFilter.checked) { url += '&sp=EgJAAQ%253D%253D'; }
+                    window.open(url, '_blank');
+                } finally {
+                    hideLoading();
+                }
             });
 
             channelSearchInput.addEventListener('input', () => renderChannelList());
@@ -583,9 +800,16 @@
                 gistModal.classList.add('hidden');
                 location.reload();
             });
-            document.querySelectorAll('.filter-btn').forEach(button => { button.addEventListener('click', (e) => { currentFilter = e.target.dataset.filter; updateFilterButtons(); renderChannelList(); }); });
+            document.querySelectorAll('.filter-btn').forEach(button => { button.addEventListener('click', (e) => { 
+                currentFilter = e.target.dataset.filter;
+                isThematicChannelActive = false; // Always exit thematic mode when a filter is clicked
+                thematicChannels = [];
+                updateFilterButtons(); 
+                renderChannelList(); 
+            }); });
+
             function updateFilterButtons() { 
-                document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active-filter', btn.dataset.filter === currentFilter); });
+                document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active-filter', btn.dataset.filter === currentFilter && !isThematicChannelActive); });
                 const isWatchLater = currentFilter === 'watchLater';
                 watchLaterContainer.classList.toggle('hidden', !isWatchLater);
                 addChannelContainer.classList.toggle('hidden', isWatchLater);
@@ -632,9 +856,17 @@
                 const zap = (direction) => {
                     const channelsToZap = getZappableChannels();
                     if(channelsToZap.length === 0) return;
-                    const currentId = currentChannelIndex > -1 ? allChannels[currentChannelIndex]?.id : null;
+
+                    let currentId;
+                    if(isThematicChannelActive) {
+                        currentId = currentChannelIndex > -1 ? thematicChannels[currentChannelIndex]?.videoId : null;
+                    } else {
+                        currentId = currentChannelIndex > -1 ? allChannels[currentChannelIndex]?.id : null;
+                    }
+
                     let currentIndexInZapList = channelsToZap.findIndex(c => c.id === currentId);
                     if (currentIndexInZapList === -1) currentIndexInZapList = 0;
+                    
                     let nextIndex = (currentIndexInZapList + direction + channelsToZap.length) % channelsToZap.length;
                     switchChannel(channelsToZap[nextIndex]);
                 };
@@ -643,7 +875,7 @@
                     case 'ArrowDown': e.preventDefault(); zap(1); break;
                     case 'p': case 'P': powerButton.click(); break;
                     case 'f': case 'F':
-                        if (currentChannelIndex > -1) {
+                        if (currentChannelIndex > -1 && !isThematicChannelActive) {
                             const currentChannel = allChannels[currentChannelIndex];
                             if (currentChannel.type === 'youtube-embed') {
                                 toggleFavorite(currentChannel.id, channelListEl.querySelector(`[data-id="${currentChannel.id}"] .favorite-star`));
@@ -653,6 +885,103 @@
                 }
             });
             
+            // --- IA Channel Logic ---
+            addIaChannelButton.addEventListener('click', () => {
+                iaChannelModal.classList.remove('hidden');
+                document.getElementById('ia-channel-theme').focus();
+            });
+
+            cancelIaChannelModal.addEventListener('click', () => {
+                iaChannelModal.classList.add('hidden');
+            });
+
+            iaChannelForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const theme = document.getElementById('ia-channel-theme').value.trim();
+                if (!theme) return;
+
+                iaChannelModal.classList.add('hidden');
+                showLoading('Creando tu canal temático...');
+                
+                const prompt = `Basado en el tema "${theme}", crea una lista de 8 videos de YouTube muy relevantes. Responde únicamente con un array JSON válido de objetos. Cada objeto debe tener dos propiedades: "name" (un título corto y atractivo para el video) y "videoId" (el ID del video de YouTube). No incluyas nada más en tu respuesta.`;
+
+                try {
+                    const response = await callGeminiAPI(prompt);
+                    const cleanedResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const parsedVideos = JSON.parse(cleanedResponse);
+
+                    if (Array.isArray(parsedVideos) && parsedVideos.length > 0) {
+                        thematicChannels = parsedVideos;
+                        isThematicChannelActive = true;
+                        currentFilter = 'all'; // Reset filter to avoid confusion
+                        updateFilterButtons();
+                        renderChannelList();
+                        turnOffTv(); // Turn off current video to show the new list
+                    } else {
+                        showToast('No se pudieron encontrar videos para ese tema.', 'error');
+                    }
+
+                } catch(error) {
+                    console.error("Failed to create IA channel:", error);
+                    showToast('Hubo un error al crear el canal con IA.', 'error');
+                } finally {
+                    hideLoading();
+                }
+            });
+
+            repairStreamButton.addEventListener('click', () => {
+                if(currentChannelIndex < 0 || isThematicChannelActive) return;
+                
+                channelToRepair = allChannels[currentChannelIndex];
+                if (channelToRepair.type !== 'youtube-embed') {
+                    showToast('Esta función es solo para canales de YouTube.', 'info');
+                    return;
+                }
+                
+                repairModal.classList.remove('hidden');
+                handleRepairStream();
+            });
+            
+            cancelRepairModal.addEventListener('click', () => {
+                repairModal.classList.add('hidden');
+                channelToRepair = null;
+            });
+            
+            updateStreamIaBtn.addEventListener('click', () => {
+                const newVideoId = updateStreamIaBtn.dataset.newVideoId;
+                const repairIndex = allChannels.findIndex(c => c.id === channelToRepair.id);
+
+                if (repairIndex > -1 && newVideoId) {
+                    allChannels[repairIndex].id = newVideoId;
+                    debouncedSave();
+                    renderChannelList();
+                    switchChannel(allChannels[repairIndex]);
+                    showToast('Canal actualizado con éxito.', 'success');
+                }
+                repairModal.classList.add('hidden');
+                channelToRepair = null;
+            });
+
+            updateStreamManualBtn.addEventListener('click', () => {
+                const url = manualUrlInput.value.trim();
+                const newVideoId = extractYouTubeID(url);
+                const repairIndex = allChannels.findIndex(c => c.id === channelToRepair.id);
+
+                if (repairIndex > -1 && newVideoId) {
+                    allChannels[repairIndex].id = newVideoId;
+                    debouncedSave();
+                    renderChannelList();
+                    switchChannel(allChannels[repairIndex]);
+                    showToast('Canal actualizado con éxito.', 'success');
+                } else {
+                    showToast('La URL de YouTube no es válida.', 'error');
+                }
+                manualUrlInput.value = '';
+                repairModal.classList.add('hidden');
+                channelToRepair = null;
+            });
+
+
             async function forceSync() {
                 if (gistId && gistToken) {
                     gistError.textContent = '';
