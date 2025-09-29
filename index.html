@@ -1764,38 +1764,31 @@ function renderEmptyState(container, sectionName) {
 function getUpcomingEvents(days) {
     if (!data.events || data.events.length === 0) return [];
     
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize today to start of day
-    const limitDate = new Date();
-    limitDate.setHours(0, 0, 0, 0); // Normalize limitDate to start of day
-    limitDate.setDate(limitDate.getDate() + days);
+    // Use UTC to avoid timezone issues
+    const now = new Date();
+    const today = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    const limitDate = new Date(today);
+    limitDate.setUTCDate(limitDate.getUTCDate() + days);
 
     const upcoming = data.events.map(event => {
-        const dateParts = event.date.split('-').map(Number);
-        const eventDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2]);
-        eventDate.setHours(0,0,0,0); // Normalize event date to start of day
+        if (!event.date || !/^\d{4}-\d{2}-\d{2}$/.test(event.date)) {
+            console.warn("Invalid or missing date for event:", event);
+            return null; // Skip events with invalid date format
+        }
+        const [year, month, day] = event.date.split('-').map(Number);
+        const eventDate = new Date(Date.UTC(year, month - 1, day));
         
         let nextOccurrence = new Date(eventDate);
 
         if (event.type === 'birthday' || event.type === 'anniversary') {
-            nextOccurrence.setFullYear(today.getFullYear());
-            // If the event for this year has already passed, set it for next year
+            nextOccurrence.setUTCFullYear(today.getUTCFullYear());
             if (nextOccurrence < today) {
-                nextOccurrence.setFullYear(today.getFullYear() + 1);
-            }
-            // If the event for next year is too far (beyond limitDate), don't show it for this cycle
-            // This implicitly handles events that already occurred this year and would appear far in the future if only setFullYear(today.getFullYear() + 1) was done
-            if (nextOccurrence > limitDate) {
-                 return null; // Don't include this recurring event if next occurrence is too far
+                nextOccurrence.setUTCFullYear(today.getUTCFullYear() + 1);
             }
         }
         
         if (nextOccurrence >= today && nextOccurrence <= limitDate) {
-               const diffTime = nextOccurrence - today;
-               const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-               const reminderDays = parseInt(event.reminderDays) || 0;
-               const isReminderActive = reminderDays > 0 && diffDays <= reminderDays;
-               return { ...event, date: nextOccurrence, isReminderActive };
+            return { ...event, date: nextOccurrence }; // The 'date' property is now a UTC Date object
         }
         return null;
     }).filter(Boolean);
@@ -3340,6 +3333,7 @@ Responde solo con el array de IDs en formato JSON.`;
 </script>
 </body>
 </html>
+
 
 
 
