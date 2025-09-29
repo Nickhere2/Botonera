@@ -200,12 +200,32 @@
             </select>
         </div>
         <div>
-            <h4 class="text-lg font-semibold mb-2">Sincronización con GitHub Gist</h4>
-            <p class="text-sm text-slate-400 mb-4">Conectar es opcional. Te permite sincronizar datos entre dispositivos. <a href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens" target="_blank" class="text-blue-400 hover:underline">Crea un token</a> con permiso de "gist".</p>
-            <form id="gist-form"><div class="mb-4"><label for="gist-id" class="block mb-2 text-sm font-medium">Gist ID</label><input type="text" id="gist-id" class="w-full border border-slate-600 rounded-lg p-2.5"></div><div class="mb-4"><label for="gist-token" class="block mb-2 text-sm font-medium">GitHub Token</label><input type="password" id="gist-token" class="w-full border border-slate-600 rounded-lg p-2.5"></div>
+            <h4 class="text-lg font-semibold mb-2">Ajustes de Sincronización y API</h4>
+            <p class="text-sm text-slate-400 mb-4">Conectar Gist es opcional. Ingresa una clave de API de Gemini para habilitar las funciones de IA.</p>
+            <form id="gist-form">
+                <div class="mb-4">
+                    <label for="gemini-api-key" class="block mb-2 text-sm font-medium">Gemini API Key</label>
+                    <input type="password" id="gemini-api-key" placeholder="Ingresa tu clave de Google AI Studio" class="w-full border border-slate-600 rounded-lg p-2.5">
+                </div>
+                <hr class="border-slate-600 my-4">
+                <div class="mb-4">
+                    <label for="gist-id" class="block mb-2 text-sm font-medium">Gist ID (Opcional)</label>
+                    <input type="text" id="gist-id" class="w-full border border-slate-600 rounded-lg p-2.5">
+                </div>
+                <div class="mb-4">
+                    <label for="gist-token" class="block mb-2 text-sm font-medium">GitHub Token (Opcional)</label>
+                    <input type="password" id="gist-token" class="w-full border border-slate-600 rounded-lg p-2.5">
+                </div>
                 <p id="gist-error" class="text-red-400 text-sm mb-4 h-5"></p>
                 <p id="sync-status" class="text-green-400 text-sm text-center mb-2 h-5"></p>
-                <div class="flex justify-between items-center"><button type="button" id="disconnect-button" class="py-2 px-4 text-slate-400 hover:text-white text-sm">Usar Modo Local</button><div><button type="button" id="close-settings-button" class="py-2 px-4 bg-slate-600 hover:bg-slate-500 rounded-lg mr-2">Cerrar</button><button type="submit" class="py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg">Conectar</button></div></div></form>
+                <div class="flex justify-between items-center">
+                    <button type="button" id="disconnect-button" class="py-2 px-4 text-slate-400 hover:text-white text-sm">Modo Local</button>
+                    <div>
+                        <button type="button" id="close-settings-button" class="py-2 px-4 bg-slate-600 hover:bg-slate-500 rounded-lg mr-2">Cerrar</button>
+                        <button type="submit" class="py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg">Guardar Ajustes</button>
+                    </div>
+                </div>
+            </form>
             <button id="sync-button" class="w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold mt-4">Sincronizar Ahora</button>
         </div>
     </div></div>
@@ -318,6 +338,7 @@
             let isThematicChannelActive = false;
             let thematicChannels = [];
             let channelToRepair = null;
+            let geminiApiKey = null;
             
             // Gist State
             let gistId = null, gistToken = null;
@@ -624,7 +645,11 @@
 
             // --- Gemini API Functions ---
             async function callGeminiAPI(prompt) {
-                const apiKey = ""; // Leave as-is
+                const apiKey = geminiApiKey || "";
+                if (!apiKey) {
+                    showToast('Falta la clave API de Gemini en los ajustes.', 'error');
+                    throw new Error('Missing Gemini API Key');
+                }
                 const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
                 const payload = {
@@ -728,12 +753,14 @@
             settingsButton.addEventListener('click', () => {
                 document.getElementById('gist-id').value = gistId || '';
                 document.getElementById('gist-token').value = gistToken || '';
+                document.getElementById('gemini-api-key').value = geminiApiKey || '';
                 gistError.textContent = gistStartupError || '';
                 gistModal.classList.remove('hidden');
             });
             disconnectButton.addEventListener('click', () => {
                 localStorage.removeItem('gist_id');
                 localStorage.removeItem('gist_token');
+                localStorage.removeItem('gemini_api_key');
                 gistModal.classList.add('hidden');
                 location.reload();
             });
@@ -759,7 +786,6 @@
                     window.open(url, '_blank');
                 } catch (error) {
                     console.error('Smart search failed:', error);
-                    showToast('La búsqueda inteligente falló. Intentando búsqueda normal.', 'error');
                     // Fallback to normal search if API fails
                     let url = `https://www.youtube.com/results?search_query=${encodeURIComponent(userInput)}`;
                     if (liveFilter.checked) { url += '&sp=EgJAAQ%253D%253D'; }
@@ -790,16 +816,21 @@
                 renderChannelList();
                 channelModal.classList.add('hidden');
             });
+
             gistForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const id = document.getElementById('gist-id').value.trim();
                 const token = document.getElementById('gist-token').value.trim();
-                if (!id || !token) { gistError.textContent = 'Ambos campos son requeridos.'; return; };
+                const apiKey = document.getElementById('gemini-api-key').value.trim();
+                
                 localStorage.setItem('gist_id', id);
                 localStorage.setItem('gist_token', token);
+                localStorage.setItem('gemini_api_key', apiKey);
+
                 gistModal.classList.add('hidden');
                 location.reload();
             });
+
             document.querySelectorAll('.filter-btn').forEach(button => { button.addEventListener('click', (e) => { 
                 currentFilter = e.target.dataset.filter;
                 isThematicChannelActive = false; // Always exit thematic mode when a filter is clicked
@@ -923,7 +954,7 @@
 
                 } catch(error) {
                     console.error("Failed to create IA channel:", error);
-                    showToast('Hubo un error al crear el canal con IA.', 'error');
+                    hideLoading(); // Hide loading on error
                 } finally {
                     hideLoading();
                 }
@@ -1019,6 +1050,7 @@
                 initializeTheme();
                 gistId = localStorage.getItem('gist_id');
                 gistToken = localStorage.getItem('gist_token');
+                geminiApiKey = localStorage.getItem('gemini_api_key');
                 
                 let loadLocalData = true;
 
