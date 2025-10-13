@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <style>
         :root {
             --background: #f4f4f5; --foreground: #18181b; --card-background: #ffffff;
@@ -43,11 +44,13 @@
         .prose li { margin-bottom: 0.5em; } .prose pre { background-color: var(--secondary); padding: 1em; border-radius: var(--radius); }
         .dark .prose-invert { color: var(--foreground); }
          /* Estilos específicos para la Fábrica de Asistentes de IA */
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; }
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1.5rem; }
         .ai-bot-card { display: flex; flex-direction: column; background: var(--card-background); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: var(--radius); padding: 1.25rem; position: relative; transition: all 0.2s ease-in-out; }
         .ai-bot-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .ai-bot-card .dropdown-menu { position: absolute; top: 1rem; right: 1rem; background-color: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); z-index: 10; min-width: 120px; }
-        .ai-bot-card .dropdown-menu button { display: block; width: 100%; padding: 0.5rem 1rem; text-align: left; font-weight: 500; color: var(--foreground); transition: background-color 0.1s ease; }
+        .bot-grid-item { display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card-background); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: var(--radius); padding: 1.5rem; cursor: pointer; transition: all 0.2s ease-in-out; text-align: center; height: 150px; }
+        .bot-grid-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
+        .ai-bot-card .dropdown-menu { position: absolute; top: 1rem; right: 1rem; background-color: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); z-index: 10; min-width: 140px; }
+        .ai-bot-card .dropdown-menu button { display: flex; align-items: center; width: 100%; padding: 0.5rem 1rem; text-align: left; font-weight: 500; color: var(--foreground); transition: background-color 0.1s ease; }
         .ai-bot-card .dropdown-menu button:hover { background-color: var(--muted); }
         .ai-bot-card .result-area { background-color: var(--secondary); border-radius: var(--radius); padding: 0.75rem; min-height: 80px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; font-size: 0.9rem; position: relative; }
         .ai-bot-card .copy-button { position: absolute; top: 0.5rem; right: 0.5rem; background-color: rgba(0,0,0,0.3); color: white; padding: 0.25rem 0.5rem; border-radius: 0.5rem; font-size: 0.75rem; opacity: 0; transition: opacity 0.2s ease; }
@@ -60,7 +63,7 @@
 <body class="dark">
 
     <main class="p-4 sm:p-6 lg:p-8">
-        <header class="flex justify-between items-center mb-6 pb-4 border-b border-border gap-4">
+        <header id="main-header" class="flex justify-between items-center mb-6 pb-4 border-b border-border gap-4">
             <div class="flex items-center gap-4">
                 <a href="index.html" class="btn btn-ghost !p-2">
                     <i class="fas fa-arrow-left text-xl"></i>
@@ -72,7 +75,15 @@
             </button>
         </header>
         
-        <div id="ai-content"></div>
+        <div id="search-container" class="mb-8 max-w-md">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"></i>
+                <input type="text" id="ai-search-input" class="input-base w-full pl-10" placeholder="Buscar asistentes...">
+            </div>
+        </div>
+
+        <div id="ai-grid-container"></div>
+        <div id="ai-assistant-container" class="hidden"></div>
     </main>
     
     <!-- MODALS & OVERLAYS -->
@@ -95,6 +106,7 @@ const mockData = {
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
     document.getElementById('addBotButton').addEventListener('click', () => openBotManagerModal());
+    document.getElementById('ai-search-input').addEventListener('input', (e) => renderBotGrid(e.target.value));
 });
 
 async function loadData() {
@@ -127,7 +139,7 @@ async function loadData() {
     } else {
         processBots(localData ? JSON.parse(localData) : {});
     }
-    renderAISection(document.getElementById('ai-content'));
+    renderBotGrid();
 }
 
 async function saveData() {
@@ -179,7 +191,8 @@ async function saveData() {
     }
 }
 
-function renderAISection(container) {
+function renderBotGrid(searchTerm = '') {
+    const container = document.getElementById('ai-grid-container');
     container.innerHTML = '';
     const apiKey = localStorage.getItem('gemini_api_key');
 
@@ -196,25 +209,82 @@ function renderAISection(container) {
     }
 
     const grid = document.createElement('div');
-    grid.id = 'ia-bots-grid';
+    grid.id = 'ia-bots-grid-sortable';
     grid.className = 'card-grid';
     container.appendChild(grid);
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    const filteredBots = data.iaBots.filter(bot => 
+        bot.title.toLowerCase().includes(lowerSearchTerm) ||
+        bot.description.toLowerCase().includes(lowerSearchTerm)
+    );
 
-    if (data.iaBots && data.iaBots.length > 0) {
-        data.iaBots.forEach(bot => grid.appendChild(renderBotCard(bot)));
+    if (filteredBots.length > 0) {
+        filteredBots.forEach(bot => grid.appendChild(createBotGridItem(bot)));
     } else {
         container.innerHTML = `
             <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
                 <i class="fas fa-robot text-4xl text-muted-foreground mb-4"></i>
-                <h3 class="text-xl font-semibold">Sin Asistentes de IA</h3>
-                <p class="text-muted-foreground mt-2 mb-4">Añade tu primer asistente para empezar.</p>
+                <h3 class="text-xl font-semibold">${searchTerm ? 'Sin Resultados' : 'Sin Asistentes de IA'}</h3>
+                <p class="text-muted-foreground mt-2 mb-4">${searchTerm ? `No se encontraron asistentes para "${searchTerm}".` : 'Añade tu primer asistente para empezar.'}</p>
                 <button onclick="openBotManagerModal()" class="btn btn-primary">Crear Asistente</button>
             </div>
         `;
     }
+    
+    new Sortable(grid, {
+        animation: 150,
+        handle: '.bot-grid-item',
+        onEnd: (evt) => {
+            const newOrder = Array.from(evt.target.children).map(child => parseInt(child.dataset.id));
+            data.iaBots.sort((a,b) => newOrder.indexOf(a.id) - newOrder.indexOf(b.id));
+            saveData();
+        }
+    });
 }
 
-function renderBotCard(bot) {
+function createBotGridItem(bot) {
+    const item = document.createElement('div');
+    item.className = 'bot-grid-item';
+    item.dataset.id = bot.id;
+    item.onclick = () => openAssistantView(bot.id);
+    item.innerHTML = `
+        <div class="w-16 h-16 mb-4 flex items-center justify-center">${getIconHtml(bot.icon, 'text-4xl')}</div>
+        <h4 class="font-semibold text-sm truncate w-full">${bot.title}</h4>
+    `;
+    return item;
+}
+
+function openAssistantView(botId) {
+    const bot = data.iaBots.find(b => b.id == botId);
+    if (!bot) return;
+
+    document.getElementById('main-header').classList.add('hidden');
+    document.getElementById('search-container').classList.add('hidden');
+    document.getElementById('ai-grid-container').classList.add('hidden');
+
+    const assistantContainer = document.getElementById('ai-assistant-container');
+    assistantContainer.classList.remove('hidden');
+    assistantContainer.innerHTML = `
+        <div class="flex items-center mb-6">
+            <button onclick="closeAssistantView()" class="btn btn-ghost !p-2 mr-4"><i class="fas fa-arrow-left text-xl"></i></button>
+        </div>
+        <div class="max-w-3xl mx-auto">
+        </div>
+    `;
+    assistantContainer.querySelector('.max-w-3xl').appendChild(createAssistantCard(bot));
+}
+
+function closeAssistantView() {
+    document.getElementById('main-header').classList.remove('hidden');
+    document.getElementById('search-container').classList.remove('hidden');
+    document.getElementById('ai-grid-container').classList.remove('hidden');
+    const assistantContainer = document.getElementById('ai-assistant-container');
+    assistantContainer.classList.add('hidden');
+    assistantContainer.innerHTML = '';
+}
+
+function createAssistantCard(bot) {
     const card = document.createElement('div');
     card.className = 'ai-bot-card flex flex-col gap-4';
     card.dataset.id = bot.id;
@@ -244,6 +314,7 @@ function renderBotCard(bot) {
                 <button class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" onclick="toggleBotMenu(event, '${bot.id}')"><i class="fas fa-ellipsis-v"></i></button>
                 <div id="bot-menu-${bot.id}" class="dropdown-menu hidden">
                     <button onclick="openBotManagerModal('${bot.id}', event)"><i class="fas fa-pencil-alt w-4 mr-2"></i>Editar</button>
+                    <button onclick="exportBot('${bot.id}', event)"><i class="fas fa-download w-4 mr-2"></i>Exportar</button>
                     <button onclick="deleteIABot('${bot.id}', event)"><i class="fas fa-trash-alt w-4 mr-2"></i>Eliminar</button>
                 </div>
             </div>
@@ -265,7 +336,6 @@ function renderBotCard(bot) {
             <label class="font-semibold text-sm">Respuesta del Asistente:</label>
             <div id="bot-result-${bot.id}" class="result-area bg-secondary text-foreground relative">
                 <p class="text-muted-foreground">Esperando petición...</p>
-                <button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>
             </div>
         </div>
     `;
@@ -277,7 +347,7 @@ function renderBotCard(bot) {
     card.querySelector(`#bot-reset-${bot.id}`).addEventListener('click', () => {
         document.getElementById(`bot-input-${bot.id}`).value = '';
         const resultDiv = document.getElementById(`bot-result-${bot.id}`);
-        resultDiv.innerHTML = `<p class="text-muted-foreground">Esperando petición...</p><button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>`;
+        resultDiv.innerHTML = `<p class="text-muted-foreground">Esperando petición...</p>`;
         resultDiv.classList.remove('has-content');
     });
     const tempSlider = card.querySelector(`#bot-temp-${bot.id}`);
@@ -325,12 +395,32 @@ async function generateBotResponse(botId, triggerButton) {
     const aiResult = await callGeminiAPI(finalPrompt, triggerButton, [], { temperature });
 
     if (aiResult) {
-        resultDiv.innerHTML = `<div class="prose dark:prose-invert max-w-none text-sm">${simpleMarkdownToHtml(aiResult)}</div><button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>`;
+        resultDiv.innerHTML = `<div class="prose dark:prose-invert max-w-none text-sm">${simpleMarkdownToHtml(aiResult)}</div>
+        <div class="absolute bottom-1 right-1 flex gap-1">
+            <button class="copy-button !static !opacity-100" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar Respuesta</button>
+            <button class="copy-button !static !opacity-100" onclick="copyConversation('${bot.id}', event)"><i class="fas fa-paste mr-1"></i>Copiar Chat</button>
+        </div>`;
         resultDiv.classList.add('has-content');
     } else {
-        resultDiv.innerHTML = `<p class="text-red-500"><strong>Error:</strong> No se pudo generar la respuesta.</p><button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>`;
+        resultDiv.innerHTML = `<p class="text-red-500"><strong>Error:</strong> No se pudo generar la respuesta.</p>`;
     }
 }
+
+function copyConversation(botId, event) {
+    event.stopPropagation();
+    const userInput = document.getElementById(`bot-input-${botId}`).value.trim();
+    const resultDiv = document.getElementById(`bot-result-${botId}`);
+    const aiResponse = resultDiv.querySelector('.prose')?.textContent || resultDiv.textContent;
+
+    if (!userInput || !aiResponse) {
+        showToast('No hay una conversación completa para copiar.', 'info');
+        return;
+    }
+
+    const conversation = `Petición:\n${userInput}\n\nRespuesta:\n${aiResponse}`;
+    copyToClipboard(conversation, 'Conversación copiada al portapapeles.');
+}
+
 
 function copyBotResponse(botId, event) {
     event.stopPropagation();
@@ -340,13 +430,17 @@ function copyBotResponse(botId, event) {
         showToast('No hay contenido para copiar.', 'info');
         return;
     }
+    copyToClipboard(textToCopy, 'Respuesta copiada al portapapeles.');
+}
+
+function copyToClipboard(text, message) {
     const tempTextarea = document.createElement('textarea');
-    tempTextarea.value = textToCopy;
+    tempTextarea.value = text;
     document.body.appendChild(tempTextarea);
     tempTextarea.select();
     try {
         document.execCommand('copy');
-        showToast('Respuesta copiada al portapapeles.');
+        showToast(message);
     } catch (err) {
         showToast('Error al copiar el texto.', 'error');
     } finally {
@@ -417,7 +511,7 @@ function handleSaveBot(event) {
         data.iaBots.push(newBot);
     }
     document.getElementById('iaBotManagerPanel').classList.add('hidden');
-    saveData().then(() => renderAISection(document.getElementById('ai-content')));
+    saveData().then(() => renderBotGrid(document.getElementById('ai-search-input').value));
     showToast('Asistente de IA guardado.');
 }
 
@@ -427,11 +521,27 @@ function deleteIABot(botId, event) {
         if (confirmed) {
             const numericId = parseInt(botId, 10);
             data.iaBots = data.iaBots.filter(bot => bot.id !== numericId);
-            saveData().then(() => renderAISection(document.getElementById('ai-content')));
+            saveData().then(() => renderBotGrid(document.getElementById('ai-search-input').value));
             showToast('Asistente de IA eliminado.');
         }
     });
 }
+
+function exportBot(botId, event) {
+    if (event) event.stopPropagation();
+    const bot = data.iaBots.find(b => b.id == botId);
+    if (!bot) return;
+
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(bot, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href", dataStr);
+    downloadAnchorNode.setAttribute("download", `${bot.title.replace(/\s/g, '_')}.json`);
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    showToast(`Exportando "${bot.title}"...`);
+}
+
 
 // --- Helper Functions copied from index.html ---
 function showToast(message, type = 'success') {
@@ -505,13 +615,15 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
     triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
     const payload = {
-        contents: [{ parts: [{ text: prompt }] }],
-        tools: [{ "google_search": {} }]
+        contents: [{ parts: [{ text: prompt }] }]
     };
 
     if (generationConfig) {
         payload.generationConfig = generationConfig;
+    } else {
+        payload.tools = [{ "google_search": {} }];
     }
+
 
     try {
         const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
