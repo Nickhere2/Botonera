@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fábrica de Asistentes de IA</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: #f4f4f5; --foreground: #18181b; --card-background: #ffffff;
+            --primary: #6d28d9; --primary-foreground: #ffffff; --primary-hover: #5b21b6;
+            --secondary: #e4e4e7; --secondary-foreground: #18181b; --muted: #f4f4f5;
+            --muted-foreground: #71717a; --accent: #f5f3ff; --accent-foreground: #4c1d95;
+            --border: #e4e4e7; --ring: #6d28d9; --radius: 0.75rem;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .dark {
+            --background: #111827; --foreground: #e5e7eb; --card-background: #1f2937;
+            --primary: #8b5cf6; --primary-hover: #7c3aed; --secondary: #374151;
+            --secondary-foreground: #e5e7eb; --muted: #374151; --muted-foreground: #9ca3af;
+            --accent: #312e81; --accent-foreground: #a78bfa; --border: #374151;
+            --ring: #8b5cf6;
+        }
+        body { font-family: 'Inter', sans-serif; background-color: var(--background); color: var(--foreground); }
+        .btn { display: inline-flex; align-items: center; justify-content: center; border-radius: var(--radius); font-weight: 600; transition: all 0.2s; padding: 0.5rem 1rem; border: 1px solid transparent; cursor: pointer; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary); } .btn-primary:hover { background-color: var(--primary-hover); }
+        .btn-secondary { background-color: var(--secondary); color: var(--secondary-foreground); border-color: var(--border); } .btn-secondary:hover { background-color: var(--accent); }
+        .btn-ghost { background-color: transparent; color: var(--muted-foreground); } .btn-ghost:hover { background-color: var(--secondary); color: var(--secondary-foreground); }
+        .input-base { background: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); padding: 0.5rem 0.75rem; width: 100%; transition: all 0.2s; color: var(--foreground); }
+        .dark .input-base { background: #374151; } .input-base:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 1px var(--ring); }
+        .modal-overlay { background-color: rgba(9, 9, 11, 0.8); backdrop-filter: blur(4px); }
+        .modal-container { background-color: var(--card-background); border-radius: var(--radius); box-shadow: var(--shadow-lg); max-height: 90vh; overflow-y: auto; }
+        .prose { color: var(--foreground); } .prose p { margin-bottom: 1em; } .prose strong { font-weight: 600; }
+        .prose ul { list-style: disc; margin-left: 1.5em; margin-bottom: 1em; } .prose ol { list-style: decimal; margin-left: 1.5em; margin-bottom: 1em; }
+        .prose li { margin-bottom: 0.5em; } .prose pre { background-color: var(--secondary); padding: 1em; border-radius: var(--radius); }
+        .dark .prose-invert { color: var(--foreground); }
+         /* Estilos específicos para la Fábrica de Asistentes de IA */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; }
+        .ai-bot-card { display: flex; flex-direction: column; background: var(--card-background); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: var(--radius); padding: 1.25rem; position: relative; transition: all 0.2s ease-in-out; }
+        .ai-bot-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+        .ai-bot-card .dropdown-menu { position: absolute; top: 1rem; right: 1rem; background-color: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); z-index: 10; min-width: 120px; }
+        .ai-bot-card .dropdown-menu button { display: block; width: 100%; padding: 0.5rem 1rem; text-align: left; font-weight: 500; color: var(--foreground); transition: background-color 0.1s ease; }
+        .ai-bot-card .dropdown-menu button:hover { background-color: var(--muted); }
+        .ai-bot-card .result-area { background-color: var(--secondary); border-radius: var(--radius); padding: 0.75rem; min-height: 80px; max-height: 200px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; font-size: 0.9rem; position: relative; }
+        .ai-bot-card .copy-button { position: absolute; top: 0.5rem; right: 0.5rem; background-color: rgba(0,0,0,0.3); color: white; padding: 0.25rem 0.5rem; border-radius: 0.5rem; font-size: 0.75rem; opacity: 0; transition: opacity 0.2s ease; }
+        .ai-bot-card .result-area:hover .copy-button { opacity: 1; }
+        .ai-bot-card .result-area.has-content .copy-button { opacity: 1; }
+    </style>
+</head>
+<body class="dark">
+
+    <main class="p-4 sm:p-6 lg:p-8">
+        <header class="flex justify-between items-center mb-6 pb-4 border-b border-border gap-4">
+            <div class="flex items-center gap-4">
+                <a href="index.html" class="btn btn-ghost !p-2">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </a>
+                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Fábrica de Asistentes de IA</h1>
+            </div>
+            <button id="addBotButton" class="btn btn-primary !rounded-full !p-0 w-10 h-10" title="Añadir nuevo Asistente">
+                <i class="fas fa-plus text-lg"></i>
+            </button>
+        </header>
+        
+        <div id="ai-content"></div>
+    </main>
+    
+    <!-- MODALS & OVERLAYS -->
+    <div id="iaBotManagerPanel" class="hidden fixed inset-0 z-[1500] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="confirmModal" class="hidden fixed inset-0 z-[1400] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg font-bold z-[2000] shadow-lg" style="background-color: var(--primary); color: var(--primary-foreground);"></div>
+
+<script>
+const FILENAME_IN_GIST = 'Botones.json';
+let data = { iaBots: [] };
+const mockData = {
+    iaBots: [
+        { id: 1, title: "Asistente WhatsApp", description: "Ayuda a redactar mensajes para clientes de WhatsApp, manteniendo un tono profesional y amable.", icon: "fab fa-whatsapp", systemPrompt: "Eres un asistente de comunicación para WhatsApp. Tu objetivo es redactar mensajes concisos, profesionales y amables para clientes. Si el cliente está molesto, empatiza antes de dar la solución. Siempre sé directo al grano. Utiliza emojis ocasionalmente para suavizar el tono, pero sin abusar." },
+        { id: 2, title: "Generador de Ideas", description: "Propone ideas creativas para cualquier tema, desde proyectos hasta contenido.", icon: "fas fa-lightbulb", systemPrompt: "Eres un generador de ideas creativo. Dada una temática o un problema, tu tarea es proponer al menos 5 ideas innovadoras y variadas. No te limites a lo obvio. Puedes incluir ideas disruptivas o poco convencionales." },
+        { id: 3, title: "Corrector de Estilo", description: "Mejora la gramática, ortografía y fluidez de cualquier texto en español.", icon: "fas fa-spell-check", systemPrompt: "Eres un corrector de estilo y gramática para textos en español. Tu objetivo es mejorar la fluidez, coherencia y corrección gramatical y ortográfica de cualquier texto que te proporcionen. Mantén el significado original, pero optimiza la redacción para que sea más clara y profesional. Presenta el texto corregido sin introducciones, solo el texto final." },
+        { id: 4, title: "Constructor de Prompts", description: "Te ayuda a crear y refinar 'System Prompts' efectivos para tus asistentes.", icon: "fas fa-drafting-compass", systemPrompt: "Eres un experto en ingeniería de prompts. Tu tarea es ayudar al usuario a construir un 'System Prompt' (instrucciones del sistema) para otro asistente de IA. Basado en la descripción del usuario de lo que quiere que haga su bot, genera un 'System Prompt' detallado y efectivo. El prompt debe definir claramente el rol, la personalidad, las capacidades, las limitaciones y el formato de respuesta del bot. Utiliza un lenguaje claro y estructurado." }
+    ]
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadData();
+    document.getElementById('addBotButton').addEventListener('click', () => openBotManagerModal());
+});
+
+async function loadData() {
+    let gistId = localStorage.getItem('gist_id');
+    const localData = localStorage.getItem('appData');
+
+    const processBots = (loadedData) => {
+        if (loadedData && Array.isArray(loadedData.iaBots) && loadedData.iaBots.length > 0) {
+            data.iaBots = loadedData.iaBots;
+        } else {
+            data.iaBots = mockData.iaBots;
+        }
+    };
+
+    if (gistId) {
+        const token = localStorage.getItem('github_pat');
+        const headers = { 'Accept': 'application/vnd.github.v3+json' };
+        if (token) headers['Authorization'] = `token ${token}`;
+
+        try {
+            const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
+            if (!response.ok) throw new Error('Failed to fetch Gist');
+            const gistData = await response.json();
+            const fileContent = gistData.files[FILENAME_IN_GIST]?.content;
+            processBots(fileContent ? JSON.parse(fileContent) : (localData ? JSON.parse(localData) : {}));
+        } catch (error) {
+            console.error("Failed to load from Gist, falling back to local/mock", error);
+            processBots(localData ? JSON.parse(localData) : {});
+        }
+    } else {
+        processBots(localData ? JSON.parse(localData) : {});
+    }
+    renderAISection(document.getElementById('ai-content'));
+}
+
+async function saveData() {
+    const gistId = localStorage.getItem('gist_id');
+    let fullData = {};
+
+    try {
+        if (gistId) {
+            const token = localStorage.getItem('github_pat');
+            if(token) {
+                const headers = { 'Accept': 'application/vnd.github.v3+json', 'Authorization': `token ${token}` };
+                const response = await fetch(`https://api.github.com/gists/${gistId}`, { headers });
+                if (response.ok) {
+                    const gistData = await response.json();
+                    const fileContent = gistData.files[FILENAME_IN_GIST]?.content;
+                    if (fileContent) {
+                        fullData = JSON.parse(fileContent);
+                    }
+                }
+            }
+        } else {
+            const localData = localStorage.getItem('appData');
+            if (localData) {
+                fullData = JSON.parse(localData);
+            }
+        }
+
+        fullData.iaBots = data.iaBots;
+        const dataString = JSON.stringify(fullData, null, 2);
+
+        localStorage.setItem('appData', dataString);
+
+        if (gistId) {
+            const token = localStorage.getItem('github_pat');
+            if (!token) {
+                showToast("Falta token de GitHub. Guardado localmente.", 'error');
+                return;
+            }
+            await fetch(`https://api.github.com/gists/${gistId}`, {
+                method: 'PATCH',
+                headers: { 'Authorization': `token ${token}`, 'Accept': 'application/vnd.github.v3+json' },
+                body: JSON.stringify({ files: { [FILENAME_IN_GIST]: { content: dataString } } })
+            });
+            showToast("Cambios guardados en Gist.");
+        }
+    } catch (error) {
+        console.error("Failed to save data:", error);
+        showToast("Error al guardar datos.", 'error');
+    }
+}
+
+function renderAISection(container) {
+    container.innerHTML = '';
+    const apiKey = localStorage.getItem('gemini_api_key');
+
+    if (!apiKey) {
+        container.innerHTML = `
+            <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
+                <i class="fas fa-key text-4xl text-muted-foreground mb-4"></i>
+                <h3 class="text-xl font-semibold">Configuración Requerida</h3>
+                <p class="text-muted-foreground mt-2 mb-4">Para usar la Fábrica de IA, necesitas agregar tu API Key de Gemini en los ajustes de la página principal.</p>
+                <a href="index.html" class="btn btn-primary">Ir a la Página Principal</a>
+            </div>
+        `;
+        return;
+    }
+
+    const grid = document.createElement('div');
+    grid.id = 'ia-bots-grid';
+    grid.className = 'card-grid';
+    container.appendChild(grid);
+
+    if (data.iaBots && data.iaBots.length > 0) {
+        data.iaBots.forEach(bot => grid.appendChild(renderBotCard(bot)));
+    } else {
+        container.innerHTML = `
+            <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
+                <i class="fas fa-robot text-4xl text-muted-foreground mb-4"></i>
+                <h3 class="text-xl font-semibold">Sin Asistentes de IA</h3>
+                <p class="text-muted-foreground mt-2 mb-4">Añade tu primer asistente para empezar.</p>
+                <button onclick="openBotManagerModal()" class="btn btn-primary">Crear Asistente</button>
+            </div>
+        `;
+    }
+}
+
+function renderBotCard(bot) {
+    const card = document.createElement('div');
+    card.className = 'ai-bot-card flex flex-col gap-4';
+    card.dataset.id = bot.id;
+
+    const isWhatsAppBot = bot.icon === 'fab fa-whatsapp';
+    let buttonsHtml = `<button id="bot-generate-${bot.id}" class="btn btn-primary ${isWhatsAppBot ? 'w-1/2' : 'w-full'}"><i class="fas fa-paper-plane mr-2"></i>Generar</button>`;
+    if (isWhatsAppBot) {
+        buttonsHtml += `<button id="bot-whatsapp-${bot.id}" class="btn btn-secondary w-1/2" style="background-color: #25D366; color: white; border-color: #1DA851;"><i class="fab fa-whatsapp mr-2"></i>Enviar</button>`;
+    }
+
+    card.innerHTML = `
+        <div class="flex items-center gap-4">
+            <div class="w-12 h-12 bg-secondary rounded-full flex items-center justify-center flex-shrink-0">${getIconHtml(bot.icon, 'text-2xl')}</div>
+            <div class="flex-grow">
+                <h3 class="font-bold text-lg">${bot.title}</h3>
+                <p class="text-sm text-muted-foreground">${bot.description}</p>
+            </div>
+            <div class="relative">
+                <button class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" onclick="toggleBotMenu(event, '${bot.id}')"><i class="fas fa-ellipsis-v"></i></button>
+                <div id="bot-menu-${bot.id}" class="dropdown-menu hidden">
+                    <button onclick="openBotManagerModal('${bot.id}', event)"><i class="fas fa-pencil-alt mr-2"></i>Editar Bot</button>
+                    <button onclick="deleteIABot('${bot.id}', event)"><i class="fas fa-trash-alt mr-2"></i>Eliminar</button>
+                </div>
+            </div>
+        </div>
+        <div class="flex flex-col gap-2">
+            <label for="bot-input-${bot.id}" class="font-semibold text-sm">Tu Petición:</label>
+            <textarea id="bot-input-${bot.id}" class="input-base w-full min-h-[80px]" rows="3" placeholder="Ej: decirle al cliente que su pedido está retrasado"></textarea>
+            <div class="flex gap-2 mt-2">${buttonsHtml}</div>
+        </div>
+        <div class="flex flex-col gap-2 mt-4">
+            <label class="font-semibold text-sm">Respuesta del Asistente:</label>
+            <div id="bot-result-${bot.id}" class="result-area bg-secondary text-foreground relative">
+                <p class="text-muted-foreground">Esperando petición...</p>
+                <button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>
+            </div>
+        </div>
+    `;
+
+    card.querySelector(`#bot-generate-${bot.id}`).addEventListener('click', (e) => generateBotResponse(bot.id, e.currentTarget));
+    if (isWhatsAppBot) {
+        card.querySelector(`#bot-whatsapp-${bot.id}`).addEventListener('click', () => sendToWhatsApp(bot.id));
+    }
+    return card;
+}
+
+function toggleBotMenu(event, botId) {
+    event.stopPropagation();
+    const menu = document.getElementById(`bot-menu-${botId}`);
+    menu.classList.toggle('hidden');
+    document.querySelectorAll('.dropdown-menu').forEach(otherMenu => {
+        if (otherMenu.id !== `bot-menu-${botId}`) {
+            otherMenu.classList.add('hidden');
+        }
+    });
+    document.addEventListener('click', function closeMenuOnClickOutside(e) {
+        if (!menu.contains(e.target) && !event.currentTarget.contains(e.target)) {
+            menu.classList.add('hidden');
+            document.removeEventListener('click', closeMenuOnClickOutside);
+        }
+    });
+}
+
+async function generateBotResponse(botId, triggerButton) {
+    const bot = data.iaBots.find(b => b.id == botId);
+    if (!bot) return;
+
+    const userInput = document.getElementById(`bot-input-${botId}`).value.trim();
+    const resultDiv = document.getElementById(`bot-result-${botId}`);
+    if (!userInput) {
+        showToast('Por favor, escribe tu petición al bot.', 'error');
+        return;
+    }
+
+    resultDiv.innerHTML = `<p class="text-muted-foreground"><i class="fas fa-spinner fa-spin mr-2"></i>Generando respuesta...</p>`;
+    resultDiv.classList.remove('has-content');
+
+    const finalPrompt = `${bot.systemPrompt}\n\nMi petición: ${userInput}`;
+    const aiResult = await callGeminiAPI(finalPrompt, triggerButton);
+
+    if (aiResult) {
+        resultDiv.innerHTML = `<div class="prose dark:prose-invert max-w-none text-sm">${simpleMarkdownToHtml(aiResult)}</div><button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>`;
+        resultDiv.classList.add('has-content');
+    } else {
+        resultDiv.innerHTML = `<p class="text-red-500"><strong>Error:</strong> No se pudo generar la respuesta.</p><button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>`;
+    }
+}
+
+function copyBotResponse(botId, event) {
+    event.stopPropagation();
+    const resultDiv = document.getElementById(`bot-result-${botId}`);
+    const textToCopy = resultDiv.querySelector('.prose')?.textContent || resultDiv.textContent;
+    if (!textToCopy.trim()) {
+        showToast('No hay contenido para copiar.', 'info');
+        return;
+    }
+    const tempTextarea = document.createElement('textarea');
+    tempTextarea.value = textToCopy;
+    document.body.appendChild(tempTextarea);
+    tempTextarea.select();
+    try {
+        document.execCommand('copy');
+        showToast('Respuesta copiada al portapapeles.');
+    } catch (err) {
+        showToast('Error al copiar el texto.', 'error');
+    } finally {
+        document.body.removeChild(tempTextarea);
+    }
+}
+
+function sendToWhatsApp(botId) {
+    const resultDiv = document.getElementById(`bot-result-${botId}`);
+    const textToSend = resultDiv.querySelector('.prose')?.innerText || resultDiv.innerText;
+    if (!textToSend.trim() || textToSend.trim().startsWith('Esperando') || textToSend.trim().startsWith('Generando')) {
+        showToast('Primero genera una respuesta para enviar.', 'info');
+        return;
+    }
+    const encodedText = encodeURIComponent(textToSend);
+    const url = `https://web.whatsapp.com/send?text=${encodedText}`;
+    window.open(url, '_blank');
+}
+
+function openBotManagerModal(botId = null, event) {
+    if (event) event.stopPropagation();
+    const modal = document.getElementById('iaBotManagerPanel');
+    const bot = botId ? data.iaBots.find(b => b.id == botId) : null;
+
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-2xl p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">${bot ? 'Editar Asistente de IA' : 'Crear Nuevo Asistente de IA'}</h2>
+                <button onclick="document.getElementById('iaBotManagerPanel').classList.add('hidden')" class="btn btn-ghost !p-2">&times;</button>
+            </div>
+            <form id="botManagerForm" class="space-y-4">
+                <input type="hidden" id="botId" value="${bot?.id || ''}">
+                <div><label for="botTitle" class="font-semibold block mb-2">Título del Asistente</label><input type="text" id="botTitle" class="input-base" value="${bot?.title || ''}" required></div>
+                <div><label for="botDescription" class="font-semibold block mb-2">Descripción</label><textarea id="botDescription" class="input-base" rows="2" placeholder="Una breve descripción de lo que hace este asistente">${bot?.description || ''}</textarea></div>
+                <div><label for="botIcon" class="font-semibold block mb-2">Icono (Clase FontAwesome, ej: fas fa-robot)</label><input type="text" id="botIcon" class="input-base" value="${bot?.icon || 'fas fa-robot'}" placeholder="fas fa-robot"></div>
+                <div><label for="botSystemPrompt" class="font-semibold block mb-2">Prompt de Sistema (Instrucciones para el Asistente)</label><textarea id="botSystemPrompt" class="input-base" rows="8" placeholder="Ej: Eres un asistente de ventas profesional y amable...">${bot?.systemPrompt || ''}</textarea></div>
+                <div class="flex justify-end gap-2 pt-4">
+                    <button type="button" onclick="document.getElementById('iaBotManagerPanel').classList.add('hidden')" class="btn btn-secondary">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">Guardar Asistente</button>
+                </div>
+            </form>
+        </div>`;
+    modal.classList.remove('hidden');
+    document.getElementById('botManagerForm').onsubmit = handleSaveBot;
+}
+
+function handleSaveBot(event) {
+    event.preventDefault();
+    const id = document.getElementById('botId').value;
+    const newBot = {
+        id: id ? parseInt(id) : Date.now(),
+        title: document.getElementById('botTitle').value.trim(),
+        description: document.getElementById('botDescription').value.trim(),
+        icon: document.getElementById('botIcon').value.trim(),
+        systemPrompt: document.getElementById('botSystemPrompt').value.trim(),
+    };
+
+    if (!newBot.title || !newBot.systemPrompt) {
+        showToast('El título y el prompt de sistema son obligatorios.', 'error');
+        return;
+    }
+
+    if (id) {
+        const index = data.iaBots.findIndex(b => b.id == id);
+        if (index !== -1) data.iaBots[index] = newBot;
+    } else {
+        if (!data.iaBots) data.iaBots = [];
+        data.iaBots.push(newBot);
+    }
+    document.getElementById('iaBotManagerPanel').classList.add('hidden');
+    saveData().then(() => renderAISection(document.getElementById('ai-content')));
+    showToast('Asistente de IA guardado.');
+}
+
+function deleteIABot(botId, event) {
+    if (event) event.stopPropagation();
+    showConfirmModal('¿Seguro que quieres eliminar este asistente de IA?', (confirmed) => {
+        if (confirmed) {
+            const numericId = parseInt(botId, 10);
+            data.iaBots = data.iaBots.filter(bot => bot.id !== numericId);
+            saveData().then(() => renderAISection(document.getElementById('ai-content')));
+            showToast('Asistente de IA eliminado.');
+        }
+    });
+}
+
+// --- Helper Functions copied from index.html ---
+function showToast(message, type = 'success') {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.style.backgroundColor = '';
+    toast.style.color = '';
+    if (type === 'error') {
+        toast.style.backgroundColor = '#ef4444';
+        toast.style.color = 'white';
+    } else {
+        toast.style.backgroundColor = 'var(--primary)';
+        toast.style.color = 'var(--primary-foreground)';
+    }
+    toast.classList.remove("hidden");
+    setTimeout(() => toast.classList.add("hidden"), 3000);
+}
+
+function getIconHtml(icon, sizeClass = 'text-2xl') {
+    if (!icon) return `<i class="fas fa-question-circle ${sizeClass} text-muted-foreground"></i>`;
+    if (icon.startsWith('http')) {
+        const imgClass = { 'text-lg': 'w-5 h-5', 'text-xl': 'w-6 h-6', 'text-2xl': 'w-8 h-8', 'text-4xl': 'w-12 h-12' }[sizeClass] || 'w-6 h-6';
+        return `<img src="${icon}" class="${imgClass} object-contain" alt="Icono" onerror="this.onerror=null;this.parentElement.innerHTML='<i class=\\'fas fa-question-circle ${sizeClass} text-muted-foreground\\'></i>';">`;
+    }
+    return `<i class="${icon} ${sizeClass} text-foreground"></i>`;
+}
+
+function simpleMarkdownToHtml(text) {
+    let html = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\*(.*?)\*/g, '<em>$1</em>').replace(/`([^`]+)`/g, '<code>$1</code>');
+    let lines = html.split('\n');
+    let inList = false;
+    let listType = '';
+    let processedHtml = lines.map(line => {
+        const trimmedLine = line.trim();
+        const isUnordered = trimmedLine.startsWith('* ') || trimmedLine.startsWith('- ');
+        const isOrdered = /^\d+\. /.test(trimmedLine);
+        if (isUnordered || isOrdered) {
+            let itemHtml = '<li>' + trimmedLine.substring(trimmedLine.indexOf(' ') + 1) + '</li>';
+            if (!inList) {
+                listType = isUnordered ? 'ul' : 'ol';
+                itemHtml = `<${listType}>` + itemHtml;
+                inList = true;
+            } else if ((isUnordered && listType !== 'ul') || (isOrdered && listType !== 'ol')) {
+                itemHtml = `</${listType}><${isUnordered ? 'ul' : 'ol'}>` + itemHtml;
+                listType = isUnordered ? 'ul' : 'ol';
+            }
+            return itemHtml;
+        } else {
+            if (inList) {
+                inList = false;
+                return `</${listType}>` + (trimmedLine ? `<p>${line}</p>` : '');
+            }
+            return trimmedLine ? `<p>${line}</p>` : '';
+        }
+    }).join('');
+    if (inList) {
+        processedHtml += `</${listType}>`;
+    }
+    return processedHtml.replace(/<p><\/p>/g, '');
+}
+
+async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = []) {
+    const apiKey = localStorage.getItem('gemini_api_key');
+    if (!apiKey) {
+        showToast("Configura tu API Key de Gemini en los ajustes de la página principal.", 'error');
+        return null;
+    }
+    const originalButtonText = triggerButton.innerHTML;
+    const buttons = allButtonsToDisable.length > 0 ? allButtonsToDisable : [triggerButton];
+    buttons.forEach(b => b.disabled = true);
+    triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    const payload = { contents: [{ parts: [{ text: prompt }] }], tools: [{ "google_search": {} }] };
+    try {
+        const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+        const responseData = await response.json();
+        if (!responseData.candidates || !responseData.candidates[0].content || !responseData.candidates[0].content.parts) {
+            throw new Error("La IA devolvió una respuesta vacía o con formato incorrecto.");
+        }
+        return responseData.candidates[0].content.parts[0].text;
+    } catch (error) {
+        console.error("Error llamando a la API de Gemini:", error);
+        showToast(`Error de IA: ${error.message}`, 'error');
+        return null;
+    } finally {
+        buttons.forEach(b => b.disabled = false);
+        triggerButton.innerHTML = originalButtonText;
+    }
+}
+
+function showConfirmModal(message, callback) {
+    const modal = document.getElementById('confirmModal');
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-md p-6 text-center">
+            <p class="text-lg mb-6">${message}</p>
+            <div class="flex justify-center gap-4">
+                <button id="confirmCancel" class="btn btn-secondary">Cancelar</button>
+                <button id="confirmOk" class="btn btn-primary">Aceptar</button>
+            </div>
+        </div>
+    `;
+    modal.classList.remove('hidden');
+    modal.querySelector('#confirmOk').onclick = () => { modal.classList.add('hidden'); callback(true); };
+    modal.querySelector('#confirmCancel').onclick = () => { modal.classList.add('hidden'); callback(false); };
+}
+</script>
+</body>
+</html>
+
