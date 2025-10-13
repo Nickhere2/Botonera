@@ -53,6 +53,8 @@
         .ai-bot-card .copy-button { position: absolute; top: 0.5rem; right: 0.5rem; background-color: rgba(0,0,0,0.3); color: white; padding: 0.25rem 0.5rem; border-radius: 0.5rem; font-size: 0.75rem; opacity: 0; transition: opacity 0.2s ease; }
         .ai-bot-card .result-area:hover .copy-button { opacity: 1; }
         .ai-bot-card .result-area.has-content .copy-button { opacity: 1; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary); cursor: pointer; border-radius: 50%; }
+        input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; background: var(--primary); cursor: pointer; border-radius: 50%; border: none; }
     </style>
 </head>
 <body class="dark">
@@ -217,6 +219,14 @@ function renderBotCard(bot) {
     card.className = 'ai-bot-card flex flex-col gap-4';
     card.dataset.id = bot.id;
 
+    const placeholders = {
+        1: "Cliente pregunta si su pedido #1234 ya fue enviado.",
+        2: "Nombres para una nueva marca de café orgánico.",
+        3: "Pega aquí el texto que quieres corregir y mejorar.",
+        4: "Quiero un bot que actúe como un experto en vinos y me recomiende maridajes para comidas."
+    };
+    const placeholder = placeholders[bot.id] || "Describe tu necesidad...";
+
     const isWhatsAppBot = bot.icon === 'fab fa-whatsapp';
     let buttonsHtml = `<button id="bot-generate-${bot.id}" class="btn btn-primary ${isWhatsAppBot ? 'w-1/2' : 'w-full'}"><i class="fas fa-paper-plane mr-2"></i>Generar</button>`;
     if (isWhatsAppBot) {
@@ -233,15 +243,23 @@ function renderBotCard(bot) {
             <div class="relative">
                 <button class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" onclick="toggleBotMenu(event, '${bot.id}')"><i class="fas fa-ellipsis-v"></i></button>
                 <div id="bot-menu-${bot.id}" class="dropdown-menu hidden">
-                    <button onclick="openBotManagerModal('${bot.id}', event)"><i class="fas fa-pencil-alt mr-2"></i>Editar Bot</button>
-                    <button onclick="deleteIABot('${bot.id}', event)"><i class="fas fa-trash-alt mr-2"></i>Eliminar</button>
+                    <button onclick="openBotManagerModal('${bot.id}', event)"><i class="fas fa-pencil-alt w-4 mr-2"></i>Editar</button>
+                    <button onclick="deleteIABot('${bot.id}', event)"><i class="fas fa-trash-alt w-4 mr-2"></i>Eliminar</button>
                 </div>
             </div>
         </div>
         <div class="flex flex-col gap-2">
-            <label for="bot-input-${bot.id}" class="font-semibold text-sm">Tu Petición:</label>
-            <textarea id="bot-input-${bot.id}" class="input-base w-full min-h-[80px]" rows="3" placeholder="Ej: decirle al cliente que su pedido está retrasado"></textarea>
-            <div class="flex gap-2 mt-2">${buttonsHtml}</div>
+            <div class="flex justify-between items-center">
+                <label for="bot-input-${bot.id}" class="font-semibold text-sm">Tu Petición:</label>
+                <button id="bot-reset-${bot.id}" class="btn btn-ghost !p-1 text-xs" title="Limpiar"><i class="fas fa-times mr-1"></i>Limpiar</button>
+            </div>
+            <textarea id="bot-input-${bot.id}" class="input-base w-full min-h-[80px]" rows="3" placeholder="${placeholder}"></textarea>
+            <div class="flex items-center gap-3 mt-2">
+                <label for="bot-temp-${bot.id}" class="font-semibold text-sm whitespace-nowrap">Creatividad:</label>
+                <input type="range" id="bot-temp-${bot.id}" min="0" max="1" step="0.1" value="0.7" class="w-full h-2 bg-secondary rounded-lg appearance-none cursor-pointer">
+                <span id="bot-temp-value-${bot.id}" class="text-sm font-mono text-muted-foreground w-8 text-center">0.7</span>
+            </div>
+            <div class="flex gap-2 mt-4">${buttonsHtml}</div>
         </div>
         <div class="flex flex-col gap-2 mt-4">
             <label class="font-semibold text-sm">Respuesta del Asistente:</label>
@@ -256,6 +274,18 @@ function renderBotCard(bot) {
     if (isWhatsAppBot) {
         card.querySelector(`#bot-whatsapp-${bot.id}`).addEventListener('click', () => sendToWhatsApp(bot.id));
     }
+    card.querySelector(`#bot-reset-${bot.id}`).addEventListener('click', () => {
+        document.getElementById(`bot-input-${bot.id}`).value = '';
+        const resultDiv = document.getElementById(`bot-result-${bot.id}`);
+        resultDiv.innerHTML = `<p class="text-muted-foreground">Esperando petición...</p><button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>`;
+        resultDiv.classList.remove('has-content');
+    });
+    const tempSlider = card.querySelector(`#bot-temp-${bot.id}`);
+    const tempValue = card.querySelector(`#bot-temp-value-${bot.id}`);
+    tempSlider.addEventListener('input', () => {
+        tempValue.textContent = parseFloat(tempSlider.value).toFixed(1);
+    });
+
     return card;
 }
 
@@ -289,9 +319,10 @@ async function generateBotResponse(botId, triggerButton) {
 
     resultDiv.innerHTML = `<p class="text-muted-foreground"><i class="fas fa-spinner fa-spin mr-2"></i>Generando respuesta...</p>`;
     resultDiv.classList.remove('has-content');
-
+    
+    const temperature = parseFloat(document.getElementById(`bot-temp-${botId}`).value);
     const finalPrompt = `${bot.systemPrompt}\n\nMi petición: ${userInput}`;
-    const aiResult = await callGeminiAPI(finalPrompt, triggerButton);
+    const aiResult = await callGeminiAPI(finalPrompt, triggerButton, [], { temperature });
 
     if (aiResult) {
         resultDiv.innerHTML = `<div class="prose dark:prose-invert max-w-none text-sm">${simpleMarkdownToHtml(aiResult)}</div><button class="copy-button" onclick="copyBotResponse('${bot.id}', event)"><i class="fas fa-copy mr-1"></i>Copiar</button>`;
@@ -462,7 +493,7 @@ function simpleMarkdownToHtml(text) {
     return processedHtml.replace(/<p><\/p>/g, '');
 }
 
-async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = []) {
+async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], generationConfig = null) {
     const apiKey = localStorage.getItem('gemini_api_key');
     if (!apiKey) {
         showToast("Configura tu API Key de Gemini en los ajustes de la página principal.", 'error');
@@ -473,7 +504,15 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = []) {
     buttons.forEach(b => b.disabled = true);
     triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-    const payload = { contents: [{ parts: [{ text: prompt }] }], tools: [{ "google_search": {} }] };
+    const payload = {
+        contents: [{ parts: [{ text: prompt }] }],
+        tools: [{ "google_search": {} }]
+    };
+
+    if (generationConfig) {
+        payload.generationConfig = generationConfig;
+    }
+
     try {
         const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
         if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
