@@ -186,12 +186,11 @@
                     <div class="flex gap-4">
                         <div><input type="radio" id="type-embed" name="channel-type" value="youtube-embed" checked class="w-4 h-4 text-blue-600"><label for="type-embed" class="ml-2 text-sm font-medium">YouTube</label></div>
                         <div><input type="radio" id="type-external" name="channel-type" value="external-link" class="w-4 h-4 text-blue-600"><label for="type-external" class="ml-2 text-sm font-medium">Enlace Externo</label></div>
-                        <div><input type="radio" id="type-search" name="channel-type" value="youtube-search" class="w-4 h-4 text-blue-600"><label for="type-search" class="ml-2 text-sm font-medium">Búsqueda</label></div>
                     </div>
                 </div>
                 <div id="form-group-url" class="mb-4">
-                    <label for="channel-url" id="channel-url-label" class="block mb-2 text-sm font-medium">URL o Búsqueda</label>
-                    <input type="text" id="channel-url" placeholder="URL o término de búsqueda" class="w-full border border-slate-600 rounded-lg p-2.5" required>
+                    <label for="channel-url" id="channel-url-label" class="block mb-2 text-sm font-medium">URL</label>
+                    <input type="text" id="channel-url" placeholder="URL del canal" class="w-full border border-slate-600 rounded-lg p-2.5" required>
                 </div>
                  <div id="paste-button-container" class="mb-6">
                     <button type="button" id="paste-url-button" class="w-full py-2 px-4 bg-slate-600 hover:bg-slate-500 rounded-lg flex items-center justify-center gap-2">
@@ -593,8 +592,8 @@
 
                 document.getElementById('form-group-name').style.display = 'block';
                 document.getElementById('form-group-type').style.display = 'block';
-                document.getElementById('channel-url-label').textContent = 'URL o Búsqueda';
-                document.getElementById('channel-url').placeholder = 'URL o término de búsqueda';
+                document.getElementById('channel-url-label').textContent = 'URL';
+                document.getElementById('channel-url').placeholder = 'URL del canal';
                 
                 document.getElementById('edit-channel-index').value = index;
                 document.getElementById('channel-name').value = channel.name;
@@ -603,8 +602,6 @@
                 let urlOrQuery;
                 if (channel.type === 'youtube-embed') {
                     urlOrQuery = `https://www.youtube.com/watch?v=${channel.id}`;
-                } else if (channel.type === 'youtube-search') {
-                    urlOrQuery = channel.query;
                 } else {
                     urlOrQuery = channel.url;
                 }
@@ -624,8 +621,8 @@
 
                 document.getElementById('form-group-name').style.display = 'block';
                 document.getElementById('form-group-type').style.display = 'block';
-                document.getElementById('channel-url-label').textContent = 'URL o Búsqueda';
-                document.getElementById('channel-url').placeholder = 'URL o término de búsqueda';
+                document.getElementById('channel-url-label').textContent = 'URL';
+                document.getElementById('channel-url').placeholder = 'URL del canal';
                 channelModal.classList.remove('hidden');
             }
             
@@ -677,8 +674,6 @@
                     const videoId = extractYouTubeID(urlOrQueryInput);
                     if(videoId) { channelData.id = videoId; }
                     else { showToast('La URL de YouTube no es válida.', 'error'); return; }
-                } else if (type === 'youtube-search') {
-                    channelData.query = urlOrQueryInput;
                 } else { // external-link
                     channelData.url = urlOrQueryInput;
                 }
@@ -692,7 +687,6 @@
                     const oldChannel = allChannels[parseInt(editIndex)];
                     delete oldChannel.id;
                     delete oldChannel.url;
-                    delete oldChannel.query;
 
                     allChannels[parseInt(editIndex)] = {...oldChannel, ...channelData};
                 }
