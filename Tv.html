@@ -186,13 +186,14 @@
                     <div class="flex gap-4">
                         <div><input type="radio" id="type-embed" name="channel-type" value="youtube-embed" checked class="w-4 h-4 text-blue-600"><label for="type-embed" class="ml-2 text-sm font-medium">YouTube</label></div>
                         <div><input type="radio" id="type-external" name="channel-type" value="external-link" class="w-4 h-4 text-blue-600"><label for="type-external" class="ml-2 text-sm font-medium">Enlace Externo</label></div>
+                        <div><input type="radio" id="type-search" name="channel-type" value="youtube-search" class="w-4 h-4 text-blue-600"><label for="type-search" class="ml-2 text-sm font-medium">Búsqueda</label></div>
                     </div>
                 </div>
                 <div id="form-group-url" class="mb-4">
-                    <label for="channel-url" id="channel-url-label" class="block mb-2 text-sm font-medium">URL del Canal</label>
-                    <input type="text" id="channel-url" placeholder="https://www.youtube.com/watch?v=..." class="w-full border border-slate-600 rounded-lg p-2.5" required>
+                    <label for="channel-url" id="channel-url-label" class="block mb-2 text-sm font-medium">URL o Búsqueda</label>
+                    <input type="text" id="channel-url" placeholder="URL o término de búsqueda" class="w-full border border-slate-600 rounded-lg p-2.5" required>
                 </div>
-                 <div class="mb-6">
+                 <div id="paste-button-container" class="mb-6">
                     <button type="button" id="paste-url-button" class="w-full py-2 px-4 bg-slate-600 hover:bg-slate-500 rounded-lg flex items-center justify-center gap-2">
                         <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M7 3a1 1 0 000 2h6a1 1 0 100-2H7zM4 7a1 1 0 011-1h10a1 1 0 110 2H5a1 1 0 01-1-1zM4 11a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4z" /></svg>
                         <span>Pegar URL del Portapapeles</span>
@@ -279,6 +280,7 @@
             const toastContainer = document.getElementById('toast-container');
             const pasteUrlButton = document.getElementById('paste-url-button');
             const submitChannelButton = document.getElementById('submit-channel-button');
+            const pasteButtonContainer = document.getElementById('paste-button-container');
             
             // App State
             let allChannels = [], favorites = [], watchLaterList = [];
@@ -445,7 +447,7 @@
                 itemsToRender.forEach((item, renderIndex) => {
                     const channel = item.isWatchLater ? { id: item.id, name: item.title, type: 'youtube-embed' } : item;
 
-                    const realIndex = item.isWatchLater ? -1 : allChannels.findIndex(c => (c.id || c.url) === (item.id || item.url));
+                    const realIndex = item.isWatchLater ? -1 : allChannels.findIndex(c => c.name === item.name);
                     const isFavorite = channel.type === 'youtube-embed' && favorites.includes(channel.id);
                     const button = document.createElement('div');
                     button.className = "channel-card w-full group rounded-lg transition-all duration-200 bg-slate-700/50 focus:outline-none cursor-pointer relative aspect-[16/9]";
@@ -587,29 +589,43 @@
                 modalTitle.textContent = 'Editar Canal';
                 channelForm.reset();
                 submitChannelButton.textContent = 'Guardar Cambios';
+                pasteButtonContainer.style.display = 'block';
+
                 document.getElementById('form-group-name').style.display = 'block';
                 document.getElementById('form-group-type').style.display = 'block';
-                document.getElementById('channel-url-label').textContent = 'URL del Canal';
-                document.getElementById('channel-url').placeholder = 'https://www.youtube.com/watch?v=...';
+                document.getElementById('channel-url-label').textContent = 'URL o Búsqueda';
+                document.getElementById('channel-url').placeholder = 'URL o término de búsqueda';
                 
                 document.getElementById('edit-channel-index').value = index;
                 document.getElementById('channel-name').value = channel.name;
                 document.querySelector(`input[name="channel-type"][value="${channel.type}"]`).checked = true;
-                const url = channel.type === 'youtube-embed' ? `https://www.youtube.com/watch?v=${channel.id}` : channel.url;
-                document.getElementById('channel-url').value = url || '';
+                
+                let urlOrQuery;
+                if (channel.type === 'youtube-embed') {
+                    urlOrQuery = `https://www.youtube.com/watch?v=${channel.id}`;
+                } else if (channel.type === 'youtube-search') {
+                    urlOrQuery = channel.query;
+                } else {
+                    urlOrQuery = channel.url;
+                }
+                document.getElementById('channel-url').value = urlOrQuery || '';
+                
                 channelModal.classList.remove('hidden');
             }
 
             function openAddModal() {
                 channelForm.dataset.mode = 'add';
-                modalTitle.textContent = 'Agregar Canal con IA';
+                modalTitle.textContent = 'Agregar Nuevo Canal';
                 channelForm.reset();
+                document.getElementById('type-embed').checked = true; // Default to YouTube
                 submitChannelButton.textContent = 'Agregar Canal';
                 document.getElementById('edit-channel-index').value = '';
-                document.getElementById('form-group-name').style.display = 'none';
-                document.getElementById('form-group-type').style.display = 'none';
-                document.getElementById('channel-url-label').textContent = 'Enlace de YouTube o nombre del canal';
-                document.getElementById('channel-url').placeholder = 'Ej: "LN+ en vivo" o pega una URL';
+                pasteButtonContainer.style.display = 'block';
+
+                document.getElementById('form-group-name').style.display = 'block';
+                document.getElementById('form-group-type').style.display = 'block';
+                document.getElementById('channel-url-label').textContent = 'URL o Búsqueda';
+                document.getElementById('channel-url').placeholder = 'URL o término de búsqueda';
                 channelModal.classList.remove('hidden');
             }
             
@@ -646,107 +662,44 @@
 
             channelSearchInput.addEventListener('input', () => renderChannelList());
 
-            function isValidHttpUrl(string) {
-                let url;
-                try {
-                    url = new URL(string);
-                } catch (_) {
-                    return false;  
-                }
-                return url.protocol === "http:" || url.protocol === "https:";
-            }
-
-            async function addChannelWithGemini(query) {
-                showLoading('Buscando con IA...');
-                const apiKey = ""; // Provided by environment
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
-                const systemPrompt = "You are an expert at finding YouTube live streams. Given a user query, find the most relevant YouTube live stream URL. You must return ONLY the full YouTube URL and nothing else. If no relevant live stream is found, return the text 'NOT_FOUND'.";
-                
-                const payload = {
-                    contents: [{ parts: [{ text: `Find YouTube live stream for: ${query}` }] }],
-                    tools: [{ "google_search": {} }],
-                    systemInstruction: { parts: [{ text: systemPrompt }] },
-                };
-
-                try {
-                    const response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) throw new Error('API response was not ok.');
-                    const result = await response.json();
-                    const text = result.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                    if (text && text.trim().toUpperCase() !== 'NOT_FOUND') {
-                        addChannelFromUrl(text.trim(), query);
-                    } else {
-                        showToast('No se encontró un canal en vivo con ese nombre.', 'error');
-                    }
-                } catch (error) {
-                    console.error('Error calling Gemini API:', error);
-                    showToast('Error al buscar con la IA.', 'error');
-                } finally {
-                    hideLoading();
-                }
-            }
-
-            function addChannelFromUrl(url, nameFromQuery = null) {
-                const videoId = extractYouTubeID(url);
-                let newChannel;
-
-                if (videoId) {
-                    newChannel = { name: nameFromQuery || videoId, id: videoId, type: 'youtube-embed', isDefault: false };
-                } else if (isValidHttpUrl(url)) {
-                    const domain = new URL(url).hostname.replace('www.', '');
-                    newChannel = { name: nameFromQuery || domain, url: url, type: 'external-link', isDefault: false };
-                } else {
-                    showToast('La URL proporcionada no es válida.', 'error');
-                    return;
-                }
-
-                allChannels.push(newChannel);
-                debouncedSave();
-                renderChannelList();
-                closeAllModals();
-                showToast(`Canal "${newChannel.name}" agregado!`, 'success');
-            }
-
             channelForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const mode = channelForm.dataset.mode;
-                const urlInput = document.getElementById('channel-url').value.trim();
+                const urlOrQueryInput = document.getElementById('channel-url').value.trim();
+                const name = document.getElementById('channel-name').value.trim();
+                const type = document.querySelector('input[name="channel-type"]:checked').value;
                 
-                if (mode === 'add') {
-                    if (!urlInput) return;
-                    if (isValidHttpUrl(urlInput)) {
-                        addChannelFromUrl(urlInput);
-                    } else {
-                        await addChannelWithGemini(urlInput);
-                    }
-                } else { // mode === 'edit'
-                    const name = document.getElementById('channel-name').value.trim();
-                    const type = document.querySelector('input[name="channel-type"]:checked').value;
-                    const editIndex = document.getElementById('edit-channel-index').value;
-                    
-                    if (!name || !urlInput || editIndex === '') return;
+                if (!name || !urlOrQueryInput) return;
 
-                    let channelData = { name, type };
-                    if (type === 'youtube-embed') {
-                        const videoId = extractYouTubeID(urlInput);
-                        if(videoId) { channelData.id = videoId; delete channelData.url; }
-                        else { showToast('La URL de YouTube no es válida.', 'error'); return; }
-                    } else { 
-                        channelData.url = urlInput;
-                        delete channelData.id;
-                    }
-                    
-                    allChannels[parseInt(editIndex)] = {...allChannels[parseInt(editIndex)], ...channelData};
-                    debouncedSave();
-                    renderChannelList();
-                    closeAllModals();
+                let channelData = { name, type, isDefault: false };
+
+                if (type === 'youtube-embed') {
+                    const videoId = extractYouTubeID(urlOrQueryInput);
+                    if(videoId) { channelData.id = videoId; }
+                    else { showToast('La URL de YouTube no es válida.', 'error'); return; }
+                } else if (type === 'youtube-search') {
+                    channelData.query = urlOrQueryInput;
+                } else { // external-link
+                    channelData.url = urlOrQueryInput;
                 }
+
+                if (mode === 'add') {
+                    allChannels.push(channelData);
+                } else { // mode === 'edit'
+                    const editIndex = document.getElementById('edit-channel-index').value;
+                    if (editIndex === '') return;
+                    
+                    const oldChannel = allChannels[parseInt(editIndex)];
+                    delete oldChannel.id;
+                    delete oldChannel.url;
+                    delete oldChannel.query;
+
+                    allChannels[parseInt(editIndex)] = {...oldChannel, ...channelData};
+                }
+
+                debouncedSave();
+                renderChannelList();
+                closeAllModals();
             });
 
 
