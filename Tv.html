@@ -770,12 +770,20 @@
                 }
                 
                 const systemInstruction = `You are an API that returns data in JSON format. Your responses must be strictly valid JSON. Do not include any explanatory text, markdown formatting, or any characters outside of the JSON structure itself.`;
-                const queryPrompt = `Based on the user's search query "${finalQuery}", use Google Search to find a list of up to 8 relevant, public, and embeddable YouTube videos. Your response MUST BE ONLY a valid JSON array of objects. If you cannot find any videos, return an empty array []. Each object must have "title" (the video title) and "videoId" (the YouTube video ID).`;
+                const queryPrompt = `Act as a YouTube search expert. The user wants to find videos about "${finalQuery}". Perform a Google search for relevant, public, and embeddable YouTube videos matching this query. Compile a list of up to 8 top results. Your response MUST BE ONLY a valid JSON array of objects. If you cannot find any videos, return an empty array []. Each object must have "title" (the video's full title) and "videoId" (the YouTube video ID).`;
 
                 try {
                     const responseText = await callGeminiAPI(queryPrompt, systemInstruction);
                     const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const youtubeResults = JSON.parse(cleanedResponse);
+                    
+                    let youtubeResults;
+                    try {
+                        youtubeResults = JSON.parse(cleanedResponse);
+                    } catch (jsonError) {
+                         console.error("JSON parsing error in Smart Search:", jsonError, "Raw response was:", cleanedResponse);
+                         throw new Error("La IA devolvió un formato inesperado.");
+                    }
+
 
                     if (youtubeResults && youtubeResults.length > 0) {
                         iaSearchResults = youtubeResults;
@@ -978,12 +986,20 @@
                 showLoading('Creando tu canal temático...');
                 
                 const systemInstruction = `You are an API that returns data in JSON format. Your responses must be strictly valid JSON. Do not include any explanatory text, markdown formatting, or any characters outside of the JSON structure itself.`;
-                const queryPrompt = `Based on the theme "${theme}", use Google Search to find a list of 8 highly relevant, currently available, public, and embeddable YouTube videos. Prioritize live streams if the theme suggests it (e.g., "news," "live music"). Your response MUST BE ONLY a valid JSON array of objects. If you cannot find 8 valid videos, return an empty array []. Each object must have two properties: "title" (a short, attractive title for the video) and "videoId" (the YouTube video ID).`;
+                const queryPrompt = `Act as a YouTube playlist creator. Perform a Google search for YouTube videos related to the theme "${theme}". Prioritize currently active live streams if the theme is time-sensitive (like "news"). From the search results, compile a list of up to 8 relevant, public, and embeddable videos. Your response MUST BE ONLY a valid JSON array of objects. If no videos are found, return an empty array []. Each object must have "title" (the video's full title) and "videoId" (the YouTube video ID).`;
 
                 try {
                     const responseText = await callGeminiAPI(queryPrompt, systemInstruction);
                     const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
-                    const parsedVideos = JSON.parse(cleanedResponse);
+                    
+                    let parsedVideos;
+                     try {
+                        parsedVideos = JSON.parse(cleanedResponse);
+                    } catch (jsonError) {
+                         console.error("JSON parsing error in IA Channel:", jsonError, "Raw response was:", cleanedResponse);
+                         throw new Error("La IA devolvió un formato inesperado.");
+                    }
+
 
                     if (Array.isArray(parsedVideos) && parsedVideos.length > 0) {
                         thematicChannels = parsedVideos;
@@ -1068,7 +1084,7 @@
 
                 const channelName = channelToRepair.name;
                 // La IA genera una consulta de búsqueda muy específica para un live stream
-                 const queryPrompt = `Your task is to act as a YouTube search expert. Find the most recent and currently available LIVE stream from the channel named "${channelName}". Ensure the video is public and embeddable. Respond ONLY with a single, valid JSON object with two keys: "title" (the video title) and "videoId" (the YouTube video ID). If you cannot find a valid live stream, respond with the exact word "NULL".`;
+                 const queryPrompt = `Act as a search expert. Perform a Google search for a currently active YouTube live stream for "${channelName} en vivo". From the search results, find the most relevant, currently playing, public, and embeddable YouTube video. Respond ONLY with a single, valid JSON object with two keys: "title" (the video's full title) and "videoId" (the YouTube video ID). If no active live stream is found, respond with the exact word "NULL".`;
                 
                 try {
                     const responseText = await callGeminiAPI(queryPrompt); 
@@ -1078,7 +1094,14 @@
                         throw new Error('No live stream found by AI.');
                     }
 
-                    const parsedResponse = JSON.parse(cleanedResponse);
+                    let parsedResponse;
+                    try {
+                        parsedResponse = JSON.parse(cleanedResponse);
+                    } catch (jsonError) {
+                        console.error("JSON parsing error in Repair Stream:", jsonError, "Raw response was:", cleanedResponse);
+                        throw new Error("La IA devolvió un formato inesperado.");
+                    }
+
 
                     if (parsedResponse.videoId) {
                         iaResultContainer.classList.remove('hidden');
@@ -1231,5 +1254,6 @@
     </script>
 </body>
 </html>
+
 
 
