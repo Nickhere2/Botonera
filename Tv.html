@@ -72,7 +72,8 @@
             background-color: black;
         }
         #app:fullscreen > aside,
-        #app:fullscreen > main #controls-container {
+        #app:fullscreen > main #controls-container,
+        #app:fullscreen #floating-controls { /* Hide floating controls in fullscreen */
             display: none;
         }
         #app:fullscreen > main {
@@ -107,8 +108,28 @@
                     <button id="help-button" title="Ayuda" class="p-2 rounded-full hover:bg-slate-700 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
                 </div>
             </header>
-            <form id="youtube-search-form" class="mb-2"><div class="relative"><input type="search" id="youtube-search-input" placeholder="✨ Pedí algo como 'noticias en vivo'..." class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2"><button type="submit" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg></button></div><div class="mt-2 flex items-center justify-center"><input type="checkbox" id="live-filter" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2"><label for="live-filter" class="ml-2 text-sm font-medium">Sólo "En Vivo"</label></div></form>
-            <div id="filter-container" class="my-4 flex justify-center bg-slate-700 rounded-lg p-1"><button data-filter="all" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Todos</button><button data-filter="favorites" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Favoritos</button><button data-filter="watchLater" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Ver Después</button></div>
+            <!-- CONTROLES DE BUSQUEDA DE YOUTUBE -->
+            <form id="youtube-search-form" class="mb-2">
+                <div class="relative">
+                    <input type="search" id="youtube-search-input" placeholder="✨ Pedí algo como 'noticias en vivo'..." class="w-full bg-slate-700 border border-slate-600 rounded-lg py-2 pl-4 pr-10 focus:outline-none focus:ring-2">
+                    <button type="submit" class="absolute top-0 right-0 h-full px-3 text-slate-400 hover:text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </button>
+                </div>
+                <div class="mt-2 flex items-center justify-center">
+                    <input type="checkbox" id="live-filter" class="w-4 h-4 text-blue-600 bg-gray-700 border-gray-600 rounded focus:ring-blue-600 ring-offset-gray-800 focus:ring-2">
+                    <label for="live-filter" class="ml-2 text-sm font-medium">Sólo "En Vivo"</label>
+                </div>
+                <!-- Botón para limpiar los resultados de la búsqueda de IA -->
+                <button type="button" id="clear-ia-search-btn" class="hidden mt-2 w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold bg-red-600 hover:bg-red-700">Limpiar Búsqueda IA</button>
+            </form>
+
+            <div id="filter-container" class="my-4 flex justify-center bg-slate-700 rounded-lg p-1">
+                <button data-filter="all" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Todos</button>
+                <button data-filter="favorites" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Favoritos</button>
+                <button data-filter="watchLater" class="filter-btn flex-1 py-1 px-2 rounded-md text-sm transition-colors duration-200">Ver Después</button>
+            </div>
+
             <div id="watch-later-container" class="mb-4 hidden">
                 <button id="add-from-clipboard-btn" class="w-full py-2 px-4 rounded-lg transition-colors text-sm font-semibold flex items-center justify-center space-x-2">
                     <svg class="w-6 h-6 shrink-0" viewBox="0 0 32 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -148,7 +169,7 @@
                     <div id="help-screen" class="hidden p-8 text-slate-300 overflow-y-auto custom-scroll w-full h-full z-20 bg-slate-900/90 backdrop-blur-sm">
                         <h3 class="text-2xl font-bold text-center mb-4">Guía de Uso</h3>
                         <div class="space-y-4 text-sm">
-                           <div>
+                            <div>
                                 <h4 class="font-semibold text-purple-400">✨ Funciones Inteligentes</h4>
                                 <p><strong>Búsqueda Mágica:</strong> Pide lo que quieras ver en la barra de búsqueda (ej: "música relajante") y la IA encontrará lo mejor para ti.</p>
                                 <p><strong>Canales Temáticos:</strong> Usa el botón 'Crear Canal IA' para generar una lista de reproducción instantánea sobre cualquier tema que imagines (ej: "documentales del espacio").</p>
@@ -177,7 +198,7 @@
                 <div class="flex items-center gap-2">
                     <h2 id="channel-title" class="text-xl h-7 font-semibold text-center truncate"></h2>
                     <button id="repair-stream-button" title="Reparar Stream Caído" class="hidden p-1 rounded-full bg-slate-700 hover:bg-yellow-600/50 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.899 2.186l-1.42.474a5.002 5.002 0 00-8.23-1.422l.744.744a1 1 0 01-1.414 1.414l-2.5-2.5a1 1 0 010-1.414l2.5-2.5a1 1 0 011.414 0l-.744.744A6.993 6.993 0 019 5.05V3a1 1 0 012 0v2.05a6.993 6.993 0 012.386.76l.744-.744a1 1 0 111.414 1.414l-2.5 2.5a1 1 0 01-1.414 0l2.5-2.5a1 1 0 010-1.414l-2.5-2.5a1 1 0 11-1.414 1.414l.744.744a5.002 5.002 0 00-8.23 1.422l-1.42-.474A7.002 7.002 0 014 5.101V3a1 1 0 01-1-1zm12 16a1 1 0 01-1-1v-2.101a7.002 7.002 0 01-11.899-2.186l1.42-.474a5.002 5.002 0 008.23 1.422l-.744-.744a1 1 0 011.414-1.414l2.5 2.5a1 1 0 010 1.414l-2.5 2.5a1 1 0 01-1.414 0l.744-.744A6.993 6.993 0 0111 14.95V17a1 1 0 01-2 0v-2.05a6.993 6.993 0 01-2.386-.76l-.744.744a1 1 0 11-1.414-1.414l2.5-2.5a1 1 0 011.414 0l-2.5 2.5a1 1 0 010 1.414l2.5 2.5a1 1 0 111.414-1.414l-.744-.744a5.002 5.002 0 008.23-1.422l1.42.474A7.002 7.002 0 0116 14.899V17a1 1 0 011 1z" clip-rule="evenodd" /></svg>
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.899 2.186l-1.42.474a5.002 5.002 0 00-8.23-1.422l.744.744a1 1 0 01-1.414 1.414l-2.5-2.5a1 1 0 010-1.414l2.5-2.5a1 1 0 011.414 0l-.744.744A6.993 6.993 0 019 5.05V3a1 1 0 012 0v2.05a6.993 6.993 0 012.386.76l.744-.744a1 1 0 111.414 1.414l-2.5 2.5a1 1 0 01-1.414 0l2.5-2.5a1 1 0 010-1.414l-2.5-2.5a1 1 0 11-1.414 1.414l.744.744a5.002 5.002 0 00-8.23 1.422l-1.42-.474A7.002 7.002 0 014 5.101V3a1 1 0 01-1-1zm12 16a1 1 0 01-1-1v-2.101a7.002 7.002 0 01-11.899-2.186l1.42-.474a5.002 5.002 0 008.23 1.422l-.744-.744a1 1 0 011.414-1.414l2.5 2.5a1 1 0 010 1.414l-2.5 2.5a1 1 0 01-1.414 0l2.5-2.5a1 1 0 010-1.414l-2.5-2.5a1 1 0 11-1.414 1.414l.744.744a5.002 5.002 0 008.23-1.422l1.42.474A7.002 7.002 0 0116 14.899V17a1 1 0 011 1z" clip-rule="evenodd" /></svg>
                     </button>
                 </div>
                 <div class="flex items-center space-x-3 md:space-x-4"><button id="power-button" title="Apagar TV" class="p-2 rounded-full bg-slate-700 hover:bg-red-600/50 transition-colors"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.636 5.636a9 9 0 1012.728 0M12 3v9"></path></svg></button><button id="fullscreen-button" title="Pantalla Completa" class="p-2 rounded-full bg-slate-700 hover:bg-slate-600 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 0h-4m4 0l-5-5" /></svg></button></div>
@@ -260,7 +281,7 @@
                     <button id="update-stream-ia-btn" class="w-full py-2 px-4 bg-green-600 hover:bg-green-700 rounded-lg">Actualizar y Sintonizar</button>
                 </div>
                 <div id="manual-repair-container">
-                     <p id="manual-repair-title" class="block mb-2 text-sm font-medium">O introduce la nueva URL manualmente:</p>
+                    <p id="manual-repair-title" class="block mb-2 text-sm font-medium">O introduce la nueva URL manualmente:</p>
                     <input type="url" id="manual-url-input" placeholder="https://www.youtube.com/watch?v=..." class="w-full border border-slate-600 rounded-lg p-2.5 mb-3">
                     <button id="update-stream-manual-btn" class="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 rounded-lg">Guardar Manualmente</button>
                 </div>
@@ -328,6 +349,7 @@
             const updateStreamManualBtn = document.getElementById('update-stream-manual-btn');
             const cancelRepairModal = document.getElementById('cancel-repair-modal');
             const geminiApiKeyInput = document.getElementById('gemini-api-key');
+            const clearIaSearchBtn = document.getElementById('clear-ia-search-btn'); // Nuevo botón para limpiar búsqueda IA
 
 
             // App State
@@ -338,7 +360,9 @@
             let cursorTimeout = null;
             let gistStartupError = null;
             let isThematicChannelActive = false;
-            let thematicChannels = [];
+            let thematicChannels = []; // Almacena los resultados del canal IA
+            let iaSearchResults = []; // Nuevo estado para resultados de búsqueda IA temporal
+            let isAISearchActive = false; // Nuevo estado para indicar si se están mostrando resultados de búsqueda IA
             let channelToRepair = null;
             let geminiApiKey = null;
             
@@ -428,7 +452,11 @@
 
             async function saveData() { (gistId && gistToken) ? await saveDataToGist() : saveDataToLocalStorage(); }
             function debouncedSave() { clearTimeout(saveDataTimeout); saveDataTimeout = setTimeout(saveData, 1500); }
-            const extractYouTubeID = (url) => (url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/) || [])[2] || null;
+            const extractYouTubeID = (url) => {
+                const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+                const match = url.match(regExp);
+                return (match && match[2].length === 11) ? match[2] : null;
+            };
 
             function generateLogoSvg(channel) {
                 let svgContent;
@@ -458,19 +486,29 @@
                 let message = '';
                 const searchTerm = channelSearchInput.value.toLowerCase();
                 
-                if(isThematicChannelActive) {
+                if (isAISearchActive) { // Si estamos mostrando resultados de búsqueda IA
+                    itemsToRender = iaSearchResults;
+                    message = 'La IA no encontró videos para tu búsqueda.';
+                    clearIaSearchBtn.classList.remove('hidden'); // Mostrar el botón de limpiar búsqueda IA
+                } else if(isThematicChannelActive) {
                     itemsToRender = thematicChannels.map(v => ({...v, name: v.name, id: v.videoId, type: 'youtube-embed' }));
                     message = 'La IA no encontró videos para este tema.';
+                    clearIaSearchBtn.classList.remove('hidden'); // Mostrar el botón de limpiar búsqueda IA
                 } else if (currentFilter === 'all') {
                     itemsToRender = allChannels; 
+                    clearIaSearchBtn.classList.add('hidden'); // Ocultar el botón de limpiar búsqueda IA
                 } else if (currentFilter === 'favorites') {
-                    itemsToRender = allChannels.filter(c => c.type === 'youtube-embed' && favorites.includes(c.id)); message = 'No has agregado canales a favoritos.'; 
+                    itemsToRender = allChannels.filter(c => c.type === 'youtube-embed' && favorites.includes(c.id)); 
+                    message = 'No has agregado canales a favoritos.'; 
+                    clearIaSearchBtn.classList.add('hidden'); // Ocultar el botón de limpiar búsqueda IA
                 } else if (currentFilter === 'watchLater') {
-                    itemsToRender = watchLaterList.map((item, index) => ({...item, name: `Video ${index + 1}`, isWatchLater: true})); message = 'No tienes videos para ver después.'; 
+                    itemsToRender = watchLaterList.map((item, index) => ({...item, name: `Video ${index + 1}`, isWatchLater: true})); 
+                    message = 'No tienes videos para ver después.'; 
+                    clearIaSearchBtn.classList.add('hidden'); // Ocultar el botón de limpiar búsqueda IA
                 }
                 
-                if (searchTerm && !isThematicChannelActive) {
-                     itemsToRender = itemsToRender.filter(item => item.name.toLowerCase().includes(searchTerm)); 
+                if (searchTerm && !(isThematicChannelActive || isAISearchActive)) { // Solo filtrar si no estamos en modo IA activo
+                    itemsToRender = itemsToRender.filter(item => item.name.toLowerCase().includes(searchTerm)); 
                 }
 
                 if (itemsToRender.length === 0) {
@@ -479,8 +517,11 @@
                 }
 
                 itemsToRender.forEach((item, renderIndex) => {
-                    const channel = item.isWatchLater ? { id: item.id, name: item.name, type: 'youtube-embed' } : item;
-                    const realIndex = item.isWatchLater || isThematicChannelActive ? -1 : allChannels.findIndex(c => (c.id || c.url) === (item.id || item.url));
+                    // Adaptar el objeto de canal para los resultados de la IA
+                    const channel = item.isWatchLater ? { id: item.id, name: item.name, type: 'youtube-embed' } : 
+                                  ((isThematicChannelActive || isAISearchActive) ? { id: item.videoId, name: item.title, type: 'youtube-embed' } : item);
+
+                    const realIndex = item.isWatchLater || isThematicChannelActive || isAISearchActive ? -1 : allChannels.findIndex(c => (c.id || c.url) === (item.id || item.url));
                     const isFavorite = channel.type === 'youtube-embed' && favorites.includes(channel.id);
                     const button = document.createElement('div');
                     button.className = "channel-card w-full group rounded-lg transition-all duration-200 bg-slate-700/50 focus:outline-none cursor-pointer relative aspect-[16/9]";
@@ -496,7 +537,8 @@
                     const overlay = document.createElement('div');
                     overlay.className = "absolute inset-0 bg-gradient-to-t from-black/60 to-transparent rounded-lg flex items-start justify-end p-1.5 space-x-1";
                     const nameEl = document.createElement('span');
-                    nameEl.textContent = channel.name;
+                    // Usar 'title' para los resultados de IA, 'name' para el resto
+                    nameEl.textContent = (isThematicChannelActive || isAISearchActive) ? item.title : channel.name;
                     nameEl.className = "absolute bottom-1 left-2 text-white text-xs font-semibold";
                     button.append(logo, nameEl, overlay);
                     
@@ -515,7 +557,7 @@
                         deleteBtn.className = 'cursor-pointer text-white/70 hover:text-red-500 transition-colors z-10';
                         deleteBtn.addEventListener('click', (e) => { e.stopPropagation(); watchLaterList.splice(parseInt(button.dataset.index), 1); debouncedSave(); renderChannelList(); });
                         overlay.appendChild(deleteBtn);
-                    } else if (!isThematicChannelActive) {
+                    } else if (!isThematicChannelActive && !isAISearchActive) { // Solo mostrar editar/eliminar/favoritos para canales "normales"
                         if (channel.type === 'youtube-embed') {
                             const star = document.createElement('span');
                             star.innerHTML = '★';
@@ -545,10 +587,13 @@
             }
 
             function handleChannelClick(channel) {
-                switch(channel.type) {
-                    case 'youtube-embed': switchChannel(channel); break;
-                    case 'external-link': window.open(channel.url, '_blank'); break;
-                    case 'youtube-search': window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(channel.query)}&sp=EgJAAQ%253D%253D`, '_blank'); break;
+                // Si el canal proviene de una búsqueda de IA, usa directamente su ID/URL
+                const channelToPlay = (isThematicChannelActive || isAISearchActive) ? { ...channel, id: channel.videoId || channel.id, name: channel.title || channel.name, type: 'youtube-embed' } : channel;
+
+                switch(channelToPlay.type) {
+                    case 'youtube-embed': switchChannel(channelToPlay); break;
+                    case 'external-link': window.open(channelToPlay.url, '_blank'); break;
+                    case 'youtube-search': window.open(`https://www.youtube.com/results?search_query=${encodeURIComponent(channelToPlay.query)}&sp=EgJAAQ%253D%253D`, '_blank'); break;
                 }
             }
             function toggleFavorite(channelId, starEl) {
@@ -570,6 +615,8 @@
                 
                 if (isThematicChannelActive) {
                     currentChannelIndex = thematicChannels.findIndex(c => c.videoId === channel.id);
+                } else if (isAISearchActive) {
+                    currentChannelIndex = iaSearchResults.findIndex(c => c.videoId === channel.id);
                 } else {
                     currentChannelIndex = allChannels.findIndex(c => c.id === channel.id);
                 }
@@ -582,7 +629,9 @@
 
                 if (isThematicChannelActive && currentChannelIndex > -1 && thematicChannels[currentChannelIndex]) {
                     currentChannelId = thematicChannels[currentChannelIndex].videoId;
-                } else if (!isThematicChannelActive && currentChannelIndex > -1 && allChannels[currentChannelIndex]) {
+                } else if (isAISearchActive && currentChannelIndex > -1 && iaSearchResults[currentChannelIndex]) {
+                    currentChannelId = iaSearchResults[currentChannelIndex].videoId;
+                } else if (!isThematicChannelActive && !isAISearchActive && currentChannelIndex > -1 && allChannels[currentChannelIndex]) {
                     currentChannelId = allChannels[currentChannelIndex].id;
                 }
                 
@@ -594,6 +643,8 @@
             function getZappableChannels() {
                 if (isThematicChannelActive) {
                     return thematicChannels.map(v => ({...v, id: v.videoId, type: 'youtube-embed' }));
+                } else if (isAISearchActive) {
+                    return iaSearchResults.map(v => ({...v, id: v.videoId, type: 'youtube-embed' }));
                 }
                 const embeddableChannels = allChannels.filter(c => c.type === 'youtube-embed');
                 if (currentFilter === 'favorites' && favorites.length > 0) {
@@ -624,7 +675,7 @@
                 channelModal.classList.remove('hidden');
             }
             function openAddModal() {
-                 modalTitle.textContent = 'Agregar Nuevo Canal';
+                modalTitle.textContent = 'Agregar Nuevo Canal';
                 channelForm.reset();
                 document.getElementById('edit-channel-index').value = '';
                 channelModal.classList.remove('hidden');
@@ -649,8 +700,8 @@
                 appEl.classList.remove('hide-cursor');
             }
 
-            // --- Gemini API Functions ---
-            async function callGeminiAPI(prompt, useSearch = false, systemInstruction = null) {
+            // --- Gemini API Functions (Refactored for Tool Selection) ---
+            async function callGeminiAPI(prompt, tool_name = 'google_search', systemInstruction = null, extra_tool_args = {}) {
                 const apiKey = geminiApiKey || "";
                 if (!apiKey) {
                     showToast('Falta la clave API de Gemini en los ajustes.', 'error');
@@ -664,8 +715,13 @@
                     }]
                 };
 
-                if (useSearch) {
+                // Configurar herramientas dinámicamente
+                if (tool_name === 'google_search') {
                     payload.tools = [{ "google_search": {} }];
+                } else if (tool_name === 'youtube_search') {
+                    payload.tools = [{ "youtube": { "search": extra_tool_args } }];
+                } else if (tool_name === 'youtube_get_video_information') {
+                    payload.tools = [{ "youtube": { "get_video_information": extra_tool_args } }];
                 }
                 
                 if (systemInstruction) {
@@ -689,7 +745,11 @@
 
                 if (candidate && candidate.content?.parts?.[0]?.text) {
                     return candidate.content.parts[0].text;
-                } else {
+                } else if (candidate && candidate.content?.parts?.[0]?.toolResponse) {
+                    // Manejar directamente las respuestas de la herramienta, especialmente para youtube.search
+                    return candidate.content.parts[0].toolResponse.json;
+                } 
+                else {
                     console.error("Invalid response structure from API:", result);
                     if (result.promptFeedback && result.promptFeedback.blockReason) {
                         throw new Error(`Request blocked: ${result.promptFeedback.blockReason}`);
@@ -698,116 +758,53 @@
                 }
             }
 
-            // --- Stream Repair Logic ---
-            async function handleRepairStream() {
-                if (!channelToRepair) return;
-
-                repairLoading.classList.remove('hidden');
-                repairLoading.classList.add('flex');
-                repairContent.style.display = 'none';
-
-                const channelName = channelToRepair.name;
-                const prompt = `Your task is to act as a YouTube search expert. Find the most recent and currently available LIVE stream from the channel named "${channelName}". Ensure the video is public and embeddable. Respond ONLY with a single, valid JSON object with two keys: "name" (the video title) and "videoId" (the YouTube video ID). If you cannot find a valid live stream, respond with the exact word "NULL".`;
-
-                try {
-                    const response = await callGeminiAPI(prompt, true); // Use search grounding
-                    const cleanedResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
-
-                    if (cleanedResponse.toUpperCase() === 'NULL') {
-                        throw new Error('No live stream found by AI');
-                    }
-                    
-                    const parsedResponse = JSON.parse(cleanedResponse);
-
-                    if (parsedResponse.videoId) {
-                        iaResultContainer.classList.remove('hidden');
-                        manualRepairContainer.classList.add('hidden');
-                        iaResultTitle.textContent = parsedResponse.name;
-                        updateStreamIaBtn.dataset.newVideoId = parsedResponse.videoId;
-                    } else {
-                        throw new Error('AI response did not contain a valid videoId');
-                    }
-
-                } catch (error) {
-                    console.error("Stream repair failed:", error);
-                    showToast('Error en la reparación automática. Intenta manualmente.', 'error');
-                    iaResultContainer.classList.add('hidden');
-                    manualRepairContainer.classList.remove('hidden');
-                    manualRepairTitle.textContent = "Búsqueda automática fallida. Introduce la URL manualmente:";
-                } finally {
-                    repairLoading.classList.add('hidden');
-                    repairLoading.classList.remove('flex');
-                    repairContent.style.display = 'block';
-                }
-            }
-
-            // Event Listeners
-            themeSelect.addEventListener('change', (e) => {
-                const selectedTheme = e.target.value;
-                applyTheme(selectedTheme);
-                localStorage.setItem('tv_theme', selectedTheme);
-            });
-            powerButton.addEventListener('click', turnOffTv);
-            fullscreenButton.addEventListener('click', () => {
-                if (!document.fullscreenElement) {
-                    appEl.requestFullscreen().catch(err => {
-                        console.error("Native fullscreen failed:", err);
-                    });
-                } else { 
-                    document.exitFullscreen();
-                }
-            });
-            document.addEventListener('fullscreenchange', () => {
-                const isFullscreen = !!document.fullscreenElement;
-                if (isFullscreen) {
-                    handleCursorInactivity();
-                } else {
-                    clearCursorInactivity();
-                }
-            });
-
-            helpButton.addEventListener('click', () => { turnOffTv(); placeholder.classList.add('hidden'); helpScreen.classList.remove('hidden'); });
-            closeHelpButton.addEventListener('click', turnOffTv);
-            addChannelButton.addEventListener('click', openAddModal);
-            cancelChannelModal.addEventListener('click', () => channelModal.classList.add('hidden'));
-            settingsButton.addEventListener('click', () => {
-                document.getElementById('gist-id').value = gistId || '';
-                document.getElementById('gist-token').value = gistToken || '';
-                geminiApiKeyInput.value = geminiApiKey || ''; // Load API key
-                gistError.textContent = gistStartupError || '';
-                gistModal.classList.remove('hidden');
-            });
-            disconnectButton.addEventListener('click', () => {
-                localStorage.removeItem('gist_id');
-                localStorage.removeItem('gist_token');
-                localStorage.removeItem('gemini_api_key');
-                gistModal.classList.add('hidden');
-                location.reload();
-            });
-            closeSettingsButton.addEventListener('click', () => gistModal.classList.add('hidden'));
-            
+            // --- Smart Search Logic (YouTube Search Form) ---
             youtubeSearchForm.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const userInput = youtubeSearchInput.value.trim();
                 if (!userInput) return;
 
-                showLoading('Procesando tu petición...');
+                showLoading('Buscando videos con IA...');
                 
-                const prompt = `You are an expert YouTube search assistant. Convert the user's request into an effective, concise YouTube search query for finding relevant, currently available videos. The user's request is: "${userInput}". Respond ONLY with the optimized search terms, without quotes or additional text.`;
-
+                const prompt = `Convert the user's request into a concise, effective YouTube search query for finding relevant, currently available videos. The user's request is: "${userInput}". Respond ONLY with the optimized search terms, without quotes or additional text.`;
+                let searchTerms;
                 try {
-                    const searchTerm = await callGeminiAPI(prompt, true); // Use search grounding
-                    const cleanedSearchTerm = searchTerm.replace(/["'`]/g, '').trim();
-                    
-                    let url = `https://www.youtube.com/results?search_query=${encodeURIComponent(cleanedSearchTerm)}`;
+                    // La IA genera el término de búsqueda usando Google Search para grounding
+                    searchTerms = await callGeminiAPI(prompt, 'google_search'); 
+                    searchTerms = searchTerms.replace(/["'`]/g, '').trim();
+
+                    const queryArgs = { query: searchTerms };
                     if (liveFilter.checked) {
-                        url += '&sp=EgJAAQ%253D%253D';
+                        queryArgs.result_type = "VIDEO"; // Forcing video type for live search
+                        // Note: The YouTube API 'search' method does not directly filter by 'live' status
+                        // unless it's part of the query. We'll adjust the query for that.
+                        queryArgs.query += " live"; // Add 'live' to the search query
                     }
-                    window.open(url, '_blank');
+
+                    // Ahora, usa el término de búsqueda generado para llamar directamente a la API de YouTube.
+                    const youtubeResults = await callGeminiAPI(
+                        `Search YouTube for "${queryArgs.query}"`, 
+                        'youtube_search', 
+                        null, 
+                        { query: queryArgs.query, result_type: queryArgs.result_type || 'VIDEO' }
+                    );
+                    
+                    if (youtubeResults && youtubeResults.length > 0) {
+                        iaSearchResults = youtubeResults;
+                        isAISearchActive = true;
+                        currentFilter = 'all'; // Reset filter to avoid confusion
+                        updateFilterButtons();
+                        renderChannelList();
+                        turnOffTv(); // Turn off current video to show the new list
+                        showToast('Búsqueda inteligente completada.', 'success');
+                    } else {
+                        showToast('La IA no pudo encontrar videos disponibles para esa búsqueda. Intenta con otra.', 'error');
+                    }
+
                 } catch (error) {
                     console.error('Smart search failed:', error);
-                    showToast('La búsqueda inteligente falló. Intentando búsqueda normal.', 'error');
-                    // Fallback to normal search if API fails
+                    showToast(`Error en la búsqueda inteligente: ${error.message}. Intentando búsqueda normal.`, 'error');
+                    // Fallback to normal YouTube search if AI fails
                     let url = `https://www.youtube.com/results?search_query=${encodeURIComponent(userInput)}`;
                     if (liveFilter.checked) { url += '&sp=EgJAAQ%253D%253D'; }
                     window.open(url, '_blank');
@@ -815,6 +812,19 @@
                     hideLoading();
                 }
             });
+
+            clearIaSearchBtn.addEventListener('click', () => {
+                isAISearchActive = false;
+                thematicChannels = []; // Limpiar también los canales temáticos por si acaso
+                iaSearchResults = [];
+                currentFilter = 'all';
+                updateFilterButtons();
+                renderChannelList();
+                turnOffTv();
+                clearIaSearchBtn.classList.add('hidden'); // Ocultar el botón después de limpiar
+                showToast('Búsqueda IA y canales temáticos limpiados.', 'info');
+            });
+
 
             channelSearchInput.addEventListener('input', () => renderChannelList());
 
@@ -855,16 +865,21 @@
             document.querySelectorAll('.filter-btn').forEach(button => { button.addEventListener('click', (e) => { 
                 currentFilter = e.target.dataset.filter;
                 isThematicChannelActive = false; // Always exit thematic mode when a filter is clicked
+                isAISearchActive = false; // Always exit AI search mode when a filter is clicked
                 thematicChannels = [];
+                iaSearchResults = [];
                 updateFilterButtons(); 
                 renderChannelList(); 
             }); });
 
             function updateFilterButtons() { 
-                document.querySelectorAll('.filter-btn').forEach(btn => { btn.classList.toggle('active-filter', btn.dataset.filter === currentFilter && !isThematicChannelActive); });
+                document.querySelectorAll('.filter-btn').forEach(btn => { 
+                    btn.classList.toggle('active-filter', btn.dataset.filter === currentFilter && !isThematicChannelActive && !isAISearchActive); 
+                });
                 const isWatchLater = currentFilter === 'watchLater';
                 watchLaterContainer.classList.toggle('hidden', !isWatchLater);
-                addChannelContainer.classList.toggle('hidden', isWatchLater);
+                addChannelContainer.classList.toggle('hidden', isWatchLater || isThematicChannelActive || isAISearchActive); // Hide add/IA buttons if in watchLater or AI modes
+                clearIaSearchBtn.classList.toggle('hidden', !(isThematicChannelActive || isAISearchActive)); // Mostrar/ocultar el botón de limpiar búsqueda IA
             }
             
             addFromClipboardBtn.addEventListener('click', async () => {
@@ -878,7 +893,23 @@
 
                     if (videoId) {
                         if (!watchLaterList.some(item => item.id === videoId)) {
-                            watchLaterList.push({ id: videoId, added: new Date().toISOString() });
+                            // Para videos pegados, podemos intentar obtener el título real usando la API de YouTube
+                            showLoading('Obteniendo información del video...');
+                            const videoInfo = await callGeminiAPI(
+                                `Get video information for video ID: ${videoId}`,
+                                'youtube_get_video_information',
+                                null,
+                                { video_id: videoId }
+                            );
+                            hideLoading();
+                            let videoTitle = `Video ${watchLaterList.length + 1}`; // Título por defecto
+                            if (videoInfo && videoInfo.title) {
+                                videoTitle = videoInfo.title;
+                            } else {
+                                showToast('No se pudo obtener el título del video, usando título genérico.', 'info');
+                            }
+
+                            watchLaterList.push({ id: videoId, title: videoTitle, added: new Date().toISOString() });
                             debouncedSave();
                             showToast('¡Video guardado!', 'success');
                             if (currentFilter === 'watchLater') renderChannelList();
@@ -890,9 +921,10 @@
                     }
                 } catch (err) {
                     console.error('Failed to read clipboard:', err);
+                    hideLoading();
                     let errorMsg = 'No se pudo leer el portapapeles.';
                     if (err.name === 'NotAllowedError') {
-                         errorMsg = 'Permiso para leer portapapeles denegado.';
+                            errorMsg = 'Permiso para leer portapapeles denegado.';
                     }
                     showToast(errorMsg, 'error');
                 }
@@ -912,6 +944,8 @@
                     let currentId;
                     if(isThematicChannelActive) {
                         currentId = currentChannelIndex > -1 ? thematicChannels[currentChannelIndex]?.videoId : null;
+                    } else if (isAISearchActive) {
+                        currentId = currentChannelIndex > -1 ? iaSearchResults[currentChannelIndex]?.videoId : null;
                     } else {
                         currentId = currentChannelIndex > -1 ? allChannels[currentChannelIndex]?.id : null;
                     }
@@ -927,7 +961,7 @@
                     case 'ArrowDown': e.preventDefault(); zap(1); break;
                     case 'p': case 'P': powerButton.click(); break;
                     case 'f': case 'F':
-                        if (currentChannelIndex > -1 && !isThematicChannelActive) {
+                        if (currentChannelIndex > -1 && !isThematicChannelActive && !isAISearchActive) {
                             const currentChannel = allChannels[currentChannelIndex];
                             if (currentChannel.type === 'youtube-embed') {
                                 toggleFavorite(currentChannel.id, channelListEl.querySelector(`[data-id="${currentChannel.id}"] .favorite-star`));
@@ -955,28 +989,25 @@
                 iaChannelModal.classList.add('hidden');
                 showLoading('Creando tu canal temático...');
                 
-                const systemInstruction = `You are an API that returns data in JSON format. Your responses must be strictly valid JSON. Do not include any explanatory text, markdown formatting, or any characters outside of the JSON structure itself.`;
-                const prompt = `Based on the theme "${theme}", create a list of 8 highly relevant, currently available, public, and embeddable YouTube videos. Prioritize live streams if the theme suggests it (e.g., "news," "live music"). Your response MUST BE ONLY a valid JSON array of objects. If you cannot find 8 valid videos, return an empty array []. Each object must have two properties: "name" (a short, attractive title for the video) and "videoId" (the YouTube video ID).`;
-
+                // La IA genera la consulta de búsqueda optimizada
+                const queryPrompt = `Generate a concise YouTube search query to find highly relevant, currently available, public, and embeddable YouTube videos related to "${theme}". Prioritize live streams if the theme suggests it (e.g., "news," "live music"). Respond ONLY with the optimized search terms, without quotes or additional text.`;
+                let searchTerms;
                 try {
-                    const response = await callGeminiAPI(prompt, true, systemInstruction);
-                    const cleanedResponse = response.replace(/```json/g, '').replace(/```/g, '').trim();
-                    
-                    let parsedVideos;
-                    try {
-                        if (cleanedResponse === "") {
-                            parsedVideos = [];
-                        } else {
-                            parsedVideos = JSON.parse(cleanedResponse);
-                        }
-                    } catch (jsonError) {
-                         console.error("JSON parsing error:", jsonError, "Raw response was:", cleanedResponse);
-                         throw new Error("La IA devolvió un formato inesperado. Intenta con otro tema.");
-                    }
+                    searchTerms = await callGeminiAPI(queryPrompt, 'google_search'); // Usar Google Search para grounding de la consulta
+                    searchTerms = searchTerms.replace(/["'`]/g, '').trim();
 
-                    if (Array.isArray(parsedVideos) && parsedVideos.length > 0) {
-                        thematicChannels = parsedVideos;
+                    // Ahora, usa la consulta generada para buscar en YouTube directamente
+                    const youtubeResults = await callGeminiAPI(
+                        `Search YouTube for "${searchTerms}"`, 
+                        'youtube_search', 
+                        null, 
+                        { query: searchTerms, result_type: 'VIDEO' }
+                    );
+
+                    if (youtubeResults && youtubeResults.length > 0) {
+                        thematicChannels = youtubeResults;
                         isThematicChannelActive = true;
+                        isAISearchActive = false; // Desactivar búsqueda IA normal
                         currentFilter = 'all'; // Reset filter to avoid confusion
                         updateFilterButtons();
                         renderChannelList();
@@ -995,7 +1026,7 @@
             });
 
             repairStreamButton.addEventListener('click', () => {
-                if(currentChannelIndex < 0 || isThematicChannelActive) return;
+                if(currentChannelIndex < 0 || isThematicChannelActive || isAISearchActive) return; // Solo para canales normales
                 
                 channelToRepair = allChannels[currentChannelIndex];
                 if (channelToRepair.type !== 'youtube-embed') {
@@ -1046,6 +1077,54 @@
                 channelToRepair = null;
             });
 
+            // --- Stream Repair Logic (Refactored) ---
+            async function handleRepairStream() {
+                if (!channelToRepair) return;
+
+                repairLoading.classList.remove('hidden');
+                repairLoading.classList.add('flex');
+                repairContent.style.display = 'none';
+
+                const channelName = channelToRepair.name;
+                // La IA genera una consulta de búsqueda muy específica para un live stream
+                const queryPrompt = `Generate the most precise YouTube search query to find the most recent and currently available LIVE stream for the channel named "${channelName}". Ensure it's a public and embeddable video. Respond ONLY with the optimized search terms, without quotes or additional text.`;
+                
+                try {
+                    const searchTerms = await callGeminiAPI(queryPrompt, 'google_search'); // Usar Google Search para grounding de la consulta
+                    const cleanedSearchTerms = searchTerms.replace(/["'`]/g, '').trim();
+
+                    // Usar la API de YouTube directamente con la consulta generada
+                    const youtubeResults = await callGeminiAPI(
+                        `Search YouTube for "${cleanedSearchTerms}"`,
+                        'youtube_search',
+                        null,
+                        { query: cleanedSearchTerms, result_type: 'VIDEO' }
+                    );
+
+                    const liveVideo = youtubeResults.find(video => video.title && video.url && video.external_video_id);
+
+                    if (liveVideo && liveVideo.external_video_id) {
+                        iaResultContainer.classList.remove('hidden');
+                        manualRepairContainer.classList.add('hidden');
+                        iaResultTitle.textContent = liveVideo.title;
+                        updateStreamIaBtn.dataset.newVideoId = liveVideo.external_video_id;
+                    } else {
+                        throw new Error('No live stream found by AI on YouTube.');
+                    }
+
+                } catch (error) {
+                    console.error("Stream repair failed:", error);
+                    showToast('Error en la reparación automática. Intenta manualmente.', 'error');
+                    iaResultContainer.classList.add('hidden');
+                    manualRepairContainer.classList.remove('hidden');
+                    manualRepairTitle.textContent = "Búsqueda automática fallida. Introduce la URL manualmente:";
+                } finally {
+                    repairLoading.classList.add('hidden');
+                    repairLoading.classList.remove('flex');
+                    repairContent.style.display = 'block';
+                }
+            }
+
 
             async function forceSync() {
                 if (gistId && gistToken) {
@@ -1073,12 +1152,61 @@
                 } else {
                     gistError.textContent = 'Conecta tu Gist primero.';
                 }
-                 setTimeout(() => { 
-                    gistError.textContent = '';
-                    syncStatus.textContent = '';
-                }, 3000);
+                    setTimeout(() => { 
+                        gistError.textContent = '';
+                        syncStatus.textContent = '';
+                    }, 3000);
             }
             syncButton.addEventListener('click', forceSync);
+
+            // Event Listeners for common UI actions
+            themeSelect.addEventListener('change', (e) => {
+                const selectedTheme = e.target.value;
+                applyTheme(selectedTheme);
+                localStorage.setItem('tv_theme', selectedTheme);
+            });
+            powerButton.addEventListener('click', turnOffTv);
+            fullscreenButton.addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    appEl.requestFullscreen().catch(err => {
+                        console.error("Native fullscreen failed:", err);
+                    });
+                } else { 
+                    document.exitFullscreen();
+                }
+            });
+            document.addEventListener('fullscreenchange', () => {
+                const isFullscreen = !!document.fullscreenElement;
+                if (isFullscreen) {
+                    handleCursorInactivity();
+                } else {
+                    clearCursorInactivity();
+                }
+            });
+
+            helpButton.addEventListener('click', () => { turnOffTv(); placeholder.classList.add('hidden'); helpScreen.classList.remove('hidden'); });
+            closeHelpButton.addEventListener('click', turnOffTv);
+            addChannelButton.addEventListener('click', openAddModal);
+            cancelChannelModal.addEventListener('click', () => channelModal.classList.add('hidden'));
+            settingsButton.addEventListener('click', () => {
+                document.getElementById('gist-id').value = gistId || '';
+                document.getElementById('gist-token').value = gistToken || '';
+                geminiApiKeyInput.value = geminiApiKey || ''; // Load API key
+                gistError.textContent = gistStartupError || '';
+                gistModal.classList.remove('hidden');
+            });
+            disconnectButton.addEventListener('click', () => {
+                localStorage.removeItem('gist_id');
+                localStorage.removeItem('gist_token');
+                localStorage.removeItem('gemini_api_key');
+                gistId = null; // Clear in-memory state
+                gistToken = null;
+                geminiApiKey = null;
+                gistModal.classList.add('hidden');
+                location.reload();
+            });
+            closeSettingsButton.addEventListener('click', () => gistModal.classList.add('hidden'));
+
 
             async function initializeApp() {
                 initializeTheme();
@@ -1126,4 +1254,3 @@
     </script>
 </body>
 </html>
-
