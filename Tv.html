@@ -460,11 +460,51 @@
                             findLiveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>`;
                             findLiveBtn.title = 'Buscar en vivo';
                             findLiveBtn.className = 'find-live-btn cursor-pointer text-white/70 hover:text-blue-400 transition-colors z-10';
-                            findLiveBtn.addEventListener('click', (e) => {
-                                e.stopPropagation();
-                                const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(channel.name)}&sp=EgJAAQ%253D%253D`;
-                                window.open(url, '_blank');
-                                openEditModal(realIndex);
+                            findLiveBtn.addEventListener('click', async (e) => {
+                                e.stopPropagation(); // Prevent channel click if this is inside a channel card.
+
+                                const channelName = channel.name;
+                                showLoading(`Buscando ${channelName} en vivo...`);
+
+                                try {
+                                    // Use google_search to find a YouTube live stream URL for the channel
+                                    const googleQuery = `${channelName} YouTube live stream`;
+                                    const googleResults = await google_search.search(queries=[googleQuery]);
+
+                                    let youtubeLiveUrl = null;
+                                    if (googleResults && googleResults.length > 0 && googleResults[0].results && googleResults[0].results.length > 0) {
+                                        for (const res of googleResults[0].results) {
+                                            if (res.url && (res.url.includes('youtube.com/watch?') || res.url.includes('youtu.be/'))) {
+                                                youtubeLiveUrl = res.url;
+                                                break;
+                                            }
+                                        }
+                                    }
+
+                                    if (youtubeLiveUrl) {
+                                        // Copy to clipboard
+                                        const tempInput = document.createElement('textarea');
+                                        tempInput.value = youtubeLiveUrl;
+                                        document.body.appendChild(tempInput);
+                                        tempInput.select();
+                                        document.execCommand('copy');
+                                        document.body.removeChild(tempInput);
+
+                                        showToast(`URL de video en vivo copiada al portapapeles.`, 'success');
+                                    } else {
+                                        showToast('No se encontró ningún stream en vivo en Google para copiar.', 'info');
+                                    }
+
+                                    // Still open the YouTube search results in a new tab for browsing, as originally intended.
+                                    const searchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(channelName)}&sp=EgJAAQ%253D%253D`;
+                                    window.open(searchUrl, '_blank');
+
+                                } catch (error) {
+                                    console.error('Error searching for live video:', error);
+                                    showToast('Error al buscar video en vivo.', 'error');
+                                } finally {
+                                    hideLoading();
+                                }
                             });
                             overlay.appendChild(findLiveBtn);
                         }
@@ -666,7 +706,7 @@
                     console.error('Failed to read clipboard:', err);
                     let errorMsg = 'No se pudo leer el portapapeles.';
                     if (err.name === 'NotAllowedError') {
-                            errorMsg = 'Permiso para leer portapapeles denegado.';
+                             errorMsg = 'Permiso para leer portapapeles denegado.';
                     }
                     showToast(errorMsg, 'error');
                 }
@@ -722,7 +762,7 @@
                             syncErrorIndicator.classList.add('hidden');
                             gistStartupError = null;
                         } else {
-                             gistError.textContent = 'No se encontraron datos en Gist.';
+                               gistError.textContent = 'No se encontraron datos en Gist.';
                         }
                     } else if (!gistData) {
                         gistError.textContent = 'Gist o archivo no encontrado.';
@@ -826,4 +866,3 @@
     </script>
 </body>
 </html>
-
