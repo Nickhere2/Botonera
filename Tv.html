@@ -701,7 +701,7 @@
             }
 
             // --- Gemini API Functions (Refactored for Tool Selection) ---
-            async function callGeminiAPI(prompt, tool_name = 'google_search', systemInstruction = null, extra_tool_args = {}) {
+            async function callGeminiAPI(prompt, systemInstruction = null) {
                 const apiKey = geminiApiKey || "";
                 if (!apiKey) {
                     showToast('Falta la clave API de Gemini en los ajustes.', 'error');
@@ -712,17 +712,9 @@
                 const payload = {
                     contents: [{
                         parts: [{ text: prompt }]
-                    }]
+                    }],
+                    tools: [{ "google_search": {} }] // Always use google_search
                 };
-
-                // Configurar herramientas dinámicamente
-                if (tool_name === 'google_search') {
-                    payload.tools = [{ "google_search": {} }];
-                } else if (tool_name === 'youtube_search') {
-                    payload.tools = [{ "youtube": { "search": extra_tool_args } }];
-                } else if (tool_name === 'youtube_get_video_information') {
-                    payload.tools = [{ "youtube": { "get_video_information": extra_tool_args } }];
-                }
                 
                 if (systemInstruction) {
                     payload.systemInstruction = {
@@ -737,24 +729,30 @@
                 });
 
                 if (!response.ok) {
+                    const errorBody = await response.json();
+                    console.error("API Error Response:", errorBody);
                     throw new Error(`API call failed with status: ${response.status}`);
                 }
 
                 const result = await response.json();
                 const candidate = result.candidates?.[0];
 
+                // Check for blocked content
+                if (!candidate || candidate.finishReason === 'SAFETY' || candidate.finishReason === 'RECITATION') {
+                    console.error("API Response blocked:", result);
+                    let blockMessage = 'La respuesta de la IA fue bloqueada.';
+                    if(result.promptFeedback?.blockReason) {
+                        blockMessage += ` Razón: ${result.promptFeedback.blockReason}`;
+                    }
+                    throw new Error(blockMessage);
+                }
+
                 if (candidate && candidate.content?.parts?.[0]?.text) {
                     return candidate.content.parts[0].text;
-                } else if (candidate && candidate.content?.parts?.[0]?.toolResponse) {
-                    // Manejar directamente las respuestas de la herramienta, especialmente para youtube.search
-                    return candidate.content.parts[0].toolResponse.json;
                 } 
                 else {
                     console.error("Invalid response structure from API:", result);
-                    if (result.promptFeedback && result.promptFeedback.blockReason) {
-                        throw new Error(`Request blocked: ${result.promptFeedback.blockReason}`);
-                    }
-                    throw new Error('Invalid response structure from API');
+                    throw new Error('La IA devolvió una respuesta inesperada.');
                 }
             }
 
@@ -766,48 +764,33 @@
 
                 showLoading('Buscando videos con IA...');
                 
-                const prompt = `Convert the user's request into a concise, effective YouTube search query for finding relevant, currently available videos. The user's request is: "${userInput}". Respond ONLY with the optimized search terms, without quotes or additional text.`;
-                let searchTerms;
+                let finalQuery = userInput;
+                if (liveFilter.checked) {
+                    finalQuery += " en vivo";
+                }
+                
+                const systemInstruction = `You are an API that returns data in JSON format. Your responses must be strictly valid JSON. Do not include any explanatory text, markdown formatting, or any characters outside of the JSON structure itself.`;
+                const queryPrompt = `Based on the user's search query "${finalQuery}", use Google Search to find a list of up to 8 relevant, public, and embeddable YouTube videos. Your response MUST BE ONLY a valid JSON array of objects. If you cannot find any videos, return an empty array []. Each object must have "title" (the video title) and "videoId" (the YouTube video ID).`;
+
                 try {
-                    // La IA genera el término de búsqueda usando Google Search para grounding
-                    searchTerms = await callGeminiAPI(prompt, 'google_search'); 
-                    searchTerms = searchTerms.replace(/["'`]/g, '').trim();
+                    const responseText = await callGeminiAPI(queryPrompt, systemInstruction);
+                    const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const youtubeResults = JSON.parse(cleanedResponse);
 
-                    const queryArgs = { query: searchTerms };
-                    if (liveFilter.checked) {
-                        queryArgs.result_type = "VIDEO"; // Forcing video type for live search
-                        // Note: The YouTube API 'search' method does not directly filter by 'live' status
-                        // unless it's part of the query. We'll adjust the query for that.
-                        queryArgs.query += " live"; // Add 'live' to the search query
-                    }
-
-                    // Ahora, usa el término de búsqueda generado para llamar directamente a la API de YouTube.
-                    const youtubeResults = await callGeminiAPI(
-                        `Search YouTube for "${queryArgs.query}"`, 
-                        'youtube_search', 
-                        null, 
-                        { query: queryArgs.query, result_type: queryArgs.result_type || 'VIDEO' }
-                    );
-                    
                     if (youtubeResults && youtubeResults.length > 0) {
                         iaSearchResults = youtubeResults;
                         isAISearchActive = true;
-                        currentFilter = 'all'; // Reset filter to avoid confusion
+                        currentFilter = 'all'; // Reset filter
                         updateFilterButtons();
                         renderChannelList();
-                        turnOffTv(); // Turn off current video to show the new list
+                        turnOffTv();
                         showToast('Búsqueda inteligente completada.', 'success');
                     } else {
                         showToast('La IA no pudo encontrar videos disponibles para esa búsqueda. Intenta con otra.', 'error');
                     }
-
                 } catch (error) {
                     console.error('Smart search failed:', error);
-                    showToast(`Error en la búsqueda inteligente: ${error.message}. Intentando búsqueda normal.`, 'error');
-                    // Fallback to normal YouTube search if AI fails
-                    let url = `https://www.youtube.com/results?search_query=${encodeURIComponent(userInput)}`;
-                    if (liveFilter.checked) { url += '&sp=EgJAAQ%253D%253D'; }
-                    window.open(url, '_blank');
+                    showToast(`Error en la búsqueda inteligente: ${error.message}.`, 'error');
                 } finally {
                     hideLoading();
                 }
@@ -895,18 +878,23 @@
                         if (!watchLaterList.some(item => item.id === videoId)) {
                             // Para videos pegados, podemos intentar obtener el título real usando la API de YouTube
                             showLoading('Obteniendo información del video...');
-                            const videoInfo = await callGeminiAPI(
-                                `Get video information for video ID: ${videoId}`,
-                                'youtube_get_video_information',
-                                null,
-                                { video_id: videoId }
-                            );
+                             const queryPrompt = `Find the title for the YouTube video with the ID "${videoId}". Respond with ONLY a single, valid JSON object with one key: "title". If you cannot find the title, respond with the exact word "NULL".`;
+
+                            const responseText = await callGeminiAPI(queryPrompt);
                             hideLoading();
+                            const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+
                             let videoTitle = `Video ${watchLaterList.length + 1}`; // Título por defecto
-                            if (videoInfo && videoInfo.title) {
-                                videoTitle = videoInfo.title;
-                            } else {
-                                showToast('No se pudo obtener el título del video, usando título genérico.', 'info');
+                            if (cleanedResponse.toUpperCase() !== 'NULL') {
+                                try {
+                                    const parsedResponse = JSON.parse(cleanedResponse);
+                                    if (parsedResponse.title) {
+                                        videoTitle = parsedResponse.title;
+                                    }
+                                } catch (e) {
+                                    console.error("Could not parse title from clipboard response:", e);
+                                    // Use fallback title
+                                }
                             }
 
                             watchLaterList.push({ id: videoId, title: videoTitle, added: new Date().toISOString() });
@@ -989,23 +977,16 @@
                 iaChannelModal.classList.add('hidden');
                 showLoading('Creando tu canal temático...');
                 
-                // La IA genera la consulta de búsqueda optimizada
-                const queryPrompt = `Generate a concise YouTube search query to find highly relevant, currently available, public, and embeddable YouTube videos related to "${theme}". Prioritize live streams if the theme suggests it (e.g., "news," "live music"). Respond ONLY with the optimized search terms, without quotes or additional text.`;
-                let searchTerms;
+                const systemInstruction = `You are an API that returns data in JSON format. Your responses must be strictly valid JSON. Do not include any explanatory text, markdown formatting, or any characters outside of the JSON structure itself.`;
+                const queryPrompt = `Based on the theme "${theme}", use Google Search to find a list of 8 highly relevant, currently available, public, and embeddable YouTube videos. Prioritize live streams if the theme suggests it (e.g., "news," "live music"). Your response MUST BE ONLY a valid JSON array of objects. If you cannot find 8 valid videos, return an empty array []. Each object must have two properties: "title" (a short, attractive title for the video) and "videoId" (the YouTube video ID).`;
+
                 try {
-                    searchTerms = await callGeminiAPI(queryPrompt, 'google_search'); // Usar Google Search para grounding de la consulta
-                    searchTerms = searchTerms.replace(/["'`]/g, '').trim();
+                    const responseText = await callGeminiAPI(queryPrompt, systemInstruction);
+                    const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+                    const parsedVideos = JSON.parse(cleanedResponse);
 
-                    // Ahora, usa la consulta generada para buscar en YouTube directamente
-                    const youtubeResults = await callGeminiAPI(
-                        `Search YouTube for "${searchTerms}"`, 
-                        'youtube_search', 
-                        null, 
-                        { query: searchTerms, result_type: 'VIDEO' }
-                    );
-
-                    if (youtubeResults && youtubeResults.length > 0) {
-                        thematicChannels = youtubeResults;
+                    if (Array.isArray(parsedVideos) && parsedVideos.length > 0) {
+                        thematicChannels = parsedVideos;
                         isThematicChannelActive = true;
                         isAISearchActive = false; // Desactivar búsqueda IA normal
                         currentFilter = 'all'; // Reset filter to avoid confusion
@@ -1087,37 +1068,25 @@
 
                 const channelName = channelToRepair.name;
                 // La IA genera una consulta de búsqueda muy específica para un live stream
-                const queryPrompt = `Generate the most precise YouTube search query to find the most recent and currently available LIVE stream for the channel named "${channelName}". Ensure it's a public and embeddable video. Respond ONLY with the optimized search terms, without quotes or additional text.`;
+                 const queryPrompt = `Your task is to act as a YouTube search expert. Find the most recent and currently available LIVE stream from the channel named "${channelName}". Ensure the video is public and embeddable. Respond ONLY with a single, valid JSON object with two keys: "title" (the video title) and "videoId" (the YouTube video ID). If you cannot find a valid live stream, respond with the exact word "NULL".`;
                 
                 try {
-                    const searchTerms = await callGeminiAPI(queryPrompt, 'google_search'); // Usar Google Search para grounding de la consulta
-                    let cleanedSearchTerms = searchTerms.replace(/["'`]/g, '').trim();
-                    
-                    // Asegurarse de que la búsqueda sea para un stream en vivo
-                    cleanedSearchTerms += " en vivo";
+                    const responseText = await callGeminiAPI(queryPrompt); 
+                    const cleanedResponse = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
 
-                    // Usar la API de YouTube directamente con la consulta generada
-                    const youtubeResults = await callGeminiAPI(
-                        `Search YouTube for "${cleanedSearchTerms}"`,
-                        'youtube_search',
-                        null,
-                        { query: cleanedSearchTerms, result_type: 'VIDEO' }
-                    );
-                    
-                    // Priorizar videos con "vivo" o "live" en el título, luego tomar el primero como fallback.
-                    const liveVideo = youtubeResults.find(video =>
-                        video.title && video.url && video.external_video_id &&
-                        (video.title.toLowerCase().includes('vivo') || video.title.toLowerCase().includes('live'))
-                    ) || youtubeResults.find(video => video.title && video.url && video.external_video_id);
+                    if (cleanedResponse.toUpperCase() === 'NULL') {
+                        throw new Error('No live stream found by AI.');
+                    }
 
+                    const parsedResponse = JSON.parse(cleanedResponse);
 
-                    if (liveVideo && liveVideo.external_video_id) {
+                    if (parsedResponse.videoId) {
                         iaResultContainer.classList.remove('hidden');
                         manualRepairContainer.classList.add('hidden');
-                        iaResultTitle.textContent = liveVideo.title;
-                        updateStreamIaBtn.dataset.newVideoId = liveVideo.external_video_id;
+                        iaResultTitle.textContent = parsedResponse.title;
+                        updateStreamIaBtn.dataset.newVideoId = parsedResponse.videoId;
                     } else {
-                        throw new Error('No live stream found by AI on YouTube.');
+                        throw new Error('AI response did not contain a valid videoId');
                     }
 
                 } catch (error) {
@@ -1262,4 +1231,5 @@
     </script>
 </body>
 </html>
+
 
