@@ -212,23 +212,6 @@
     </div></div>
     <div id="loading-overlay" class="hidden fixed inset-0 bg-black/70 flex-col flex items-center justify-center z-[60] text-white"><span class="block w-12 h-12 border-4 border-slate-500 border-t-white rounded-full mb-4"></span><p id="loading-text">Cargando...</p></div>
 
-    <!-- Live Search Modal -->
-    <div id="live-search-modal" class="hidden fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-        <div class="modal-content bg-slate-800 rounded-lg p-6 w-full max-w-md shadow-xl border border-slate-700">
-            <h3 class="text-xl font-bold mb-4">Buscar Canal en Vivo</h3>
-            <div id="live-search-results" class="space-y-3 max-h-80 overflow-y-auto custom-scroll mb-4">
-                <!-- Search results will be loaded here -->
-            </div>
-            <div id="live-search-loading" class="hidden flex justify-center items-center py-4">
-                <span class="block w-8 h-8 border-4 border-slate-500 border-t-white rounded-full animate-spin"></span>
-                <p class="ml-3">Buscando...</p>
-            </div>
-            <div class="flex justify-end gap-3">
-                <button type="button" id="cancel-live-search" class="py-2 px-4 bg-slate-600 hover:bg-slate-500 rounded-lg">Cancelar</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // DOM Elements
@@ -266,13 +249,6 @@
             const syncErrorIndicator = document.getElementById('sync-error-indicator');
             const toastContainer = document.getElementById('toast-container');
 
-            // Live Stream Search Elements
-            const liveSearchModal = document.getElementById('live-search-modal');
-            const liveSearchResults = document.getElementById('live-search-results');
-            const liveSearchLoading = document.getElementById('live-search-loading');
-            const cancelLiveSearchBtn = document.getElementById('cancel-live-search');
-
-
             // App State
             let allChannels = [], favorites = [], watchLaterList = [];
             let currentChannelIndex = -1, currentFilter = 'all';
@@ -280,8 +256,7 @@
             let dragStartIndex;
             let cursorTimeout = null;
             let gistStartupError = null;
-            let currentChannelBeingSearched = null; // To store the channel object for live search
-
+            
             // Gist State
             let gistId = null, gistToken = null;
             const GIST_FILENAME = 'tv_argentina_data.json';
@@ -481,14 +456,17 @@
                             star.addEventListener('click', (e) => { e.stopPropagation(); toggleFavorite(channel.id, star); });
                             overlay.appendChild(star);
 
-                            // New "Find Live" button
+                            // "Find Live" button
                             const findLiveBtn = document.createElement('span');
-                            findLiveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg>`;
+                            findLiveBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" /></svg>`;
                             findLiveBtn.title = 'Buscar en vivo';
-                            findLiveBtn.className = 'find-live-btn cursor-pointer text-white/70 hover:text-red-500 transition-colors z-10';
-                            findLiveBtn.dataset.channelId = channel.id;
-                            findLiveBtn.dataset.channelName = channel.name;
-                            findLiveBtn.addEventListener('click', (e) => { e.stopPropagation(); openLiveSearchModal(channel); });
+                            findLiveBtn.className = 'find-live-btn cursor-pointer text-white/70 hover:text-blue-400 transition-colors z-10';
+                            findLiveBtn.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(channel.name)}&sp=EgJAAQ%253D%253D`;
+                                window.open(url, '_blank');
+                                openEditModal(realIndex);
+                            });
                             overlay.appendChild(findLiveBtn);
                         }
                         const editBtn = document.createElement('span');
@@ -697,7 +675,7 @@
             });
 
             document.addEventListener('keydown', (e) => {
-                if (document.activeElement.tagName === 'INPUT' || !channelModal.classList.contains('hidden') || !gistModal.classList.contains('hidden') || !liveSearchModal.classList.contains('hidden')) return;
+                if (document.activeElement.tagName === 'INPUT' || !channelModal.classList.contains('hidden') || !gistModal.classList.contains('hidden')) return;
                 
                 if (e.key === 'Escape' && document.fullscreenElement) {
                     document.exitFullscreen();
@@ -806,91 +784,6 @@
             });
             closeSettingsButton.addEventListener('click', () => gistModal.classList.add('hidden'));
 
-            // --- Live Search Functions ---
-            async function openLiveSearchModal(channel) {
-                currentChannelBeingSearched = channel;
-                liveSearchResults.innerHTML = '';
-                liveSearchModal.classList.remove('hidden');
-                liveSearchLoading.classList.remove('hidden');
-                
-                try {
-                    const youtubeSearchResults = await youtube.search(query=`${channel.name} en vivo`, result_type='VIDEO');
-                    
-                    liveSearchLoading.classList.add('hidden');
-
-                    if (youtubeSearchResults && youtubeSearchResults.length > 0) {
-                        const liveVideos = youtubeSearchResults.filter(item => item.external_video_id);
-
-                        if (liveVideos.length > 0) {
-                            liveVideos.forEach(video => {
-                                const resultItem = document.createElement('div');
-                                resultItem.className = 'flex items-center space-x-3 p-2 hover:bg-slate-700 rounded-md cursor-pointer';
-                                
-                                const thumbnail = document.createElement('img');
-                                thumbnail.src = `https://img.youtube.com/vi/${video.external_video_id}/mqdefault.jpg`;
-                                thumbnail.alt = video.title;
-                                thumbnail.className = 'w-24 h-14 object-cover rounded-md flex-shrink-0';
-
-                                const textContainer = document.createElement('div');
-                                textContainer.className = 'flex-grow';
-
-                                const titleEl = document.createElement('p');
-                                titleEl.className = 'text-sm font-semibold text-white truncate';
-                                titleEl.textContent = video.title;
-
-                                const channelNameEl = document.createElement('p');
-                                channelNameEl.className = 'text-xs text-slate-400';
-                                channelNameEl.textContent = video.channel_name;
-
-                                const selectButton = document.createElement('button');
-                                selectButton.textContent = 'Seleccionar';
-                                selectButton.className = 'ml-auto py-1 px-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-xs';
-                                selectButton.addEventListener('click', () => confirmAndUpdateChannel(currentChannelBeingSearched, video));
-
-                                textContainer.append(titleEl, channelNameEl);
-                                resultItem.append(thumbnail, textContainer, selectButton);
-                                liveSearchResults.appendChild(resultItem);
-                            });
-                        } else {
-                             liveSearchResults.innerHTML = `<p class="text-center text-slate-400">No se encontraron videos en vivo para "${channel.name}".</p>`;
-                        }
-                    } else {
-                        liveSearchResults.innerHTML = `<p class="text-center text-slate-400">No se encontraron videos en vivo para "${channel.name}".</p>`;
-                    }
-
-                } catch (error) {
-                    console.error('Error searching for live stream:', error);
-                    liveSearchLoading.classList.add('hidden');
-                    liveSearchResults.innerHTML = `<p class="text-center text-red-400">Error al buscar. Inténtalo de nuevo.</p>`;
-                }
-            }
-
-            async function confirmAndUpdateChannel(originalChannel, newVideo) {
-                showLoading('Actualizando canal...');
-                
-                // Find the original channel in the allChannels array and update it
-                const channelIndexInAllChannels = allChannels.findIndex(c => c.name === originalChannel.name && c.type === originalChannel.type);
-
-                if (channelIndexInAllChannels !== -1) {
-                    allChannels[channelIndexInAllChannels].id = newVideo.external_video_id;
-                    allChannels[channelIndexInAllChannels].name = newVideo.title; 
-                    debouncedSave();
-                    renderChannelList();
-                    switchChannel(allChannels[channelIndexInAllChannels]); 
-                    showToast(`Canal "${originalChannel.name}" actualizado a "${newVideo.title}"!`, 'success');
-                } else {
-                    showToast('Error: No se pudo encontrar el canal original para actualizar.', 'error');
-                }
-                
-                hideLoading();
-                liveSearchModal.classList.add('hidden');
-            }
-
-            cancelLiveSearchBtn.addEventListener('click', () => {
-                liveSearchModal.classList.add('hidden');
-            });
-
-
             async function initializeApp() {
                 initializeTheme();
                 gistId = localStorage.getItem('gist_id');
@@ -936,3 +829,4 @@
     </script>
 </body>
 </html>
+
