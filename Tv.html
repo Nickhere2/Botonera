@@ -1091,7 +1091,10 @@
                 
                 try {
                     const searchTerms = await callGeminiAPI(queryPrompt, 'google_search'); // Usar Google Search para grounding de la consulta
-                    const cleanedSearchTerms = searchTerms.replace(/["'`]/g, '').trim();
+                    let cleanedSearchTerms = searchTerms.replace(/["'`]/g, '').trim();
+                    
+                    // Asegurarse de que la búsqueda sea para un stream en vivo
+                    cleanedSearchTerms += " en vivo";
 
                     // Usar la API de YouTube directamente con la consulta generada
                     const youtubeResults = await callGeminiAPI(
@@ -1100,8 +1103,13 @@
                         null,
                         { query: cleanedSearchTerms, result_type: 'VIDEO' }
                     );
+                    
+                    // Priorizar videos con "vivo" o "live" en el título, luego tomar el primero como fallback.
+                    const liveVideo = youtubeResults.find(video =>
+                        video.title && video.url && video.external_video_id &&
+                        (video.title.toLowerCase().includes('vivo') || video.title.toLowerCase().includes('live'))
+                    ) || youtubeResults.find(video => video.title && video.url && video.external_video_id);
 
-                    const liveVideo = youtubeResults.find(video => video.title && video.url && video.external_video_id);
 
                     if (liveVideo && liveVideo.external_video_id) {
                         iaResultContainer.classList.remove('hidden');
@@ -1254,3 +1262,4 @@
     </script>
 </body>
 </html>
+
