@@ -159,18 +159,6 @@
                     <div class="scanline-overlay"></div>
                     <div id="placeholder" class="text-center text-slate-400 p-4 w-full h-full flex flex-col justify-center items-center"><p class="z-10 font-mono">SELECCIONE UN CANAL</p></div>
                     <iframe id="video-player" class="hidden absolute top-0 left-0 w-full h-full" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"></iframe>
-                    
-                    <!-- New container for search results -->
-                    <div id="search-results-container" class="hidden absolute inset-0 bg-slate-900/95 p-4 overflow-y-auto custom-scroll z-20 flex flex-col">
-                        <div class="flex justify-between items-center mb-4 flex-shrink-0">
-                            <h3 id="search-results-title" class="text-lg font-bold">Resultados en Vivo</h3>
-                            <button id="cancel-search-view" class="py-2 px-4 bg-slate-600 hover:bg-slate-500 rounded-lg text-sm">Cerrar</button>
-                        </div>
-                        <div id="search-results-grid" class="flex-grow grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                            <!-- Results here -->
-                        </div>
-                    </div>
-
                     <div id="floating-controls" class="absolute top-1/2 right-4 -translate-y-1/2 flex flex-col space-y-3 z-20"><button id="zap-prev" title="Canal anterior" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg></button><button id="zap-next" title="Canal siguiente" class="p-3 rounded-full bg-slate-800/70 hover:bg-slate-700 transition-colors backdrop-blur-sm"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg></button></div>
                 </div>
             </div>
@@ -260,11 +248,7 @@
             const addFromClipboardBtn = document.getElementById('add-from-clipboard-btn');
             const syncErrorIndicator = document.getElementById('sync-error-indicator');
             const toastContainer = document.getElementById('toast-container');
-            const searchResultsContainer = document.getElementById('search-results-container');
-            const searchResultsTitle = document.getElementById('search-results-title');
-            const searchResultsGrid = document.getElementById('search-results-grid');
-            const cancelSearchViewBtn = document.getElementById('cancel-search-view');
-
+            
             // App State
             let allChannels = [], favorites = [], watchLaterList = [];
             let currentChannelIndex = -1, currentFilter = 'all';
@@ -272,8 +256,6 @@
             let dragStartIndex;
             let cursorTimeout = null;
             let gistStartupError = null;
-            let liveSearchChannelIndex = -1;
-            let playerStateBeforeSearch = { isOff: false };
             
             // Gist State
             let gistId = null, gistToken = null;
@@ -480,7 +462,9 @@
                             findLiveBtn.className = 'find-live-btn cursor-pointer text-white/70 hover:text-blue-400 transition-colors z-10';
                             findLiveBtn.addEventListener('click', (e) => {
                                 e.stopPropagation();
-                                showLiveSearchResultsInPlayer(channel, realIndex);
+                                const url = `https://www.youtube.com/results?search_query=${encodeURIComponent(channel.name)}&sp=EgJAAQ%253D%253D`;
+                                window.open(url, '_blank');
+                                openEditModal(realIndex);
                             });
                             overlay.appendChild(findLiveBtn);
                         }
@@ -596,82 +580,6 @@
                 appEl.classList.remove('hide-cursor');
             }
 
-            async function showLiveSearchResultsInPlayer(channel, index) {
-                liveSearchChannelIndex = index;
-                playerStateBeforeSearch.isOff = placeholder.classList.contains('hidden') === false;
-
-                videoPlayer.classList.add('hidden');
-                placeholder.classList.add('hidden');
-                searchResultsContainer.classList.remove('hidden');
-                searchResultsGrid.innerHTML = '';
-                searchResultsTitle.textContent = `Resultados para: ${channel.name}`;
-                
-                showLoading('Buscando en vivo...');
-
-                try {
-                    const response = await fetch(`https://vid.puffyan.us/api/v1/search?q=${encodeURIComponent(channel.name)}&features=live&type=video&fields=videoId,title,author`);
-                    if (!response.ok) throw new Error('Network response failed');
-                    const results = await response.json();
-
-                    if (results.length > 0) {
-                        results.forEach(video => {
-                            const resultItem = document.createElement('div');
-                            resultItem.className = 'bg-slate-800 rounded-lg overflow-hidden cursor-pointer group transition-transform hover:scale-105';
-                            resultItem.addEventListener('click', () => updateChannelFromSearch(video));
-
-                            const thumbnail = document.createElement('img');
-                            thumbnail.src = `https://i.ytimg.com/vi/${video.videoId}/mqdefault.jpg`;
-                            thumbnail.className = 'w-full h-auto object-cover';
-
-                            const infoDiv = document.createElement('div');
-                            infoDiv.className = 'p-2';
-                            
-                            const titleEl = document.createElement('p');
-                            titleEl.className = 'text-xs font-semibold text-white truncate group-hover:text-blue-400';
-                            titleEl.textContent = video.title;
-
-                            const authorEl = document.createElement('p');
-                            authorEl.className = 'text-xs text-slate-400 truncate';
-                            authorEl.textContent = video.author;
-
-                            infoDiv.append(titleEl, authorEl);
-                            resultItem.append(thumbnail, infoDiv);
-                            searchResultsGrid.appendChild(resultItem);
-                        });
-                    } else {
-                        searchResultsGrid.innerHTML = `<p class="text-center text-slate-400 col-span-full">No se encontraron videos en vivo.</p>`;
-                    }
-                } catch (error) {
-                    console.error('Error fetching live streams:', error);
-                    searchResultsGrid.innerHTML = `<p class="text-center text-red-400 col-span-full">Error al buscar. Inténtalo de nuevo.</p>`;
-                } finally {
-                    hideLoading();
-                }
-            }
-
-            function updateChannelFromSearch(newVideoData) {
-                if (liveSearchChannelIndex === -1) return;
-                const originalChannelName = allChannels[liveSearchChannelIndex].name;
-                allChannels[liveSearchChannelIndex].id = newVideoData.videoId;
-                debouncedSave();
-                renderChannelList();
-                
-                searchResultsContainer.classList.add('hidden');
-                switchChannel(allChannels[liveSearchChannelIndex]);
-                
-                showToast(`Canal "${originalChannelName}" actualizado.`, 'success');
-                liveSearchChannelIndex = -1;
-            }
-
-            cancelSearchViewBtn.addEventListener('click', () => {
-                searchResultsContainer.classList.add('hidden');
-                if (playerStateBeforeSearch.isOff || currentChannelIndex === -1) {
-                    placeholder.classList.remove('hidden');
-                } else {
-                    videoPlayer.classList.remove('hidden');
-                }
-            });
-
             youtubeSearchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const userInput = youtubeSearchInput.value.trim();
@@ -765,7 +673,7 @@
             });
 
             document.addEventListener('keydown', (e) => {
-                if (document.activeElement.tagName === 'INPUT' || !channelModal.classList.contains('hidden') || !gistModal.classList.contains('hidden') || !searchResultsContainer.classList.contains('hidden')) return;
+                if (document.activeElement.tagName === 'INPUT' || !channelModal.classList.contains('hidden') || !gistModal.classList.contains('hidden')) return;
                 
                 if (e.key === 'Escape' && document.fullscreenElement) {
                     document.exitFullscreen();
