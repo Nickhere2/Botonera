@@ -235,18 +235,26 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (content) {
                 const gistContent = JSON.parse(content);
-                const allItems = gistContent.items || [];
+                
+                // --- MODIFICACIÓN ---
+                // Desestructuramos 'items' de gistContent para evitar que sobreescriba
+                // la lista de 'defaults' cuando se usa el spread operator (...gistContent).
+                const { items: gistItems, ...otherGistContent } = gistContent;
+
+                const allItems = gistItems || []; // Usamos gistItems en lugar de gistContent.items
                 const searchEnginesFromGist = allItems.filter(i => i.type === 'Buscador');
                 const regularItems = allItems.filter(i => i.type !== 'Buscador');
 
                 data = {
                     ...defaults,
-                    ...gistContent,
-                    items: gistContent.items !== undefined ? regularItems : defaults.items,
+                    ...otherGistContent, // Usamos el resto de gistContent
+                    items: gistItems !== undefined ? regularItems : defaults.items, // La lógica principal ahora usa gistItems
                     searchEngines: searchEnginesFromGist.length > 0 ? [defaults.searchEngines[0], ...searchEnginesFromGist] : defaults.searchEngines,
-                    iaBots: gistContent.iaBots || defaults.iaBots,
+                    iaBots: gistContent.iaBots || defaults.iaBots, // Esto puede usar gistContent completo, está bien
                     videoPrompts: (gistContent.videoPrompts && gistContent.videoPrompts.length > 0) ? gistContent.videoPrompts : defaults.videoPrompts
                 };
+                // --- FIN DE MODIFICACIÓN ---
+                
                 showToast("Datos cargados desde Gist.", "success");
             } else {
                 throw new Error('Archivo no encontrado en Gist. Revisa el nombre del archivo en tu Gist.');
@@ -920,6 +928,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
 
