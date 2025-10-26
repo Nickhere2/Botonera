@@ -390,15 +390,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <h4 class="font-semibold text-sm text-center truncate w-full">${item.title}</h4>
             ${typeBadge}
         `;
-        tableItem.addEventListener('click', (e) => {
-            if (item.type === 'Buscador') {
-                currentSearchEngine = item;
-                switchTab('inicio');
-            } else {
-                // Handle other item types if needed
-                console.log("Clicked table item", item);
-            }
-        });
+        // REMOVED the specific click listener. The generic .card listener in setupEventListeners will handle it.
         return tableItem;
     }
     
@@ -554,7 +546,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 searchInput.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter') handleSearch(e.target.value);
                 });
-                 searchInput.addEventListener('input', handleSearchInputShortcut);
+                searchInput.addEventListener('input', handleSearchInputShortcut);
             }
             
             if (mainSearchButton) {
@@ -575,6 +567,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // Lógica de búsqueda en la app
             renderGlobalSearchResults(term);
         }
+    }
+
+    function getActiveSectionContainer() {
+        const activeLink = mainNav.querySelector('.nav-link.active');
+        if (!activeLink) return document.getElementById('section-inicio');
+        const sectionId = activeLink.dataset.section;
+        return document.getElementById(`section-${sectionId}`);
     }
 
     function renderGlobalSearchResults(searchTerm, itemsToRender = null) {
@@ -739,7 +738,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="w-full max-w-4xl p-4 flex flex-col gap-4 relative">
                  <button onclick="window.app.closeVideoPlayerModal()" class="absolute -top-2 -right-2 bg-gray-800 text-white rounded-full w-8 h-8 z-10">&times;</button>
                  <div class="w-full aspect-video">
-                    <iframe class="w-full h-full rounded-lg" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                     <iframe class="w-full h-full rounded-lg" src="https://www.youtube.com/embed/${videoId}?autoplay=1" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
                  </div>
             </div>`;
         modal.classList.remove('hidden');
@@ -886,4 +885,3 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
-
