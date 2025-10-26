@@ -378,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function createTableItem(item, searchTerm = '', isGlobalSearch = false) {
         const tableItem = document.createElement("div");
-        tableItem.className = 'table-item';
+        tableItem.className = 'table-item card'; // Added .card to inherit hover states
         tableItem.dataset.id = item.id;
         
         const typeBadge = isGlobalSearch 
@@ -396,6 +396,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 switchTab('inicio');
             } else {
                 // Handle other item types if needed
+                console.log("Clicked table item", item);
             }
         });
         return tableItem;
@@ -571,7 +572,54 @@ document.addEventListener('DOMContentLoaded', () => {
             const url = currentSearchEngine.action.replace('{searchTerm}', encodeURIComponent(term));
             window.open(url, '_blank');
         } else {
-            console.log("Buscando en la app:", term);
+            // Lógica de búsqueda en la app
+            renderGlobalSearchResults(term);
+        }
+    }
+
+    function renderGlobalSearchResults(searchTerm, itemsToRender = null) {
+        const container = getActiveSectionContainer();
+        if (!container) return;
+        
+        let allResults;
+        if (itemsToRender) {
+            allResults = itemsToRender;
+        } else {
+            allResults = (data.items || []).filter(card => {
+                const lowerCaseSearchTerm = searchTerm.toLowerCase();
+                const titleMatch = (card.title || '').toLowerCase().includes(lowerCaseSearchTerm);
+                const categoryNameMatch = (card.category || '').toLowerCase().includes(lowerCaseSearchTerm);
+                const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(lowerCaseSearchTerm);
+                let contentMatch = false;
+                if (typeof card.action === 'string') {
+                    const tempDiv = document.createElement('div');
+                    tempDiv.innerHTML = card.action;
+                    contentMatch = (tempDiv.textContent || tempDiv.innerText).toLowerCase().includes(lowerCaseSearchTerm);
+                } else if (Array.isArray(card.action)) {
+                    contentMatch = card.action.some(task => task.text.toLowerCase().includes(lowerCaseSearchTerm));
+                }
+                return titleMatch || categoryNameMatch || tagListMatch || contentMatch;
+            });
+        }
+
+        const resultsContainer = container.querySelector('#ai-search-results-container') || document.createElement('div');
+        if (!container.querySelector('#ai-search-results-container')) {
+            resultsContainer.id = 'ai-search-results-container';
+            container.appendChild(resultsContainer);
+        }
+        
+        if (allResults.length === 0) {
+            resultsContainer.innerHTML = `
+                <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border mt-8">
+                    <h3 class="text-xl font-semibold">Sin resultados</h3>
+                    <p class="text-muted-foreground mt-2">No se encontraron resultados para "${searchTerm}".</p>
+                </div>`;
+        } else {
+            resultsContainer.innerHTML = `<h2 class="text-2xl font-bold mb-6 mt-8">Resultados para "${searchTerm}"</h2>`;
+            const content = document.createElement('div');
+            content.className = 'table-view'; // <-- CAMBIO A VISTA DE MINIATURAS
+            allResults.forEach(item => content.appendChild(createTableItem(item, searchTerm, true))); // <-- CAMBIO A createTableItem
+            resultsContainer.appendChild(content);
         }
     }
     
@@ -616,6 +664,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const container = kebabButton.closest('.kebab-menu-container');
                 container.classList.toggle('is-open');
                 return;
+            }
+
+            const searchSelectorBtn = e.target.closest('#search-selector-button');
+            if(searchSelectorBtn) {
+                 e.stopPropagation();
+                 const container = searchSelectorBtn.closest('.search-selector-container');
+                 container.classList.toggle('is-open');
+                 return;
             }
 
             const card = e.target.closest('.card');
