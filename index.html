@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 data = {
                     ...defaults,
                     ...gistContent,
-                    items: regularItems.length > 0 ? regularItems : (gistContent.items ? [] : defaults.items),
+                    items: gistContent.items ? regularItems : defaults.items,
                     searchEngines: searchEnginesFromGist.length > 0 ? [defaults.searchEngines[0], ...searchEnginesFromGist] : defaults.searchEngines,
                     iaBots: gistContent.iaBots || defaults.iaBots,
                     videoPrompts: (gistContent.videoPrompts && gistContent.videoPrompts.length > 0) ? gistContent.videoPrompts : defaults.videoPrompts
@@ -293,6 +293,7 @@ document.addEventListener('DOMContentLoaded', () => {
         header.appendChild(mainTitle);
 
         const searchBarContainer = document.createElement('div');
+        searchBarContainer.className = 'flex-grow flex justify-end';
         searchBarContainer.innerHTML = `
             <div class="flex items-center w-full max-w-lg bg-card-background border border-border rounded-lg focus-within:ring-2 focus-within:ring-primary transition-shadow h-12">
                 <div class="relative search-selector-container h-full">
@@ -547,6 +548,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (e.key === 'Enter') handleSearch(e.target.value);
                 });
                 searchInput.addEventListener('input', handleSearchInputShortcut);
+                
+                // NUEVO LISTENER PARA BUSQUEDA-MIENTRAS-ESCRIBES
+                searchInput.addEventListener('input', (e) => {
+                    if (currentSearchEngine && currentSearchEngine.isApp) {
+                        handleSearch(e.target.value);
+                    }
+                });
             }
             
             if (mainSearchButton) {
@@ -559,12 +567,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function handleSearch(term) {
-        if (!term.trim()) return;
         if (currentSearchEngine && !currentSearchEngine.isApp) {
+            if (!term.trim()) return; // No search external on empty
             const url = currentSearchEngine.action.replace('{searchTerm}', encodeURIComponent(term));
             window.open(url, '_blank');
         } else {
-            // Lógica de búsqueda en la app
+            // App search (will be called on input or enter)
             renderGlobalSearchResults(term);
         }
     }
@@ -579,6 +587,17 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderGlobalSearchResults(searchTerm, itemsToRender = null) {
         const container = getActiveSectionContainer();
         if (!container) return;
+        
+        const resultsContainer = container.querySelector('#ai-search-results-container') || document.createElement('div');
+        if (!container.querySelector('#ai-search-results-container')) {
+            resultsContainer.id = 'ai-search-results-container';
+            container.appendChild(resultsContainer);
+        }
+        
+        if (!searchTerm.trim() && !itemsToRender) {
+            resultsContainer.innerHTML = ''; // Clear results
+            return;
+        }
         
         let allResults;
         if (itemsToRender) {
@@ -601,11 +620,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
+        /* ESTA SECCIÓN ESTABA DUPLICADA Y CAUSABA EL ERROR. LA HE ELIMINADO.
         const resultsContainer = container.querySelector('#ai-search-results-container') || document.createElement('div');
         if (!container.querySelector('#ai-search-results-container')) {
             resultsContainer.id = 'ai-search-results-container';
             container.appendChild(resultsContainer);
         }
+        */
         
         if (allResults.length === 0) {
             resultsContainer.innerHTML = `
@@ -885,3 +906,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
+
