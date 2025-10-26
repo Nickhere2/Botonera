@@ -242,7 +242,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 data = {
                     ...defaults,
                     ...gistContent,
-                    items: gistContent.items ? regularItems : defaults.items,
+                    items: gistContent.items !== undefined ? regularItems : defaults.items,
                     searchEngines: searchEnginesFromGist.length > 0 ? [defaults.searchEngines[0], ...searchEnginesFromGist] : defaults.searchEngines,
                     iaBots: gistContent.iaBots || defaults.iaBots,
                     videoPrompts: (gistContent.videoPrompts && gistContent.videoPrompts.length > 0) ? gistContent.videoPrompts : defaults.videoPrompts
@@ -720,6 +720,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('settings-button').addEventListener('click', openSettingsPanel);
+        document.getElementById('fab-button').addEventListener('click', openAddItemModal);
     }
 
     function openSettingsPanel() {
@@ -741,6 +742,19 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
         modalContainer.classList.remove('hidden');
         document.getElementById('save-settings-btn').addEventListener('click', saveSettings);
+    }
+
+    function openAddItemModal() {
+        const modalContainer = document.getElementById('modal-container');
+        modalContainer.innerHTML = `
+            <div class="widget p-6 w-full max-w-lg relative">
+                <button onclick="document.getElementById('modal-container').classList.add('hidden')" class="absolute top-4 right-4 text-muted-foreground hover:text-white">&times;</button>
+                <h3 class="font-bold text-lg mb-4">Añadir Nuevo Elemento</h3>
+                <div class="text-center p-8">
+                    <p class="text-muted-foreground">El formulario para añadir nuevos elementos irá aquí.</p>
+                </div>
+            </div>`;
+        modalContainer.classList.remove('hidden');
     }
 
     function saveSettings() {
@@ -906,5 +920,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
 
 
