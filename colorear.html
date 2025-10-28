@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente IA de Hojas para Colorear</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* bg-gray-100 */
+        }
+        .font-cabin-sketch {
+            font-family: 'Cabin Sketch', cursive;
+        }
+        
+        .main-container {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 1.5rem; /* gap-6 */
+            max-width: 1400px;
+            margin: auto;
+            padding: 2rem; /* p-8 */
+        }
+        
+        /* Ocultar por defecto */
+        #mainAppView {
+            display: none;
+        }
+
+        #canvas-container {
+            background-color: white;
+            padding: 1.5rem; /* p-6 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            position: relative;
+        }
+
+        #previewCanvas {
+            width: 100%;
+            max-width: 500px; /* Limitar el ancho */
+            height: auto;
+            aspect-ratio: 480 / 680;
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            border-radius: 0.25rem; /* rounded */
+            margin: auto;
+            display: block;
+        }
+        
+        /* Grupo de controles de edición */
+        #imageEditGroup {
+            display: none; /* Oculto por defecto */
+        }
+
+        @font-face {
+          font-family: 'Cabin Sketch';
+          src: url('https://fonts.gstatic.com/s/cabinsketch/v19/QGYpz_kZZAG_hrFZr_B-p0dc.woff2') format('woff2'); /* Regular */
+          font-weight: 400;
+        }
+        @font-face {
+          font-family: 'Cabin Sketch';
+          src: url('https://fonts.gstatic.com/s/cabinsketch/v19/QGYpz_kZZAG_hrFZr_B-p0dx.woff2') format('woff2'); /* Bold */
+          font-weight: 700;
+        }
+    </style>
+</head>
+<body class="p-4 lg:p-8">
+    <div class="container mx-auto max-w-7xl">
+
+        <!-- API Key Modal -->
+        <div id="apiKeyModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+            <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+                <h2 class="text-xl font-bold mb-4 text-center">Clave API de Gemini</h2>
+                <p class="text-gray-600 mb-4 text-sm">Por favor, ingresa tu clave API para usar el modelo de generación de imágenes.</p>
+                <input type="password" id="apiKeyInput" class="w-full p-2 border border-gray-300 rounded mb-4" placeholder="Ingresa tu clave API aquí">
+                <button id="saveApiKeyButton" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300">
+                    Guardar y Continuar
+                </button>
+                <p class="text-xs text-gray-500 mt-3 text-center">La clave se guarda solo para esta sesión.</p>
+            </div>
+        </div>
+        
+        <h1 class="text-3xl font-bold mb-6 text-gray-800 text-center font-cabin-sketch">Asistente de Hojas para Colorear</h1>
+
+        <!-- VISTA INICIAL -->
+        <div id="initialView" class="text-center p-10 bg-white rounded-lg shadow-md">
+             <h2 class="text-2xl font-bold mb-4 text-gray-700">Bienvenido</h2>
+             <p class="text-gray-600 mb-6">Copia tu lista de pedidos en el portapapeles y luego presiona el botón para comenzar.</p>
+            <button id="ingresarPedidoButton" class="w-full max-w-xs mx-auto bg-green-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                  <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                </svg>
+                Ingresar Pedido (Pegar)
+            </button>
+        </div>
+
+        <!-- VISTA PRINCIPAL DE LA APP (Oculta al inicio) -->
+        <div id="mainAppView" class="main-container">
+            
+            <!-- Panel de Controles Izquierdo -->
+            <div id="controlsPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col gap-6">
+                
+                <!-- Estado del Lote -->
+                <div class="border-b pb-4">
+                    <h2 class="text-sm font-bold text-blue-600 uppercase" id="jobStatusLabel">Procesando Pedido...</h2>
+                    <p class="text-lg text-gray-700" id="jobStatusName">Delfina (5 años)</p>
+                    <p class="text-md font-bold text-gray-900" id="themeStatusLabel">Tema: micky</p>
+                </div>
+
+                <!-- Inputs Editables -->
+                <div id="inputsGroup" class="flex flex-col gap-3">
+                    <div>
+                        <label for="nameInput" class="block text-sm font-medium text-gray-700 mb-1">Nombre:</label>
+                        <input type="text" id="nameInput" class="w-full p-2 border border-gray-300 rounded text-lg">
+                    </div>
+                    <div>
+                        <label for="ageInput" class="block text-sm font-medium text-gray-700 mb-1">Edad:</label>
+                        <input type="text" id="ageInput" class="w-full p-2 border border-gray-300 rounded text-lg">
+                    </div>
+                </div>
+
+                <!-- Acciones de Imagen -->
+                <div id="imageActionsGroup" class="flex flex-col gap-3 border-t pt-4">
+                    <h3 class="text-md font-bold text-gray-800">1. Obtener Imagen del Tema</h3>
+                    <button id="generateButton" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2">
+                        <svg class="animate-spin h-5 w-5 text-white hidden" id="generateSpinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Generar (IA)
+                    </button>
+                    <button id="searchButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
+                    <button id="pasteButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Pegar Imagen</button>
+                </div>
+
+                <!-- Edición de Imagen (Oculto al inicio) -->
+                <div id="imageEditGroup" class="border-t pt-4 flex flex-col gap-3">
+                    <h3 class="text-md font-bold text-gray-800">2. Ajustar Imagen</h3>
+                    <div>
+                        <label for="scaleSlider" class="block text-sm font-medium text-gray-700 mb-1">Escala: <span id="scaleValue">100</span>%</label>
+                        <input type="range" id="scaleSlider" min="10" max="300" value="100" class="w-full">
+                    </div>
+                    <div class="flex items-center">
+                        <input type="checkbox" id="filterToggle" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                        <label for="filterToggle" class="ml-2 block text-sm text-gray-900">Aplicar Filtro "Falsos Blancos"</label>
+                    </div>
+                </div>
+                
+                <!-- Acciones del Lote -->
+                <div class="border-t pt-6 mt-auto flex flex-col gap-3">
+                    <button id="confirmButton" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-700 transition duration-300 disabled:opacity-50" disabled>
+                        ✔️ Confirmar y Añadir Hoja
+                    </button>
+                    <button id="skipButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
+                        ⏭️ Saltar Tema
+                    </button>
+                     <button id="discardButton" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition duration-300">
+                        ❌ Descartar Pedido Actual
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel del Canvas (Derecho) -->
+            <div id="canvasPanel">
+                <canvas id="previewCanvas" width="480" height="680"></canvas>
+                <button id="exportPdfButton" class="w-full mt-4 bg-red-600 text-white py-3 px-5 rounded-lg font-bold hover:bg-red-700 transition duration-300 disabled:opacity-50" disabled>
+                     Exportar PDF (0 Hojas)
+                 </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- Variables de Estado de la App ---
+        let apiKey = localStorage.getItem('geminiApiKey'); // CAMBIO: de sessionStorage a localStorage
+        let jobQueue = []; // [{name, age, themes[]}, ...]
+        let pdfSheets = []; // Almacena los canvas listos para el PDF
+        let currentJobIndex = -1;
+        let currentThemeIndex = -1;
+        
+        let pieImage = null; // Para la imagen pie.png
+        let currentUserImage = null; // La imagen del personaje
+        let imageScale = 1.0;
+        let imagePos = { x: 240, y: 340 }; // Centro por defecto
+        let useFilter = false;
+        let isImageLoaded = false;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+        let initialImagePos = { x: 240, y: 340 };
+
+        // --- Selectores de Elementos del DOM ---
+        const apiKeyModal = document.getElementById('apiKeyModal');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const saveApiKeyButton = document.getElementById('saveApiKeyButton');
+        
+        const initialView = document.getElementById('initialView');
+        const ingresarPedidoButton = document.getElementById('ingresarPedidoButton');
+        const mainAppView = document.getElementById('mainAppView');
+        
+        const jobStatusLabel = document.getElementById('jobStatusLabel');
+        const jobStatusName = document.getElementById('jobStatusName');
+        const themeStatusLabel = document.getElementById('themeStatusLabel');
+        
+        const nameInput = document.getElementById('nameInput');
+        const ageInput = document.getElementById('ageInput');
+        
+        const generateButton = document.getElementById('generateButton');
+        const generateSpinner = document.getElementById('generateSpinner');
+        const searchButton = document.getElementById('searchButton');
+        const pasteButton = document.getElementById('pasteButton');
+        
+        const imageEditGroup = document.getElementById('imageEditGroup');
+        const scaleSlider = document.getElementById('scaleSlider');
+        const scaleValue = document.getElementById('scaleValue');
+        const filterToggle = document.getElementById('filterToggle');
+        
+        const confirmButton = document.getElementById('confirmButton');
+        const skipButton = document.getElementById('skipButton');
+        const discardButton = document.getElementById('discardButton');
+        
+        const previewCanvas = document.getElementById('previewCanvas');
+        const ctx = previewCanvas.getContext('2d');
+        const exportPdfButton = document.getElementById('exportPdfButton');
+
+        // --- Carga Inicial ---
+
+        if (!apiKey) {
+            showApiKeyModal();
+        } else {
+            hideApiKeyModal();
+            loadPieImage(); // Cargar pie.png si la API key ya está
+        }
+
+        // --- Handlers de API Key y Carga ---
+        
+        saveApiKeyButton.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            if (key) {
+                apiKey = key;
+                localStorage.setItem('geminiApiKey', key); // CAMBIO: de sessionStorage a localStorage
+                hideApiKeyModal();
+                loadPieImage(); // Cargar pie.png después de guardar la key
+                console.log("API Key guardada para la sesión.");
+            } else {
+                alert('Por favor, ingresa una clave API válida.');
+            }
+        });
+
+        function showApiKeyModal() {
+            apiKeyModal.classList.remove('hidden');
+            apiKeyModal.classList.add('flex');
+        }
+
+        function hideApiKeyModal() {
+            apiKeyModal.classList.add('hidden');
+            apiKeyModal.classList.remove('flex');
+        }
+
+        async function loadPieImage() {
+            try {
+                pieImage = new Image();
+                pieImage.src = 'pie.png'; // Asume que está en la misma carpeta
+                await pieImage.decode(); // Espera a que cargue
+                console.log('pie.png cargado exitosamente.');
+                redrawCanvas(); // Redibujar por si la app ya está activa
+            } catch (err) {
+                console.error('Error cargando pie.png. Asegúrate que esté en la misma carpeta.', err);
+                alert('Error: No se pudo cargar pie.png. Se continuará sin pie de página.');
+                pieImage = null;
+            }
+        }
+
+        // --- Lógica Principal del Flujo (Wizard) ---
+
+        ingresarPedidoButton.addEventListener('click', async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (!text) {
+                    alert("Portapapeles vacío. Por favor, copia tu lista de pedidos.");
+                    return;
+                }
+                
+                jobQueue = parseRequests(text);
+                
+                if (jobQueue.length > 0) {
+                    pdfSheets = []; // Limpiar PDF anterior
+                    currentJobIndex = 0;
+                    currentThemeIndex = 0;
+                    initialView.style.display = 'none';
+                    mainAppView.style.display = 'grid';
+                    loadCurrentJob();
+                } else {
+                    alert("No se pudieron encontrar pedidos válidos en el texto. Revisa el formato.");
+                }
+            } catch (err) {
+                console.error("Error al leer el portapapeles:", err);
+                alert("No se pudo leer el portapapeles. Asegúrate de dar permiso.");
+            }
+        });
+
+        function parseRequests(text) {
+            const lines = text.split('\n').filter(line => line.trim() !== '');
+            const requests = [];
+            // Regex mejorado para capturar nombres, edades y temas (incluyendo 'y' & ',')
+            const regex = /•?\s*(.+?)\s*(\d+)\s*a(?:ñ|n)os?\s*\((.+?)\)/i;
+
+            lines.forEach(line => {
+                const match = line.match(regex);
+                if (match) {
+                    const [, name, age, themesRaw] = match;
+                    if (themesRaw.toLowerCase().includes('ya te confirmo')) {
+                        return; // Saltar este pedido
+                    }
+                    const themes = themesRaw.split(/y|,|&/i).map(t => t.trim()).filter(t => t);
+                    
+                    if (themes.length > 0) {
+                        requests.push({
+                            name: name.trim(),
+                            age: age.trim(),
+                            themes: themes
+                        });
+                    }
+                }
+            });
+            return requests;
+        }
+
+        function loadCurrentJob() {
+            if (currentJobIndex < 0 || currentJobIndex >= jobQueue.length) {
+                // Se acabaron los pedidos
+                alert("¡Lote completado! Listo para exportar el PDF.");
+                resetApp();
+                return;
+            }
+
+            const job = jobQueue[currentJobIndex];
+            const theme = job.themes[currentThemeIndex];
+
+            // Actualizar UI
+            jobStatusLabel.textContent = `Procesando Pedido ${currentJobIndex + 1} de ${jobQueue.length}`;
+            jobStatusName.textContent = `${job.name} (${job.age} años)`;
+            themeStatusLabel.textContent = `Tema ${currentThemeIndex + 1} de ${job.themes.length}: ${theme}`;
+            
+            nameInput.value = job.name;
+            ageInput.value = job.age;
+            
+            // Actualizar botones de acción
+            generateButton.dataset.theme = theme;
+            searchButton.dataset.theme = theme;
+            
+            // Resetear estado de imagen
+            currentUserImage = null;
+            isImageLoaded = false;
+            scaleSlider.value = 100;
+            imageScale = 1.0;
+            imagePos = { x: 240, y: 340 }; // Resetear posición
+            initialImagePos = { x: 240, y: 340 };
+            filterToggle.checked = false;
+            useFilter = false;
+            
+            updateControlsVisibility();
+            redrawCanvas();
+        }
+        
+        function advanceJob() {
+            const currentJob = jobQueue[currentJobIndex];
+            currentThemeIndex++;
+            
+            if (currentThemeIndex < currentJob.themes.length) {
+                // Siguiente tema, mismo pedido
+                loadCurrentJob();
+            } else {
+                // Siguiente pedido
+                currentJobIndex++;
+                currentThemeIndex = 0;
+                loadCurrentJob(); // Esto manejará el final si no hay más pedidos
+            }
+        }
+        
+        function resetApp() {
+             initialView.style.display = 'block';
+             mainAppView.style.display = 'none';
+             jobQueue = [];
+             currentJobIndex = -1;
+             currentThemeIndex = -1;
+             // No limpiar pdfSheets, para que se pueda exportar
+        }
+
+        // --- Handlers de Acciones de Imagen ---
+
+        generateButton.addEventListener('click', async (e) => {
+            const theme = e.currentTarget.dataset.theme;
+            const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`;
+            
+            setLoading(true);
+            try {
+                const imageUrl = await generateImage(prompt);
+                loadImageOntoCanvas(imageUrl);
+            } catch (error) {
+                alert(`Error al generar imagen: ${error.message}`);
+            }
+            setLoading(false);
+        });
+
+        searchButton.addEventListener('click', (e) => {
+            const theme = e.currentTarget.dataset.theme;
+            const query = `${theme} para colorear`;
+            // tbm=isch (Búsqueda de Imágenes)
+            // tbs=itp:lineart (Filtro: Tipo -> Dibujo lineal)
+            const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`;
+            window.open(url, '_blank');
+        });
+
+        pasteButton.addEventListener('click', async () => {
+            try {
+                const items = await navigator.clipboard.read();
+                for (const item of items) {
+                    const imageType = item.types.find(type => type.startsWith('image/'));
+                    if (imageType) {
+                        const blob = await item.getType(imageType);
+                        const imageUrl = URL.createObjectURL(blob);
+                        loadImageOntoCanvas(imageUrl);
+                        return;
+                    }
+                }
+                alert("No se encontró una imagen en el portapapeles.");
+            } catch (err) {
+                console.error("Error al pegar imagen:", err);
+                alert("No se pudo pegar la imagen. Asegúrate de dar permiso.");
+            }
+        });
+        
+        function loadImageOntoCanvas(imageUrl) {
+            currentUserImage = new Image();
+            currentUserImage.crossOrigin = "anonymous"; // Para evitar 'tainted canvas' si se pega de URL
+            currentUserImage.onload = () => {
+                isImageLoaded = true;
+                // "Acomodar perfectamente" (Calcular best-fit)
+                const canvasAspect = 480 / 680;
+                const availableHeight = 680 - (pieImage ? 120 : 0) - 110; // Espacio aprox
+                
+                const scaleW = 440 / currentUserImage.width; // 440 = 480 - 40px padding
+                const scaleH = availableHeight / currentUserImage.height;
+                const bestScale = Math.min(scaleW, scaleH);
+                
+                imageScale = bestScale;
+                scaleSlider.value = bestScale * 100;
+                scaleValue.textContent = Math.round(bestScale * 100);
+                
+                // Centrar
+                imagePos = { x: 240, y: (availableHeight / 2) + 20 }; // Centrado en área disponible
+                initialImagePos = { ...imagePos };
+
+                updateControlsVisibility();
+                redrawCanvas();
+            };
+            currentUserImage.onerror = () => {
+                alert("Error al cargar la imagen pegada.");
+                isImageLoaded = false;
+            }
+            currentUserImage.src = imageUrl;
+        }
+        
+        function setLoading(isLoading) {
+             if(isLoading) {
+                 generateButton.disabled = true;
+                 generateSpinner.classList.remove('hidden');
+                 generateButton.querySelector('span').textContent = "Generando...";
+             } else {
+                 generateButton.disabled = false;
+                 generateSpinner.classList.add('hidden');
+                 generateButton.querySelector('span').textContent = "Generar (IA)";
+             }
+        }
+
+        // --- Handlers de Edición de Imagen ---
+        
+        scaleSlider.addEventListener('input', (e) => {
+            imageScale = parseInt(e.target.value) / 100;
+            scaleValue.textContent = e.target.value;
+            redrawCanvas();
+        });
+        
+        filterToggle.addEventListener('change', (e) => {
+            useFilter = e.target.checked;
+            redrawCanvas();
+        });
+
+        // --- Handlers de Arrastrar Imagen (Drag) ---
+        previewCanvas.addEventListener('mousedown', (e) => {
+            if (!isImageLoaded) return;
+            const rect = previewCanvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (480 / rect.width);
+            const y = (e.clientY - rect.top) * (680 / rect.height);
+
+            // Revisar si el clic está dentro de la imagen (aproximado)
+            if (currentUserImage) {
+                const imgW = currentUserImage.width * imageScale;
+                const imgH = currentUserImage.height * imageScale;
+                if (x > imagePos.x - imgW/2 && x < imagePos.x + imgW/2 &&
+                    y > imagePos.y - imgH/2 && y < imagePos.y + imgH/2) {
+                    isDragging = true;
+                    dragStart.x = x - imagePos.x;
+                    dragStart.y = y - imagePos.y;
+                    previewCanvas.style.cursor = 'grabbing';
+                }
+            }
+        });
+        
+        previewCanvas.addEventListener('mousemove', (e) => {
+            if (!isDragging) return;
+            const rect = previewCanvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (480 / rect.width);
+            const y = (e.clientY - rect.top) * (680 / rect.height);
+            imagePos.x = x - dragStart.x;
+            imagePos.y = y - dragStart.y;
+            redrawCanvas();
+        });
+        
+        previewCanvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            previewCanvas.style.cursor = 'default';
+        });
+        
+        previewCanvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+            previewCanvas.style.cursor = 'default';
+        });
+
+
+        // --- Handlers de Acciones de Lote ---
+        
+        confirmButton.addEventListener('click', () => {
+            if (!isImageLoaded) {
+                alert("Por favor, genera o pega una imagen antes de confirmar.");
+                return;
+            }
+            
+            // Generar canvas final y guardarlo
+            const finalCanvas = document.createElement('canvas');
+            finalCanvas.width = 480;
+            finalCanvas.height = 680;
+            // Pasamos 'finalCanvas' a redrawCanvas para que dibuje en él
+            redrawCanvas(finalCanvas.getContext('2d')); 
+            
+            pdfSheets.push(finalCanvas);
+            updatePdfButtonCount();
+            
+            // Avanzar al siguiente
+            advanceJob();
+        });
+        
+        skipButton.addEventListener('click', () => {
+            if (confirm("¿Seguro que quieres saltar este tema?")) {
+                advanceJob();
+            }
+        });
+        
+        discardButton.addEventListener('click', () => {
+             if (confirm("¿Seguro que quieres descartar este pedido? Se saltarán todos los temas restantes para esta persona.")) {
+                currentJobIndex++; // Saltar al siguiente pedido
+                currentThemeIndex = 0;
+                loadCurrentJob();
+            }
+        });
+        
+        function updateControlsVisibility() {
+            if (isImageLoaded) {
+                imageEditGroup.style.display = 'block';
+                confirmButton.disabled = false;
+            } else {
+                imageEditGroup.style.display = 'none';
+                confirmButton.disabled = true;
+            }
+        }
+        
+        function updatePdfButtonCount() {
+            const count = pdfSheets.length;
+            if (count > 0) {
+                exportPdfButton.disabled = false;
+                exportPdfButton.textContent = `Exportar PDF (${count} Hojas)`;
+            } else {
+                exportPdfButton.disabled = true;
+                exportPdfButton.textContent = `Exportar PDF (0 Hojas)`;
+            }
+        }
+
+        // --- Lógica de Dibujado en Canvas ---
+
+        function redrawCanvas(targetCtx = ctx) {
+            targetCtx.fillStyle = 'white';
+            targetCtx.fillRect(0, 0, 480, 680);
+            
+            // 1. Dibujar Imagen del Usuario (si existe)
+            if (isImageLoaded && currentUserImage) {
+                targetCtx.save();
+                
+                // Aplicar filtro si está activo
+                if (useFilter) {
+                    targetCtx.filter = 'contrast(130%) brightness(105%)';
+                }
+                
+                // Dibujar imagen con escala y posición
+                targetCtx.translate(imagePos.x, imagePos.y);
+                targetCtx.scale(imageScale, imageScale);
+                targetCtx.drawImage(currentUserImage, -currentUserImage.width / 2, -currentUserImage.height / 2);
+                
+                targetCtx.restore(); // Quitar filtro y transformación
+            } else {
+                // Dibujar Placeholder
+                targetCtx.fillStyle = '#9ca3af'; // text-gray-400
+                targetCtx.font = '16px Inter';
+                targetCtx.textAlign = 'center';
+                targetCtx.fillText("Usa los botones para añadir una imagen", 240, 300);
+            }
+            
+            // 2. Dibujar Pie de Página (si cargó)
+            let pieHeightOnCanvas = 0;
+            if (pieImage && pieImage.complete) {
+                const pieTargetWidth = 480 * 0.95; // 95% del ancho
+                const pieScale = pieTargetWidth / pieImage.width;
+                const pieTargetHeight = pieImage.height * pieScale;
+                const pieX = (480 - pieTargetWidth) / 2;
+                const pieY = 680 - pieTargetHeight - 10;
+                targetCtx.drawImage(pieImage, pieX, pieY, pieTargetWidth, pieTargetHeight);
+                pieHeightOnCanvas = pieTargetHeight + 10;
+            }
+            
+            // 3. Dibujar Textos (Nombre y Edad)
+            const name = nameInput.value.toUpperCase();
+            const age = ageInput.value ? `${ageInput.value} AÑOS` : "";
+            const fontSize = 36;
+            const fontFamily = '"Cabin Sketch", cursive';
+            
+            targetCtx.font = `bold ${fontSize}px ${fontFamily}`;
+            targetCtx.textAlign = 'center';
+            targetCtx.lineWidth = 4;
+            targetCtx.strokeStyle = 'black';
+            targetCtx.fillStyle = 'white';
+            
+            const nameY = 680 - pieHeightOnCanvas - 60;
+            const ageY = 680 - pieHeightOnCanvas - 25;
+
+            if (name) {
+                targetCtx.strokeText(name, 240, nameY);
+                targetCtx.fillText(name, 240, nameY);
+            }
+            if (age) {
+                targetCtx.strokeText(age, 240, ageY);
+                targetCtx.fillText(age, 240, ageY);
+            }
+        }
+        
+        // --- Lógica de API de Gemini ---
+        async function generateImage(prompt, attempt = 1) {
+            // (Esta función es idéntica a la versión anterior)
+            if (!apiKey) {
+                showApiKeyModal();
+                throw new Error("API Key no está configurada.");
+            }
+            // Usar gemini-2.5-flash-image-preview o imagen-3.0-generate-002
+            // Usaré imagen-3.0-generate-002 ya que es el preferido para generación simple
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
+            const payload = {
+                instances: [{ prompt: prompt }],
+                parameters: { "sampleCount": 1 }
+            };
+
+            console.log(`Generating image for prompt: "${prompt}" (Attempt ${attempt})`);
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                     if (response.status === 429 && attempt < 5) { // Rate limit
+                        const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                        console.warn(`Rate limited (429). Retrying in ${Math.round(delay/1000)}s...`);
+                        await new Promise(resolve => setTimeout(resolve, delay));
+                        return generateImage(prompt, attempt + 1);
+                    }
+                    const errorText = await response.text();
+                    console.error(`API Error (${response.status}): ${errorText}`);
+                    throw new Error(`Error en la API (${response.status}): ${response.statusText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
+                    const base64Data = result.predictions[0].bytesBase64Encoded;
+                    return `data:image/png;base64,${base64Data}`;
+                } else {
+                    console.error("Respuesta inesperada de la API:", result);
+                    throw new Error("Respuesta inesperada de la API, no se encontró la imagen.");
+                }
+            } catch (error) {
+                 if (attempt < 5) { // Network error
+                    const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                    console.warn(`Fetch error: ${error.message}. Retrying in ${Math.round(delay/1000)}s...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return generateImage(prompt, attempt + 1);
+                 } else {
+                    console.error("Error final generando imagen:", error);
+                    throw error;
+                 }
+            }
+        }
+        
+        // --- Exportación de PDF ---
+        exportPdfButton.addEventListener('click', async () => {
+            if (pdfSheets.length === 0) {
+                alert("No hay hojas confirmadas para exportar.");
+                return;
+            }
+
+            exportPdfButton.disabled = true;
+            exportPdfButton.textContent = 'Generando PDF...';
+            const { jsPDF } = window.jspdf;
+            
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'px',
+                format: [480, 680] // Usar dimensiones del canvas
+            });
+
+            try {
+                for (let i = 0; i < pdfSheets.length; i++) {
+                    const canvas = pdfSheets[i];
+                    if (i > 0) {
+                        pdf.addPage([480, 680], 'portrait');
+                    }
+                    const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                    pdf.addImage(imgData, 'JPEG', 0, 0, 480, 680);
+                    await new Promise(resolve => setTimeout(resolve, 10)); // Pausa para UI
+                }
+
+                pdf.save('hojas_para_colorear_lote.pdf');
+                
+            } catch (error) {
+                console.error("Error generando PDF:", error);
+                alert('Error al generar PDF: ' + error.message);
+            } finally {
+                 exportPdfButton.disabled = false;
+                 // Resetear el botón de PDF, pero mantener las hojas en memoria
+                 updatePdfButtonCount(); 
+            }
+        });
+        
+        // --- Listeners de Inputs (para redibujar el canvas) ---
+        nameInput.addEventListener('input', () => redrawCanvas());
+        ageInput.addEventListener('input', () => redrawCanvas());
+
+    </script>
+
+</body>
+</html>
+
