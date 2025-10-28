@@ -5,7 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asistente IA de Hojas para Colorear</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cabin+Sketch:wght@400;700&family=Inter:wght@400;700&display=swap" rel="stylesheet">
+    <!-- CAMBIO: Fuente cambiada a Patrick Hand -->
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <!-- jsPDF library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -13,8 +14,9 @@
             font-family: 'Inter', sans-serif;
             background-color: #f3f4f6; /* bg-gray-100 */
         }
+        /* CAMBIO: Fuente cambiada a Patrick Hand */
         .font-cabin-sketch {
-            font-family: 'Cabin Sketch', cursive;
+            font-family: 'Patrick Hand', cursive;
         }
         
         .main-container {
@@ -31,39 +33,11 @@
             display: none;
         }
 
-        #canvas-container {
-            background-color: white;
-            padding: 1.5rem; /* p-6 */
-            border-radius: 0.5rem; /* rounded-lg */
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            position: relative;
-        }
-
-        #previewCanvas {
-            width: 100%;
-            max-width: 500px; /* Limitar el ancho */
-            height: auto;
-            aspect-ratio: 480 / 680;
-            border: 1px solid #d1d5db; /* border-gray-300 */
-            border-radius: 0.25rem; /* rounded */
-            margin: auto;
-            display: block;
-        }
-        
-        /* Grupo de controles de edición */
-        #imageEditGroup {
-            display: none; /* Oculto por defecto */
-        }
-
+        /* CAMBIO: Fuente cambiada a Patrick Hand */
         @font-face {
-          font-family: 'Cabin Sketch';
-          src: url('https://fonts.gstatic.com/s/cabinsketch/v19/QGYpz_kZZAG_hrFZr_B-p0dc.woff2') format('woff2'); /* Regular */
+          font-family: 'Patrick Hand';
+          src: url('https://fonts.gstatic.com/s/patrickhand/v20/LDI1apSQOAYtSuYWp8ZhfYe8.woff2') format('woff2'); /* Regular */
           font-weight: 400;
-        }
-        @font-face {
-          font-family: 'Cabin Sketch';
-          src: url('https://fonts.gstatic.com/s/cabinsketch/v19/QGYpz_kZZAG_hrFZr_B-p0dx.woff2') format('woff2'); /* Bold */
-          font-weight: 700;
         }
     </style>
 </head>
@@ -441,19 +415,27 @@
             currentUserImage.onload = () => {
                 isImageLoaded = true;
                 // "Acomodar perfectamente" (Calcular best-fit)
-                const canvasAspect = 480 / 680;
-                const availableHeight = 680 - (pieImage ? 120 : 0) - 110; // Espacio aprox
+                // --- CAMBIO: Lógica de espacio de imagen mejorada ---
+                let pieHeightOnCanvas = 0;
+                if (pieImage && pieImage.width > 0) {
+                    const pieTargetWidth = 480 * 0.95; 
+                    const pieScale = pieTargetWidth / pieImage.width;
+                    pieHeightOnCanvas = pieImage.height * pieScale + 10;
+                }
                 
-                const scaleW = 440 / currentUserImage.width; // 440 = 480 - 40px padding
-                const scaleH = availableHeight / currentUserImage.height;
-                const bestScale = Math.min(scaleW, scaleH);
+                // 70px para el área de texto + 20px padding superior
+                const availableHeight = 680 - pieHeightOnCanvas - 70; 
+                
+                const scaleW = 440 / currentUserImage.width; // 440 = 480 - 40px padding lateral
+                const scaleH = availableHeight / currentUserImage.height; 
+                const bestScale = Math.min(scaleW, scaleH, 1.5); // Limitar escala inicial
                 
                 imageScale = bestScale;
                 scaleSlider.value = bestScale * 100;
                 scaleValue.textContent = Math.round(bestScale * 100);
                 
-                // Centrar
-                imagePos = { x: 240, y: (availableHeight / 2) + 20 }; // Centrado en área disponible
+                // Centrar en el área disponible, con 20px de padding superior
+                imagePos = { x: 240, y: 20 + (availableHeight / 2) }; 
                 initialImagePos = { ...imagePos };
 
                 updateControlsVisibility();
@@ -634,8 +616,9 @@
             // 3. Dibujar Textos (Nombre y Edad)
             const name = nameInput.value.toUpperCase();
             const age = ageInput.value ? `${ageInput.value} AÑOS` : "";
-            const fontSize = 36;
-            const fontFamily = '"Cabin Sketch", cursive';
+            // --- CAMBIO: Fuente y tamaño ---
+            const fontSize = 30;
+            const fontFamily = '"Patrick Hand", cursive';
             
             targetCtx.font = `bold ${fontSize}px ${fontFamily}`;
             targetCtx.textAlign = 'center';
@@ -643,8 +626,9 @@
             targetCtx.strokeStyle = 'black';
             targetCtx.fillStyle = 'white';
             
-            const nameY = 680 - pieHeightOnCanvas - 60;
-            const ageY = 680 - pieHeightOnCanvas - 25;
+            // --- CAMBIO: Posiciones de texto más bajas ---
+            const nameY = 680 - pieHeightOnCanvas - 50;
+            const ageY = 680 - pieHeightOnCanvas - 20;
 
             if (name) {
                 targetCtx.strokeText(name, 240, nameY);
@@ -762,4 +746,5 @@
 
 </body>
 </html>
+
 
