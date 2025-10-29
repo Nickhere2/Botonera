@@ -39,6 +39,11 @@
           src: url('https://fonts.gstatic.com/s/patrickhand/v20/LDI1apSQOAYtSuYWp8ZhfYe8.woff2') format('woff2'); /* Regular */
           font-weight: 400;
         }
+
+        /* Estilo para el modo borrador */
+        .erase-mode {
+            cursor: crosshair !important;
+        }
     </style>
 </head>
 <body class="p-4 lg:p-8">
@@ -105,14 +110,14 @@
                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Generar (IA)
+                        <span>Generar (IA)</span>
                     </button>
                     <button id="searchButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
                     <button id="pasteButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Pegar Imagen</button>
                 </div>
 
                 <!-- Edición de Imagen (Oculto al inicio) -->
-                <div id="imageEditGroup" class="border-t pt-4 flex flex-col gap-3">
+                <div id="imageEditGroup" class="border-t pt-4 flex flex-col gap-4"> <!-- CAMBIO: gap-4 -->
                     <h3 class="text-md font-bold text-gray-800">2. Ajustar Imagen</h3>
                     <div>
                         <label for="scaleSlider" class="block text-sm font-medium text-gray-700 mb-1">Escala: <span id="scaleValue">100</span>%</label>
@@ -122,6 +127,19 @@
                         <input type="checkbox" id="filterToggle" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
                         <label for="filterToggle" class="ml-2 block text-sm text-gray-900">Aplicar Filtro "Falsos Blancos"</label>
                     </div>
+
+                    <!-- NUEVO: Herramienta de Borrador -->
+                    <div class="border-t pt-4 flex flex-col gap-3">
+                        <button id="eraseButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
+                            Activar Borrador (Sellos de Agua)
+                        </button>
+                         <div>
+                            <label for="brushSizeSlider" class="block text-sm font-medium text-gray-700 mb-1">Tamaño Borrador: <span id="brushSizeValue">20</span>px</label>
+                            <input type="range" id="brushSizeSlider" min="2" max="100" value="20" class="w-full">
+                        </div>
+                    </div>
+                    <!-- FIN NUEVO -->
+
                 </div>
                 
                 <!-- Acciones del Lote -->
@@ -140,7 +158,7 @@
 
             <!-- Panel del Canvas (Derecho) -->
             <div id="canvasPanel">
-                <canvas id="previewCanvas" width="480" height="680"></canvas>
+                <canvas id="previewCanvas" width="480" height="680" class="bg-white shadow-md"></canvas> <!-- CAMBIO: añadido bg-white shadow-md -->
                 <button id="exportPdfButton" class="w-full mt-4 bg-red-600 text-white py-3 px-5 rounded-lg font-bold hover:bg-red-700 transition duration-300 disabled:opacity-50" disabled>
                      Exportar PDF (0 Hojas)
                  </button>
@@ -159,6 +177,10 @@
         
         let pieImage = null; // Para la imagen pie.png
         let currentUserImage = null; // La imagen del personaje
+        // NUEVO: Canvas de edición para el borrador
+        let editCanvas = document.createElement('canvas');
+        let editCtx = editCanvas.getContext('2d', { willReadFrequently: true });
+
         let imageScale = 1.0;
         let imagePos = { x: 240, y: 340 }; // Centro por defecto
         let useFilter = false;
@@ -166,6 +188,11 @@
         let isDragging = false;
         let dragStart = { x: 0, y: 0 };
         let initialImagePos = { x: 240, y: 340 };
+
+        // NUEVO: Variables de Borrador
+        let isEraseMode = false;
+        let isPainting = false;
+        let brushSize = 20;
 
         // --- Selectores de Elementos del DOM ---
         const apiKeyModal = document.getElementById('apiKeyModal');
@@ -193,6 +220,11 @@
         const scaleValue = document.getElementById('scaleValue');
         const filterToggle = document.getElementById('filterToggle');
         
+        // NUEVO: Selectores de Borrador
+        const eraseButton = document.getElementById('eraseButton');
+        const brushSizeSlider = document.getElementById('brushSizeSlider');
+        const brushSizeValue = document.getElementById('brushSizeValue');
+
         const confirmButton = document.getElementById('confirmButton');
         const skipButton = document.getElementById('skipButton');
         const discardButton = document.getElementById('discardButton');
@@ -219,7 +251,7 @@
                 localStorage.setItem('geminiApiKey', key); // CAMBIO: de sessionStorage a localStorage
                 hideApiKeyModal();
                 loadPieImage(); // Cargar pie.png después de guardar la key
-                console.log("API Key guardada para la sesión.");
+                console.log("API Key guardada.");
             } else {
                 alert('Por favor, ingresa una clave API válida.');
             }
@@ -263,6 +295,7 @@
                 
                 if (jobQueue.length > 0) {
                     pdfSheets = []; // Limpiar PDF anterior
+                    updatePdfButtonCount(); // Resetear contador
                     currentJobIndex = 0;
                     currentThemeIndex = 0;
                     initialView.style.display = 'none';
@@ -338,6 +371,8 @@
             initialImagePos = { x: 240, y: 340 };
             filterToggle.checked = false;
             useFilter = false;
+            // NUEVO: Resetear borrador
+            if (isEraseMode) toggleEraseMode(); // Apagar si estaba prendido
             
             updateControlsVisibility();
             redrawCanvas();
@@ -416,8 +451,14 @@
             currentUserImage.crossOrigin = "anonymous"; // Para evitar 'tainted canvas' si se pega de URL
             currentUserImage.onload = () => {
                 isImageLoaded = true;
+                
+                // NUEVO: Cargar imagen en el canvas de edición (borrador)
+                editCanvas.width = currentUserImage.width;
+                editCanvas.height = currentUserImage.height;
+                editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); // Limpiar
+                editCtx.drawImage(currentUserImage, 0, 0); // Cargar
+                
                 // "Acomodar perfectamente" (Calcular best-fit)
-                // --- CAMBIO: Lógica de espacio de imagen mejorada ---
                 let pieHeightOnCanvas = 0;
                 if (pieImage && pieImage.width > 0) {
                     const pieTargetWidth = 480 * 0.95; 
@@ -425,8 +466,8 @@
                     pieHeightOnCanvas = pieImage.height * pieScale + 10;
                 }
                 
-                // --- CAMBIO: Reducido el espacio reservado para texto a 60px ---
-                const availableHeight = 680 - pieHeightOnCanvas - 60; 
+                // --- CAMBIO: Reducido el espacio reservado para texto a 40px (1 línea) ---
+                const availableHeight = 680 - pieHeightOnCanvas - 40; 
                 
                 const scaleW = 440 / currentUserImage.width; // 440 = 480 - 40px padding lateral
                 const scaleH = availableHeight / currentUserImage.height; 
@@ -451,14 +492,15 @@
         }
         
         function setLoading(isLoading) {
+             const span = generateButton.querySelector('span');
              if(isLoading) {
                  generateButton.disabled = true;
                  generateSpinner.classList.remove('hidden');
-                 generateButton.querySelector('span').textContent = "Generando...";
+                 if (span) span.textContent = "Generando...";
              } else {
                  generateButton.disabled = false;
                  generateSpinner.classList.add('hidden');
-                 generateButton.querySelector('span').textContent = "Generar (IA)";
+                 if (span) span.textContent = "Generar (IA)";
              }
         }
 
@@ -475,17 +517,69 @@
             redrawCanvas();
         });
 
-        // --- Handlers de Arrastrar Imagen (Drag) ---
-        previewCanvas.addEventListener('mousedown', (e) => {
-            if (!isImageLoaded) return;
+        // --- NUEVO: Handlers de Borrador ---
+        brushSizeSlider.addEventListener('input', (e) => {
+            brushSize = parseInt(e.target.value);
+            brushSizeValue.textContent = `${brushSize}px`;
+        });
+        
+        eraseButton.addEventListener('click', toggleEraseMode);
+
+        function toggleEraseMode() {
+            isEraseMode = !isEraseMode;
+            if (isEraseMode) {
+                eraseButton.textContent = 'Desactivar Borrador';
+                eraseButton.classList.add('bg-red-500', 'text-white');
+                eraseButton.classList.remove('bg-yellow-500', 'text-black');
+                previewCanvas.classList.add('erase-mode');
+            } else {
+                eraseButton.textContent = 'Activar Borrador (Sellos de Agua)';
+                eraseButton.classList.remove('bg-red-500', 'text-white');
+                eraseButton.classList.add('bg-yellow-500', 'text-black');
+                previewCanvas.classList.remove('erase-mode');
+                isPainting = false;
+            }
+        }
+
+        function paintOnCanvas(canvasX, canvasY) {
+            // Dibuja en el canvas de *edición* (el que no se ve)
+            editCtx.fillStyle = 'white';
+            editCtx.beginPath();
+            editCtx.arc(canvasX, canvasY, brushSize, 0, Math.PI * 2);
+            editCtx.fill();
+            // Refresca el canvas *visible*
+            redrawCanvas();
+        }
+
+        function getCanvasCoordinates(e) {
             const rect = previewCanvas.getBoundingClientRect();
             const x = (e.clientX - rect.left) * (480 / rect.width);
             const y = (e.clientY - rect.top) * (680 / rect.height);
+            return {x, y};
+        }
+        // --- FIN NUEVO ---
+
+        // --- Handlers de Arrastrar Imagen (Drag) ---
+        previewCanvas.addEventListener('mousedown', (e) => {
+            if (!isImageLoaded) return;
+            
+            // NUEVO: Lógica de Borrador
+            if (isEraseMode) {
+                isPainting = true;
+                const {x, y} = getCanvasCoordinates(e);
+                // Convertir coords del canvas visible a coords del canvas de edición
+                const imgX = (x - imagePos.x) / imageScale + editCanvas.width / 2;
+                const imgY = (y - imagePos.y) / imageScale + editCanvas.height / 2;
+                paintOnCanvas(imgX, imgY);
+                return;
+            }
+
+            const {x, y} = getCanvasCoordinates(e);
 
             // Revisar si el clic está dentro de la imagen (aproximado)
             if (currentUserImage) {
-                const imgW = currentUserImage.width * imageScale;
-                const imgH = currentUserImage.height * imageScale;
+                const imgW = editCanvas.width * imageScale;
+                const imgH = editCanvas.height * imageScale;
                 if (x > imagePos.x - imgW/2 && x < imagePos.x + imgW/2 &&
                     y > imagePos.y - imgH/2 && y < imagePos.y + imgH/2) {
                     isDragging = true;
@@ -497,10 +591,17 @@
         });
         
         previewCanvas.addEventListener('mousemove', (e) => {
+            // NUEVO: Lógica de Borrador
+            if (isEraseMode && isPainting) {
+                const {x, y} = getCanvasCoordinates(e);
+                const imgX = (x - imagePos.x) / imageScale + editCanvas.width / 2;
+                const imgY = (y - imagePos.y) / imageScale + editCanvas.height / 2;
+                paintOnCanvas(imgX, imgY);
+                return;
+            }
+
             if (!isDragging) return;
-            const rect = previewCanvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) * (480 / rect.width);
-            const y = (e.clientY - rect.top) * (680 / rect.height);
+            const {x, y} = getCanvasCoordinates(e);
             imagePos.x = x - dragStart.x;
             imagePos.y = y - dragStart.y;
             redrawCanvas();
@@ -508,11 +609,13 @@
         
         previewCanvas.addEventListener('mouseup', () => {
             isDragging = false;
-            previewCanvas.style.cursor = 'default';
+            isPainting = false; // NUEVO
+            previewCanvas.style.cursor = isEraseMode ? 'crosshair' : 'default'; // CAMBIO
         });
         
         previewCanvas.addEventListener('mouseleave', () => {
             isDragging = false;
+            isPainting = false; // NUEVO
             previewCanvas.style.cursor = 'default';
         });
 
@@ -592,7 +695,8 @@
                 // Dibujar imagen con escala y posición
                 targetCtx.translate(imagePos.x, imagePos.y);
                 targetCtx.scale(imageScale, imageScale);
-                targetCtx.drawImage(currentUserImage, -currentUserImage.width / 2, -currentUserImage.height / 2);
+                // --- CAMBIO: Dibujar desde el canvas de edición (borrador) ---
+                targetCtx.drawImage(editCanvas, -editCanvas.width / 2, -editCanvas.height / 2);
                 
                 targetCtx.restore(); // Quitar filtro y transformación
             } else {
@@ -617,8 +721,10 @@
             
             // 3. Dibujar Textos (Nombre y Edad)
             const name = nameInput.value.toUpperCase();
-            const age = ageInput.value ? `${ageInput.value} AÑOS` : "";
-            // --- CAMBIO: Fuente y tamaño reducidos ---
+            const ageText = ageInput.value ? `${ageInput.value} AÑOS` : "";
+            // --- CAMBIO: Lógica para un solo renglón ---
+            const fullText = ageText ? `${name} - ${ageText}` : name;
+            
             const fontSize = 28;
             const fontFamily = '"Patrick Hand", cursive';
             
@@ -628,17 +734,12 @@
             targetCtx.strokeStyle = 'black';
             targetCtx.fillStyle = 'white';
             
-            // --- CAMBIO: Posiciones de texto más bajas y juntas ---
-            const nameY = 680 - pieHeightOnCanvas - 40;
-            const ageY = 680 - pieHeightOnCanvas - 15;
+            // --- CAMBIO: Posición Y única, más baja ---
+            const textY = 680 - pieHeightOnCanvas - 20;
 
-            if (name) {
-                targetCtx.strokeText(name, 240, nameY);
-                targetCtx.fillText(name, 240, nameY);
-            }
-            if (age) {
-                targetCtx.strokeText(age, 240, ageY);
-                targetCtx.fillText(age, 240, ageY);
+            if (fullText) {
+                targetCtx.strokeText(fullText, 240, textY);
+                targetCtx.fillText(fullText, 240, textY);
             }
         }
         
@@ -748,6 +849,4 @@
 
 </body>
 </html>
-
-
 
