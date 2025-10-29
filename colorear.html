@@ -17,15 +17,14 @@
             font-family: 'Patrick Hand', cursive;
         }
 
-        /* --- CAMBIO: Añadida cuarta columna 'auto' para Herramientas --- */
         .main-container {
             display: grid;
             /* Izquierda | Canvas | Herramientas | Exportar */
             grid-template-columns: 350px auto 250px 200px;
             gap: 1.5rem;
-            max-width: 1600px; /* Aumentado para más espacio */
+            max-width: 1600px;
             margin: auto;
-            padding: 1rem; /* Reducido padding general */
+            padding: 1rem;
             align-items: start;
         }
 
@@ -314,16 +313,11 @@
                              <div id="recentImagesContainer"></div>
                          </div>
                     </div>
-                    <!-- Pestaña 3: Edición -->
+                    <!-- Pestaña 3: Edición (Simplificada) -->
                     <div id="tabContentEdicion" class="tab-content flex flex-col gap-4 h-full">
                         <div id="imageEditGroup" class="flex flex-col gap-4">
                               <h3 class="text-md font-bold text-gray-800">Ajustar Imagen</h3>
-                              <button id="undoButton" class="w-full bg-gray-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-600 transition duration-300 disabled:opacity-50" disabled>
-                                 ↩️ Deshacer
-                              </button>
-                              <button id="saveToStockButton" class="w-full bg-teal-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-teal-600 transition duration-300 disabled:opacity-50" disabled>
-                                 💾 Guardar en Stock Local
-                              </button>
+                              <!-- Botones Deshacer y Stock movidos a Herramientas -->
                               <div class="border-t pt-4">
                                  <label for="scaleSlider" class="block text-sm font-medium text-gray-700 mb-1">Escala: <span id="scaleValue">100</span>%</label>
                                  <input type="range" id="scaleSlider" min="10" max="300" value="100" class="w-full">
@@ -348,6 +342,16 @@
             <!-- Panel de Herramientas (Derecha 1) -->
             <div id="toolsPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
                  <h3 class="text-md font-bold text-gray-800 border-b pb-2">Herramientas</h3>
+                 
+                 <!-- NUEVO: Botones movidos aquí -->
+                 <button id="undoButton" class="w-full bg-gray-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-600 transition duration-300 disabled:opacity-50" disabled>
+                    ↩️ Deshacer
+                 </button>
+                 <button id="saveToStockButton" class="w-full bg-teal-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-teal-600 transition duration-300 disabled:opacity-50" disabled>
+                    💾 Guardar en Stock Local
+                 </button>
+
+                 <!-- Herramienta de Borrador -->
                  <div class="border-t pt-4 flex flex-col gap-3">
                     <button id="eraseButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
                         Activar Borrador
@@ -357,6 +361,8 @@
                         <input type="range" id="brushSizeSlider" min="2" max="100" value="20" class="w-full">
                     </div>
                  </div>
+
+                 <!-- Herramienta de Recortar -->
                  <div class="border-t pt-4 flex flex-col gap-3">
                     <button id="cropButton" class="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-600 transition duration-300">
                         Activar Modo Recortar
@@ -444,7 +450,43 @@
         function handleDeleteJobRow(e) { const rowElement = e.currentTarget.closest('.job-queue-row'); if (rowElement) { rowElement.remove(); } }
         addJobRowButton.addEventListener('click', () => { const nextIndex = jobQueueList.children.length; addRowToJobQueueList(null, nextIndex); });
         cancelJobQueueButton.addEventListener('click', () => { hideJobQueueModal(); });
-        confirmJobQueueButton.addEventListener('click', () => { const updatedQueue = []; const rows = jobQueueList.querySelectorAll('.job-queue-row'); rows.forEach(row => { const name = row.querySelector('.job-input-name').value; const age = row.querySelector('.job-input-age').value; const theme = row.querySelector('.job-input-theme').value; const quantity = parseInt(row.querySelector('.job-input-quantity').value) || 1; updatedQueue.push({ name: name, age: age, theme: theme, quantity: quantity, done: false }); }); jobQueue = updatedQueue; if (jobQueue.length === 0) { alert("No hay trabajos."); hideJobQueueModal(); return; } pdfSheets = []; imagesForZip = []; recentImages = []; updateRecentImagesUI(); updateExportButtonsCount(); currentJobIndex = 0; initialView.style.display = 'none'; mainAppView.style.display = 'grid'; hideJobQueueModal(); loadCurrentJob(); switchToTab('tabContentLote'); });
+        confirmJobQueueButton.addEventListener('click', () => {
+            const finalJobQueue = []; // Cola final que incluye repeticiones por cantidad
+            const rows = jobQueueList.querySelectorAll('.job-queue-row');
+            rows.forEach(row => {
+                const name = row.querySelector('.job-input-name').value;
+                const age = row.querySelector('.job-input-age').value;
+                const theme = row.querySelector('.job-input-theme').value;
+                const quantity = parseInt(row.querySelector('.job-input-quantity').value) || 1;
+
+                // --- CAMBIO: Crear múltiples jobs si quantity > 1 ---
+                for (let i = 0; i < quantity; i++) {
+                    finalJobQueue.push({
+                        name: name,
+                        age: age,
+                        theme: theme,
+                        // Guardar un identificador único para el ZIP (opcional pero bueno)
+                        originalIndex: rows.length > 1 ? `${Array.from(rows).indexOf(row) + 1}-${i + 1}` : `${i+1}`,
+                        done: false
+                    });
+                }
+            });
+
+            jobQueue = finalJobQueue; // Usar la cola expandida
+
+            if (jobQueue.length === 0) {
+                alert("No hay trabajos en la cola. Añade un pedido.");
+                hideJobQueueModal(); return;
+            }
+            pdfSheets = []; imagesForZip = []; recentImages = [];
+            updateRecentImagesUI(); updateExportButtonsCount();
+            currentJobIndex = 0;
+            initialView.style.display = 'none';
+            mainAppView.style.display = 'grid';
+            hideJobQueueModal();
+            loadCurrentJob();
+            switchToTab('tabContentLote');
+        });
         function escapeHTML(str) { return str ? String(str).replace(/"/g, '&quot;') : ''; }
         function parseRequests(text) { const lines = text.split('\n').filter(line => line.trim() !== ''); const requests = []; const regex = /•?\s*(.+?)\s*(\d+)\s*a(?:ñ|n)os?\s*\((.+?)\)/i; lines.forEach(line => { const match = line.match(regex); if (match) { const [, name, age, themesRaw] = match; if (themesRaw.toLowerCase().includes('ya te confirmo')) return; const themes = themesRaw.split(/\s+y\s+|\s*,\s*|\s*&\s*/i).map(t => t.trim()).filter(t => t); if (themes.length > 0) { themes.forEach(theme => { requests.push({ name: name.trim(), age: age.trim(), theme: theme, quantity: 1, done: false }); }); } } }); return requests; }
         function loadCurrentJob() { if (currentJobIndex < 0 || currentJobIndex >= jobQueue.length) { alert("¡Lote completado!"); resetApp(); return; } const job = jobQueue[currentJobIndex]; jobStatusLabel.textContent = `Procesando Hoja ${currentJobIndex + 1} de ${jobQueue.length}`; jobStatusName.textContent = `${job.name} (${job.age} años)`; themeStatusLabel.textContent = `Tema: ${job.theme}`; nameInput.value = job.name; ageInput.value = job.age; generateButton.dataset.theme = job.theme; searchButton.dataset.theme = job.theme; resetImageState(); redrawCanvas(); }
@@ -456,7 +498,6 @@
         generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); switchToTab('tabContentEdicion'); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
         searchButton.addEventListener('click', (e) => { const theme = e.currentTarget.dataset.theme; const query = `${theme} para colorear`; const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`; window.open(url, '_blank'); switchToTab('tabContentImagen'); });
         pasteButton.addEventListener('click', async () => { try { const items = await navigator.clipboard.read(); for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); switchToTab('tabContentEdicion'); return; } } alert("No hay imagen."); } catch (err) { console.error("Error paste:", err); alert("No se pudo pegar."); } });
-        // --- CORRECCIÓN: Falta punto y coma después de alert ---
         function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; }; currentUserImage.src = imageUrl; }
         function setLoading(isLoading) { const span = generateButton.querySelector('span'); generateButton.disabled = isLoading; generateSpinner.classList.toggle('hidden', !isLoading); if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; }
 
@@ -488,7 +529,7 @@
         previewCanvas.addEventListener('mouseleave', () => { isDragging=false; isPainting=false; if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); redrawCanvas(); } } previewCanvas.style.cursor='default'; });
 
         // --- Handlers de Acciones de Lote ---
-        confirmButton.addEventListener('click', () => { if (!isImageLoaded) { alert("Carga una imagen."); return; } const fCan=document.createElement('canvas'); fCan.width=480; fCan.height=680; redrawCanvas(fCan.getContext('2d')); pdfSheets.push(fCan); const job=jobQueue[currentJobIndex]; const theme=job.theme; const sTh=theme.replace(/[^a-z0-9_.-]/gi,'_'); const sN=job.name.replace(/[^a-z0-9_.-]/gi,'_'); const fn=`${sN}_-_${sTh}_${currentJobIndex+1}.png`; const iDU=editCanvas.toDataURL('image/png'); imagesForZip.push({name:fn,dataUrl:iDU}); const tDU=editCanvas.toDataURL('image/png',0.5); recentImages.unshift({theme:theme,dataUrl:tDU}); if (recentImages.length>5) recentImages.pop(); updateRecentImagesUI(); updateExportButtonsCount(); showToast(`✔️ Hoja de ${job.name} (${theme}) añadida!`); advanceJob(); });
+        confirmButton.addEventListener('click', () => { if (!isImageLoaded) { alert("Carga una imagen."); return; } const fCan=document.createElement('canvas'); fCan.width=480; fCan.height=680; redrawCanvas(fCan.getContext('2d')); pdfSheets.push(fCan); const job=jobQueue[currentJobIndex]; const theme=job.theme; const sTh=theme.replace(/[^a-z0-9_.-]/gi,'_'); const sN=job.name.replace(/[^a-z0-9_.-]/gi,'_'); const fn=`${sN}_-_${sTh}_${job.originalIndex || currentJobIndex + 1}.png`; const iDU=editCanvas.toDataURL('image/png'); imagesForZip.push({name:fn,dataUrl:iDU}); const tDU=editCanvas.toDataURL('image/png',0.5); recentImages.unshift({theme:theme,dataUrl:tDU}); if (recentImages.length>5) recentImages.pop(); updateRecentImagesUI(); updateExportButtonsCount(); showToast(`✔️ Hoja de ${job.name} (${theme}) añadida!`); advanceJob(); });
         skipButton.addEventListener('click', () => { if(confirm("¿Saltar hoja?")) advanceJob(); });
         discardButton.addEventListener('click', () => { if(confirm("¿Terminar lote?")) resetApp(); });
         function updateControlsVisibility() {
