@@ -142,9 +142,6 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); /* Más pequeño */
             gap: 0.5rem;
-            /* border-top: 1px solid #e5e7eb; */ /* Quitar borde superior */
-            /* padding-top: 1rem; */ /* Quitar padding superior */
-            /* margin-top: 1rem; */ /* Quitar margen superior */
         }
         .recent-image {
             width: 60px; /* Más pequeño */
@@ -181,6 +178,7 @@
              -ms-user-select: none; /* IE10+ */
              width: 480px;
              height: 680px;
+             touch-action: none; /* Evitar scroll/zoom en móvil al tocar */
         }
 
 
@@ -370,7 +368,7 @@
                     </button>
                  </div>
 
-                 <!-- NUEVO: Imágenes Recientes movido aquí -->
+                 <!-- Imágenes Recientes movido aquí -->
                  <div id="recentImagesSection" class="border-t pt-4 hidden">
                      <h3 class="text-md font-bold text-gray-800 mb-2">Imágenes Recientes</h3>
                      <div id="recentImagesContainer">
@@ -416,9 +414,8 @@
         const jobQueueModal = document.getElementById('jobQueueModal'); const jobQueueList = document.getElementById('jobQueueList'); const confirmJobQueueButton = document.getElementById('confirmJobQueueButton'); const cancelJobQueueButton = document.getElementById('cancelJobQueueButton'); const originalClipboardText = document.getElementById('originalClipboardText'); const addJobRowButton = document.getElementById('addJobRowButton');
         const initialView = document.getElementById('initialView'); const ingresarPedidoButton = document.getElementById('ingresarPedidoButton'); const mainAppView = document.getElementById('mainAppView');
         const tabButtonLote = document.getElementById('tabButtonLote'); const tabButtonImagen = document.getElementById('tabButtonImagen');
-        // --- CAMBIO: Eliminado tabButtonEdicion y su contenido ---
         const tabContentLote = document.getElementById('tabContentLote'); const tabContentImagen = document.getElementById('tabContentImagen');
-        const tabs = [ { btn: tabButtonLote, content: tabContentLote }, { btn: tabButtonImagen, content: tabContentImagen } ];
+        const tabs = [ { btn: tabButtonLote, content: tabContentLote }, { btn: tabButtonImagen, content: tabContentImagen } ]; // Solo 2 pestañas
         const jobStatusLabel = document.getElementById('jobStatusLabel'); const jobStatusName = document.getElementById('jobStatusName'); const themeStatusLabel = document.getElementById('themeStatusLabel');
         const nameInput = document.getElementById('nameInput'); const ageInput = document.getElementById('ageInput');
         const generateButton = document.getElementById('generateButton'); const generateSpinner = document.getElementById('generateSpinner'); const searchButton = document.getElementById('searchButton'); const pasteButton = document.getElementById('pasteButton');
@@ -507,7 +504,6 @@
              } else {
                  jobStatusLabel.textContent = `Lote Completado (${pdfSheets.length} hojas)`; jobStatusName.textContent = "Listo para Exportar"; themeStatusLabel.textContent = "";
                  resetImageState(); redrawCanvas(); switchToTab('tabContentLote');
-                 // --- CAMBIO: Deshabilitar botones de control del lote ---
                  confirmButton.disabled = true;
                  skipButton.disabled = true;
                  discardButton.disabled = true;
@@ -543,7 +539,22 @@
         eraseButton.addEventListener('click', () => toggleEraseMode(false));
         function toggleEraseMode(forceOff = false) { if (forceOff) isEraseMode = true; isEraseMode = !isEraseMode; if (isEraseMode) { if (isCropMode) toggleCropMode(true); eraseButton.textContent = 'Desactivar Borrador'; eraseButton.classList.add('bg-red-500', 'text-white'); eraseButton.classList.remove('bg-yellow-500', 'text-black'); previewCanvas.classList.add('erase-mode'); } else { eraseButton.textContent = 'Activar Borrador'; eraseButton.classList.remove('bg-red-500', 'text-white'); eraseButton.classList.add('bg-yellow-500', 'text-black'); previewCanvas.classList.remove('erase-mode'); isPainting = false; } }
         function paintOnCanvas(cX, cY) { editCtx.fillStyle = 'white'; editCtx.beginPath(); editCtx.arc(cX, cY, brushSize / imageScale, 0, Math.PI * 2); editCtx.fill(); redrawCanvas(); }
-        function getCanvasCoordinates(e) { const r = previewCanvas.getBoundingClientRect(); const x = (e.clientX - r.left)*(previewCanvas.width/r.width); const y = (e.clientY - r.top)*(previewCanvas.height/r.height); return {x,y}; }
+
+        // --- CAMBIO: Función getCanvasCoordinates corregida ---
+        function getCanvasCoordinates(e) {
+            const rect = previewCanvas.getBoundingClientRect();
+            // Calcular la escala real del canvas en pantalla
+            const scaleX = previewCanvas.width / rect.width;
+            const scaleY = previewCanvas.height / rect.height;
+            // Coordenadas relativas al elemento canvas en la PÁGINA
+            const canvasX = (e.clientX - rect.left);
+            const canvasY = (e.clientY - rect.top);
+            // Coordenadas relativas a la resolución INTERNA del canvas (480x680)
+            const x = canvasX * scaleX;
+            const y = canvasY * scaleY;
+            return {x, y};
+        }
+
         cropButton.addEventListener('click', () => toggleCropMode(false));
         applyCropButton.addEventListener('click', () => { if (!visualCropRect) return; saveStateForUndo(); const nR={x1:Math.min(visualCropRect.startX,visualCropRect.endX),y1:Math.min(visualCropRect.startY,visualCropRect.endY),x2:Math.max(visualCropRect.startX,visualCropRect.endX),y2:Math.max(visualCropRect.startY,visualCropRect.endY)}; const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale; const iX1=imagePos.x-iW/2; const iY1=imagePos.y-iH/2; const cX1=Math.max(nR.x1,iX1); const cY1=Math.max(nR.y1,iY1); const cX2=Math.min(nR.x2,iX1+iW); const cY2=Math.min(nR.y2,iY1+iH); if(cX2<=cX1||cY2<=cY1){toggleCropMode(true);return;} const sX=(cX1-iX1)/imageScale; const sY=(cY1-iY1)/imageScale; const sW=(cX2-cX1)/imageScale; const sH=(cY2-cY1)/imageScale; const tCan=document.createElement('canvas'); tCan.width=sW; tCan.height=sH; tCan.getContext('2d').drawImage(editCanvas,sX,sY,sW,sH,0,0,sW,sH); editCanvas.width=sW; editCanvas.height=sH; editCtx.drawImage(tCan,0,0); toggleCropMode(true); loadImageOntoCanvas(editCanvas.toDataURL()); });
         function toggleCropMode(forceOff = false) { if (forceOff) isCropMode = true; isCropMode = !isCropMode; if (isCropMode) { if (isEraseMode) toggleEraseMode(true); cropButton.textContent = 'Cancelar Recorte'; cropButton.classList.add('bg-red-500', 'text-white'); cropButton.classList.remove('bg-indigo-500'); previewCanvas.classList.add('crop-mode'); } else { cropButton.textContent = 'Activar Modo Recortar'; cropButton.classList.remove('bg-red-500', 'text-white'); cropButton.classList.add('bg-indigo-500'); previewCanvas.classList.remove('crop-mode'); isCropping = false; visualCropRect = null; applyCropButton.classList.add('hidden'); redrawCanvas(); } }
@@ -553,9 +564,9 @@
         previewCanvas.addEventListener('mousedown', (e) => {
             e.preventDefault();
             if (!isImageLoaded) return;
-            const {x, y} = getCanvasCoordinates(e);
+            const {x, y} = getCanvasCoordinates(e); // Usar la función corregida
             if (isEraseMode) {
-                 if(!isPainting) saveStateForUndo(); // Guardar solo al inicio del trazo
+                 if(!isPainting) saveStateForUndo();
                  isPainting = true;
                  const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
                  const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
@@ -568,7 +579,7 @@
         });
         previewCanvas.addEventListener('mousemove', (e) => {
             e.preventDefault();
-            const {x,y}=getCanvasCoordinates(e);
+            const {x,y}=getCanvasCoordinates(e); // Usar la función corregida
             if (isEraseMode&&isPainting) {
                 const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
                 const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
@@ -581,26 +592,25 @@
         previewCanvas.addEventListener('mouseup', (e) => {
             e.preventDefault();
             if (isEraseMode&&isPainting) isPainting=false;
-            if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); redrawCanvas(); } }
+            if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); visualCropRect=null; redrawCanvas(); } } // --- CAMBIO: Limpiar rect si es muy pequeño ---
             isDragging=false; let c='default'; if (isEraseMode) c='crosshair'; if (isCropMode) c='crosshair'; previewCanvas.style.cursor=c;
         });
         previewCanvas.addEventListener('mouseleave', (e) => {
-            e.preventDefault();
-            if (isDragging) { isDragging=false; previewCanvas.style.cursor='default'; }
-            if (isPainting) { isPainting = false; }
-            if (isCropMode&&isCropping) {
+             e.preventDefault();
+             // --- CAMBIO: Simplificado, solo soltar si estaba activo ---
+             if (isDragging) { isDragging=false; previewCanvas.style.cursor='default'; }
+             if (isPainting) { isPainting = false; }
+             if (isCropping) {
                  isCropping=false;
+                 // Mostrar botón aplicar si el rect es válido al salir
                  if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) {
-                     applyCropButton.classList.remove('hidden');
-                     const {x, y} = getCanvasCoordinates(e);
-                     visualCropRect.endX = Math.max(0, Math.min(previewCanvas.width, x));
-                     visualCropRect.endY = Math.max(0, Math.min(previewCanvas.height, y));
-                     redrawCanvas();
+                    applyCropButton.classList.remove('hidden');
                  } else {
+                     visualCropRect = null; // Invalidar rect
                      applyCropButton.classList.add('hidden');
-                     redrawCanvas();
+                     redrawCanvas(); // Limpiar visualmente
                  }
-            }
+             }
         });
 
         // --- Handlers de Acciones de Lote ---
@@ -609,7 +619,7 @@
         discardButton.addEventListener('click', () => { if(confirm("¿Terminar lote?")) resetApp(); });
         function updateControlsVisibility() {
              const showTools = isImageLoaded;
-             noImageEditMessage.style.display = 'none'; // Ya no se usa
+             noImageEditMessage.style.display = 'none';
              noImageToolsMessage.style.display = showTools ? 'none' : 'block';
              confirmButton.disabled = !showTools;
              undoButton.disabled = undoStack.length <= 1;
@@ -619,6 +629,7 @@
              eraseButton.disabled = !showTools;
              brushSizeSlider.disabled = !showTools;
              cropButton.disabled = !showTools;
+             // Apply crop se maneja en mouseup/mouseleave
         }
         function updateExportButtonsCount() { const c=pdfSheets.length; if(c>0){exportPdfButton.disabled=false;exportPdfButton.textContent=`Exportar PDF (${c} Hojas)`;}else{exportPdfButton.disabled=true;exportPdfButton.textContent=`Exportar PDF (0 Hojas)`;} if(c>0){exportZipButton.disabled=false;exportZipButton.textContent=`Exportar Imágenes (${c}.zip)`;}else{exportZipButton.disabled=true;exportZipButton.textContent=`Exportar Imágenes (.zip)`;} }
         let toastTimer=null; function showToast(m){if(toastTimer)clearTimeout(toastTimer);toastNotification.textContent=m;toastNotification.classList.add('show');toastTimer=setTimeout(()=>{toastNotification.classList.remove('show');},3000);}
