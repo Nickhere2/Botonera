@@ -23,9 +23,9 @@
             /* Izquierda | Canvas | Herramientas+Edición | Exportar */
             grid-template-columns: 350px auto 250px 200px;
             gap: 1.5rem;
-            max-width: 1600px;
+            max-width: 1600px; /* Aumentado para más espacio */
             margin: auto;
-            padding: 1rem;
+            padding: 1rem; /* Reducido padding general */
             align-items: start;
         }
 
@@ -264,7 +264,6 @@
             <div id="controlsPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col">
                 <!-- Contenedor de Pestañas -->
                 <div class="flex border-b mb-4">
-                    <!-- CAMBIO: Eliminada pestaña Edición, ahora solo 2 pestañas -->
                     <button id="tabButtonLote" class="tab-button flex-1 py-2 px-4 text-sm font-medium text-center text-gray-600 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 active">Lote</button>
                     <button id="tabButtonImagen" class="tab-button flex-1 py-2 px-4 text-sm font-medium text-center text-gray-600 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500">Imagen</button>
                 </div>
@@ -318,7 +317,7 @@
                              <div id="recentImagesContainer"></div>
                          </div>
                     </div>
-                     <!-- CAMBIO: Contenido de Edición movido al panel de Herramientas -->
+                     <!-- Contenido de Edición movido al panel de Herramientas -->
                 </div>
             </div>
 
@@ -331,7 +330,6 @@
             <div id="toolsPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
                  <h3 class="text-md font-bold text-gray-800 border-b pb-2">Herramientas y Edición</h3>
 
-                 <!-- CAMBIO: Controles de Edición movidos aquí -->
                  <div id="imageEditGroup" class="flex flex-col gap-4">
                      <button id="undoButton" class="w-full bg-gray-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-600 transition duration-300 disabled:opacity-50" disabled>
                         ↩️ Deshacer
@@ -349,7 +347,6 @@
                      </div>
                  </div>
 
-                 <!-- Herramienta de Borrador -->
                  <div class="border-t pt-4 flex flex-col gap-3">
                     <button id="eraseButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
                         Activar Borrador
@@ -360,7 +357,6 @@
                     </div>
                  </div>
 
-                 <!-- Herramienta de Recortar -->
                  <div class="border-t pt-4 flex flex-col gap-3">
                     <button id="cropButton" class="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-600 transition duration-300">
                         Activar Modo Recortar
@@ -417,7 +413,7 @@
         const recentImagesSection = document.getElementById('recentImagesSection'); const recentImagesContainer = document.getElementById('recentImagesContainer');
         // --- CAMBIO: imageEditGroup ahora está en el panel de herramientas ---
         const imageEditGroup = document.getElementById('imageEditGroup');
-        const noImageEditMessage = document.getElementById('noImageEditMessage'); // Mensaje de Edición (izquierda)
+        const noImageEditMessage = document.getElementById('noImageEditMessage'); // Mensaje de Edición (izquierda - ahora obsoleto?)
         const scaleSlider = document.getElementById('scaleSlider'); const scaleValue = document.getElementById('scaleValue'); const filterToggle = document.getElementById('filterToggle');
         const eraseButton = document.getElementById('eraseButton'); const brushSizeSlider = document.getElementById('brushSizeSlider'); const brushSizeValue = document.getElementById('brushSizeValue');
         const cropButton = document.getElementById('cropButton'); const applyCropButton = document.getElementById('applyCropButton'); const undoButton = document.getElementById('undoButton'); const saveToStockButton = document.getElementById('saveToStockButton');
@@ -497,22 +493,67 @@
         function resetApp() {
             initialView.style.display = 'block';
             mainAppView.style.display = 'none';
-            // --- CAMBIO: No limpiar colas, permitir exportar ---
-            // jobQueue = []; // No limpiar, podría querer re-empezar? No, mejor limpiar
-            jobQueue = [];
-            currentJobIndex = -1;
-            // pdfSheets = []; // No limpiar
-            // imagesForZip = []; // No limpiar
-            // recentImages = []; // Limpiar para la próxima sesión
-            recentImages = [];
-            updateRecentImagesUI();
-            // updateExportButtonsCount(); // Se llama indirectamente
+            // --- CAMBIO: Mantener export buttons activos si hay hojas ---
+            // jobQueue = []; // Limpiar cola lógica
+            // currentJobIndex = -1;
+            // recentImages = []; // Limpiar recientes
+            // updateRecentImagesUI();
+             if (pdfSheets.length === 0) { // Solo resetear si no hay nada para exportar
+                 jobQueue = [];
+                 currentJobIndex = -1;
+                 recentImages = [];
+                 updateRecentImagesUI();
+             } else {
+                 // Si hay hojas, mantener la app visible pero indicar que terminó
+                 jobStatusLabel.textContent = `Lote Completado (${pdfSheets.length} hojas)`;
+                 jobStatusName.textContent = "Listo para Exportar";
+                 themeStatusLabel.textContent = "";
+                 resetImageState(); // Limpiar imagen actual
+                 redrawCanvas();
+                 switchToTab('tabContentLote'); // Ir a la pestaña Lote
+             }
         }
 
         // --- Handlers de Acciones de Imagen ---
-        generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); switchToTab('tabContentImagen'); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); }); // CAMBIO: Imagen -> Edición no es necesario con el nuevo layout
+        generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); switchToTab('tabContentImagen'); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
         searchButton.addEventListener('click', (e) => { const theme = e.currentTarget.dataset.theme; const query = `${theme} para colorear`; const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`; window.open(url, '_blank'); switchToTab('tabContentImagen'); });
-        pasteButton.addEventListener('click', async () => { try { const items = await navigator.clipboard.read(); for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); switchToTab('tabContentImagen'); return; } } alert("No hay imagen."); } catch (err) { console.error("Error paste:", err); alert("No se pudo pegar."); } });
+        pasteButton.addEventListener('click', async () => {
+            try {
+                // --- CAMBIO: Mejor manejo de errores y permisos ---
+                if (!navigator.clipboard || !navigator.clipboard.read) {
+                    alert("Tu navegador no soporta pegar desde el portapapeles de forma segura. Intenta usar Chrome, Edge o Firefox actualizado.");
+                    return;
+                }
+                const items = await navigator.clipboard.read();
+                let foundImage = false;
+                for (const item of items) {
+                    const imageType = item.types.find(type => type.startsWith('image/'));
+                    if (imageType) {
+                        const blob = await item.getType(imageType);
+                        const imageUrl = URL.createObjectURL(blob);
+                        loadImageOntoCanvas(imageUrl);
+                        switchToTab('tabContentImagen');
+                        foundImage = true;
+                        break; // Salir del bucle una vez encontrada la imagen
+                    }
+                }
+                if (!foundImage) {
+                    alert("No se encontró una imagen compatible en el portapapeles.");
+                }
+            } catch (err) {
+                console.error("Error al pegar imagen:", err);
+                if (err.name === 'NotAllowedError') {
+                    alert("No se pudo pegar la imagen. Debes conceder permiso al sitio para acceder al portapapeles. Busca un ícono en la barra de direcciones.");
+                } else if (err.name === 'NotFoundError') {
+                     alert("No se encontró contenido compatible en el portapapeles en este momento.");
+                } else if (err.message.toLowerCase().includes('permission')) {
+                     alert("Permiso denegado para acceder al portapapeles.");
+                }
+                else {
+                    alert(`Error al pegar: ${err.name} - ${err.message}. Asegúrate de haber copiado una imagen.`);
+                }
+            }
+        });
         function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; }; currentUserImage.src = imageUrl; }
         function setLoading(isLoading) { const span = generateButton.querySelector('span'); generateButton.disabled = isLoading; generateSpinner.classList.toggle('hidden', !isLoading); if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; }
 
@@ -549,9 +590,8 @@
         discardButton.addEventListener('click', () => { if(confirm("¿Terminar lote?")) resetApp(); });
         function updateControlsVisibility() {
              const showTools = isImageLoaded;
-             // --- CAMBIO: Mostrar/ocultar los mensajes correctos ---
-             noImageEditMessage.style.display = showTools ? 'none' : 'block'; // En panel izquierdo
-             noImageToolsMessage.style.display = showTools ? 'none' : 'block';// En panel derecho
+             noImageEditMessage.style.display = 'none'; // Ya no se usa
+             noImageToolsMessage.style.display = showTools ? 'none' : 'block';
              confirmButton.disabled = !showTools;
              undoButton.disabled = undoStack.length <= 1;
              saveToStockButton.disabled = !showTools;
