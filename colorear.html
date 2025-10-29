@@ -281,6 +281,7 @@
             const lines = text.split('\n').filter(line => line.trim() !== '');
             const requests = [];
             // Regex mejorado para capturar nombres, edades y temas (incluyendo 'y' & ',')
+            // --- CAMBIO: Regex corregido para no dividir palabras como "micky" ---
             const regex = /•?\s*(.+?)\s*(\d+)\s*a(?:ñ|n)os?\s*\((.+?)\)/i;
 
             lines.forEach(line => {
@@ -290,7 +291,8 @@
                     if (themesRaw.toLowerCase().includes('ya te confirmo')) {
                         return; // Saltar este pedido
                     }
-                    const themes = themesRaw.split(/y|,|&/i).map(t => t.trim()).filter(t => t);
+                    // --- CAMBIO: Separador mejorado para " y " (con espacios), "," o "&" ---
+                    const themes = themesRaw.split(/\s+y\s+|\s*,\s*|\s*&\s*/i).map(t => t.trim()).filter(t => t);
                     
                     if (themes.length > 0) {
                         requests.push({
@@ -423,8 +425,8 @@
                     pieHeightOnCanvas = pieImage.height * pieScale + 10;
                 }
                 
-                // 70px para el área de texto + 20px padding superior
-                const availableHeight = 680 - pieHeightOnCanvas - 70; 
+                // --- CAMBIO: Reducido el espacio reservado para texto a 60px ---
+                const availableHeight = 680 - pieHeightOnCanvas - 60; 
                 
                 const scaleW = 440 / currentUserImage.width; // 440 = 480 - 40px padding lateral
                 const scaleH = availableHeight / currentUserImage.height; 
@@ -434,8 +436,8 @@
                 scaleSlider.value = bestScale * 100;
                 scaleValue.textContent = Math.round(bestScale * 100);
                 
-                // Centrar en el área disponible, con 20px de padding superior
-                imagePos = { x: 240, y: 20 + (availableHeight / 2) }; 
+                // --- CAMBIO: Imagen movida ligeramente hacia arriba ---
+                imagePos = { x: 240, y: 15 + (availableHeight / 2) }; 
                 initialImagePos = { ...imagePos };
 
                 updateControlsVisibility();
@@ -616,8 +618,8 @@
             // 3. Dibujar Textos (Nombre y Edad)
             const name = nameInput.value.toUpperCase();
             const age = ageInput.value ? `${ageInput.value} AÑOS` : "";
-            // --- CAMBIO: Fuente y tamaño ---
-            const fontSize = 30;
+            // --- CAMBIO: Fuente y tamaño reducidos ---
+            const fontSize = 28;
             const fontFamily = '"Patrick Hand", cursive';
             
             targetCtx.font = `bold ${fontSize}px ${fontFamily}`;
@@ -626,9 +628,9 @@
             targetCtx.strokeStyle = 'black';
             targetCtx.fillStyle = 'white';
             
-            // --- CAMBIO: Posiciones de texto más bajas ---
-            const nameY = 680 - pieHeightOnCanvas - 50;
-            const ageY = 680 - pieHeightOnCanvas - 20;
+            // --- CAMBIO: Posiciones de texto más bajas y juntas ---
+            const nameY = 680 - pieHeightOnCanvas - 40;
+            const ageY = 680 - pieHeightOnCanvas - 15;
 
             if (name) {
                 targetCtx.strokeText(name, 240, nameY);
@@ -746,5 +748,6 @@
 
 </body>
 </html>
+
 
 
