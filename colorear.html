@@ -5,16 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Asistente IA de Hojas para Colorear</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- CAMBIO: Fuente cambiada a Patrick Hand -->
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Inter:wght@400;700&display=swap" rel="stylesheet">
-    <!-- jsPDF library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6; /* bg-gray-100 */
+            background-color: #f3f4f6;
         }
-        /* CAMBIO: Fuente cambiada a Patrick Hand */
         .font-cabin-sketch {
             font-family: 'Patrick Hand', cursive;
         }
@@ -22,27 +19,51 @@
         .main-container {
             display: grid;
             grid-template-columns: 350px 1fr;
-            gap: 1.5rem; /* gap-6 */
+            gap: 1.5rem;
             max-width: 1400px;
             margin: auto;
-            padding: 2rem; /* p-8 */
+            padding: 2rem;
         }
         
-        /* Ocultar por defecto */
-        #mainAppView {
-            display: none;
-        }
+        #mainAppView { display: none; }
 
-        /* CAMBIO: Fuente cambiada a Patrick Hand */
         @font-face {
           font-family: 'Patrick Hand';
-          src: url('https://fonts.gstatic.com/s/patrickhand/v20/LDI1apSQOAYtSuYWp8ZhfYe8.woff2') format('woff2'); /* Regular */
+          src: url('https://fonts.gstatic.com/s/patrickhand/v20/LDI1apSQOAYtSuYWp8ZhfYe8.woff2') format('woff2');
           font-weight: 400;
         }
 
-        /* Estilo para el modo borrador */
-        .erase-mode {
-            cursor: crosshair !important;
+        /* --- NUEVO: Estilos para Pestañas --- */
+        .tab-button {
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .tab-button.active {
+            border-color: #3b82f6; /* border-blue-500 */
+            color: #3b82f6; /* text-blue-500 */
+            background-color: #eff6ff; /* bg-blue-50 */
+        }
+        .tab-content {
+            display: none; /* Oculto por defecto */
+        }
+        .tab-content.active {
+            display: block; /* Visible si está activo */
+        }
+
+        /* Estilo para modos de edición */
+        .erase-mode { cursor: crosshair !important; }
+        .crop-mode { cursor: crosshair !important; }
+
+        /* --- NUEVO: Estilo para Notificación Toast --- */
+        #toastNotification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            transform: translateX(200%);
+            transition: transform 0.3s ease-in-out;
+            z-index: 100;
+        }
+        #toastNotification.show {
+            transform: translateX(0);
         }
     </style>
 </head>
@@ -51,21 +72,28 @@
 
         <!-- API Key Modal -->
         <div id="apiKeyModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
-            <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+            <!-- ... (Modal de API Key sin cambios) ... -->
+             <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
                 <h2 class="text-xl font-bold mb-4 text-center">Clave API de Gemini</h2>
                 <p class="text-gray-600 mb-4 text-sm">Por favor, ingresa tu clave API para usar el modelo de generación de imágenes.</p>
                 <input type="password" id="apiKeyInput" class="w-full p-2 border border-gray-300 rounded mb-4" placeholder="Ingresa tu clave API aquí">
                 <button id="saveApiKeyButton" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300">
                     Guardar y Continuar
                 </button>
-                <p class="text-xs text-gray-500 mt-3 text-center">La clave se guarda solo para esta sesión.</p>
+                <p class="text-xs text-gray-500 mt-3 text-center">La clave se guarda en tu navegador.</p>
             </div>
         </div>
         
+        <!-- NUEVO: Elemento Toast Notification -->
+        <div id="toastNotification" class="bg-green-600 text-white py-3 px-5 rounded-lg shadow-md">
+            ✔️ ¡Hoja añadida al PDF!
+        </div>
+
         <h1 class="text-3xl font-bold mb-6 text-gray-800 text-center font-cabin-sketch">Asistente de Hojas para Colorear</h1>
 
         <!-- VISTA INICIAL -->
         <div id="initialView" class="text-center p-10 bg-white rounded-lg shadow-md">
+             <!-- ... (Vista Inicial sin cambios) ... -->
              <h2 class="text-2xl font-bold mb-4 text-gray-700">Bienvenido</h2>
              <p class="text-gray-600 mb-6">Copia tu lista de pedidos en el portapapeles y luego presiona el botón para comenzar.</p>
             <button id="ingresarPedidoButton" class="w-full max-w-xs mx-auto bg-green-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2">
@@ -81,84 +109,119 @@
         <div id="mainAppView" class="main-container">
             
             <!-- Panel de Controles Izquierdo -->
-            <div id="controlsPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col gap-6">
+            <div id="controlsPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col">
                 
-                <!-- Estado del Lote -->
-                <div class="border-b pb-4">
-                    <h2 class="text-sm font-bold text-blue-600 uppercase" id="jobStatusLabel">Procesando Pedido...</h2>
-                    <p class="text-lg text-gray-700" id="jobStatusName">Delfina (5 años)</p>
-                    <p class="text-md font-bold text-gray-900" id="themeStatusLabel">Tema: micky</p>
+                <!-- NUEVO: Contenedor de Pestañas -->
+                <div class="flex border-b mb-4">
+                    <button id="tabButtonLote" class="tab-button flex-1 py-2 px-4 text-sm font-medium text-center text-gray-600 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 active">Lote</button>
+                    <button id="tabButtonImagen" class="tab-button flex-1 py-2 px-4 text-sm font-medium text-center text-gray-600 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500">Imagen</button>
+                    <button id="tabButtonEdicion" class="tab-button flex-1 py-2 px-4 text-sm font-medium text-center text-gray-600 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500">Edición</button>
                 </div>
 
-                <!-- Inputs Editables -->
-                <div id="inputsGroup" class="flex flex-col gap-3">
-                    <div>
-                        <label for="nameInput" class="block text-sm font-medium text-gray-700 mb-1">Nombre:</label>
-                        <input type="text" id="nameInput" class="w-full p-2 border border-gray-300 rounded text-lg">
-                    </div>
-                    <div>
-                        <label for="ageInput" class="block text-sm font-medium text-gray-700 mb-1">Edad:</label>
-                        <input type="text" id="ageInput" class="w-full p-2 border border-gray-300 rounded text-lg">
-                    </div>
-                </div>
+                <!-- Contenido de Pestañas -->
+                <div class="flex-1">
+                    <!-- Pestaña 1: Lote -->
+                    <div id="tabContentLote" class="tab-content active flex flex-col gap-6 h-full">
+                        <!-- Estado del Lote -->
+                        <div class="border-b pb-4">
+                            <h2 class="text-sm font-bold text-blue-600 uppercase" id="jobStatusLabel">Procesando Pedido...</h2>
+                            <p class="text-lg text-gray-700" id="jobStatusName">Delfina (5 años)</p>
+                            <p class="text-md font-bold text-gray-900" id="themeStatusLabel">Tema: micky</p>
+                        </div>
 
-                <!-- Acciones de Imagen -->
-                <div id="imageActionsGroup" class="flex flex-col gap-3 border-t pt-4">
-                    <h3 class="text-md font-bold text-gray-800">1. Obtener Imagen del Tema</h3>
-                    <button id="generateButton" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2">
-                        <svg class="animate-spin h-5 w-5 text-white hidden" id="generateSpinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        <span>Generar (IA)</span>
-                    </button>
-                    <button id="searchButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
-                    <button id="pasteButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Pegar Imagen</button>
-                </div>
+                        <!-- Inputs Editables -->
+                        <div id="inputsGroup" class="flex flex-col gap-3">
+                            <div>
+                                <label for="nameInput" class="block text-sm font-medium text-gray-700 mb-1">Nombre:</label>
+                                <input type="text" id="nameInput" class="w-full p-2 border border-gray-300 rounded text-lg">
+                            </div>
+                            <div>
+                                <label for="ageInput" class="block text-sm font-medium text-gray-700 mb-1">Edad:</label>
+                                <input type="text" id="ageInput" class="w-full p-2 border border-gray-300 rounded text-lg">
+                            </div>
+                        </div>
 
-                <!-- Edición de Imagen (Oculto al inicio) -->
-                <div id="imageEditGroup" class="border-t pt-4 flex flex-col gap-4"> <!-- CAMBIO: gap-4 -->
-                    <h3 class="text-md font-bold text-gray-800">2. Ajustar Imagen</h3>
-                    <div>
-                        <label for="scaleSlider" class="block text-sm font-medium text-gray-700 mb-1">Escala: <span id="scaleValue">100</span>%</label>
-                        <input type="range" id="scaleSlider" min="10" max="300" value="100" class="w-full">
-                    </div>
-                    <div class="flex items-center">
-                        <input type="checkbox" id="filterToggle" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                        <label for="filterToggle" class="ml-2 block text-sm text-gray-900">Aplicar Filtro "Falsos Blancos"</label>
-                    </div>
-
-                    <!-- NUEVO: Herramienta de Borrador -->
-                    <div class="border-t pt-4 flex flex-col gap-3">
-                        <button id="eraseButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
-                            Activar Borrador (Sellos de Agua)
-                        </button>
-                         <div>
-                            <label for="brushSizeSlider" class="block text-sm font-medium text-gray-700 mb-1">Tamaño Borrador: <span id="brushSizeValue">20</span>px</label>
-                            <input type="range" id="brushSizeSlider" min="2" max="100" value="20" class="w-full">
+                        <!-- Acciones del Lote -->
+                        <div class="border-t pt-6 mt-auto flex flex-col gap-3">
+                            <button id="confirmButton" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-700 transition duration-300 disabled:opacity-50" disabled>
+                                ✔️ Confirmar y Añadir Hoja
+                            </button>
+                            <button id="skipButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
+                                ⏭️ Saltar Tema
+                            </button>
+                            <button id="discardButton" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition duration-300">
+                                ❌ Descartar Pedido Actual
+                            </button>
                         </div>
                     </div>
-                    <!-- FIN NUEVO -->
 
-                </div>
-                
-                <!-- Acciones del Lote -->
-                <div class="border-t pt-6 mt-auto flex flex-col gap-3">
-                    <button id="confirmButton" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-700 transition duration-300 disabled:opacity-50" disabled>
-                        ✔️ Confirmar y Añadir Hoja
-                    </button>
-                    <button id="skipButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
-                        ⏭️ Saltar Tema
-                    </button>
-                     <button id="discardButton" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition duration-300">
-                        ❌ Descartar Pedido Actual
-                    </button>
+                    <!-- Pestaña 2: Imagen -->
+                    <div id="tabContentImagen" class="tab-content flex flex-col gap-3 h-full">
+                        <h3 class="text-md font-bold text-gray-800">Obtener Imagen del Tema</h3>
+                        <button id="generateButton" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2">
+                            <svg class="animate-spin h-5 w-5 text-white hidden" id="generateSpinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            <span>Generar (IA)</span>
+                        </button>
+                        <button id="searchButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
+                        <button id="pasteButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Pegar Imagen</button>
+                    </div>
+
+                    <!-- Pestaña 3: Edición -->
+                    <div id="tabContentEdicion" class="tab-content flex flex-col gap-4 h-full">
+                        <div id="imageEditGroup" class="flex flex-col gap-4">
+                             <h3 class="text-md font-bold text-gray-800">Ajustar Imagen</h3>
+                             
+                             <!-- NUEVO: Botón Deshacer -->
+                             <button id="undoButton" class="w-full bg-gray-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-600 transition duration-300 disabled:opacity-50" disabled>
+                                ↩️ Deshacer
+                             </button>
+
+                             <div class="border-t pt-4">
+                                <label for="scaleSlider" class="block text-sm font-medium text-gray-700 mb-1">Escala: <span id="scaleValue">100</span>%</label>
+                                <input type="range" id="scaleSlider" min="10" max="300" value="100" class="w-full">
+                             </div>
+                             
+                             <div class="flex items-center">
+                                <input type="checkbox" id="filterToggle" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                <label for="filterToggle" class="ml-2 block text-sm text-gray-900">Aplicar Filtro "Falsos Blancos"</label>
+                             </div>
+
+                             <!-- Herramienta de Borrador -->
+                             <div class="border-t pt-4 flex flex-col gap-3">
+                                <button id="eraseButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
+                                    Activar Borrador
+                                </button>
+                                <div>
+                                    <label for="brushSizeSlider" class="block text-sm font-medium text-gray-700 mb-1">Tamaño Borrador: <span id="brushSizeValue">20</span>px</label>
+                                    <input type="range" id="brushSizeSlider" min="2" max="100" value="20" class="w-full">
+                                </div>
+                             </div>
+                             
+                             <!-- NUEVO: Herramienta de Recortar -->
+                             <div class="border-t pt-4 flex flex-col gap-3">
+                                <button id="cropButton" class="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-600 transition duration-300">
+                                    Activar Modo Recortar
+                                </button>
+                                <button id="applyCropButton" class="w-full bg-indigo-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-800 transition duration-300 hidden">
+                                    Aplicar Recorte
+                                </button>
+                             </div>
+                        </div>
+                        
+                        <!-- Mensaje si no hay imagen -->
+                        <div id="noImageEditMessage" class="text-center text-gray-500 mt-10">
+                            Carga una imagen para ver las herramientas de edición.
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Panel del Canvas (Derecho) -->
             <div id="canvasPanel">
-                <canvas id="previewCanvas" width="480" height="680" class="bg-white shadow-md"></canvas> <!-- CAMBIO: añadido bg-white shadow-md -->
+                <canvas id="previewCanvas" width="480" height="680" class="bg-white shadow-md"></canvas>
                 <button id="exportPdfButton" class="w-full mt-4 bg-red-600 text-white py-3 px-5 rounded-lg font-bold hover:bg-red-700 transition duration-300 disabled:opacity-50" disabled>
                      Exportar PDF (0 Hojas)
                  </button>
@@ -169,32 +232,37 @@
 
     <script>
         // --- Variables de Estado de la App ---
-        let apiKey = localStorage.getItem('geminiApiKey'); // CAMBIO: de sessionStorage a localStorage
-        let jobQueue = []; // [{name, age, themes[]}, ...]
-        let pdfSheets = []; // Almacena los canvas listos para el PDF
+        let apiKey = localStorage.getItem('geminiApiKey');
+        let jobQueue = [];
+        let pdfSheets = [];
         let currentJobIndex = -1;
         let currentThemeIndex = -1;
         
-        let pieImage = null; // Para la imagen pie.png
-        let currentUserImage = null; // La imagen del personaje
-        // NUEVO: Canvas de edición para el borrador
+        let pieImage = null;
+        let currentUserImage = null;
         let editCanvas = document.createElement('canvas');
         let editCtx = editCanvas.getContext('2d', { willReadFrequently: true });
+        // --- NUEVO: Pila de Deshacer ---
+        let undoStack = [];
 
         let imageScale = 1.0;
-        let imagePos = { x: 240, y: 340 }; // Centro por defecto
+        let imagePos = { x: 240, y: 340 };
         let useFilter = false;
         let isImageLoaded = false;
         let isDragging = false;
         let dragStart = { x: 0, y: 0 };
-        let initialImagePos = { x: 240, y: 340 };
 
-        // NUEVO: Variables de Borrador
         let isEraseMode = false;
         let isPainting = false;
         let brushSize = 20;
+        
+        // --- NUEVO: Variables de Recorte ---
+        let isCropMode = false;
+        let isCropping = false;
+        let cropRect = { startX: 0, startY: 0, endX: 0, endY: 0 };
+        let visualCropRect = null; // Para dibujar en el canvas visible
 
-        // --- Selectores de Elementos del DOM ---
+        // --- Selectores del DOM ---
         const apiKeyModal = document.getElementById('apiKeyModal');
         const apiKeyInput = document.getElementById('apiKeyInput');
         const saveApiKeyButton = document.getElementById('saveApiKeyButton');
@@ -202,6 +270,19 @@
         const initialView = document.getElementById('initialView');
         const ingresarPedidoButton = document.getElementById('ingresarPedidoButton');
         const mainAppView = document.getElementById('mainAppView');
+        
+        // --- NUEVO: Selectores de Pestañas ---
+        const tabButtonLote = document.getElementById('tabButtonLote');
+        const tabButtonImagen = document.getElementById('tabButtonImagen');
+        const tabButtonEdicion = document.getElementById('tabButtonEdicion');
+        const tabContentLote = document.getElementById('tabContentLote');
+        const tabContentImagen = document.getElementById('tabContentImagen');
+        const tabContentEdicion = document.getElementById('tabContentEdicion');
+        const tabs = [
+            { btn: tabButtonLote, content: tabContentLote },
+            { btn: tabButtonImagen, content: tabContentImagen },
+            { btn: tabButtonEdicion, content: tabContentEdicion },
+        ];
         
         const jobStatusLabel = document.getElementById('jobStatusLabel');
         const jobStatusName = document.getElementById('jobStatusName');
@@ -216,14 +297,19 @@
         const pasteButton = document.getElementById('pasteButton');
         
         const imageEditGroup = document.getElementById('imageEditGroup');
+        const noImageEditMessage = document.getElementById('noImageEditMessage');
         const scaleSlider = document.getElementById('scaleSlider');
         const scaleValue = document.getElementById('scaleValue');
         const filterToggle = document.getElementById('filterToggle');
         
-        // NUEVO: Selectores de Borrador
         const eraseButton = document.getElementById('eraseButton');
         const brushSizeSlider = document.getElementById('brushSizeSlider');
         const brushSizeValue = document.getElementById('brushSizeValue');
+
+        // --- NUEVO: Selectores de Recorte y Deshacer ---
+        const cropButton = document.getElementById('cropButton');
+        const applyCropButton = document.getElementById('applyCropButton');
+        const undoButton = document.getElementById('undoButton');
 
         const confirmButton = document.getElementById('confirmButton');
         const skipButton = document.getElementById('skipButton');
@@ -232,48 +318,42 @@
         const previewCanvas = document.getElementById('previewCanvas');
         const ctx = previewCanvas.getContext('2d');
         const exportPdfButton = document.getElementById('exportPdfButton');
+        
+        // --- NUEVO: Selector de Toast ---
+        const toastNotification = document.getElementById('toastNotification');
 
         // --- Carga Inicial ---
-
         if (!apiKey) {
             showApiKeyModal();
         } else {
             hideApiKeyModal();
-            loadPieImage(); // Cargar pie.png si la API key ya está
+            loadPieImage();
         }
 
         // --- Handlers de API Key y Carga ---
-        
         saveApiKeyButton.addEventListener('click', () => {
             const key = apiKeyInput.value.trim();
             if (key) {
                 apiKey = key;
-                localStorage.setItem('geminiApiKey', key); // CAMBIO: de sessionStorage a localStorage
+                localStorage.setItem('geminiApiKey', key);
                 hideApiKeyModal();
-                loadPieImage(); // Cargar pie.png después de guardar la key
-                console.log("API Key guardada.");
+                loadPieImage();
+                console.log("API Key guardada en localStorage.");
             } else {
                 alert('Por favor, ingresa una clave API válida.');
             }
         });
 
-        function showApiKeyModal() {
-            apiKeyModal.classList.remove('hidden');
-            apiKeyModal.classList.add('flex');
-        }
-
-        function hideApiKeyModal() {
-            apiKeyModal.classList.add('hidden');
-            apiKeyModal.classList.remove('flex');
-        }
+        function showApiKeyModal() { apiKeyModal.classList.add('flex'); apiKeyModal.classList.remove('hidden'); }
+        function hideApiKeyModal() { apiKeyModal.classList.add('hidden'); apiKeyModal.classList.remove('flex'); }
 
         async function loadPieImage() {
             try {
                 pieImage = new Image();
-                pieImage.src = 'pie.png'; // Asume que está en la misma carpeta
-                await pieImage.decode(); // Espera a que cargue
+                pieImage.src = 'pie.png';
+                await pieImage.decode();
                 console.log('pie.png cargado exitosamente.');
-                redrawCanvas(); // Redibujar por si la app ya está activa
+                redrawCanvas();
             } catch (err) {
                 console.error('Error cargando pie.png. Asegúrate que esté en la misma carpeta.', err);
                 alert('Error: No se pudo cargar pie.png. Se continuará sin pie de página.');
@@ -281,8 +361,31 @@
             }
         }
 
-        // --- Lógica Principal del Flujo (Wizard) ---
+        // --- NUEVO: Lógica de Pestañas ---
+        tabs.forEach(tab => {
+            tab.btn.addEventListener('click', () => {
+                // Desactivar todas
+                tabs.forEach(t => {
+                    t.btn.classList.remove('active');
+                    t.content.classList.remove('active');
+                });
+                // Activar la seleccionada
+                tab.btn.classList.add('active');
+                tab.content.classList.add('active');
+            });
+        });
+        function switchToTab(tabContentId) {
+            tabs.forEach(t => {
+                t.btn.classList.remove('active');
+                t.content.classList.remove('active');
+                if (t.content.id === tabContentId) {
+                    t.btn.classList.add('active');
+                    t.content.classList.add('active');
+                }
+            });
+        }
 
+        // --- Lógica Principal del Flujo (Wizard) ---
         ingresarPedidoButton.addEventListener('click', async () => {
             try {
                 const text = await navigator.clipboard.readText();
@@ -290,17 +393,16 @@
                     alert("Portapapeles vacío. Por favor, copia tu lista de pedidos.");
                     return;
                 }
-                
                 jobQueue = parseRequests(text);
-                
                 if (jobQueue.length > 0) {
-                    pdfSheets = []; // Limpiar PDF anterior
-                    updatePdfButtonCount(); // Resetear contador
+                    pdfSheets = [];
+                    updatePdfButtonCount();
                     currentJobIndex = 0;
                     currentThemeIndex = 0;
                     initialView.style.display = 'none';
                     mainAppView.style.display = 'grid';
                     loadCurrentJob();
+                    switchToTab('tabContentLote'); // Empezar en la pestaña Lote
                 } else {
                     alert("No se pudieron encontrar pedidos válidos en el texto. Revisa el formato.");
                 }
@@ -313,26 +415,15 @@
         function parseRequests(text) {
             const lines = text.split('\n').filter(line => line.trim() !== '');
             const requests = [];
-            // Regex mejorado para capturar nombres, edades y temas (incluyendo 'y' & ',')
-            // --- CAMBIO: Regex corregido para no dividir palabras como "micky" ---
             const regex = /•?\s*(.+?)\s*(\d+)\s*a(?:ñ|n)os?\s*\((.+?)\)/i;
-
             lines.forEach(line => {
                 const match = line.match(regex);
                 if (match) {
                     const [, name, age, themesRaw] = match;
-                    if (themesRaw.toLowerCase().includes('ya te confirmo')) {
-                        return; // Saltar este pedido
-                    }
-                    // --- CAMBIO: Separador mejorado para " y " (con espacios), "," o "&" ---
+                    if (themesRaw.toLowerCase().includes('ya te confirmo')) return;
                     const themes = themesRaw.split(/\s+y\s+|\s*,\s*|\s*&\s*/i).map(t => t.trim()).filter(t => t);
-                    
                     if (themes.length > 0) {
-                        requests.push({
-                            name: name.trim(),
-                            age: age.trim(),
-                            themes: themes
-                        });
+                        requests.push({ name: name.trim(), age: age.trim(), themes: themes });
                     }
                 }
             });
@@ -341,56 +432,52 @@
 
         function loadCurrentJob() {
             if (currentJobIndex < 0 || currentJobIndex >= jobQueue.length) {
-                // Se acabaron los pedidos
                 alert("¡Lote completado! Listo para exportar el PDF.");
                 resetApp();
                 return;
             }
-
             const job = jobQueue[currentJobIndex];
             const theme = job.themes[currentThemeIndex];
 
-            // Actualizar UI
             jobStatusLabel.textContent = `Procesando Pedido ${currentJobIndex + 1} de ${jobQueue.length}`;
             jobStatusName.textContent = `${job.name} (${job.age} años)`;
             themeStatusLabel.textContent = `Tema ${currentThemeIndex + 1} de ${job.themes.length}: ${theme}`;
-            
             nameInput.value = job.name;
             ageInput.value = job.age;
-            
-            // Actualizar botones de acción
             generateButton.dataset.theme = theme;
             searchButton.dataset.theme = theme;
             
-            // Resetear estado de imagen
+            resetImageState(); // Resetear todo lo de la imagen
+            redrawCanvas();
+        }
+        
+        function resetImageState() {
             currentUserImage = null;
             isImageLoaded = false;
             scaleSlider.value = 100;
             imageScale = 1.0;
-            imagePos = { x: 240, y: 340 }; // Resetear posición
-            initialImagePos = { x: 240, y: 340 };
+            imagePos = { x: 240, y: 340 };
             filterToggle.checked = false;
             useFilter = false;
-            // NUEVO: Resetear borrador
-            if (isEraseMode) toggleEraseMode(); // Apagar si estaba prendido
             
+            if (isEraseMode) toggleEraseMode(true); // Apagar
+            if (isCropMode) toggleCropMode(true); // Apagar
+            
+            undoStack = []; // Limpiar pila de deshacer
             updateControlsVisibility();
-            redrawCanvas();
         }
-        
+
         function advanceJob() {
             const currentJob = jobQueue[currentJobIndex];
             currentThemeIndex++;
-            
             if (currentThemeIndex < currentJob.themes.length) {
-                // Siguiente tema, mismo pedido
                 loadCurrentJob();
             } else {
-                // Siguiente pedido
                 currentJobIndex++;
                 currentThemeIndex = 0;
-                loadCurrentJob(); // Esto manejará el final si no hay más pedidos
+                loadCurrentJob();
             }
+            switchToTab('tabContentLote'); // Volver a la pestaña Lote
         }
         
         function resetApp() {
@@ -399,19 +486,18 @@
              jobQueue = [];
              currentJobIndex = -1;
              currentThemeIndex = -1;
-             // No limpiar pdfSheets, para que se pueda exportar
+             // No limpiar pdfSheets
         }
 
         // --- Handlers de Acciones de Imagen ---
-
         generateButton.addEventListener('click', async (e) => {
             const theme = e.currentTarget.dataset.theme;
             const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`;
-            
             setLoading(true);
             try {
                 const imageUrl = await generateImage(prompt);
                 loadImageOntoCanvas(imageUrl);
+                switchToTab('tabContentEdicion'); // Mover a la pestaña de edición
             } catch (error) {
                 alert(`Error al generar imagen: ${error.message}`);
             }
@@ -421,10 +507,9 @@
         searchButton.addEventListener('click', (e) => {
             const theme = e.currentTarget.dataset.theme;
             const query = `${theme} para colorear`;
-            // tbm=isch (Búsqueda de Imágenes)
-            // tbs=itp:lineart (Filtro: Tipo -> Dibujo lineal)
             const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`;
             window.open(url, '_blank');
+            switchToTab('tabContentImagen'); // Asegurarse de estar en la pestaña de imagen
         });
 
         pasteButton.addEventListener('click', async () => {
@@ -436,6 +521,7 @@
                         const blob = await item.getType(imageType);
                         const imageUrl = URL.createObjectURL(blob);
                         loadImageOntoCanvas(imageUrl);
+                        switchToTab('tabContentEdicion'); // Mover a la pestaña de edición
                         return;
                     }
                 }
@@ -448,46 +534,41 @@
         
         function loadImageOntoCanvas(imageUrl) {
             currentUserImage = new Image();
-            currentUserImage.crossOrigin = "anonymous"; // Para evitar 'tainted canvas' si se pega de URL
+            currentUserImage.crossOrigin = "anonymous";
             currentUserImage.onload = () => {
                 isImageLoaded = true;
                 
-                // NUEVO: Cargar imagen en el canvas de edición (borrador)
+                // Cargar imagen en el canvas de edición
                 editCanvas.width = currentUserImage.width;
                 editCanvas.height = currentUserImage.height;
-                editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); // Limpiar
-                editCtx.drawImage(currentUserImage, 0, 0); // Cargar
+                editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height);
+                editCtx.drawImage(currentUserImage, 0, 0);
                 
-                // "Acomodar perfectamente" (Calcular best-fit)
+                // --- NUEVO: Limpiar pila de deshacer y guardar estado inicial ---
+                undoStack = [];
+                saveStateForUndo(); 
+                
+                // Calcular best-fit
                 let pieHeightOnCanvas = 0;
                 if (pieImage && pieImage.width > 0) {
                     const pieTargetWidth = 480 * 0.95; 
                     const pieScale = pieTargetWidth / pieImage.width;
                     pieHeightOnCanvas = pieImage.height * pieScale + 10;
                 }
-                
-                // --- CAMBIO: Reducido el espacio reservado para texto a 40px (1 línea) ---
-                const availableHeight = 680 - pieHeightOnCanvas - 40; 
-                
-                const scaleW = 440 / currentUserImage.width; // 440 = 480 - 40px padding lateral
+                const availableHeight = 680 - pieHeightOnCanvas - 40;
+                const scaleW = 440 / currentUserImage.width;
                 const scaleH = availableHeight / currentUserImage.height; 
-                const bestScale = Math.min(scaleW, scaleH, 1.5); // Limitar escala inicial
+                const bestScale = Math.min(scaleW, scaleH, 1.5);
                 
                 imageScale = bestScale;
                 scaleSlider.value = bestScale * 100;
                 scaleValue.textContent = Math.round(bestScale * 100);
-                
-                // --- CAMBIO: Imagen movida ligeramente hacia arriba ---
                 imagePos = { x: 240, y: 15 + (availableHeight / 2) }; 
-                initialImagePos = { ...imagePos };
-
+                
                 updateControlsVisibility();
                 redrawCanvas();
             };
-            currentUserImage.onerror = () => {
-                alert("Error al cargar la imagen pegada.");
-                isImageLoaded = false;
-            }
+            currentUserImage.onerror = () => { alert("Error al cargar la imagen pegada."); isImageLoaded = false; }
             currentUserImage.src = imageUrl;
         }
         
@@ -505,7 +586,6 @@
         }
 
         // --- Handlers de Edición de Imagen ---
-        
         scaleSlider.addEventListener('input', (e) => {
             imageScale = parseInt(e.target.value) / 100;
             scaleValue.textContent = e.target.value;
@@ -517,23 +597,65 @@
             redrawCanvas();
         });
 
-        // --- NUEVO: Handlers de Borrador ---
+        // --- NUEVO: Lógica de Deshacer ---
+        function saveStateForUndo() {
+            if (!isImageLoaded) return;
+            // Crear una copia del canvas de edición
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = editCanvas.width;
+            tempCanvas.height = editCanvas.height;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(editCanvas, 0, 0);
+            
+            undoStack.push(tempCanvas);
+            if (undoStack.length > 10) { // Limitar la pila
+                undoStack.shift();
+            }
+            updateControlsVisibility();
+        }
+
+        undoButton.addEventListener('click', () => {
+            if (undoStack.length > 1) { // Dejar siempre el estado inicial
+                undoStack.pop(); // Quitar el estado actual
+                const lastStateCanvas = undoStack[undoStack.length - 1]; // Ver el estado anterior
+                
+                // Restaurar estado
+                editCanvas.width = lastStateCanvas.width;
+                editCanvas.height = lastStateCanvas.height;
+                editCtx.drawImage(lastStateCanvas, 0, 0);
+                
+                redrawCanvas();
+            } else if (undoStack.length === 1) {
+                 // Si solo queda 1 (el original), restaurarlo pero no popear
+                const originalStateCanvas = undoStack[0];
+                editCanvas.width = originalStateCanvas.width;
+                editCanvas.height = originalStateCanvas.height;
+                editCtx.drawImage(originalStateCanvas, 0, 0);
+                redrawCanvas();
+            }
+            updateControlsVisibility();
+        });
+
+        // --- Lógica de Borrador ---
         brushSizeSlider.addEventListener('input', (e) => {
             brushSize = parseInt(e.target.value);
             brushSizeValue.textContent = `${brushSize}px`;
         });
         
-        eraseButton.addEventListener('click', toggleEraseMode);
+        eraseButton.addEventListener('click', () => toggleEraseMode(false));
 
-        function toggleEraseMode() {
+        function toggleEraseMode(forceOff = false) {
+            if (forceOff) { isEraseMode = true; } // Para forzar el "off"
             isEraseMode = !isEraseMode;
+            
             if (isEraseMode) {
+                if (isCropMode) toggleCropMode(true); // Apagar recorte
                 eraseButton.textContent = 'Desactivar Borrador';
                 eraseButton.classList.add('bg-red-500', 'text-white');
                 eraseButton.classList.remove('bg-yellow-500', 'text-black');
                 previewCanvas.classList.add('erase-mode');
             } else {
-                eraseButton.textContent = 'Activar Borrador (Sellos de Agua)';
+                eraseButton.textContent = 'Activar Borrador';
                 eraseButton.classList.remove('bg-red-500', 'text-white');
                 eraseButton.classList.add('bg-yellow-500', 'text-black');
                 previewCanvas.classList.remove('erase-mode');
@@ -542,12 +664,10 @@
         }
 
         function paintOnCanvas(canvasX, canvasY) {
-            // Dibuja en el canvas de *edición* (el que no se ve)
             editCtx.fillStyle = 'white';
             editCtx.beginPath();
             editCtx.arc(canvasX, canvasY, brushSize, 0, Math.PI * 2);
             editCtx.fill();
-            // Refresca el canvas *visible*
             redrawCanvas();
         }
 
@@ -557,88 +677,214 @@
             const y = (e.clientY - rect.top) * (680 / rect.height);
             return {x, y};
         }
-        // --- FIN NUEVO ---
+        
+        // --- NUEVO: Lógica de Recorte ---
+        cropButton.addEventListener('click', () => toggleCropMode(false));
+        
+        applyCropButton.addEventListener('click', () => {
+            if (!visualCropRect) return;
+            
+            saveStateForUndo(); // Guardar antes de recortar
+
+            // 1. Convertir Coords de Canvas Visible a Coords de Imagen (en editCanvas)
+            // Normalizar rectángulo (por si se dibujó de abajo-arriba)
+            const normRect = {
+                x1: Math.min(visualCropRect.startX, visualCropRect.endX),
+                y1: Math.min(visualCropRect.startY, visualCropRect.endY),
+                x2: Math.max(visualCropRect.startX, visualCropRect.endX),
+                y2: Math.max(visualCropRect.startY, visualCropRect.endY)
+            };
+
+            // Coords de la imagen en el canvas visible
+            const imgW = editCanvas.width * imageScale;
+            const imgH = editCanvas.height * imageScale;
+            const imgX1 = imagePos.x - imgW / 2;
+            const imgY1 = imagePos.y - imgH / 2;
+
+            // 2. Calcular la intersección (área de recorte)
+            const cropX1 = Math.max(normRect.x1, imgX1);
+            const cropY1 = Math.max(normRect.y1, imgY1);
+            const cropX2 = Math.min(normRect.x2, imgX1 + imgW);
+            const cropY2 = Math.min(normRect.y2, imgY1 + imgH);
+            
+            // Si no hay intersección, no hacer nada
+            if (cropX2 <= cropX1 || cropY2 <= cropY1) {
+                toggleCropMode(true); // Salir del modo recorte
+                return;
+            }
+
+            // 3. Convertir coords de intersección a coords del editCanvas (original)
+            const sourceX = (cropX1 - imgX1) / imageScale;
+            const sourceY = (cropY1 - imgY1) / imageScale;
+            const sourceWidth = (cropX2 - cropX1) / imageScale;
+            const sourceHeight = (cropY2 - cropY1) / imageScale;
+
+            // 4. Crear un nuevo canvas temporal con la imagen recortada
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = sourceWidth;
+            tempCanvas.height = sourceHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.drawImage(
+                editCanvas,
+                sourceX, sourceY, sourceWidth, sourceHeight, // Fuente (desde editCanvas)
+                0, 0, sourceWidth, sourceHeight             // Destino (en tempCanvas)
+            );
+
+            // 5. Reemplazar el editCanvas con el nuevo
+            editCanvas.width = sourceWidth;
+            editCanvas.height = sourceHeight;
+            editCtx.drawImage(tempCanvas, 0, 0);
+
+            // 6. Resetear estado y redibujar
+            toggleCropMode(true); // Apagar modo recorte
+            // Resetear escala y posición para centrar la nueva imagen
+            loadImageOntoCanvas(editCanvas.toDataURL()); 
+        });
+
+        function toggleCropMode(forceOff = false) {
+            if (forceOff) { isCropMode = true; } // Para forzar el "off"
+            isCropMode = !isCropMode;
+
+            if (isCropMode) {
+                if (isEraseMode) toggleEraseMode(true); // Apagar borrador
+                cropButton.textContent = 'Cancelar Recorte';
+                cropButton.classList.add('bg-red-500', 'text-white');
+                cropButton.classList.remove('bg-indigo-500');
+                previewCanvas.classList.add('crop-mode');
+            } else {
+                cropButton.textContent = 'Activar Modo Recortar';
+                cropButton.classList.remove('bg-red-500', 'text-white');
+                cropButton.classList.add('bg-indigo-500');
+                previewCanvas.classList.remove('crop-mode');
+                
+                isCropping = false;
+                visualCropRect = null;
+                applyCropButton.classList.add('hidden');
+                redrawCanvas(); // Limpiar el rectángulo visual
+            }
+        }
+        
+        function drawCropRect() {
+            if (!visualCropRect) return;
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255, 0, 0, 0.7)';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([4, 4]);
+            const w = visualCropRect.endX - visualCropRect.startX;
+            const h = visualCropRect.endY - visualCropRect.startY;
+            ctx.strokeRect(visualCropRect.startX, visualCropRect.startY, w, h);
+            ctx.restore();
+        }
 
         // --- Handlers de Arrastrar Imagen (Drag) ---
         previewCanvas.addEventListener('mousedown', (e) => {
             if (!isImageLoaded) return;
-            
-            // NUEVO: Lógica de Borrador
+            const {x, y} = getCanvasCoordinates(e);
+
+            // Lógica de Borrador
             if (isEraseMode) {
+                saveStateForUndo(); // Guardar estado antes de pintar
                 isPainting = true;
-                const {x, y} = getCanvasCoordinates(e);
-                // Convertir coords del canvas visible a coords del canvas de edición
                 const imgX = (x - imagePos.x) / imageScale + editCanvas.width / 2;
                 const imgY = (y - imagePos.y) / imageScale + editCanvas.height / 2;
                 paintOnCanvas(imgX, imgY);
                 return;
             }
+            
+            // Lógica de Recorte
+            if (isCropMode) {
+                isCropping = true;
+                visualCropRect = { startX: x, startY: y, endX: x, endY: y };
+                applyCropButton.classList.add('hidden');
+                redrawCanvas();
+                return;
+            }
 
-            const {x, y} = getCanvasCoordinates(e);
-
-            // Revisar si el clic está dentro de la imagen (aproximado)
-            if (currentUserImage) {
-                const imgW = editCanvas.width * imageScale;
-                const imgH = editCanvas.height * imageScale;
-                if (x > imagePos.x - imgW/2 && x < imagePos.x + imgW/2 &&
-                    y > imagePos.y - imgH/2 && y < imagePos.y + imgH/2) {
-                    isDragging = true;
-                    dragStart.x = x - imagePos.x;
-                    dragStart.y = y - imagePos.y;
-                    previewCanvas.style.cursor = 'grabbing';
-                }
+            // Lógica de Arrastrar
+            const imgW = editCanvas.width * imageScale;
+            const imgH = editCanvas.height * imageScale;
+            if (x > imagePos.x - imgW/2 && x < imagePos.x + imgW/2 &&
+                y > imagePos.y - imgH/2 && y < imagePos.y + imgH/2) {
+                isDragging = true;
+                dragStart.x = x - imagePos.x;
+                dragStart.y = y - imagePos.y;
+                previewCanvas.style.cursor = 'grabbing';
             }
         });
         
         previewCanvas.addEventListener('mousemove', (e) => {
-            // NUEVO: Lógica de Borrador
+            const {x, y} = getCanvasCoordinates(e);
+
+            // Lógica de Borrador
             if (isEraseMode && isPainting) {
-                const {x, y} = getCanvasCoordinates(e);
                 const imgX = (x - imagePos.x) / imageScale + editCanvas.width / 2;
                 const imgY = (y - imagePos.y) / imageScale + editCanvas.height / 2;
                 paintOnCanvas(imgX, imgY);
                 return;
             }
+            
+            // Lógica de Recorte
+            if (isCropMode && isCropping) {
+                visualCropRect.endX = x;
+                visualCropRect.endY = y;
+                redrawCanvas(); // Redibujar para mostrar el rectángulo
+                return;
+            }
 
+            // Lógica de Arrastrar
             if (!isDragging) return;
-            const {x, y} = getCanvasCoordinates(e);
             imagePos.x = x - dragStart.x;
             imagePos.y = y - dragStart.y;
             redrawCanvas();
         });
         
         previewCanvas.addEventListener('mouseup', () => {
+            if (isEraseMode && isPainting) {
+                isPainting = false;
+            }
+            
+            if (isCropMode && isCropping) {
+                isCropping = false;
+                applyCropButton.classList.remove('hidden'); // Mostrar botón de aplicar
+            }
+
             isDragging = false;
-            isPainting = false; // NUEVO
-            previewCanvas.style.cursor = isEraseMode ? 'crosshair' : 'default'; // CAMBIO
+            let cursor = 'default';
+            if (isEraseMode) cursor = 'crosshair';
+            if (isCropMode) cursor = 'crosshair';
+            previewCanvas.style.cursor = cursor;
         });
         
         previewCanvas.addEventListener('mouseleave', () => {
             isDragging = false;
-            isPainting = false; // NUEVO
+            isPainting = false;
+            if (isCropMode && isCropping) { // Si sale mientras recorta, aplicar
+                isCropping = false;
+                applyCropButton.classList.remove('hidden');
+            }
             previewCanvas.style.cursor = 'default';
         });
 
-
         // --- Handlers de Acciones de Lote ---
-        
         confirmButton.addEventListener('click', () => {
             if (!isImageLoaded) {
                 alert("Por favor, genera o pega una imagen antes de confirmar.");
                 return;
             }
             
-            // Generar canvas final y guardarlo
             const finalCanvas = document.createElement('canvas');
             finalCanvas.width = 480;
             finalCanvas.height = 680;
-            // Pasamos 'finalCanvas' a redrawCanvas para que dibuje en él
             redrawCanvas(finalCanvas.getContext('2d')); 
             
             pdfSheets.push(finalCanvas);
             updatePdfButtonCount();
             
-            // Avanzar al siguiente
+            // --- NUEVO: Mostrar Toast ---
+            const job = jobQueue[currentJobIndex];
+            const theme = job.themes[currentThemeIndex];
+            showToast(`✔️ Hoja de ${job.name} (${theme}) añadida!`);
+            
             advanceJob();
         });
         
@@ -650,7 +896,7 @@
         
         discardButton.addEventListener('click', () => {
              if (confirm("¿Seguro que quieres descartar este pedido? Se saltarán todos los temas restantes para esta persona.")) {
-                currentJobIndex++; // Saltar al siguiente pedido
+                currentJobIndex++;
                 currentThemeIndex = 0;
                 loadCurrentJob();
             }
@@ -658,11 +904,15 @@
         
         function updateControlsVisibility() {
             if (isImageLoaded) {
-                imageEditGroup.style.display = 'block';
+                // imageEditGroup.style.display = 'block'; // Ya no es necesario con pestañas
+                noImageEditMessage.style.display = 'none';
                 confirmButton.disabled = false;
+                undoButton.disabled = undoStack.length <= 1; // Deshabilitar si solo está el estado inicial
             } else {
-                imageEditGroup.style.display = 'none';
+                // imageEditGroup.style.display = 'none'; // Ya no es necesario con pestañas
+                noImageEditMessage.style.display = 'block';
                 confirmButton.disabled = true;
+                undoButton.disabled = true;
             }
         }
         
@@ -676,41 +926,45 @@
                 exportPdfButton.textContent = `Exportar PDF (0 Hojas)`;
             }
         }
+        
+        // --- NUEVO: Función Toast ---
+        let toastTimer = null;
+        function showToast(message) {
+            if (toastTimer) clearTimeout(toastTimer); // Limpiar timer anterior
+            toastNotification.textContent = message;
+            toastNotification.classList.add('show');
+            
+            toastTimer = setTimeout(() => {
+                toastNotification.classList.remove('show');
+            }, 3000); // Ocultar después de 3 segundos
+        }
 
         // --- Lógica de Dibujado en Canvas ---
-
         function redrawCanvas(targetCtx = ctx) {
             targetCtx.fillStyle = 'white';
             targetCtx.fillRect(0, 0, 480, 680);
             
-            // 1. Dibujar Imagen del Usuario (si existe)
+            // 1. Dibujar Imagen del Usuario
             if (isImageLoaded && currentUserImage) {
                 targetCtx.save();
-                
-                // Aplicar filtro si está activo
                 if (useFilter) {
                     targetCtx.filter = 'contrast(130%) brightness(105%)';
                 }
-                
-                // Dibujar imagen con escala y posición
                 targetCtx.translate(imagePos.x, imagePos.y);
                 targetCtx.scale(imageScale, imageScale);
-                // --- CAMBIO: Dibujar desde el canvas de edición (borrador) ---
                 targetCtx.drawImage(editCanvas, -editCanvas.width / 2, -editCanvas.height / 2);
-                
-                targetCtx.restore(); // Quitar filtro y transformación
+                targetCtx.restore();
             } else {
-                // Dibujar Placeholder
-                targetCtx.fillStyle = '#9ca3af'; // text-gray-400
+                targetCtx.fillStyle = '#9ca3af';
                 targetCtx.font = '16px Inter';
                 targetCtx.textAlign = 'center';
                 targetCtx.fillText("Usa los botones para añadir una imagen", 240, 300);
             }
             
-            // 2. Dibujar Pie de Página (si cargó)
+            // 2. Dibujar Pie de Página
             let pieHeightOnCanvas = 0;
             if (pieImage && pieImage.complete) {
-                const pieTargetWidth = 480 * 0.95; // 95% del ancho
+                const pieTargetWidth = 480 * 0.95;
                 const pieScale = pieTargetWidth / pieImage.width;
                 const pieTargetHeight = pieImage.height * pieScale;
                 const pieX = (480 - pieTargetWidth) / 2;
@@ -719,10 +973,9 @@
                 pieHeightOnCanvas = pieTargetHeight + 10;
             }
             
-            // 3. Dibujar Textos (Nombre y Edad)
+            // 3. Dibujar Textos
             const name = nameInput.value.toUpperCase();
             const ageText = ageInput.value ? `${ageInput.value} AÑOS` : "";
-            // --- CAMBIO: Lógica para un solo renglón ---
             const fullText = ageText ? `${name} - ${ageText}` : name;
             
             const fontSize = 28;
@@ -734,24 +987,25 @@
             targetCtx.strokeStyle = 'black';
             targetCtx.fillStyle = 'white';
             
-            // --- CAMBIO: Posición Y única, más baja ---
             const textY = 680 - pieHeightOnCanvas - 20;
 
             if (fullText) {
                 targetCtx.strokeText(fullText, 240, textY);
                 targetCtx.fillText(fullText, 240, textY);
             }
+            
+            // --- NUEVO: Dibujar Rectángulo de Recorte (si existe) ---
+            if (targetCtx === ctx && isCropMode && visualCropRect) {
+                drawCropRect();
+            }
         }
         
         // --- Lógica de API de Gemini ---
         async function generateImage(prompt, attempt = 1) {
-            // (Esta función es idéntica a la versión anterior)
             if (!apiKey) {
                 showApiKeyModal();
                 throw new Error("API Key no está configurada.");
             }
-            // Usar gemini-2.5-flash-image-preview o imagen-3.0-generate-002
-            // Usaré imagen-3.0-generate-002 ya que es el preferido para generación simple
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;
             const payload = {
                 instances: [{ prompt: prompt }],
@@ -759,7 +1013,6 @@
             };
 
             console.log(`Generating image for prompt: "${prompt}" (Attempt ${attempt})`);
-
             try {
                 const response = await fetch(apiUrl, {
                     method: 'POST',
@@ -768,7 +1021,7 @@
                 });
 
                 if (!response.ok) {
-                     if (response.status === 429 && attempt < 5) { // Rate limit
+                     if (response.status === 429 && attempt < 5) {
                         const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
                         console.warn(`Rate limited (429). Retrying in ${Math.round(delay/1000)}s...`);
                         await new Promise(resolve => setTimeout(resolve, delay));
@@ -778,9 +1031,7 @@
                     console.error(`API Error (${response.status}): ${errorText}`);
                     throw new Error(`Error en la API (${response.status}): ${response.statusText}`);
                 }
-
                 const result = await response.json();
-
                 if (result.predictions && result.predictions.length > 0 && result.predictions[0].bytesBase64Encoded) {
                     const base64Data = result.predictions[0].bytesBase64Encoded;
                     return `data:image/png;base64,${base64Data}`;
@@ -789,7 +1040,7 @@
                     throw new Error("Respuesta inesperada de la API, no se encontró la imagen.");
                 }
             } catch (error) {
-                 if (attempt < 5) { // Network error
+                 if (attempt < 5) {
                     const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
                     console.warn(`Fetch error: ${error.message}. Retrying in ${Math.round(delay/1000)}s...`);
                     await new Promise(resolve => setTimeout(resolve, delay));
@@ -815,7 +1066,7 @@
             const pdf = new jsPDF({
                 orientation: 'portrait',
                 unit: 'px',
-                format: [480, 680] // Usar dimensiones del canvas
+                format: [480, 680]
             });
 
             try {
@@ -826,9 +1077,8 @@
                     }
                     const imgData = canvas.toDataURL('image/jpeg', 0.9);
                     pdf.addImage(imgData, 'JPEG', 0, 0, 480, 680);
-                    await new Promise(resolve => setTimeout(resolve, 10)); // Pausa para UI
+                    await new Promise(resolve => setTimeout(resolve, 10));
                 }
-
                 pdf.save('hojas_para_colorear_lote.pdf');
                 
             } catch (error) {
@@ -836,7 +1086,6 @@
                 alert('Error al generar PDF: ' + error.message);
             } finally {
                  exportPdfButton.disabled = false;
-                 // Resetear el botón de PDF, pero mantener las hojas en memoria
                  updatePdfButtonCount(); 
             }
         });
