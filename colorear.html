@@ -421,7 +421,7 @@
         const generateButton = document.getElementById('generateButton'); const generateSpinner = document.getElementById('generateSpinner'); const searchButton = document.getElementById('searchButton'); const pasteButton = document.getElementById('pasteButton');
         const recentImagesSection = document.getElementById('recentImagesSection'); const recentImagesContainer = document.getElementById('recentImagesContainer');
         const imageEditGroup = document.getElementById('imageEditGroup');
-        const noImageEditMessage = document.getElementById('noImageEditMessage'); // Ya no se usa? Revisar - Se mantiene en ToolsPanel
+        //const noImageEditMessage = document.getElementById('noImageEditMessage'); // Ya no se usa
         const scaleSlider = document.getElementById('scaleSlider'); const scaleValue = document.getElementById('scaleValue'); const filterToggle = document.getElementById('filterToggle');
         const eraseButton = document.getElementById('eraseButton'); const brushSizeSlider = document.getElementById('brushSizeSlider'); const brushSizeValue = document.getElementById('brushSizeValue');
         const cropButton = document.getElementById('cropButton'); const applyCropButton = document.getElementById('applyCropButton'); const undoButton = document.getElementById('undoButton'); const saveToStockButton = document.getElementById('saveToStockButton');
@@ -540,17 +540,15 @@
         function toggleEraseMode(forceOff = false) { if (forceOff) isEraseMode = true; isEraseMode = !isEraseMode; if (isEraseMode) { if (isCropMode) toggleCropMode(true); eraseButton.textContent = 'Desactivar Borrador'; eraseButton.classList.add('bg-red-500', 'text-white'); eraseButton.classList.remove('bg-yellow-500', 'text-black'); previewCanvas.classList.add('erase-mode'); } else { eraseButton.textContent = 'Activar Borrador'; eraseButton.classList.remove('bg-red-500', 'text-white'); eraseButton.classList.add('bg-yellow-500', 'text-black'); previewCanvas.classList.remove('erase-mode'); isPainting = false; } }
         function paintOnCanvas(cX, cY) { editCtx.fillStyle = 'white'; editCtx.beginPath(); editCtx.arc(cX, cY, brushSize / imageScale, 0, Math.PI * 2); editCtx.fill(); redrawCanvas(); }
 
-        // --- CAMBIO: Función getCanvasCoordinates corregida ---
+        // --- Función getCanvasCoordinates corregida ---
         function getCanvasCoordinates(e) {
             const rect = previewCanvas.getBoundingClientRect();
-            // Calcular la escala real del canvas en pantalla
             const scaleX = previewCanvas.width / rect.width;
             const scaleY = previewCanvas.height / rect.height;
-            // Coordenadas relativas al elemento canvas en la PÁGINA
-            const canvasX = (e.clientX - rect.left);
-            const canvasY = (e.clientY - rect.top);
-            // Coordenadas relativas a la resolución INTERNA del canvas (480x680)
-            // Asegurarse que no sean negativas si el clic está fuera por error
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const canvasX = (clientX - rect.left);
+            const canvasY = (clientY - rect.top);
             const x = Math.max(0, canvasX * scaleX);
             const y = Math.max(0, canvasY * scaleY);
             return {x, y};
@@ -593,7 +591,7 @@
         previewCanvas.addEventListener('mouseup', (e) => {
             e.preventDefault();
             if (isEraseMode&&isPainting) isPainting=false;
-            if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); visualCropRect=null; redrawCanvas(); } } // --- CAMBIO: Limpiar rect si es muy pequeño ---
+            if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); visualCropRect=null; redrawCanvas(); } }
             isDragging=false; let c='default'; if (isEraseMode) c='crosshair'; if (isCropMode) c='crosshair'; previewCanvas.style.cursor=c;
         });
         previewCanvas.addEventListener('mouseleave', (e) => {
@@ -604,11 +602,10 @@
                  isCropping=false;
                  if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) {
                     applyCropButton.classList.remove('hidden');
-                    // --- CAMBIO: Fijar coords al salir ---
                     const {x, y} = getCanvasCoordinates(e);
-                    visualCropRect.endX = Math.max(0, Math.min(previewCanvas.width, x)); // Usar previewCanvas.width/height
-                    visualCropRect.endY = Math.max(0, Math.min(previewCanvas.height, y)); // Usar previewCanvas.width/height
-                    redrawCanvas(); // Redibujar el rect final
+                    visualCropRect.endX = Math.max(0, Math.min(previewCanvas.width, x));
+                    visualCropRect.endY = Math.max(0, Math.min(previewCanvas.height, y));
+                    redrawCanvas();
                  } else {
                      visualCropRect = null; // Invalidar rect
                      applyCropButton.classList.add('hidden');
@@ -616,6 +613,28 @@
                  }
              }
         });
+         // Listeners para eventos táctiles (corregidos)
+         previewCanvas.addEventListener('touchstart', (e) => {
+             if (e.touches.length === 1) {
+                  e.preventDefault(); // Evitar scroll/zoom
+                 previewCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }));
+             }
+         }, { passive: false });
+         previewCanvas.addEventListener('touchmove', (e) => {
+             if (e.touches.length === 1) {
+                 e.preventDefault(); // Evitar scroll/zoom
+                 previewCanvas.dispatchEvent(new MouseEvent('mousemove', { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }));
+             }
+         }, { passive: false });
+         previewCanvas.addEventListener('touchend', (e) => {
+             // Siempre llamar mouseup, incluso si no hay toques (para terminar acciones)
+             previewCanvas.dispatchEvent(new MouseEvent('mouseup', {}));
+         });
+         previewCanvas.addEventListener('touchcancel', (e) => {
+             previewCanvas.dispatchEvent(new MouseEvent('mouseleave', {}));
+             previewCanvas.dispatchEvent(new MouseEvent('mouseup', {}));
+         });
+
 
         // --- Handlers de Acciones de Lote ---
         confirmButton.addEventListener('click', () => { if (!isImageLoaded) { alert("Carga una imagen."); return; } const fCan=document.createElement('canvas'); fCan.width=480; fCan.height=680; redrawCanvas(fCan.getContext('2d')); pdfSheets.push(fCan); const job=jobQueue[currentJobIndex]; const theme=job.theme; const sTh=theme.replace(/[^a-z0-9_.-]/gi,'_'); const sN=job.name.replace(/[^a-z0-9_.-]/gi,'_'); const fn=`${sN}_-_${sTh}_${job.originalIndex || currentJobIndex + 1}.png`; const iDU=editCanvas.toDataURL('image/png'); imagesForZip.push({name:fn,dataUrl:iDU}); const tDU=editCanvas.toDataURL('image/png',0.5); recentImages.unshift({theme:theme,dataUrl:tDU}); if (recentImages.length>5) recentImages.pop(); updateRecentImagesUI(); updateExportButtonsCount(); showToast(`✔️ Hoja de ${job.name} (${theme}) añadida!`); advanceJob(); });
@@ -623,7 +642,8 @@
         discardButton.addEventListener('click', () => { if(confirm("¿Terminar lote?")) resetApp(); });
         function updateControlsVisibility() {
              const showTools = isImageLoaded;
-             noImageEditMessage.style.display = 'none';
+             // --- CAMBIO: Eliminar referencia a noImageEditMessage ---
+             // noImageEditMessage.style.display = 'none';
              noImageToolsMessage.style.display = showTools ? 'none' : 'block';
              confirmButton.disabled = !showTools;
              undoButton.disabled = undoStack.length <= 1;
