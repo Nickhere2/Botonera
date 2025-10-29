@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Inter:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- NUEVO: JSZip para crear archivos .zip -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
         body {
@@ -72,9 +71,10 @@
         #jobQueueModal {
             display: none; /* Oculto por defecto */
         }
+        /* --- CAMBIO: Ajuste de columnas para Cantidad --- */
         .job-queue-row {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 40px;
+            grid-template-columns: 1fr 60px 1fr 60px 40px; /* Nombre | Edad | Tema | Cant | Eliminar */
             gap: 0.5rem;
             align-items: center;
             padding-bottom: 0.5rem;
@@ -87,6 +87,10 @@
             border: 1px solid #d1d5db; /* border-gray-300 */
             border-radius: 0.375rem; /* rounded-md */
         }
+         /* --- NUEVO: Estilo específico para input de cantidad --- */
+        .job-queue-row input[type="number"] {
+            text-align: center;
+        }
         .job-queue-row button {
             background-color: #ef4444; /* bg-red-500 */
             color: white;
@@ -98,13 +102,15 @@
             justify-content: center;
             font-weight: bold;
             transition: background-color 0.2s;
+            justify-self: center; /* Centrar botón */
         }
         .job-queue-row button:hover {
             background-color: #dc2626; /* bg-red-600 */
         }
+        /* --- CAMBIO: Ajuste de columnas para Cantidad --- */
         .job-queue-header {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 40px;
+            grid-template-columns: 1fr 60px 1fr 60px 40px; /* Nombre | Edad | Tema | Cant | Eliminar */
             gap: 0.5rem;
             font-weight: bold;
             color: #4b5563; /* text-gray-600 */
@@ -112,8 +118,20 @@
             text-transform: uppercase;
             padding-bottom: 0.5rem;
         }
+        /* --- NUEVO: Estilo para texto original --- */
+        #originalClipboardText {
+             background-color: #f9fafb; /* bg-gray-50 */
+             border: 1px dashed #d1d5db; /* border-gray-300 */
+             padding: 0.75rem; /* p-3 */
+             margin-bottom: 1rem; /* mb-4 */
+             font-family: monospace;
+             font-size: 0.875rem; /* text-sm */
+             white-space: pre-wrap; /* Conservar saltos de línea */
+             max-height: 100px;
+             overflow-y: auto;
+        }
 
-        /* --- NUEVO: Estilo para Inputs Readonly --- */
+        /* Estilo para Inputs Readonly */
         input[readonly] {
             background-color: #f3f4f6; /* bg-gray-100 */
             border-color: #f3f4f6; /* border-gray-100 */
@@ -121,7 +139,7 @@
             cursor: default;
         }
 
-        /* --- NUEVO: Estilos para Imágenes Recientes --- */
+        /* Estilos para Imágenes Recientes */
         #recentImagesContainer {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
@@ -164,19 +182,34 @@
 
         <!-- Modal de Confirmación de Lote -->
         <div id="jobQueueModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4">
-            <div class="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+            <div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col"> <!-- CAMBIO: max-w-3xl -->
                 <h2 class="text-2xl font-bold mb-4 text-center">Confirmar Pedidos</h2>
                 <p class="text-gray-600 mb-4 text-sm">Hemos procesado tu pedido. Por favor, revisa la lista, edita lo que necesites y elimina las filas incorrectas antes de comenzar.</p>
 
+                <!-- NUEVO: Mostrar texto original -->
+                <div class="mb-4">
+                    <p class="text-xs font-medium text-gray-500 mb-1">Texto Original Pegado:</p>
+                    <pre id="originalClipboardText" class="text-gray-700"></pre>
+                </div>
+
+                <!-- CAMBIO: Columnas ajustadas -->
                 <div class="job-queue-header">
                     <span>Nombre</span>
                     <span>Edad</span>
                     <span>Tema</span>
+                    <span>Cant.</span> <!-- NUEVO -->
                     <span></span>
                 </div>
 
                 <div id="jobQueueList" class="flex-1 overflow-y-auto pr-2">
                     <!-- Las filas se insertarán aquí dinámicamente -->
+                </div>
+
+                 <!-- NUEVO: Botón para añadir fila -->
+                <div class="mt-4 text-right">
+                    <button id="addJobRowButton" class="bg-blue-500 text-white py-1 px-3 rounded-lg text-sm hover:bg-blue-600 transition duration-300">
+                        [+] Agregar Fila
+                    </button>
                 </div>
 
                 <div class="mt-6 flex justify-between">
@@ -234,7 +267,7 @@
                             <p class="text-md font-bold text-gray-900" id="themeStatusLabel">Tema: micky</p>
                         </div>
 
-                        <!-- CAMBIO: Inputs ahora son Readonly -->
+                        <!-- Inputs Readonly -->
                         <div id="inputsGroup" class="flex flex-col gap-3">
                             <div>
                                 <label for="nameInput" class="block text-sm font-medium text-gray-700 mb-1">Nombre:</label>
@@ -273,7 +306,7 @@
                         <button id="searchButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
                         <button id="pasteButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Pegar Imagen</button>
 
-                        <!-- NUEVO: Contenedor de Imágenes Recientes -->
+                        <!-- Contenedor de Imágenes Recientes -->
                         <div id="recentImagesSection" class="hidden">
                             <h3 class="text-md font-bold text-gray-800 mt-4">Imágenes Recientes</h3>
                             <p class="text-sm text-gray-500 mb-2">Reutiliza una imagen que acabas de confirmar.</p>
@@ -292,7 +325,7 @@
                                 ↩️ Deshacer
                              </button>
 
-                             <!-- NUEVO: Botón de Stock Local -->
+                             <!-- Botón de Stock Local -->
                              <button id="saveToStockButton" class="w-full bg-teal-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-teal-600 transition duration-300 disabled:opacity-50" disabled>
                                 💾 Guardar en Stock Local
                              </button>
@@ -344,7 +377,7 @@
                 <button id="exportPdfButton" class="w-full mt-4 bg-red-600 text-white py-3 px-5 rounded-lg font-bold hover:bg-red-700 transition duration-300 disabled:opacity-50" disabled>
                      Exportar PDF (0 Hojas)
                  </button>
-                 <!-- NUEVO: Botón de Exportar ZIP -->
+                 <!-- Botón de Exportar ZIP -->
                  <button id="exportZipButton" class="w-full mt-2 bg-blue-600 text-white py-3 px-5 rounded-lg font-bold hover:bg-blue-700 transition duration-300 disabled:opacity-50" disabled>
                      Exportar Imágenes (.zip)
                  </button>
@@ -358,10 +391,10 @@
         let apiKey = localStorage.getItem('geminiApiKey');
         let jobQueue = [];
         let pdfSheets = [];
-        // --- NUEVO: Array para las imágenes del ZIP ---
         let imagesForZip = [];
-        // --- NUEVO: Array para Imágenes Recientes ---
         let recentImages = [];
+        // --- NUEVO: Variable para texto original ---
+        let originalClipboardContent = "";
 
         let currentJobIndex = -1;
 
@@ -396,6 +429,10 @@
         const jobQueueList = document.getElementById('jobQueueList');
         const confirmJobQueueButton = document.getElementById('confirmJobQueueButton');
         const cancelJobQueueButton = document.getElementById('cancelJobQueueButton');
+        // --- NUEVO: Selectores de modal ---
+        const originalClipboardText = document.getElementById('originalClipboardText');
+        const addJobRowButton = document.getElementById('addJobRowButton');
+
 
         const initialView = document.getElementById('initialView');
         const ingresarPedidoButton = document.getElementById('ingresarPedidoButton');
@@ -425,7 +462,6 @@
         const searchButton = document.getElementById('searchButton');
         const pasteButton = document.getElementById('pasteButton');
 
-        // --- NUEVO: Selectores de Imágenes Recientes ---
         const recentImagesSection = document.getElementById('recentImagesSection');
         const recentImagesContainer = document.getElementById('recentImagesContainer');
 
@@ -442,7 +478,6 @@
         const cropButton = document.getElementById('cropButton');
         const applyCropButton = document.getElementById('applyCropButton');
         const undoButton = document.getElementById('undoButton');
-        // --- NUEVO: Selector de Stock Local ---
         const saveToStockButton = document.getElementById('saveToStockButton');
 
         const confirmButton = document.getElementById('confirmButton');
@@ -452,7 +487,6 @@
         const previewCanvas = document.getElementById('previewCanvas');
         const ctx = previewCanvas.getContext('2d');
         const exportPdfButton = document.getElementById('exportPdfButton');
-        // --- NUEVO: Selector de Exportar ZIP ---
         const exportZipButton = document.getElementById('exportZipButton');
 
         const toastNotification = document.getElementById('toastNotification');
@@ -463,7 +497,6 @@
         } else {
             hideApiKeyModal();
             loadPieImage();
-            // initStockLocalDB(); // Se podría inicializar aquí
         }
 
         // --- Handlers de API Key y Carga ---
@@ -474,7 +507,6 @@
                 localStorage.setItem('geminiApiKey', key);
                 hideApiKeyModal();
                 loadPieImage();
-                // initStockLocalDB();
                 console.log("API Key guardada en localStorage.");
             } else {
                 alert('Por favor, ingresa una clave API válida.');
@@ -523,12 +555,13 @@
         // --- Lógica Principal del Flujo (Wizard) ---
         ingresarPedidoButton.addEventListener('click', async () => {
             try {
-                const text = await navigator.clipboard.readText();
-                if (!text) {
+                // --- CAMBIO: Guardar texto original ---
+                originalClipboardContent = await navigator.clipboard.readText();
+                if (!originalClipboardContent) {
                     alert("Portapapeles vacío. Por favor, copia tu lista de pedidos.");
                     return;
                 }
-                jobQueue = parseRequests(text);
+                jobQueue = parseRequests(originalClipboardContent);
 
                 if (jobQueue.length > 0) {
                     populateJobQueueModal();
@@ -548,42 +581,76 @@
 
         function populateJobQueueModal() {
             jobQueueList.innerHTML = '';
+            // --- NUEVO: Mostrar texto original ---
+            originalClipboardText.textContent = originalClipboardContent;
+
             jobQueue.forEach((job, index) => {
-                const row = document.createElement('div');
-                row.className = 'job-queue-row';
-                row.dataset.index = index;
-                row.innerHTML = `
-                    <input type="text" data-field="name" value="${escapeHTML(job.name)}" class="job-input-name">
-                    <input type="text" data-field="age" value="${escapeHTML(job.age)}" class="job-input-age">
-                    <input type="text" data-field="theme" value="${escapeHTML(job.theme)}" class="job-input-theme">
-                    <button class="deleteJobButton" data-index="${index}">&times;</button>
-                `;
-                jobQueueList.appendChild(row);
-            });
-            jobQueueList.querySelectorAll('.deleteJobButton').forEach(button => {
-                button.addEventListener('click', handleDeleteJobRow);
+                addRowToJobQueueList(job, index);
             });
         }
 
-        function handleDeleteJobRow(e) {
-            const indexToDelete = parseInt(e.currentTarget.dataset.index);
-            jobQueue.splice(indexToDelete, 1);
-            populateJobQueueModal();
+        // --- NUEVO: Función para añadir una fila (reutilizable) ---
+        function addRowToJobQueueList(job, index) {
+            const row = document.createElement('div');
+            row.className = 'job-queue-row';
+            row.dataset.index = index; // Usar índice del array
+
+            // Si job no existe (fila nueva), crear objeto vacío
+            const currentJob = job || { name: "", age: "", theme: "", quantity: 1 };
+
+            row.innerHTML = `
+                <input type="text" data-field="name" value="${escapeHTML(currentJob.name)}" class="job-input-name">
+                <input type="text" data-field="age" value="${escapeHTML(currentJob.age)}" class="job-input-age">
+                <input type="text" data-field="theme" value="${escapeHTML(currentJob.theme)}" class="job-input-theme">
+                <input type="number" data-field="quantity" value="${currentJob.quantity || 1}" min="1" class="job-input-quantity w-16"> <!-- NUEVO: Input Cantidad -->
+                <button class="deleteJobButton" data-index="${index}">&times;</button>
+            `;
+            jobQueueList.appendChild(row);
+
+            // Añadir listener al botón de eliminar de esta fila
+            row.querySelector('.deleteJobButton').addEventListener('click', handleDeleteJobRow);
         }
+
+        function handleDeleteJobRow(e) {
+            const rowElement = e.currentTarget.closest('.job-queue-row');
+            if (rowElement) {
+                rowElement.remove();
+                // Opcional: Re-indexar visualmente si es importante
+                // reindexJobQueueList(); // No es estrictamente necesario si reconstruimos al confirmar
+            }
+        }
+
+        // --- NUEVO: Listener para el botón "+" ---
+        addJobRowButton.addEventListener('click', () => {
+             const nextIndex = jobQueueList.children.length;
+             addRowToJobQueueList(null, nextIndex);
+        });
 
         cancelJobQueueButton.addEventListener('click', () => {
             hideJobQueueModal();
         });
 
         confirmJobQueueButton.addEventListener('click', () => {
+            // 1. Actualizar jobQueue desde los campos editados
             const updatedQueue = [];
             const rows = jobQueueList.querySelectorAll('.job-queue-row');
+
             rows.forEach(row => {
                 const name = row.querySelector('.job-input-name').value;
                 const age = row.querySelector('.job-input-age').value;
                 const theme = row.querySelector('.job-input-theme').value;
-                updatedQueue.push({ name: name, age: age, theme: theme, done: false });
+                const quantity = parseInt(row.querySelector('.job-input-quantity').value) || 1; // NUEVO: Leer cantidad
+
+                // --- CAMBIO: La cantidad no afecta la lógica principal, solo es informativa/editable ---
+                updatedQueue.push({
+                    name: name,
+                    age: age,
+                    theme: theme,
+                    quantity: quantity, // Guardar la cantidad
+                    done: false
+                });
             });
+
             jobQueue = updatedQueue;
 
             if (jobQueue.length === 0) {
@@ -592,12 +659,12 @@
                 return;
             }
 
+            // 2. Iniciar el asistente
             pdfSheets = [];
-            // --- NUEVO: Limpiar arrays de exportación ---
             imagesForZip = [];
             recentImages = [];
-            updateRecentImagesUI(); // Limpiar UI
-            updateExportButtonsCount(); // Resetear contadores
+            updateRecentImagesUI();
+            updateExportButtonsCount();
 
             currentJobIndex = 0;
             initialView.style.display = 'none';
@@ -608,8 +675,7 @@
         });
 
         function escapeHTML(str) {
-            // Simple escape for value attribute
-            return str ? str.replace(/"/g, '&quot;') : '';
+             return str ? String(str).replace(/"/g, '&quot;') : '';
         }
 
         function parseRequests(text) {
@@ -624,7 +690,7 @@
                     const themes = themesRaw.split(/\s+y\s+|\s*,\s*|\s*&\s*/i).map(t => t.trim()).filter(t => t);
                     if (themes.length > 0) {
                         themes.forEach(theme => {
-                            requests.push({ name: name.trim(), age: age.trim(), theme: theme, done: false });
+                            requests.push({ name: name.trim(), age: age.trim(), theme: theme, quantity: 1, done: false }); // Añadir cantidad default
                         });
                     }
                 }
@@ -641,7 +707,6 @@
             const job = jobQueue[currentJobIndex];
 
             jobStatusLabel.textContent = `Procesando Hoja ${currentJobIndex + 1} de ${jobQueue.length}`;
-            // --- CAMBIO: Actualizar campos readonly ---
             jobStatusName.textContent = `${job.name} (${job.age} años)`;
             themeStatusLabel.textContent = `Tema: ${job.theme}`;
             nameInput.value = job.name;
@@ -682,6 +747,7 @@
              mainAppView.style.display = 'none';
              jobQueue = [];
              currentJobIndex = -1;
+             // Mantener pdfSheets e imagesForZip para exportar
         }
 
         // --- Handlers de Acciones de Imagen ---
@@ -777,15 +843,13 @@
              }
         }
 
-        // --- NUEVO: Handlers de Imágenes Recientes ---
+        // --- Handlers de Imágenes Recientes ---
         function updateRecentImagesUI() {
             recentImagesContainer.innerHTML = ''; // Limpiar
             if (recentImages.length > 0) {
                 recentImagesSection.classList.remove('hidden');
 
-                // Evitar duplicados (mostrar solo el más reciente por tema)
                 const uniqueThemes = new Map();
-                // Iterar en orden inverso para obtener el más reciente primero
                 for (let i = recentImages.length - 1; i >= 0; i--) {
                      const img = recentImages[i];
                     if (!uniqueThemes.has(img.theme)) {
@@ -793,13 +857,11 @@
                     }
                 }
 
-                // Crear elementos en el orden original de los temas únicos
                 Array.from(uniqueThemes.entries()).forEach(([theme, dataUrl]) => {
                     const imgEl = document.createElement('img');
                     imgEl.src = dataUrl;
                     imgEl.title = `Reusar imagen de ${theme}`;
                     imgEl.className = 'recent-image';
-                    // --- CORRECCIÓN: Sintaxis de arrow function ---
                     imgEl.addEventListener('click', () => {
                         loadImageOntoCanvas(dataUrl);
                         switchToTab('tabContentEdicion');
@@ -813,13 +875,8 @@
             }
         }
 
-        // --- NUEVO: Handlers de Stock Local (Placeholder) ---
-        // La implementación real de IndexedDB es larga,
-        // por ahora solo habilitamos el botón.
+        // --- Handlers de Stock Local (Placeholder) ---
         saveToStockButton.addEventListener('click', () => {
-            // Lógica de IndexedDB (Guardar editCanvas.toDataURL())
-            // const theme = jobQueue[currentJobIndex].theme;
-            // db.saveImage(theme, editCanvas.toDataURL());
             alert("Función 'Guardar en Stock' aún no implementada.\n\nPor ahora, usa 'Exportar Imágenes (.zip)' al final.");
         });
 
@@ -1043,12 +1100,11 @@
             }
             if (isCropMode && isCropping) {
                 isCropping = false;
-                // Check if the rect has size before showing apply button
                 if (visualCropRect && (Math.abs(visualCropRect.endX - visualCropRect.startX) > 5 || Math.abs(visualCropRect.endY - visualCropRect.startY) > 5)) {
                     applyCropButton.classList.remove('hidden');
                 } else {
-                     applyCropButton.classList.add('hidden'); // Hide if too small
-                     redrawCanvas(); // Redraw to remove small rect visual
+                     applyCropButton.classList.add('hidden');
+                     redrawCanvas();
                 }
             }
             isDragging = false;
@@ -1061,7 +1117,7 @@
         previewCanvas.addEventListener('mouseleave', () => {
             isDragging = false;
             isPainting = false;
-            if (isCropMode && isCropping) { // If mouse leaves while cropping, finalize crop rect
+            if (isCropMode && isCropping) {
                 isCropping = false;
                  if (visualCropRect && (Math.abs(visualCropRect.endX - visualCropRect.startX) > 5 || Math.abs(visualCropRect.endY - visualCropRect.startY) > 5)) {
                     applyCropButton.classList.remove('hidden');
@@ -1090,19 +1146,18 @@
             // 2. Guardar Imagen para ZIP
             const job = jobQueue[currentJobIndex];
             const theme = job.theme;
-            // Limpiar nombre de archivo
             const safeTheme = theme.replace(/[^a-z0-9_.-]/gi, '_');
             const safeName = job.name.replace(/[^a-z0-9_.-]/gi, '_');
-            const filename = `${safeName}_-_${safeTheme}.png`;
+            // --- CAMBIO: Incluir índice para nombres repetidos ---
+            const filename = `${safeName}_-_${safeTheme}_${currentJobIndex + 1}.png`;
 
             const imageDataUrl = editCanvas.toDataURL('image/png');
             imagesForZip.push({ name: filename, dataUrl: imageDataUrl });
 
             // 3. Guardar Imagen para Recientes
-            // Usar una calidad más baja para la miniatura
             const thumbDataUrl = editCanvas.toDataURL('image/png', 0.5);
             recentImages.unshift({ theme: theme, dataUrl: thumbDataUrl });
-            if (recentImages.length > 5) { // Limitar a 5
+            if (recentImages.length > 5) {
                 recentImages.pop();
             }
             updateRecentImagesUI();
@@ -1130,20 +1185,17 @@
                 noImageEditMessage.style.display = 'none';
                 confirmButton.disabled = false;
                 undoButton.disabled = undoStack.length <= 1;
-                saveToStockButton.disabled = false; // Habilitar guardado
+                saveToStockButton.disabled = false;
             } else {
                 noImageEditMessage.style.display = 'block';
                 confirmButton.disabled = true;
                 undoButton.disabled = true;
-                saveToStockButton.disabled = true; // Deshabilitar guardado
+                saveToStockButton.disabled = true;
             }
         }
 
-        // --- CAMBIO: Función renombrada y actualizada ---
         function updateExportButtonsCount() {
             const count = pdfSheets.length;
-
-            // Botón de PDF
             if (count > 0) {
                 exportPdfButton.disabled = false;
                 exportPdfButton.textContent = `Exportar PDF (${count} Hojas)`;
@@ -1151,8 +1203,6 @@
                 exportPdfButton.disabled = true;
                 exportPdfButton.textContent = `Exportar PDF (0 Hojas)`;
             }
-
-            // Botón de ZIP
             if (count > 0) {
                 exportZipButton.disabled = false;
                 exportZipButton.textContent = `Exportar Imágenes (${count}.zip)`;
@@ -1207,7 +1257,6 @@
             }
 
             // 3. Dibujar Textos
-            // --- CAMBIO: Leer de inputs readonly ---
             const name = nameInput.value.toUpperCase();
             const ageText = ageInput.value ? `${ageInput.value} AÑOS` : "";
             const fullText = ageText ? `${name} - ${ageText}` : name;
@@ -1323,7 +1372,7 @@
             }
         });
 
-        // --- NUEVO: Exportación de ZIP ---
+        // --- Exportación de ZIP ---
         exportZipButton.addEventListener('click', async () => {
             if (imagesForZip.length === 0) {
                 alert("No hay imágenes confirmadas para exportar.");
@@ -1337,14 +1386,11 @@
                 const zip = new JSZip();
 
                 for (const img of imagesForZip) {
-                    // Extraer datos base64 de la data URL
                     const base64Data = img.dataUrl.split(',')[1];
                     zip.file(img.name, base64Data, { base64: true });
                 }
 
                 const content = await zip.generateAsync({ type: "blob" });
-
-                // Disparar la descarga
                 triggerDownload(content, 'imagenes_editadas.zip');
 
             } catch (error) {
@@ -1356,7 +1402,7 @@
             }
         });
 
-        // --- NUEVO: Helper de Descarga ---
+        // Helper de Descarga
         function triggerDownload(blob, filename) {
             const a = document.createElement('a');
             const url = URL.createObjectURL(blob);
@@ -1370,8 +1416,7 @@
             }, 0);
         }
 
-        // --- Listeners de Inputs (para redibujar el canvas) ---
-        // Siguen funcionando aunque los inputs sean readonly
+        // --- Listeners de Inputs ---
         nameInput.addEventListener('input', () => redrawCanvas());
         ageInput.addEventListener('input', () => redrawCanvas());
 
