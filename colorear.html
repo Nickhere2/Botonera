@@ -175,11 +175,13 @@
         /* Margen inferior para el canvas */
         #previewCanvas {
              margin-bottom: 1rem; /* mb-4 */
-             /* --- NUEVO: Evitar selección de texto al arrastrar --- */
              user-select: none;
              -webkit-user-select: none; /* Safari */
              -moz-user-select: none; /* Firefox */
              -ms-user-select: none; /* IE10+ */
+             /* --- NUEVO: Asegurar que el tamaño del elemento sea el correcto --- */
+             width: 480px;
+             height: 680px;
         }
 
 
@@ -321,7 +323,7 @@
                              <div id="recentImagesContainer"></div>
                          </div>
                     </div>
-                     <!-- Contenido de Edición movido al panel de Herramientas -->
+                     <!-- Contenido de Edición ahora en panel derecho -->
                 </div>
             </div>
 
@@ -464,7 +466,6 @@
                         name: name,
                         age: age,
                         theme: theme,
-                        // --- CAMBIO: Usar rowIndex ---
                         originalIndex: rows.length > 1 ? `${rowIndex + 1}-${i + 1}` : `${i+1}`,
                         done: false
                     });
@@ -513,7 +514,7 @@
                 if (!foundImage) alert("No se encontró imagen compatible.");
             } catch (err) { console.error("Error al pegar:", err); if (err.name === 'NotAllowedError') { alert("Permiso denegado para portapapeles."); } else if (err.name === 'NotFoundError') { alert("No se encontró contenido compatible."); } else if (err.message.toLowerCase().includes('permission')) { alert("Permiso denegado."); } else { alert(`Error al pegar: ${err.name} - ${err.message}.`); } }
         });
-        function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; }; currentUserImage.src = imageUrl; }
+        function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; updateControlsVisibility(); }; currentUserImage.src = imageUrl; }
         function setLoading(isLoading) { const span = generateButton.querySelector('span'); generateButton.disabled = isLoading; generateSpinner.classList.toggle('hidden', !isLoading); if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; }
 
         // --- Handlers de Imágenes Recientes ---
@@ -530,8 +531,8 @@
         brushSizeSlider.addEventListener('input', (e) => { brushSize = parseInt(e.target.value); brushSizeValue.textContent = `${brushSize}px`; });
         eraseButton.addEventListener('click', () => toggleEraseMode(false));
         function toggleEraseMode(forceOff = false) { if (forceOff) isEraseMode = true; isEraseMode = !isEraseMode; if (isEraseMode) { if (isCropMode) toggleCropMode(true); eraseButton.textContent = 'Desactivar Borrador'; eraseButton.classList.add('bg-red-500', 'text-white'); eraseButton.classList.remove('bg-yellow-500', 'text-black'); previewCanvas.classList.add('erase-mode'); } else { eraseButton.textContent = 'Activar Borrador'; eraseButton.classList.remove('bg-red-500', 'text-white'); eraseButton.classList.add('bg-yellow-500', 'text-black'); previewCanvas.classList.remove('erase-mode'); isPainting = false; } }
-        function paintOnCanvas(cX, cY) { editCtx.fillStyle = 'white'; editCtx.beginPath(); editCtx.arc(cX, cY, brushSize, 0, Math.PI * 2); editCtx.fill(); redrawCanvas(); }
-        function getCanvasCoordinates(e) { const r = previewCanvas.getBoundingClientRect(); const x = (e.clientX - r.left)*(previewCanvas.width/r.width); const y = (e.clientY - r.top)*(previewCanvas.height/r.height); return {x,y}; } // --- CAMBIO: Usar width/height del canvas ---
+        function paintOnCanvas(cX, cY) { editCtx.fillStyle = 'white'; editCtx.beginPath(); editCtx.arc(cX, cY, brushSize / imageScale, 0, Math.PI * 2); editCtx.fill(); redrawCanvas(); }
+        function getCanvasCoordinates(e) { const r = previewCanvas.getBoundingClientRect(); const x = (e.clientX - r.left)*(previewCanvas.width/r.width); const y = (e.clientY - r.top)*(previewCanvas.height/r.height); return {x,y}; }
         cropButton.addEventListener('click', () => toggleCropMode(false));
         applyCropButton.addEventListener('click', () => { if (!visualCropRect) return; saveStateForUndo(); const nR={x1:Math.min(visualCropRect.startX,visualCropRect.endX),y1:Math.min(visualCropRect.startY,visualCropRect.endY),x2:Math.max(visualCropRect.startX,visualCropRect.endX),y2:Math.max(visualCropRect.startY,visualCropRect.endY)}; const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale; const iX1=imagePos.x-iW/2; const iY1=imagePos.y-iH/2; const cX1=Math.max(nR.x1,iX1); const cY1=Math.max(nR.y1,iY1); const cX2=Math.min(nR.x2,iX1+iW); const cY2=Math.min(nR.y2,iY1+iH); if(cX2<=cX1||cY2<=cY1){toggleCropMode(true);return;} const sX=(cX1-iX1)/imageScale; const sY=(cY1-iY1)/imageScale; const sW=(cX2-cX1)/imageScale; const sH=(cY2-cY1)/imageScale; const tCan=document.createElement('canvas'); tCan.width=sW; tCan.height=sH; tCan.getContext('2d').drawImage(editCanvas,sX,sY,sW,sH,0,0,sW,sH); editCanvas.width=sW; editCanvas.height=sH; editCtx.drawImage(tCan,0,0); toggleCropMode(true); loadImageOntoCanvas(editCanvas.toDataURL()); });
         function toggleCropMode(forceOff = false) { if (forceOff) isCropMode = true; isCropMode = !isCropMode; if (isCropMode) { if (isEraseMode) toggleEraseMode(true); cropButton.textContent = 'Cancelar Recorte'; cropButton.classList.add('bg-red-500', 'text-white'); cropButton.classList.remove('bg-indigo-500'); previewCanvas.classList.add('crop-mode'); } else { cropButton.textContent = 'Activar Modo Recortar'; cropButton.classList.remove('bg-red-500', 'text-white'); cropButton.classList.add('bg-indigo-500'); previewCanvas.classList.remove('crop-mode'); isCropping = false; visualCropRect = null; applyCropButton.classList.add('hidden'); redrawCanvas(); } }
@@ -539,55 +540,56 @@
 
         // --- Handlers de Arrastrar Imagen (Drag) ---
         previewCanvas.addEventListener('mousedown', (e) => {
-            // --- CAMBIO: Prevenir default para evitar selección de texto ---
             e.preventDefault();
             if (!isImageLoaded) return;
             const {x, y} = getCanvasCoordinates(e);
-            if (isEraseMode) { saveStateForUndo(); isPainting = true; const iX=(x-imagePos.x)/imageScale+editCanvas.width/2; const iY=(y-imagePos.y)/imageScale+editCanvas.height/2; paintOnCanvas(iX,iY); return; }
+            if (isEraseMode) {
+                 if(!isPainting) saveStateForUndo(); // Guardar solo al inicio del trazo
+                 isPainting = true;
+                 const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
+                 const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
+                 paintOnCanvas(iX,iY);
+                 return;
+            }
             if (isCropMode) { isCropping = true; visualCropRect = {startX:x,startY:y,endX:x,endY:y}; applyCropButton.classList.add('hidden'); redrawCanvas(); return; }
             const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale;
             if(x>imagePos.x-iW/2&&x<imagePos.x+iW/2&&y>imagePos.y-iH/2&&y<imagePos.y+iH/2) { isDragging=true; dragStart.x=x-imagePos.x; dragStart.y=y-imagePos.y; previewCanvas.style.cursor='grabbing'; }
         });
         previewCanvas.addEventListener('mousemove', (e) => {
-            // --- CAMBIO: Prevenir default ---
             e.preventDefault();
             const {x,y}=getCanvasCoordinates(e);
-            if (isEraseMode&&isPainting) { const iX=(x-imagePos.x)/imageScale+editCanvas.width/2; const iY=(y-imagePos.y)/imageScale+editCanvas.height/2; paintOnCanvas(iX,iY); return; }
+            if (isEraseMode&&isPainting) {
+                const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
+                const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
+                paintOnCanvas(iX,iY);
+                return;
+            }
             if (isCropMode&&isCropping) { visualCropRect.endX=x; visualCropRect.endY=y; redrawCanvas(); return; }
             if (!isDragging) return; imagePos.x=x-dragStart.x; imagePos.y=y-dragStart.y; redrawCanvas();
         });
-        previewCanvas.addEventListener('mouseup', (e) => { // --- CAMBIO: Pasar 'e' ---
-            // --- CAMBIO: Prevenir default ---
+        previewCanvas.addEventListener('mouseup', (e) => {
             e.preventDefault();
             if (isEraseMode&&isPainting) isPainting=false;
             if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); redrawCanvas(); } }
             isDragging=false; let c='default'; if (isEraseMode) c='crosshair'; if (isCropMode) c='crosshair'; previewCanvas.style.cursor=c;
         });
-        previewCanvas.addEventListener('mouseleave', (e) => { // --- CAMBIO: Pasar 'e' ---
-             // --- CAMBIO: Prevenir default ---
+        previewCanvas.addEventListener('mouseleave', (e) => {
             e.preventDefault();
-            if (isDragging) { // Si sale arrastrando, soltar
-                 isDragging=false;
-                 previewCanvas.style.cursor='default';
-            }
-            if (isPainting) { // Si sale pintando, soltar
-                 isPainting = false;
-            }
-            if (isCropMode&&isCropping) { // Si sale recortando, considerar soltar
+            if (isDragging) { isDragging=false; previewCanvas.style.cursor='default'; }
+            if (isPainting) { isPainting = false; }
+            if (isCropMode&&isCropping) {
                  isCropping=false;
                  if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) {
                      applyCropButton.classList.remove('hidden');
-                     // Actualizar endX/endY a la última posición conocida dentro del canvas
                      const {x, y} = getCanvasCoordinates(e);
-                     visualCropRect.endX = Math.max(0, Math.min(480, x));
-                     visualCropRect.endY = Math.max(0, Math.min(680, y));
-                     redrawCanvas(); // Redibujar el rect final
+                     visualCropRect.endX = Math.max(0, Math.min(previewCanvas.width, x));
+                     visualCropRect.endY = Math.max(0, Math.min(previewCanvas.height, y));
+                     redrawCanvas();
                  } else {
                      applyCropButton.classList.add('hidden');
                      redrawCanvas();
                  }
             }
-            // previewCanvas.style.cursor='default'; // No siempre queremos default
         });
 
         // --- Handlers de Acciones de Lote ---
@@ -596,7 +598,7 @@
         discardButton.addEventListener('click', () => { if(confirm("¿Terminar lote?")) resetApp(); });
         function updateControlsVisibility() {
              const showTools = isImageLoaded;
-             noImageEditMessage.style.display = 'none'; // Ya no se usa
+             noImageEditMessage.style.display = 'none'; // Ya no se usa? Revisar
              noImageToolsMessage.style.display = showTools ? 'none' : 'block';
              confirmButton.disabled = !showTools;
              undoButton.disabled = undoStack.length <= 1;
