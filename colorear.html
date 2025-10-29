@@ -19,7 +19,7 @@
 
         .main-container {
             display: grid;
-            /* Izquierda | Canvas | Herramientas+Edición | Exportar */
+            /* Izquierda | Canvas | Herramientas | Exportar */
             grid-template-columns: 350px auto 250px 200px;
             gap: 1.5rem;
             max-width: 1600px;
@@ -172,17 +172,6 @@
             flex-direction: column;
             align-items: center; /* Centrar canvas si hay espacio extra */
         }
-        /* Margen inferior para el canvas */
-        #previewCanvas {
-             margin-bottom: 1rem; /* mb-4 */
-             user-select: none;
-             -webkit-user-select: none; /* Safari */
-             -moz-user-select: none; /* Firefox */
-             -ms-user-select: none; /* IE10+ */
-             /* --- NUEVO: Asegurar que el tamaño del elemento sea el correcto --- */
-             width: 480px;
-             height: 680px;
-        }
 
 
     </style>
@@ -272,6 +261,7 @@
                 <div class="flex border-b mb-4">
                     <button id="tabButtonLote" class="tab-button flex-1 py-2 px-4 text-sm font-medium text-center text-gray-600 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 active">Lote</button>
                     <button id="tabButtonImagen" class="tab-button flex-1 py-2 px-4 text-sm font-medium text-center text-gray-600 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500">Imagen</button>
+                    <button id="tabButtonEdicion" class="tab-button flex-1 py-2 px-4 text-sm font-medium text-center text-gray-600 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500">Edición</button>
                 </div>
 
                 <!-- Contenido de Pestañas -->
@@ -323,7 +313,24 @@
                              <div id="recentImagesContainer"></div>
                          </div>
                     </div>
-                     <!-- Contenido de Edición ahora en panel derecho -->
+                    <!-- Pestaña 3: Edición (Simplificada) -->
+                    <div id="tabContentEdicion" class="tab-content flex flex-col gap-4 h-full">
+                        <div id="imageEditGroup" class="flex flex-col gap-4">
+                              <h3 class="text-md font-bold text-gray-800">Ajustar Imagen</h3>
+                              <!-- Botones Deshacer y Stock movidos a Herramientas -->
+                              <div class="border-t pt-4">
+                                 <label for="scaleSlider" class="block text-sm font-medium text-gray-700 mb-1">Escala: <span id="scaleValue">100</span>%</label>
+                                 <input type="range" id="scaleSlider" min="10" max="300" value="100" class="w-full">
+                              </div>
+                              <div class="flex items-center">
+                                 <input type="checkbox" id="filterToggle" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                                 <label for="filterToggle" class="ml-2 block text-sm text-gray-900">Aplicar Filtro "Falsos Blancos"</label>
+                              </div>
+                         </div>
+                         <div id="noImageEditMessage" class="text-center text-gray-500 mt-10">
+                             Carga una imagen para ver las herramientas de edición.
+                         </div>
+                    </div>
                 </div>
             </div>
 
@@ -334,25 +341,17 @@
 
             <!-- Panel de Herramientas (Derecha 1) -->
             <div id="toolsPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
-                 <h3 class="text-md font-bold text-gray-800 border-b pb-2">Herramientas y Edición</h3>
+                 <h3 class="text-md font-bold text-gray-800 border-b pb-2">Herramientas</h3>
+                 
+                 <!-- NUEVO: Botones movidos aquí -->
+                 <button id="undoButton" class="w-full bg-gray-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-600 transition duration-300 disabled:opacity-50" disabled>
+                    ↩️ Deshacer
+                 </button>
+                 <button id="saveToStockButton" class="w-full bg-teal-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-teal-600 transition duration-300 disabled:opacity-50" disabled>
+                    💾 Guardar en Stock Local
+                 </button>
 
-                 <div id="imageEditGroup" class="flex flex-col gap-4">
-                     <button id="undoButton" class="w-full bg-gray-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-600 transition duration-300 disabled:opacity-50" disabled>
-                        ↩️ Deshacer
-                     </button>
-                     <button id="saveToStockButton" class="w-full bg-teal-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-teal-600 transition duration-300 disabled:opacity-50" disabled>
-                        💾 Guardar en Stock Local
-                     </button>
-                     <div class="border-t pt-4">
-                        <label for="scaleSlider" class="block text-sm font-medium text-gray-700 mb-1">Escala: <span id="scaleValue">100</span>%</label>
-                        <input type="range" id="scaleSlider" min="10" max="300" value="100" class="w-full">
-                     </div>
-                     <div class="flex items-center">
-                        <input type="checkbox" id="filterToggle" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                        <label for="filterToggle" class="ml-2 block text-sm text-gray-900">Aplicar Filtro "Falsos Blancos"</label>
-                     </div>
-                 </div>
-
+                 <!-- Herramienta de Borrador -->
                  <div class="border-t pt-4 flex flex-col gap-3">
                     <button id="eraseButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
                         Activar Borrador
@@ -363,6 +362,7 @@
                     </div>
                  </div>
 
+                 <!-- Herramienta de Recortar -->
                  <div class="border-t pt-4 flex flex-col gap-3">
                     <button id="cropButton" class="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-600 transition duration-300">
                         Activar Modo Recortar
@@ -371,7 +371,7 @@
                         Aplicar Recorte
                     </button>
                  </div>
-                 <div id="noImageToolsMessage" class="text-center text-gray-500 mt-auto pt-4"> <!-- mt-auto para empujar abajo -->
+                 <div id="noImageToolsMessage" class="text-center text-gray-500 mt-10">
                      Carga una imagen para usar las herramientas.
                  </div>
             </div>
@@ -408,15 +408,13 @@
         const apiKeyModal = document.getElementById('apiKeyModal'); const apiKeyInput = document.getElementById('apiKeyInput'); const saveApiKeyButton = document.getElementById('saveApiKeyButton');
         const jobQueueModal = document.getElementById('jobQueueModal'); const jobQueueList = document.getElementById('jobQueueList'); const confirmJobQueueButton = document.getElementById('confirmJobQueueButton'); const cancelJobQueueButton = document.getElementById('cancelJobQueueButton'); const originalClipboardText = document.getElementById('originalClipboardText'); const addJobRowButton = document.getElementById('addJobRowButton');
         const initialView = document.getElementById('initialView'); const ingresarPedidoButton = document.getElementById('ingresarPedidoButton'); const mainAppView = document.getElementById('mainAppView');
-        const tabButtonLote = document.getElementById('tabButtonLote'); const tabButtonImagen = document.getElementById('tabButtonImagen');
-        const tabContentLote = document.getElementById('tabContentLote'); const tabContentImagen = document.getElementById('tabContentImagen');
-        const tabs = [ { btn: tabButtonLote, content: tabContentLote }, { btn: tabButtonImagen, content: tabContentImagen } ]; // Solo 2 pestañas
+        const tabButtonLote = document.getElementById('tabButtonLote'); const tabButtonImagen = document.getElementById('tabButtonImagen'); const tabButtonEdicion = document.getElementById('tabButtonEdicion'); const tabContentLote = document.getElementById('tabContentLote'); const tabContentImagen = document.getElementById('tabContentImagen'); const tabContentEdicion = document.getElementById('tabContentEdicion');
+        const tabs = [ { btn: tabButtonLote, content: tabContentLote }, { btn: tabButtonImagen, content: tabContentImagen }, { btn: tabButtonEdicion, content: tabContentEdicion }, ];
         const jobStatusLabel = document.getElementById('jobStatusLabel'); const jobStatusName = document.getElementById('jobStatusName'); const themeStatusLabel = document.getElementById('themeStatusLabel');
         const nameInput = document.getElementById('nameInput'); const ageInput = document.getElementById('ageInput');
         const generateButton = document.getElementById('generateButton'); const generateSpinner = document.getElementById('generateSpinner'); const searchButton = document.getElementById('searchButton'); const pasteButton = document.getElementById('pasteButton');
         const recentImagesSection = document.getElementById('recentImagesSection'); const recentImagesContainer = document.getElementById('recentImagesContainer');
-        const imageEditGroup = document.getElementById('imageEditGroup');
-        const noImageEditMessage = document.getElementById('noImageEditMessage'); // Ya no se usa
+        const imageEditGroup = document.getElementById('imageEditGroup'); const noImageEditMessage = document.getElementById('noImageEditMessage');
         const scaleSlider = document.getElementById('scaleSlider'); const scaleValue = document.getElementById('scaleValue'); const filterToggle = document.getElementById('filterToggle');
         const eraseButton = document.getElementById('eraseButton'); const brushSizeSlider = document.getElementById('brushSizeSlider'); const brushSizeValue = document.getElementById('brushSizeValue');
         const cropButton = document.getElementById('cropButton'); const applyCropButton = document.getElementById('applyCropButton'); const undoButton = document.getElementById('undoButton'); const saveToStockButton = document.getElementById('saveToStockButton');
@@ -453,29 +451,31 @@
         addJobRowButton.addEventListener('click', () => { const nextIndex = jobQueueList.children.length; addRowToJobQueueList(null, nextIndex); });
         cancelJobQueueButton.addEventListener('click', () => { hideJobQueueModal(); });
         confirmJobQueueButton.addEventListener('click', () => {
-            const finalJobQueue = [];
+            const finalJobQueue = []; // Cola final que incluye repeticiones por cantidad
             const rows = jobQueueList.querySelectorAll('.job-queue-row');
-            rows.forEach((row, rowIndex) => { // Añadido rowIndex
+            rows.forEach(row => {
                 const name = row.querySelector('.job-input-name').value;
                 const age = row.querySelector('.job-input-age').value;
                 const theme = row.querySelector('.job-input-theme').value;
                 const quantity = parseInt(row.querySelector('.job-input-quantity').value) || 1;
 
+                // --- CAMBIO: Crear múltiples jobs si quantity > 1 ---
                 for (let i = 0; i < quantity; i++) {
                     finalJobQueue.push({
                         name: name,
                         age: age,
                         theme: theme,
-                        originalIndex: rows.length > 1 ? `${rowIndex + 1}-${i + 1}` : `${i+1}`,
+                        // Guardar un identificador único para el ZIP (opcional pero bueno)
+                        originalIndex: rows.length > 1 ? `${Array.from(rows).indexOf(row) + 1}-${i + 1}` : `${i+1}`,
                         done: false
                     });
                 }
             });
 
-            jobQueue = finalJobQueue;
+            jobQueue = finalJobQueue; // Usar la cola expandida
 
             if (jobQueue.length === 0) {
-                alert("No hay trabajos en la cola.");
+                alert("No hay trabajos en la cola. Añade un pedido.");
                 hideJobQueueModal(); return;
             }
             pdfSheets = []; imagesForZip = []; recentImages = [];
@@ -492,33 +492,17 @@
         function loadCurrentJob() { if (currentJobIndex < 0 || currentJobIndex >= jobQueue.length) { alert("¡Lote completado!"); resetApp(); return; } const job = jobQueue[currentJobIndex]; jobStatusLabel.textContent = `Procesando Hoja ${currentJobIndex + 1} de ${jobQueue.length}`; jobStatusName.textContent = `${job.name} (${job.age} años)`; themeStatusLabel.textContent = `Tema: ${job.theme}`; nameInput.value = job.name; ageInput.value = job.age; generateButton.dataset.theme = job.theme; searchButton.dataset.theme = job.theme; resetImageState(); redrawCanvas(); }
         function resetImageState() { currentUserImage = null; isImageLoaded = false; scaleSlider.value = 100; imageScale = 1.0; imagePos = { x: 240, y: 340 }; filterToggle.checked = false; useFilter = false; if (isEraseMode) toggleEraseMode(true); if (isCropMode) toggleCropMode(true); undoStack = []; updateControlsVisibility(); }
         function advanceJob() { jobQueue[currentJobIndex].done = true; currentJobIndex++; loadCurrentJob(); switchToTab('tabContentLote'); }
-        function resetApp() {
-            if (pdfSheets.length === 0) {
-                 jobQueue = []; currentJobIndex = -1; recentImages = [];
-                 updateRecentImagesUI(); initialView.style.display = 'block'; mainAppView.style.display = 'none';
-             } else {
-                 jobStatusLabel.textContent = `Lote Completado (${pdfSheets.length} hojas)`; jobStatusName.textContent = "Listo para Exportar"; themeStatusLabel.textContent = "";
-                 resetImageState(); redrawCanvas(); switchToTab('tabContentLote');
-                 confirmButton.disabled = true; skipButton.disabled = true; discardButton.disabled = true;
-             }
-        }
+        function resetApp() { initialView.style.display = 'block'; mainAppView.style.display = 'none'; jobQueue = []; currentJobIndex = -1; }
 
         // --- Handlers de Acciones de Imagen ---
-        generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
+        generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); switchToTab('tabContentEdicion'); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
         searchButton.addEventListener('click', (e) => { const theme = e.currentTarget.dataset.theme; const query = `${theme} para colorear`; const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`; window.open(url, '_blank'); switchToTab('tabContentImagen'); });
-        pasteButton.addEventListener('click', async () => {
-            try {
-                if (!navigator.clipboard || !navigator.clipboard.read) { alert("Navegador no soporta pegar."); return; }
-                const items = await navigator.clipboard.read(); let foundImage = false;
-                for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); foundImage = true; break; } }
-                if (!foundImage) alert("No se encontró imagen compatible.");
-            } catch (err) { console.error("Error al pegar:", err); if (err.name === 'NotAllowedError') { alert("Permiso denegado para portapapeles."); } else if (err.name === 'NotFoundError') { alert("No se encontró contenido compatible."); } else if (err.message.toLowerCase().includes('permission')) { alert("Permiso denegado."); } else { alert(`Error al pegar: ${err.name} - ${err.message}.`); } }
-        });
-        function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; updateControlsVisibility(); }; currentUserImage.src = imageUrl; }
+        pasteButton.addEventListener('click', async () => { try { const items = await navigator.clipboard.read(); for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); switchToTab('tabContentEdicion'); return; } } alert("No hay imagen."); } catch (err) { console.error("Error paste:", err); alert("No se pudo pegar."); } });
+        function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; }; currentUserImage.src = imageUrl; }
         function setLoading(isLoading) { const span = generateButton.querySelector('span'); generateButton.disabled = isLoading; generateSpinner.classList.toggle('hidden', !isLoading); if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; }
 
         // --- Handlers de Imágenes Recientes ---
-        function updateRecentImagesUI() { recentImagesContainer.innerHTML = ''; if (recentImages.length > 0) { recentImagesSection.classList.remove('hidden'); const uniqueThemes = new Map(); for (let i = recentImages.length - 1; i >= 0; i--) { const img = recentImages[i]; if (!uniqueThemes.has(img.theme)) { uniqueThemes.set(img.theme, img.dataUrl); } } Array.from(uniqueThemes.entries()).forEach(([theme, dataUrl]) => { const imgEl = document.createElement('img'); imgEl.src = dataUrl; imgEl.title = `Reusar ${theme}`; imgEl.className = 'recent-image'; imgEl.addEventListener('click', () => { loadImageOntoCanvas(dataUrl); showToast(`Imagen de "${theme}" reutilizada.`); }); recentImagesContainer.appendChild(imgEl); }); } else { recentImagesSection.classList.add('hidden'); } }
+        function updateRecentImagesUI() { recentImagesContainer.innerHTML = ''; if (recentImages.length > 0) { recentImagesSection.classList.remove('hidden'); const uniqueThemes = new Map(); for (let i = recentImages.length - 1; i >= 0; i--) { const img = recentImages[i]; if (!uniqueThemes.has(img.theme)) { uniqueThemes.set(img.theme, img.dataUrl); } } Array.from(uniqueThemes.entries()).forEach(([theme, dataUrl]) => { const imgEl = document.createElement('img'); imgEl.src = dataUrl; imgEl.title = `Reusar ${theme}`; imgEl.className = 'recent-image'; imgEl.addEventListener('click', () => { loadImageOntoCanvas(dataUrl); switchToTab('tabContentEdicion'); showToast(`Imagen de "${theme}" reutilizada.`); }); recentImagesContainer.appendChild(imgEl); }); } else { recentImagesSection.classList.add('hidden'); } }
 
         // --- Handlers de Stock Local ---
         saveToStockButton.addEventListener('click', () => { alert("Stock Local no implementado. Usa Exportar ZIP."); });
@@ -531,66 +515,18 @@
         brushSizeSlider.addEventListener('input', (e) => { brushSize = parseInt(e.target.value); brushSizeValue.textContent = `${brushSize}px`; });
         eraseButton.addEventListener('click', () => toggleEraseMode(false));
         function toggleEraseMode(forceOff = false) { if (forceOff) isEraseMode = true; isEraseMode = !isEraseMode; if (isEraseMode) { if (isCropMode) toggleCropMode(true); eraseButton.textContent = 'Desactivar Borrador'; eraseButton.classList.add('bg-red-500', 'text-white'); eraseButton.classList.remove('bg-yellow-500', 'text-black'); previewCanvas.classList.add('erase-mode'); } else { eraseButton.textContent = 'Activar Borrador'; eraseButton.classList.remove('bg-red-500', 'text-white'); eraseButton.classList.add('bg-yellow-500', 'text-black'); previewCanvas.classList.remove('erase-mode'); isPainting = false; } }
-        function paintOnCanvas(cX, cY) { editCtx.fillStyle = 'white'; editCtx.beginPath(); editCtx.arc(cX, cY, brushSize / imageScale, 0, Math.PI * 2); editCtx.fill(); redrawCanvas(); }
-        function getCanvasCoordinates(e) { const r = previewCanvas.getBoundingClientRect(); const x = (e.clientX - r.left)*(previewCanvas.width/r.width); const y = (e.clientY - r.top)*(previewCanvas.height/r.height); return {x,y}; }
+        function paintOnCanvas(cX, cY) { editCtx.fillStyle = 'white'; editCtx.beginPath(); editCtx.arc(cX, cY, brushSize, 0, Math.PI * 2); editCtx.fill(); redrawCanvas(); }
+        function getCanvasCoordinates(e) { const r = previewCanvas.getBoundingClientRect(); const x = (e.clientX - r.left)*(480/r.width); const y = (e.clientY - r.top)*(680/r.height); return {x,y}; }
         cropButton.addEventListener('click', () => toggleCropMode(false));
         applyCropButton.addEventListener('click', () => { if (!visualCropRect) return; saveStateForUndo(); const nR={x1:Math.min(visualCropRect.startX,visualCropRect.endX),y1:Math.min(visualCropRect.startY,visualCropRect.endY),x2:Math.max(visualCropRect.startX,visualCropRect.endX),y2:Math.max(visualCropRect.startY,visualCropRect.endY)}; const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale; const iX1=imagePos.x-iW/2; const iY1=imagePos.y-iH/2; const cX1=Math.max(nR.x1,iX1); const cY1=Math.max(nR.y1,iY1); const cX2=Math.min(nR.x2,iX1+iW); const cY2=Math.min(nR.y2,iY1+iH); if(cX2<=cX1||cY2<=cY1){toggleCropMode(true);return;} const sX=(cX1-iX1)/imageScale; const sY=(cY1-iY1)/imageScale; const sW=(cX2-cX1)/imageScale; const sH=(cY2-cY1)/imageScale; const tCan=document.createElement('canvas'); tCan.width=sW; tCan.height=sH; tCan.getContext('2d').drawImage(editCanvas,sX,sY,sW,sH,0,0,sW,sH); editCanvas.width=sW; editCanvas.height=sH; editCtx.drawImage(tCan,0,0); toggleCropMode(true); loadImageOntoCanvas(editCanvas.toDataURL()); });
         function toggleCropMode(forceOff = false) { if (forceOff) isCropMode = true; isCropMode = !isCropMode; if (isCropMode) { if (isEraseMode) toggleEraseMode(true); cropButton.textContent = 'Cancelar Recorte'; cropButton.classList.add('bg-red-500', 'text-white'); cropButton.classList.remove('bg-indigo-500'); previewCanvas.classList.add('crop-mode'); } else { cropButton.textContent = 'Activar Modo Recortar'; cropButton.classList.remove('bg-red-500', 'text-white'); cropButton.classList.add('bg-indigo-500'); previewCanvas.classList.remove('crop-mode'); isCropping = false; visualCropRect = null; applyCropButton.classList.add('hidden'); redrawCanvas(); } }
         function drawCropRect() { if (!visualCropRect) return; ctx.save(); ctx.strokeStyle = 'rgba(255,0,0,0.7)'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); const w=visualCropRect.endX-visualCropRect.startX; const h=visualCropRect.endY-visualCropRect.startY; ctx.strokeRect(visualCropRect.startX,visualCropRect.startY,w,h); ctx.restore(); }
 
         // --- Handlers de Arrastrar Imagen (Drag) ---
-        previewCanvas.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            if (!isImageLoaded) return;
-            const {x, y} = getCanvasCoordinates(e);
-            if (isEraseMode) {
-                 if(!isPainting) saveStateForUndo(); // Guardar solo al inicio del trazo
-                 isPainting = true;
-                 const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
-                 const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
-                 paintOnCanvas(iX,iY);
-                 return;
-            }
-            if (isCropMode) { isCropping = true; visualCropRect = {startX:x,startY:y,endX:x,endY:y}; applyCropButton.classList.add('hidden'); redrawCanvas(); return; }
-            const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale;
-            if(x>imagePos.x-iW/2&&x<imagePos.x+iW/2&&y>imagePos.y-iH/2&&y<imagePos.y+iH/2) { isDragging=true; dragStart.x=x-imagePos.x; dragStart.y=y-imagePos.y; previewCanvas.style.cursor='grabbing'; }
-        });
-        previewCanvas.addEventListener('mousemove', (e) => {
-            e.preventDefault();
-            const {x,y}=getCanvasCoordinates(e);
-            if (isEraseMode&&isPainting) {
-                const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
-                const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
-                paintOnCanvas(iX,iY);
-                return;
-            }
-            if (isCropMode&&isCropping) { visualCropRect.endX=x; visualCropRect.endY=y; redrawCanvas(); return; }
-            if (!isDragging) return; imagePos.x=x-dragStart.x; imagePos.y=y-dragStart.y; redrawCanvas();
-        });
-        previewCanvas.addEventListener('mouseup', (e) => {
-            e.preventDefault();
-            if (isEraseMode&&isPainting) isPainting=false;
-            if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); redrawCanvas(); } }
-            isDragging=false; let c='default'; if (isEraseMode) c='crosshair'; if (isCropMode) c='crosshair'; previewCanvas.style.cursor=c;
-        });
-        previewCanvas.addEventListener('mouseleave', (e) => {
-            e.preventDefault();
-            if (isDragging) { isDragging=false; previewCanvas.style.cursor='default'; }
-            if (isPainting) { isPainting = false; }
-            if (isCropMode&&isCropping) {
-                 isCropping=false;
-                 if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) {
-                     applyCropButton.classList.remove('hidden');
-                     const {x, y} = getCanvasCoordinates(e);
-                     visualCropRect.endX = Math.max(0, Math.min(previewCanvas.width, x));
-                     visualCropRect.endY = Math.max(0, Math.min(previewCanvas.height, y));
-                     redrawCanvas();
-                 } else {
-                     applyCropButton.classList.add('hidden');
-                     redrawCanvas();
-                 }
-            }
-        });
+        previewCanvas.addEventListener('mousedown', (e) => { if (!isImageLoaded) return; const {x, y} = getCanvasCoordinates(e); if (isEraseMode) { saveStateForUndo(); isPainting = true; const iX=(x-imagePos.x)/imageScale+editCanvas.width/2; const iY=(y-imagePos.y)/imageScale+editCanvas.height/2; paintOnCanvas(iX,iY); return; } if (isCropMode) { isCropping = true; visualCropRect = {startX:x,startY:y,endX:x,endY:y}; applyCropButton.classList.add('hidden'); redrawCanvas(); return; } const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale; if(x>imagePos.x-iW/2&&x<imagePos.x+iW/2&&y>imagePos.y-iH/2&&y<imagePos.y+iH/2) { isDragging=true; dragStart.x=x-imagePos.x; dragStart.y=y-imagePos.y; previewCanvas.style.cursor='grabbing'; } });
+        previewCanvas.addEventListener('mousemove', (e) => { const {x,y}=getCanvasCoordinates(e); if (isEraseMode&&isPainting) { const iX=(x-imagePos.x)/imageScale+editCanvas.width/2; const iY=(y-imagePos.y)/imageScale+editCanvas.height/2; paintOnCanvas(iX,iY); return; } if (isCropMode&&isCropping) { visualCropRect.endX=x; visualCropRect.endY=y; redrawCanvas(); return; } if (!isDragging) return; imagePos.x=x-dragStart.x; imagePos.y=y-dragStart.y; redrawCanvas(); });
+        previewCanvas.addEventListener('mouseup', () => { if (isEraseMode&&isPainting) isPainting=false; if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); redrawCanvas(); } } isDragging=false; let c='default'; if (isEraseMode) c='crosshair'; if (isCropMode) c='crosshair'; previewCanvas.style.cursor=c; });
+        previewCanvas.addEventListener('mouseleave', () => { isDragging=false; isPainting=false; if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); redrawCanvas(); } } previewCanvas.style.cursor='default'; });
 
         // --- Handlers de Acciones de Lote ---
         confirmButton.addEventListener('click', () => { if (!isImageLoaded) { alert("Carga una imagen."); return; } const fCan=document.createElement('canvas'); fCan.width=480; fCan.height=680; redrawCanvas(fCan.getContext('2d')); pdfSheets.push(fCan); const job=jobQueue[currentJobIndex]; const theme=job.theme; const sTh=theme.replace(/[^a-z0-9_.-]/gi,'_'); const sN=job.name.replace(/[^a-z0-9_.-]/gi,'_'); const fn=`${sN}_-_${sTh}_${job.originalIndex || currentJobIndex + 1}.png`; const iDU=editCanvas.toDataURL('image/png'); imagesForZip.push({name:fn,dataUrl:iDU}); const tDU=editCanvas.toDataURL('image/png',0.5); recentImages.unshift({theme:theme,dataUrl:tDU}); if (recentImages.length>5) recentImages.pop(); updateRecentImagesUI(); updateExportButtonsCount(); showToast(`✔️ Hoja de ${job.name} (${theme}) añadida!`); advanceJob(); });
@@ -598,7 +534,7 @@
         discardButton.addEventListener('click', () => { if(confirm("¿Terminar lote?")) resetApp(); });
         function updateControlsVisibility() {
              const showTools = isImageLoaded;
-             noImageEditMessage.style.display = 'none'; // Ya no se usa? Revisar
+             noImageEditMessage.style.display = showTools ? 'none' : 'block';
              noImageToolsMessage.style.display = showTools ? 'none' : 'block';
              confirmButton.disabled = !showTools;
              undoButton.disabled = undoStack.length <= 1;
@@ -633,4 +569,3 @@
 
 </body>
 </html>
-
