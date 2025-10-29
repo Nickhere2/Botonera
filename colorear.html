@@ -491,18 +491,14 @@
         function resetImageState() { currentUserImage = null; isImageLoaded = false; scaleSlider.value = 100; imageScale = 1.0; imagePos = { x: 240, y: 340 }; filterToggle.checked = false; useFilter = false; if (isEraseMode) toggleEraseMode(true); if (isCropMode) toggleCropMode(true); undoStack = []; updateControlsVisibility(); }
         function advanceJob() { jobQueue[currentJobIndex].done = true; currentJobIndex++; loadCurrentJob(); switchToTab('tabContentLote'); }
         function resetApp() {
-            initialView.style.display = 'block';
-            mainAppView.style.display = 'none';
             // --- CAMBIO: Mantener export buttons activos si hay hojas ---
-            // jobQueue = []; // Limpiar cola lógica
-            // currentJobIndex = -1;
-            // recentImages = []; // Limpiar recientes
-            // updateRecentImagesUI();
-             if (pdfSheets.length === 0) { // Solo resetear si no hay nada para exportar
+            if (pdfSheets.length === 0) { // Solo resetear si no hay nada para exportar
                  jobQueue = [];
                  currentJobIndex = -1;
                  recentImages = [];
                  updateRecentImagesUI();
+                 initialView.style.display = 'block'; // Volver a vista inicial
+                 mainAppView.style.display = 'none';
              } else {
                  // Si hay hojas, mantener la app visible pero indicar que terminó
                  jobStatusLabel.textContent = `Lote Completado (${pdfSheets.length} hojas)`;
@@ -511,48 +507,23 @@
                  resetImageState(); // Limpiar imagen actual
                  redrawCanvas();
                  switchToTab('tabContentLote'); // Ir a la pestaña Lote
+                 // Deshabilitar botones de lote
+                 confirmButton.disabled = true;
+                 skipButton.disabled = true;
+                 discardButton.disabled = true;
              }
         }
 
         // --- Handlers de Acciones de Imagen ---
-        generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); switchToTab('tabContentImagen'); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
+        generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); /* Ya no cambiar tab */ } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
         searchButton.addEventListener('click', (e) => { const theme = e.currentTarget.dataset.theme; const query = `${theme} para colorear`; const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`; window.open(url, '_blank'); switchToTab('tabContentImagen'); });
         pasteButton.addEventListener('click', async () => {
             try {
-                // --- CAMBIO: Mejor manejo de errores y permisos ---
-                if (!navigator.clipboard || !navigator.clipboard.read) {
-                    alert("Tu navegador no soporta pegar desde el portapapeles de forma segura. Intenta usar Chrome, Edge o Firefox actualizado.");
-                    return;
-                }
-                const items = await navigator.clipboard.read();
-                let foundImage = false;
-                for (const item of items) {
-                    const imageType = item.types.find(type => type.startsWith('image/'));
-                    if (imageType) {
-                        const blob = await item.getType(imageType);
-                        const imageUrl = URL.createObjectURL(blob);
-                        loadImageOntoCanvas(imageUrl);
-                        switchToTab('tabContentImagen');
-                        foundImage = true;
-                        break; // Salir del bucle una vez encontrada la imagen
-                    }
-                }
-                if (!foundImage) {
-                    alert("No se encontró una imagen compatible en el portapapeles.");
-                }
-            } catch (err) {
-                console.error("Error al pegar imagen:", err);
-                if (err.name === 'NotAllowedError') {
-                    alert("No se pudo pegar la imagen. Debes conceder permiso al sitio para acceder al portapapeles. Busca un ícono en la barra de direcciones.");
-                } else if (err.name === 'NotFoundError') {
-                     alert("No se encontró contenido compatible en el portapapeles en este momento.");
-                } else if (err.message.toLowerCase().includes('permission')) {
-                     alert("Permiso denegado para acceder al portapapeles.");
-                }
-                else {
-                    alert(`Error al pegar: ${err.name} - ${err.message}. Asegúrate de haber copiado una imagen.`);
-                }
-            }
+                if (!navigator.clipboard || !navigator.clipboard.read) { alert("Navegador no soporta pegar."); return; }
+                const items = await navigator.clipboard.read(); let foundImage = false;
+                for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); /* Ya no cambiar tab */ foundImage = true; break; } }
+                if (!foundImage) alert("No se encontró imagen compatible.");
+            } catch (err) { console.error("Error al pegar:", err); if (err.name === 'NotAllowedError') { alert("Permiso denegado para portapapeles."); } else if (err.name === 'NotFoundError') { alert("No se encontró contenido compatible."); } else if (err.message.toLowerCase().includes('permission')) { alert("Permiso denegado."); } else { alert(`Error al pegar: ${err.name} - ${err.message}.`); } }
         });
         function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; }; currentUserImage.src = imageUrl; }
         function setLoading(isLoading) { const span = generateButton.querySelector('span'); generateButton.disabled = isLoading; generateSpinner.classList.toggle('hidden', !isLoading); if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; }
