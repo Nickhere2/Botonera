@@ -17,15 +17,14 @@
             font-family: 'Patrick Hand', cursive;
         }
 
-        /* --- CAMBIO: Reajuste de columnas --- */
         .main-container {
             display: grid;
             /* Izquierda | Canvas | Herramientas+Edición | Exportar */
             grid-template-columns: 350px auto 250px 200px;
             gap: 1.5rem;
-            max-width: 1600px; /* Aumentado para más espacio */
+            max-width: 1600px;
             margin: auto;
-            padding: 1rem; /* Reducido padding general */
+            padding: 1rem;
             align-items: start;
         }
 
@@ -176,6 +175,11 @@
         /* Margen inferior para el canvas */
         #previewCanvas {
              margin-bottom: 1rem; /* mb-4 */
+             /* --- NUEVO: Evitar selección de texto al arrastrar --- */
+             user-select: none;
+             -webkit-user-select: none; /* Safari */
+             -moz-user-select: none; /* Firefox */
+             -ms-user-select: none; /* IE10+ */
         }
 
 
@@ -403,17 +407,14 @@
         const jobQueueModal = document.getElementById('jobQueueModal'); const jobQueueList = document.getElementById('jobQueueList'); const confirmJobQueueButton = document.getElementById('confirmJobQueueButton'); const cancelJobQueueButton = document.getElementById('cancelJobQueueButton'); const originalClipboardText = document.getElementById('originalClipboardText'); const addJobRowButton = document.getElementById('addJobRowButton');
         const initialView = document.getElementById('initialView'); const ingresarPedidoButton = document.getElementById('ingresarPedidoButton'); const mainAppView = document.getElementById('mainAppView');
         const tabButtonLote = document.getElementById('tabButtonLote'); const tabButtonImagen = document.getElementById('tabButtonImagen');
-        // --- CAMBIO: Eliminado tabButtonEdicion ---
         const tabContentLote = document.getElementById('tabContentLote'); const tabContentImagen = document.getElementById('tabContentImagen');
-        // --- CAMBIO: Eliminado tabContentEdicion ---
         const tabs = [ { btn: tabButtonLote, content: tabContentLote }, { btn: tabButtonImagen, content: tabContentImagen } ]; // Solo 2 pestañas
         const jobStatusLabel = document.getElementById('jobStatusLabel'); const jobStatusName = document.getElementById('jobStatusName'); const themeStatusLabel = document.getElementById('themeStatusLabel');
         const nameInput = document.getElementById('nameInput'); const ageInput = document.getElementById('ageInput');
         const generateButton = document.getElementById('generateButton'); const generateSpinner = document.getElementById('generateSpinner'); const searchButton = document.getElementById('searchButton'); const pasteButton = document.getElementById('pasteButton');
         const recentImagesSection = document.getElementById('recentImagesSection'); const recentImagesContainer = document.getElementById('recentImagesContainer');
-        // --- CAMBIO: imageEditGroup ahora está en el panel de herramientas ---
         const imageEditGroup = document.getElementById('imageEditGroup');
-        const noImageEditMessage = document.getElementById('noImageEditMessage'); // Mensaje de Edición (izquierda - ahora obsoleto?)
+        const noImageEditMessage = document.getElementById('noImageEditMessage'); // Ya no se usa
         const scaleSlider = document.getElementById('scaleSlider'); const scaleValue = document.getElementById('scaleValue'); const filterToggle = document.getElementById('filterToggle');
         const eraseButton = document.getElementById('eraseButton'); const brushSizeSlider = document.getElementById('brushSizeSlider'); const brushSizeValue = document.getElementById('brushSizeValue');
         const cropButton = document.getElementById('cropButton'); const applyCropButton = document.getElementById('applyCropButton'); const undoButton = document.getElementById('undoButton'); const saveToStockButton = document.getElementById('saveToStockButton');
@@ -422,7 +423,7 @@
         const toastNotification = document.getElementById('toastNotification');
         const exportPanel = document.getElementById('exportPanel'); const exportPdfButton = document.getElementById('exportPdfButton'); const exportZipButton = document.getElementById('exportZipButton');
         const toolsPanel = document.getElementById('toolsPanel');
-        const noImageToolsMessage = document.getElementById('noImageToolsMessage'); // Mensaje de Herramientas (derecha)
+        const noImageToolsMessage = document.getElementById('noImageToolsMessage');
 
 
         // --- Carga Inicial ---
@@ -491,37 +492,24 @@
         function resetImageState() { currentUserImage = null; isImageLoaded = false; scaleSlider.value = 100; imageScale = 1.0; imagePos = { x: 240, y: 340 }; filterToggle.checked = false; useFilter = false; if (isEraseMode) toggleEraseMode(true); if (isCropMode) toggleCropMode(true); undoStack = []; updateControlsVisibility(); }
         function advanceJob() { jobQueue[currentJobIndex].done = true; currentJobIndex++; loadCurrentJob(); switchToTab('tabContentLote'); }
         function resetApp() {
-            // --- CAMBIO: Mantener export buttons activos si hay hojas ---
-            if (pdfSheets.length === 0) { // Solo resetear si no hay nada para exportar
-                 jobQueue = [];
-                 currentJobIndex = -1;
-                 recentImages = [];
-                 updateRecentImagesUI();
-                 initialView.style.display = 'block'; // Volver a vista inicial
-                 mainAppView.style.display = 'none';
+            if (pdfSheets.length === 0) {
+                 jobQueue = []; currentJobIndex = -1; recentImages = [];
+                 updateRecentImagesUI(); initialView.style.display = 'block'; mainAppView.style.display = 'none';
              } else {
-                 // Si hay hojas, mantener la app visible pero indicar que terminó
-                 jobStatusLabel.textContent = `Lote Completado (${pdfSheets.length} hojas)`;
-                 jobStatusName.textContent = "Listo para Exportar";
-                 themeStatusLabel.textContent = "";
-                 resetImageState(); // Limpiar imagen actual
-                 redrawCanvas();
-                 switchToTab('tabContentLote'); // Ir a la pestaña Lote
-                 // Deshabilitar botones de lote
-                 confirmButton.disabled = true;
-                 skipButton.disabled = true;
-                 discardButton.disabled = true;
+                 jobStatusLabel.textContent = `Lote Completado (${pdfSheets.length} hojas)`; jobStatusName.textContent = "Listo para Exportar"; themeStatusLabel.textContent = "";
+                 resetImageState(); redrawCanvas(); switchToTab('tabContentLote');
+                 confirmButton.disabled = true; skipButton.disabled = true; discardButton.disabled = true;
              }
         }
 
         // --- Handlers de Acciones de Imagen ---
-        generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); /* Ya no cambiar tab */ } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
+        generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
         searchButton.addEventListener('click', (e) => { const theme = e.currentTarget.dataset.theme; const query = `${theme} para colorear`; const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`; window.open(url, '_blank'); switchToTab('tabContentImagen'); });
         pasteButton.addEventListener('click', async () => {
             try {
                 if (!navigator.clipboard || !navigator.clipboard.read) { alert("Navegador no soporta pegar."); return; }
                 const items = await navigator.clipboard.read(); let foundImage = false;
-                for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); /* Ya no cambiar tab */ foundImage = true; break; } }
+                for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); foundImage = true; break; } }
                 if (!foundImage) alert("No se encontró imagen compatible.");
             } catch (err) { console.error("Error al pegar:", err); if (err.name === 'NotAllowedError') { alert("Permiso denegado para portapapeles."); } else if (err.name === 'NotFoundError') { alert("No se encontró contenido compatible."); } else if (err.message.toLowerCase().includes('permission')) { alert("Permiso denegado."); } else { alert(`Error al pegar: ${err.name} - ${err.message}.`); } }
         });
@@ -529,7 +517,7 @@
         function setLoading(isLoading) { const span = generateButton.querySelector('span'); generateButton.disabled = isLoading; generateSpinner.classList.toggle('hidden', !isLoading); if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; }
 
         // --- Handlers de Imágenes Recientes ---
-        function updateRecentImagesUI() { recentImagesContainer.innerHTML = ''; if (recentImages.length > 0) { recentImagesSection.classList.remove('hidden'); const uniqueThemes = new Map(); for (let i = recentImages.length - 1; i >= 0; i--) { const img = recentImages[i]; if (!uniqueThemes.has(img.theme)) { uniqueThemes.set(img.theme, img.dataUrl); } } Array.from(uniqueThemes.entries()).forEach(([theme, dataUrl]) => { const imgEl = document.createElement('img'); imgEl.src = dataUrl; imgEl.title = `Reusar ${theme}`; imgEl.className = 'recent-image'; imgEl.addEventListener('click', () => { loadImageOntoCanvas(dataUrl); /* No cambiar de tab */ showToast(`Imagen de "${theme}" reutilizada.`); }); recentImagesContainer.appendChild(imgEl); }); } else { recentImagesSection.classList.add('hidden'); } }
+        function updateRecentImagesUI() { recentImagesContainer.innerHTML = ''; if (recentImages.length > 0) { recentImagesSection.classList.remove('hidden'); const uniqueThemes = new Map(); for (let i = recentImages.length - 1; i >= 0; i--) { const img = recentImages[i]; if (!uniqueThemes.has(img.theme)) { uniqueThemes.set(img.theme, img.dataUrl); } } Array.from(uniqueThemes.entries()).forEach(([theme, dataUrl]) => { const imgEl = document.createElement('img'); imgEl.src = dataUrl; imgEl.title = `Reusar ${theme}`; imgEl.className = 'recent-image'; imgEl.addEventListener('click', () => { loadImageOntoCanvas(dataUrl); showToast(`Imagen de "${theme}" reutilizada.`); }); recentImagesContainer.appendChild(imgEl); }); } else { recentImagesSection.classList.add('hidden'); } }
 
         // --- Handlers de Stock Local ---
         saveToStockButton.addEventListener('click', () => { alert("Stock Local no implementado. Usa Exportar ZIP."); });
@@ -543,17 +531,64 @@
         eraseButton.addEventListener('click', () => toggleEraseMode(false));
         function toggleEraseMode(forceOff = false) { if (forceOff) isEraseMode = true; isEraseMode = !isEraseMode; if (isEraseMode) { if (isCropMode) toggleCropMode(true); eraseButton.textContent = 'Desactivar Borrador'; eraseButton.classList.add('bg-red-500', 'text-white'); eraseButton.classList.remove('bg-yellow-500', 'text-black'); previewCanvas.classList.add('erase-mode'); } else { eraseButton.textContent = 'Activar Borrador'; eraseButton.classList.remove('bg-red-500', 'text-white'); eraseButton.classList.add('bg-yellow-500', 'text-black'); previewCanvas.classList.remove('erase-mode'); isPainting = false; } }
         function paintOnCanvas(cX, cY) { editCtx.fillStyle = 'white'; editCtx.beginPath(); editCtx.arc(cX, cY, brushSize, 0, Math.PI * 2); editCtx.fill(); redrawCanvas(); }
-        function getCanvasCoordinates(e) { const r = previewCanvas.getBoundingClientRect(); const x = (e.clientX - r.left)*(480/r.width); const y = (e.clientY - r.top)*(680/r.height); return {x,y}; }
+        function getCanvasCoordinates(e) { const r = previewCanvas.getBoundingClientRect(); const x = (e.clientX - r.left)*(previewCanvas.width/r.width); const y = (e.clientY - r.top)*(previewCanvas.height/r.height); return {x,y}; } // --- CAMBIO: Usar width/height del canvas ---
         cropButton.addEventListener('click', () => toggleCropMode(false));
         applyCropButton.addEventListener('click', () => { if (!visualCropRect) return; saveStateForUndo(); const nR={x1:Math.min(visualCropRect.startX,visualCropRect.endX),y1:Math.min(visualCropRect.startY,visualCropRect.endY),x2:Math.max(visualCropRect.startX,visualCropRect.endX),y2:Math.max(visualCropRect.startY,visualCropRect.endY)}; const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale; const iX1=imagePos.x-iW/2; const iY1=imagePos.y-iH/2; const cX1=Math.max(nR.x1,iX1); const cY1=Math.max(nR.y1,iY1); const cX2=Math.min(nR.x2,iX1+iW); const cY2=Math.min(nR.y2,iY1+iH); if(cX2<=cX1||cY2<=cY1){toggleCropMode(true);return;} const sX=(cX1-iX1)/imageScale; const sY=(cY1-iY1)/imageScale; const sW=(cX2-cX1)/imageScale; const sH=(cY2-cY1)/imageScale; const tCan=document.createElement('canvas'); tCan.width=sW; tCan.height=sH; tCan.getContext('2d').drawImage(editCanvas,sX,sY,sW,sH,0,0,sW,sH); editCanvas.width=sW; editCanvas.height=sH; editCtx.drawImage(tCan,0,0); toggleCropMode(true); loadImageOntoCanvas(editCanvas.toDataURL()); });
         function toggleCropMode(forceOff = false) { if (forceOff) isCropMode = true; isCropMode = !isCropMode; if (isCropMode) { if (isEraseMode) toggleEraseMode(true); cropButton.textContent = 'Cancelar Recorte'; cropButton.classList.add('bg-red-500', 'text-white'); cropButton.classList.remove('bg-indigo-500'); previewCanvas.classList.add('crop-mode'); } else { cropButton.textContent = 'Activar Modo Recortar'; cropButton.classList.remove('bg-red-500', 'text-white'); cropButton.classList.add('bg-indigo-500'); previewCanvas.classList.remove('crop-mode'); isCropping = false; visualCropRect = null; applyCropButton.classList.add('hidden'); redrawCanvas(); } }
         function drawCropRect() { if (!visualCropRect) return; ctx.save(); ctx.strokeStyle = 'rgba(255,0,0,0.7)'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); const w=visualCropRect.endX-visualCropRect.startX; const h=visualCropRect.endY-visualCropRect.startY; ctx.strokeRect(visualCropRect.startX,visualCropRect.startY,w,h); ctx.restore(); }
 
         // --- Handlers de Arrastrar Imagen (Drag) ---
-        previewCanvas.addEventListener('mousedown', (e) => { if (!isImageLoaded) return; const {x, y} = getCanvasCoordinates(e); if (isEraseMode) { saveStateForUndo(); isPainting = true; const iX=(x-imagePos.x)/imageScale+editCanvas.width/2; const iY=(y-imagePos.y)/imageScale+editCanvas.height/2; paintOnCanvas(iX,iY); return; } if (isCropMode) { isCropping = true; visualCropRect = {startX:x,startY:y,endX:x,endY:y}; applyCropButton.classList.add('hidden'); redrawCanvas(); return; } const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale; if(x>imagePos.x-iW/2&&x<imagePos.x+iW/2&&y>imagePos.y-iH/2&&y<imagePos.y+iH/2) { isDragging=true; dragStart.x=x-imagePos.x; dragStart.y=y-imagePos.y; previewCanvas.style.cursor='grabbing'; } });
-        previewCanvas.addEventListener('mousemove', (e) => { const {x,y}=getCanvasCoordinates(e); if (isEraseMode&&isPainting) { const iX=(x-imagePos.x)/imageScale+editCanvas.width/2; const iY=(y-imagePos.y)/imageScale+editCanvas.height/2; paintOnCanvas(iX,iY); return; } if (isCropMode&&isCropping) { visualCropRect.endX=x; visualCropRect.endY=y; redrawCanvas(); return; } if (!isDragging) return; imagePos.x=x-dragStart.x; imagePos.y=y-dragStart.y; redrawCanvas(); });
-        previewCanvas.addEventListener('mouseup', () => { if (isEraseMode&&isPainting) isPainting=false; if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); redrawCanvas(); } } isDragging=false; let c='default'; if (isEraseMode) c='crosshair'; if (isCropMode) c='crosshair'; previewCanvas.style.cursor=c; });
-        previewCanvas.addEventListener('mouseleave', () => { isDragging=false; isPainting=false; if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); redrawCanvas(); } } previewCanvas.style.cursor='default'; });
+        previewCanvas.addEventListener('mousedown', (e) => {
+            // --- CAMBIO: Prevenir default para evitar selección de texto ---
+            e.preventDefault();
+            if (!isImageLoaded) return;
+            const {x, y} = getCanvasCoordinates(e);
+            if (isEraseMode) { saveStateForUndo(); isPainting = true; const iX=(x-imagePos.x)/imageScale+editCanvas.width/2; const iY=(y-imagePos.y)/imageScale+editCanvas.height/2; paintOnCanvas(iX,iY); return; }
+            if (isCropMode) { isCropping = true; visualCropRect = {startX:x,startY:y,endX:x,endY:y}; applyCropButton.classList.add('hidden'); redrawCanvas(); return; }
+            const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale;
+            if(x>imagePos.x-iW/2&&x<imagePos.x+iW/2&&y>imagePos.y-iH/2&&y<imagePos.y+iH/2) { isDragging=true; dragStart.x=x-imagePos.x; dragStart.y=y-imagePos.y; previewCanvas.style.cursor='grabbing'; }
+        });
+        previewCanvas.addEventListener('mousemove', (e) => {
+            // --- CAMBIO: Prevenir default ---
+            e.preventDefault();
+            const {x,y}=getCanvasCoordinates(e);
+            if (isEraseMode&&isPainting) { const iX=(x-imagePos.x)/imageScale+editCanvas.width/2; const iY=(y-imagePos.y)/imageScale+editCanvas.height/2; paintOnCanvas(iX,iY); return; }
+            if (isCropMode&&isCropping) { visualCropRect.endX=x; visualCropRect.endY=y; redrawCanvas(); return; }
+            if (!isDragging) return; imagePos.x=x-dragStart.x; imagePos.y=y-dragStart.y; redrawCanvas();
+        });
+        previewCanvas.addEventListener('mouseup', (e) => { // --- CAMBIO: Pasar 'e' ---
+            // --- CAMBIO: Prevenir default ---
+            e.preventDefault();
+            if (isEraseMode&&isPainting) isPainting=false;
+            if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); redrawCanvas(); } }
+            isDragging=false; let c='default'; if (isEraseMode) c='crosshair'; if (isCropMode) c='crosshair'; previewCanvas.style.cursor=c;
+        });
+        previewCanvas.addEventListener('mouseleave', (e) => { // --- CAMBIO: Pasar 'e' ---
+             // --- CAMBIO: Prevenir default ---
+            e.preventDefault();
+            if (isDragging) { // Si sale arrastrando, soltar
+                 isDragging=false;
+                 previewCanvas.style.cursor='default';
+            }
+            if (isPainting) { // Si sale pintando, soltar
+                 isPainting = false;
+            }
+            if (isCropMode&&isCropping) { // Si sale recortando, considerar soltar
+                 isCropping=false;
+                 if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) {
+                     applyCropButton.classList.remove('hidden');
+                     // Actualizar endX/endY a la última posición conocida dentro del canvas
+                     const {x, y} = getCanvasCoordinates(e);
+                     visualCropRect.endX = Math.max(0, Math.min(480, x));
+                     visualCropRect.endY = Math.max(0, Math.min(680, y));
+                     redrawCanvas(); // Redibujar el rect final
+                 } else {
+                     applyCropButton.classList.add('hidden');
+                     redrawCanvas();
+                 }
+            }
+            // previewCanvas.style.cursor='default'; // No siempre queremos default
+        });
 
         // --- Handlers de Acciones de Lote ---
         confirmButton.addEventListener('click', () => { if (!isImageLoaded) { alert("Carga una imagen."); return; } const fCan=document.createElement('canvas'); fCan.width=480; fCan.height=680; redrawCanvas(fCan.getContext('2d')); pdfSheets.push(fCan); const job=jobQueue[currentJobIndex]; const theme=job.theme; const sTh=theme.replace(/[^a-z0-9_.-]/gi,'_'); const sN=job.name.replace(/[^a-z0-9_.-]/gi,'_'); const fn=`${sN}_-_${sTh}_${job.originalIndex || currentJobIndex + 1}.png`; const iDU=editCanvas.toDataURL('image/png'); imagesForZip.push({name:fn,dataUrl:iDU}); const tDU=editCanvas.toDataURL('image/png',0.5); recentImages.unshift({theme:theme,dataUrl:tDU}); if (recentImages.length>5) recentImages.pop(); updateRecentImagesUI(); updateExportButtonsCount(); showToast(`✔️ Hoja de ${job.name} (${theme}) añadida!`); advanceJob(); });
