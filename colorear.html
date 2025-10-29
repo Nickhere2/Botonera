@@ -421,7 +421,7 @@
         const generateButton = document.getElementById('generateButton'); const generateSpinner = document.getElementById('generateSpinner'); const searchButton = document.getElementById('searchButton'); const pasteButton = document.getElementById('pasteButton');
         const recentImagesSection = document.getElementById('recentImagesSection'); const recentImagesContainer = document.getElementById('recentImagesContainer');
         const imageEditGroup = document.getElementById('imageEditGroup');
-        //const noImageEditMessage = document.getElementById('noImageEditMessage'); // Ya no se usa
+        //const noImageEditMessage = document.getElementById('noImageEditMessage'); // No se usa
         const scaleSlider = document.getElementById('scaleSlider'); const scaleValue = document.getElementById('scaleValue'); const filterToggle = document.getElementById('filterToggle');
         const eraseButton = document.getElementById('eraseButton'); const brushSizeSlider = document.getElementById('brushSizeSlider'); const brushSizeValue = document.getElementById('brushSizeValue');
         const cropButton = document.getElementById('cropButton'); const applyCropButton = document.getElementById('applyCropButton'); const undoButton = document.getElementById('undoButton'); const saveToStockButton = document.getElementById('saveToStockButton');
@@ -643,16 +643,35 @@
         function updateControlsVisibility() {
              const showTools = isImageLoaded;
              // --- CAMBIO: Eliminar referencia a noImageEditMessage ---
-             // noImageEditMessage.style.display = 'none';
-             noImageToolsMessage.style.display = showTools ? 'none' : 'block';
-             confirmButton.disabled = !showTools;
-             undoButton.disabled = undoStack.length <= 1;
-             saveToStockButton.disabled = !showTools;
-             scaleSlider.disabled = !showTools;
-             filterToggle.disabled = !showTools;
-             eraseButton.disabled = !showTools;
-             brushSizeSlider.disabled = !showTools;
-             cropButton.disabled = !showTools;
+             // if(noImageEditMessage) noImageEditMessage.style.display = 'none'; // Ya no se usa
+             if (noImageToolsMessage) noImageToolsMessage.style.display = showTools ? 'none' : 'block';
+             else console.error("Elemento 'noImageToolsMessage' no encontrado en updateControlsVisibility."); // Debug extra
+
+             // --- CAMBIO: Añadir chequeos para cada botón ---
+             if (confirmButton) confirmButton.disabled = !showTools;
+             else console.error("Elemento 'confirmButton' no encontrado.");
+
+             if (undoButton) undoButton.disabled = undoStack.length <= 1;
+             else console.error("Elemento 'undoButton' no encontrado.");
+
+             if (saveToStockButton) saveToStockButton.disabled = !showTools;
+             else console.error("Elemento 'saveToStockButton' no encontrado.");
+
+             if (scaleSlider) scaleSlider.disabled = !showTools;
+             else console.error("Elemento 'scaleSlider' no encontrado.");
+
+             if (filterToggle) filterToggle.disabled = !showTools;
+             else console.error("Elemento 'filterToggle' no encontrado.");
+
+             if (eraseButton) eraseButton.disabled = !showTools;
+             else console.error("Elemento 'eraseButton' no encontrado.");
+
+             if (brushSizeSlider) brushSizeSlider.disabled = !showTools;
+             else console.error("Elemento 'brushSizeSlider' no encontrado.");
+
+             if (cropButton) cropButton.disabled = !showTools;
+             else console.error("Elemento 'cropButton' no encontrado.");
+
              // Apply crop se maneja en mouseup/mouseleave
         }
         function updateExportButtonsCount() { const c=pdfSheets.length; if(c>0){exportPdfButton.disabled=false;exportPdfButton.textContent=`Exportar PDF (${c} Hojas)`;}else{exportPdfButton.disabled=true;exportPdfButton.textContent=`Exportar PDF (0 Hojas)`;} if(c>0){exportZipButton.disabled=false;exportZipButton.textContent=`Exportar Imágenes (${c}.zip)`;}else{exportZipButton.disabled=true;exportZipButton.textContent=`Exportar Imágenes (.zip)`;} }
