@@ -1,1549 +1,1439 @@
 <!DOCTYPE html>
-<html lang="es" class="">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Finanzas Personales v2</title>
-
-    <!-- 1. Tailwind CSS -->
+    <title>Gestor de Finanzas</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+    <!-- Day.js para manejo de fechas -->
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/customParseFormat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/isoWeek.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/isToday.js"></script>
 
-    <!-- 2. Chart.js (para gráficos) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-
-    <!-- 3. Fuentes (Inter) -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <!-- 4. Configuración de Tailwind y Tema Oscuro -->
-    <script>
-        tailwind.config = {
-            darkMode: 'class', // Habilita el modo oscuro basado en una clase en <html>
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    },
-                    keyframes: {
-                        // Animación para el modal
-                        fadeIn: {
-                            '0%': { opacity: '0' },
-                            '100%': { opacity: '1' },
-                        },
-                        slideInUp: {
-                            '0%': { transform: 'translateY(20px)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        // Animación para el toast
-                        toastIn: {
-                            '0%': { transform: 'translateY(100%)', opacity: '0' },
-                            '100%': { transform: 'translateY(0)', opacity: '1' },
-                        },
-                        toastOut: {
-                            '0%': { transform: 'translateY(0)', opacity: '1' },
-                            '100%': { transform: 'translateY(100%)', opacity: '0' },
-                        }
-                    },
-                    animation: {
-                        fadeIn: 'fadeIn 0.3s ease-out',
-                        slideInUp: 'slideInUp 0.3s ease-out',
-                        toastIn: 'toastIn 0.5s ease-out forwards',
-                        toastOut: 'toastOut 0.5s ease-in forwards',
-                    }
-                }
-            }
-        }
-    </script>
-
-    <!-- 5. Estilos CSS Adicionales -->
     <style>
-        /* Estilos para el scrollbar (Webkit) */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #a1a1a1;
-        }
-        /* Estilos para el scrollbar (Firefox) */
-        .dark ::-webkit-scrollbar-track {
-            background: #2d3748;
-        }
-        .dark ::-webkit-scrollbar-thumb {
-            background: #4a5568;
-        }
-        .dark ::-webkit-scrollbar-thumb:hover {
-            background: #718096;
+        /* Estilos personalizados */
+        :root {
+            --color-ingreso: #22c55e; /* green-500 */
+            --color-egreso: #ef4444; /* red-500 */
+            --color-bg-dark: #1f2937; /* gray-800 */
+            --color-text-dark: #f9fafb; /* gray-50 */
+            --color-bg-light: #f9fafb; /* gray-50 */
+            --color-text-light: #1f2937; /* gray-800 */
         }
         
-        /* Ocultar flechas en input[type=number] */
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button {
-            -webkit-appearance: none;
-            margin: 0;
+        /* Tema Oscuro (default) */
+        html.dark body {
+            background-color: var(--color-bg-dark);
+            color: var(--color-text-dark);
         }
-        input[type=number] {
-            -moz-appearance: textfield;
+        html.dark .card {
+            background-color: #374151; /* gray-700 */
+        }
+        html.dark .card-secondary {
+            background-color: #4b5563; /* gray-600 */
+        }
+        
+        /* Tema Claro */
+        html:not(.dark) body {
+            background-color: var(--color-bg-light);
+            color: var(--color-text-light);
+        }
+        html:not(.dark) .card {
+            background-color: #ffffff;
+            border: 1px solid #e5e7eb; /* gray-200 */
+        }
+        html:not(.dark) .card-secondary {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        
+        /* Estilos del modal */
+        #movement-modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        /* Estilos para el selector de tipo (Ingreso/Egreso) */
+        .type-selector {
+            display: flex;
+            border-radius: 0.5rem;
+            background-color: #4b5563; /* gray-600 */
+            padding: 0.25rem;
+            position: relative;
+        }
+        html:not(.dark) .type-selector {
+            background-color: #e5e7eb; /* gray-200 */
         }
 
-        /* Estilos para el selector de Ingreso/Egreso */
-        .type-selector-btn {
-            transition: all 0.3s ease;
+        .type-selector-option {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            position: relative;
+            z-index: 10;
+            transition: color 0.3s ease;
+            color: #d1d5db; /* gray-300 */
         }
-        .type-selector-btn.active {
-            transform: scale(1.05);
-            font-weight: 700;
+        html:not(.dark) .type-selector-option {
+            color: #6b7280; /* gray-500 */
         }
-        .type-selector-btn[data-type="ingreso"].active {
-            background-color: theme('colors.green.600');
-            color: white;
-            box-shadow: 0 4px 14px 0 theme('colors.green.500 / 40%');
+
+        .type-selector-option.active {
+            color: #ffffff; /* white */
         }
-        .type-selector-btn[data-type="egreso"].active {
-            background-color: theme('colors.red.600');
-            color: white;
-            box-shadow: 0 4px 14px 0 theme('colors.red.500 / 40%');
+        html:not(.dark) .type-selector-option.active {
+            color: #1f2937; /* gray-800 */
         }
-        .type-selector-btn[data-type="ingreso"]:not(.active) {
-            background-color: theme('colors.gray.200');
-            color: theme('colors.green.700');
+        
+        .type-selector-slider {
+            position: absolute;
+            top: 0.25rem;
+            bottom: 0.25rem;
+            width: calc(50% - 0.25rem);
+            border-radius: 0.5rem;
+            transition: transform 0.3s ease, background-color 0.3s ease;
+            z-index: 5;
         }
-        .type-selector-btn[data-type="egreso"]:not(.active) {
-            background-color: theme('colors.gray.200');
-            color: theme('colors.red.700');
+
+        #movement-type-visual[value="ingreso"] + .type-selector-slider {
+            transform: translateX(0%);
+            background-color: var(--color-ingreso);
         }
-        .dark .type-selector-btn[data-type="ingreso"]:not(.active) {
-            background-color: theme('colors.gray.700');
-            color: theme('colors.green.400');
+        #movement-type-visual[value="egreso"] + .type-selector-slider {
+            transform: translateX(100%);
+            background-color: var(--color-egreso);
         }
-        .dark .type-selector-btn[data-type="egreso"]:not(.active) {
-            background-color: theme('colors.gray.700');
-            color: theme('colors.red.400');
+
+        /* Ocultar input[radio] real */
+        #movement-type-visual {
+            display: none;
+        }
+        
+        /* Estilos para el campo de monto */
+        .monto-input-wrapper {
+            position: relative;
+        }
+        .monto-input-currency {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem; /* 2xl */
+            font-weight: 300; /* light */
+            color: #9ca3af; /* gray-400 */
+        }
+        .monto-input {
+            font-size: 1.5rem; /* 2xl */
+            padding-left: 2.5rem; /* pl-10 */
+            text-align: center;
+            padding-right: 1rem;
         }
     </style>
 </head>
+<body class="antialiased min-h-screen">
 
-<!-- El <body> se inicializa sin clases y el script de abajo las aplica -->
-<body class="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 font-sans antialiased transition-colors duration-300">
+    <!-- Contenedor principal -->
+    <div class="container mx-auto max-w-4xl p-4 pb-24">
 
-    <!-- 1. Contenedor de la Aplicación -->
-    <div id="app" class="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-
-        <!-- 1.1. Encabezado y Controles -->
+        <!-- Encabezado -->
         <header class="flex justify-between items-center mb-6">
-            <div class="flex items-center gap-3">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8 text-blue-600 dark:text-blue-400">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V6.375c0-.621.504-1.125 1.125-1.125h.375m16.5 0h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V6.375c0-.621.504-1.125 1.125-1.125h.375M3 8.25v1.5m0 0v1.5m0 0v1.5m0 0v1.5m0 0v1.5m0 0v1.5m16.5-9v1.5m0 0v1.5m0 0v1.5m0 0v1.5m0 0v1.5m0 0v1.5" />
-                </svg>
-                <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">Gestor de Finanzas</h1>
-            </div>
-
-            <!-- Controles de Tema y Configuración -->
-            <div class="flex items-center gap-2">
-                <button id="btn-toggle-theme" title="Cambiar tema" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
-                    <svg id="icon-sun" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 hidden"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-6.364-.386 1.591-1.591M3 12h2.25m.386-6.364 1.591 1.591M12 12a2.25 2.25 0 0 1-2.25 2.25A2.25 2.25 0 0 1 7.5 12a2.25 2.25 0 0 1 2.25-2.25A2.25 2.25 0 0 1 12 12Z" /></svg>
-                    <svg id="icon-moon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 hidden"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>
+            <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-500">
+                Mis Finanzas
+            </h1>
+            <div class="flex items-center space-x-2">
+                <button id="btn-toggle-dark" aria-label="Cambiar tema">
+                    <!-- Icono Sol -->
+                    <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 12a5 5 0 100-10 5 5 0 000 10z" />
+                    </svg>
+                    <!-- Icono Luna -->
+                    <svg id="theme-icon-dark" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                    </svg>
                 </button>
-                <button id="btn-open-settings" title="Configuración" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 0 1 1.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.108 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.11v1.093c0 .55-.398 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.108 1.204l.527.738c.32.447.27.96-.12 1.45l-.774.773a1.125 1.125 0 0 1-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.78.93l-.15.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.149-.894c-.07-.424-.384-.764-.78-.93-.398-.164-.855-.142-1.205.108l-.737.527a1.125 1.125 0 0 1-1.45-.12l-.773-.774a1.125 1.125 0 0 1-.12-1.45l.527-.737c.25-.35.272-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.893-.15c-.543-.09-.94-.56-.94-1.11v-1.093c0-.55.398-1.02.94-1.11l.893-.149c.425-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.527-.738a1.125 1.125 0 0 1 .12-1.45l.774-.773a1.125 1.125 0 0 1 1.449-.12l.738.527c.35.25.806.272 1.203.107.397-.165.71-.505.78-.93l.15-.894Z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                <button id="btn-settings" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" aria-label="Configuración">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                 </button>
             </div>
         </header>
 
+        <!-- Resumen -->
+        <section id="dashboard" class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Resumen</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <!-- Card Balance Hoy -->
+                <div id="card-balance-today" class="card p-4 rounded-lg shadow-md flex items-center space-x-4">
+                    <div id="icon-balance-today" class="p-3 rounded-full">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">Balance (Hoy)</p>
+                        <p id="balance-today" class="text-2xl font-bold">$ 0,00</p>
+                    </div>
+                </div>
+                <!-- Card Balance Mes -->
+                <div id="card-balance-month" class="card p-4 rounded-lg shadow-md flex items-center space-x-4">
+                    <div id="icon-balance-month" class="p-3 rounded-full">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">Balance (Este Mes)</p>
+                        <p id="balance-month" class="text-2xl font-bold">$ 0,00</p>
+                    </div>
+                </div>
+                <!-- Card Proyección Mes -->
+                <div id="card-projection-month" class="card p-4 rounded-lg shadow-md flex items-center space-x-4">
+                    <div id="icon-projection-month" class="p-3 rounded-full bg-blue-500">
+                        <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-sm text-gray-400">Proyección (Este Mes)</p>
+                        <p id="projection-month" class="text-2xl font-bold">$ 0,00</p>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-        <!-- 2. Movimientos del Día -->
-        <section id="daily-movements-section" class="mb-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Movimientos del Día</h2>
-            <div id="daily-movements-list" class="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-lg">
-                <ul id="daily-list-container" class="space-y-4">
-                    <!-- Los ítems se agregarán aquí dinámicamente -->
-                    <!-- Plantilla de ejemplo (oculta) -->
-                    <template id="daily-item-template">
-                        <li class="flex items-center gap-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-700 transaction-item">
-                            <!-- Icono -->
-                            <span class="icon-container flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center">
-                                <!-- El SVG se insertará aquí -->
+        <!-- Movimientos del Día -->
+        <section id="today-movements" class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Movimientos del Día</h2>
+            <div id="today-list" class="space-y-3">
+                <!-- Los movimientos se insertarán aquí dinámicamente -->
+                <p id="no-today-movements" class="text-gray-400 text-center py-4">No hay movimientos registrados hoy.</p>
+                
+                <!-- Plantilla de Tarjeta de Movimiento (oculta) -->
+                <template id="movement-card-template">
+                    <div class="card-secondary p-4 rounded-lg shadow-md flex items-center space-x-4 movement-card" data-id="">
+                        <!-- Icono y Tipo -->
+                        <div class="flex-shrink-0">
+                            <span class="movement-icon inline-block p-3 rounded-full text-white">
+                                <!-- SVG se insertará aquí -->
                             </span>
-                            
-                            <!-- Info (Concepto, Categoría, Hora) -->
-                            <div class="flex-1 overflow-hidden">
-                                <div class="concept-text font-semibold text-gray-900 dark:text-white truncate"></div>
-                                <div class="flex items-center flex-wrap gap-x-2 gap-y-1 text-sm mt-1">
-                                    <!-- Categoría -->
-                                    <span class="category-badge inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ring-1 ring-inset"></span>
-                                    <!-- Hora -->
-                                    <span class="time-text text-gray-500 dark:text-gray-400 flex items-center gap-1 text-xs">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
-                                        <span></span>
-                                    </span>
-                                </div>
+                        </div>
+                        
+                        <!-- Concepto, Categoría y Hora -->
+                        <div class="flex-grow min-w-0">
+                            <p class="movement-concept font-semibold truncate">Concepto del movimiento</p>
+                            <div class="flex items-center space-x-2 text-sm text-gray-400">
+                                <span class="movement-category-tag inline-block px-2 py-0.5 rounded text-xs font-medium">Categoría</span>
+                                <span class="movement-time flex items-center">
+                                    <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    <span>00:00</span>
+                                </span>
                             </div>
-                            
-                            <!-- Monto -->
-                            <div class="amount-text text-base font-bold text-right whitespace-nowrap pl-2"></div>
-
-                            <!-- Acciones (Edit/Delete) -->
-                            <div class="flex-shrink-0 flex flex-col sm:flex-row gap-1">
-                                <button title="Editar" class="btn-edit-item p-1.5 rounded-md text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
-                                </button>
-                                <button title="Eliminar" class="btn-delete-item p-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12.576 0H3.392c-.85 0-1.58.55-1.837 1.35l-1.11 3.106A48.11 48.11 0 0 0 0 10.34a48.11 48.11 0 0 0 3.06 4.349L5.36 19.673a2.25 2.25 0 0 0 2.244 2.077h8.704a2.25 2.25 0 0 0 2.244-2.077L20.938 10.34a48.11 48.11 0 0 0 3.06-4.349L22.89 5.893a1.875 1.875 0 0 0-1.836-1.351h-3.9M17.625 5.79H6.375" /></svg>
-                                </button>
-                            </div>
-                        </li>
-                    </template>
-                </ul>
-                <!-- Mensaje de lista vacía -->
-                <div id="daily-empty-state" class="text-center py-6 text-gray-500 dark:text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12 mx-auto mb-3 text-gray-400 dark:text-gray-500">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 17.25v-.228a4.5 4.5 0 0 0-.12-1.03l-2.268-9.64a3.375 3.375 0 0 0-3.285-2.602H7.923a3.375 3.375 0 0 0-3.285 2.602l-2.268 9.64a4.5 4.5 0 0 0-.12 1.03v.228m19.5 0a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3m19.5 0a3 3 0 0 0-3-3H5.25a3 3 0 0 0-3 3m16.5 0h.008l.007.007h-.008V17.25Z" />
-                    </svg>
-                    <p class="font-medium">No hay movimientos hoy.</p>
-                    <p class="text-sm">Usa el botón '+' para agregar uno.</p>
-                </div>
+                        </div>
+                        
+                        <!-- Monto -->
+                        <div class="flex-shrink-0 text-right">
+                            <p class="movement-amount text-lg font-bold">$0.00</p>
+                        </div>
+                        
+                        <!-- Acciones -->
+                        <div class="flex-shrink-0 flex space-x-1">
+                            <button class="btn-edit p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-500 dark:text-gray-400" aria-label="Editar">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>
+                            </button>
+                            <button class="btn-delete p-2 rounded-full hover:bg-gray-300 dark:hover:bg-gray-500 text-red-500" aria-label="Eliminar">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </div>
+                    </div>
+                </template>
             </div>
         </section>
 
-        <!-- 3. Dashboard / Resumen -->
-        <section id="dashboard-section" class="mb-8">
-            <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Resumen</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <!-- Saldo Total -->
-                <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg flex items-center gap-4">
-                    <div class="p-3 rounded-full bg-blue-100 dark:bg-blue-900">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-blue-600 dark:text-blue-400">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 12a2.25 2.25 0 0 1-2.25 2.25H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 1 3 12m18 0v-2.25a2.25 2.25 0 0 0-2.25-2.25H15a3 3 0 0 0-6 0H5.25A2.25 2.25 0 0 0 3 9.75V12m18 0v2.25A2.25 2.25 0 0 1 18.75 16.5H15a3 3 0 1 1-6 0H5.25A2.25 2.25 0 0 1 3 14.25V12" />
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Saldo Total</div>
-                        <div id="summary-balance" class="text-2xl font-bold text-gray-900 dark:text-white">$0.00</div>
-                    </div>
-                </div>
-                <!-- Ingresos -->
-                <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg flex items-center gap-4">
-                    <div class="p-3 rounded-full bg-green-100 dark:bg-green-900">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-green-600 dark:text-green-400">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Ingresos (Hoy)</div>
-                        <div id="summary-income" class="text-2xl font-bold text-green-600 dark:text-green-500">$0.00</div>
-                    </div>
-                </div>
-                <!-- Egresos -->
-                <div class="bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg flex items-center gap-4">
-                    <div class="p-3 rounded-full bg-red-100 dark:bg-red-900">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 text-red-600 dark:text-red-400">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14" />
-                        </svg>
-                    </div>
-                    <div>
-                        <div class="text-sm font-medium text-gray-500 dark:text-gray-400">Egresos (Hoy)</div>
-                        <div id="summary-expense" class="text-2xl font-bold text-red-600 dark:text-red-500">$0.00</div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 4. Gráfico y Tabla de Historial -->
-        <section id="history-section" class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+        <!-- Historial Completo -->
+        <section id="full-history" class="mb-8">
+            <h2 class="text-xl font-semibold mb-4">Historial Completo</h2>
             
-            <!-- 4.1. Gráfico -->
-            <div class="lg:col-span-3 bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Evolución (Últimos 30 días)</h2>
-                <div>
-                    <canvas id="evolution-chart"></canvas>
-                </div>
+            <!-- Controles de Filtro -->
+            <div class="card-secondary p-4 rounded-lg mb-4 flex flex-wrap gap-4">
+                <input type="text" id="filter-search" placeholder="Buscar por concepto..." class="flex-grow input-field">
+                <select id="filter-type" class="input-field">
+                    <option value="">Tipo (Todos)</option>
+                    <option value="ingreso">Ingreso</option>
+                    <option value="egreso">Egreso</option>
+                </select>
+                <input type="month" id="filter-month" class="input-field">
             </div>
 
-            <!-- 4.2. Historial Completo (Tabla) -->
-            <div class="lg:col-span-2 bg-white dark:bg-gray-800 p-5 rounded-xl shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 text-gray-800 dark:text-gray-200">Historial Completo</h2>
-                
-                <!-- Filtros de tabla -->
-                <div class="mb-4">
-                    <input type="text" id="history-search" placeholder="Buscar..." class="w-full px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-                
-                <!-- Contenedor de tabla con scroll -->
-                <div class="max-h-[400px] overflow-y-auto pr-2">
-                    <table class="w-full min-w-full text-sm text-left">
-                        <thead class="text-xs text-gray-700 dark:text-gray-300 uppercase bg-gray-50 dark:bg-gray-700 sticky top-0">
-                            <tr>
-                                <th scope="col" class="px-4 py-3">Fecha</th>
-                                <th scope="col" class="px-4 py-3">Concepto</th>
-                                <th scope="col" class="px-4 py-3 text-right">Monto</th>
-                            </tr>
-                        </thead>
-                        <tbody id="history-table-body" class="divide-y divide-gray-200 dark:divide-gray-700">
-                            <!-- Filas de historial se agregarán aquí -->
-                        </tbody>
-                    </table>
-                    <!-- Mensaje de historial vacío -->
-                    <div id="history-empty-state" class="text-center py-6 text-gray-500 dark:text-gray-400 hidden">
-                        <p>No hay movimientos registrados.</p>
-                    </div>
-                </div>
+            <!-- Gráfico -->
+            <div class="card p-4 rounded-lg shadow-md mb-4">
+                <canvas id="history-chart"></canvas>
+            </div>
+
+            <!-- Tabla de Historial -->
+            <div class="overflow-x-auto card p-4 rounded-lg shadow-md">
+                <table class="min-w-full">
+                    <thead class="border-b border-gray-300 dark:border-gray-600">
+                        <tr>
+                            <th class="py-2 px-4 text-left">Fecha</th>
+                            <th class="py-2 px-4 text-left">Concepto</th>
+                            <th class="py-2 px-4 text-left">Categoría</th>
+                            <th class="py-2 px-4 text-right">Monto</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                        <!-- Filas se insertarán aquí dinámicamente -->
+                    </tbody>
+                </table>
+                <p id="no-history-movements" class="text-gray-400 text-center py-4 hidden">No hay movimientos que coincidan con los filtros.</p>
             </div>
         </section>
-    </div>
 
-    <!-- 5. Botón Flotante (+) para Agregar Movimiento -->
-    <button id="btn-open-modal" title="Agregar Movimiento" class="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40 w-16 h-16 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-xl focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 transition-all duration-300 transform hover:scale-105 active:scale-95">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 mx-auto">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </div> <!-- Fin contenedor principal -->
+
+    <!-- Botón Flotante (+) -->
+    <button id="btn-add-movement" class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-transform transform hover:scale-110" aria-label="Agregar movimiento">
+        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
     </button>
+    
 
+    <!-- === MODALES === -->
 
-    <!-- 6. Modal: Agregar/Editar Movimiento -->
-    <div id="movement-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
-        <!-- 6.1. Fondo (Overlay) -->
-        <div id="modal-overlay" class="absolute inset-0 bg-gray-900/60 dark:bg-gray-900/80 backdrop-blur-sm"></div>
-        
-        <!-- 6.2. Contenido del Modal -->
-        <div class="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 animate-slideInUp">
+    <!-- Modal: Agregar/Editar Movimiento -->
+    <div id="movement-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 backdrop-blur-sm opacity-0 -translate-y-10 pointer-events-none">
+        <form id="movement-form" class="card w-full max-w-md p-6 rounded-lg shadow-xl">
+            <h3 id="modal-title" class="text-2xl font-semibold mb-6 text-center">Nuevo Movimiento</h3>
+            <input type="hidden" id="movement-id">
             
-            <!-- Encabezado del Modal -->
-            <div class="flex items-center justify-between mb-6">
-                <h3 id="modal-title" class="text-2xl font-bold text-gray-900 dark:text-white">Nuevo Movimiento</h3>
-                <button id="btn-close-modal" class="p-1.5 rounded-full text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Formulario -->
-            <form id="movement-form">
-                <!-- ID oculto para edición -->
-                <input type="hidden" id="form-movement-id">
-
-                <!-- Selector de Tipo (Ingreso/Egreso) -->
-                <div class="grid grid-cols-2 gap-3 mb-5">
-                    <button type="button" id="btn-type-ingreso" data-type="ingreso" class="type-selector-btn py-3 px-4 rounded-lg font-semibold text-lg">
-                        Ingreso
-                    </button>
-                    <button type="button" id="btn-type-egreso" data-type="egreso" class="type-selector-btn py-3 px-4 rounded-lg font-semibold text-lg">
-                        Egreso
-                    </button>
+            <div class="space-y-5">
+                <!-- Selector de Tipo -->
+                <div>
+                    <!-- Input real (oculto) que guarda el valor -->
+                    <input type="hidden" id="movement-type-visual" value="ingreso">
+                    
+                    <!-- Selector visual -->
+                    <div class="type-selector">
+                        <div id="type-ingreso" class="type-selector-option active" data-type="ingreso">Ingreso</div>
+                        <div id="type-egreso" class="type-selector-option" data-type="egreso">Egreso</div>
+                        <div class="type-selector-slider"></div>
+                    </div>
                 </div>
 
                 <!-- Monto -->
-                <div class="mb-4">
-                    <label for="form-amount" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monto</label>
-                    <div class="relative rounded-lg shadow-sm">
-                        <div class="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
-                            <span class="text-gray-500 dark:text-gray-400 text-2xl font-semibold">$</span>
-                        </div>
-                        <input type="number" id="form-amount" name="amount" step="0.01" required
-                               class="block w-full rounded-lg border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 py-4 pl-10 pr-4 text-2xl font-bold focus:border-blue-500 focus:ring-blue-500" 
-                               placeholder="0.00">
-                    </div>
+                <div class="monto-input-wrapper">
+                    <span class="monto-input-currency">$</span>
+                    <input type="number" id="movement-amount" placeholder="0.00" step="0.01" min="0" class="monto-input input-field w-full bg-transparent border-b-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 outline-none" required>
                 </div>
                 
                 <!-- Concepto -->
-                <div class="mb-4">
-                    <label for="form-concept" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Concepto</label>
-                    <input type="text" id="form-concept" name="concept" required
-                           class="w-full px-3 py-2 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Ej: Impresión A4 Color">
-                </div>
-
+                <input type="text" id="movement-concept" placeholder="Concepto (ej: Impresión A4)" class="input-field w-full">
+                
                 <!-- Categoría -->
-                <div class="mb-4">
-                    <label for="form-category" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Categoría</label>
-                    <div class="flex gap-2">
-                        <select id="form-category" name="category" required 
-                                class="flex-grow w-full px-3 py-2 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <!-- Opciones se llenarán dinámicamente -->
-                        </select>
-                        <button type="button" id="btn-add-category" title="Nueva Categoría" class="flex-shrink-0 p-2.5 bg-gray-200 dark:bg-gray-600 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
-                        </button>
-                    </div>
+                <div class="flex gap-2">
+                    <select id="movement-category" class="input-field flex-grow" required>
+                        <!-- Opciones se llenarán dinámicamente -->
+                    </select>
+                    <button type="button" id="btn-add-category" class="p-2 bg-gray-200 dark:bg-gray-600 rounded-md hover:bg-gray-300 dark:hover:bg-gray-500" aria-label="Agregar categoría">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </button>
                 </div>
 
-                <!-- Fecha -->
-                <div class="mb-6">
-                    <label for="form-date" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Fecha</label>
-                    <input type="datetime-local" id="form-date" name="date" required
-                           class="w-full px-3 py-2 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
-
-                <!-- Botón de Guardar -->
-                <button type="submit" id="btn-save-movement" 
-                        class="w-full text-lg font-semibold py-3 px-4 rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 transition-all duration-300 transform hover:scale-105">
-                    Guardar Movimiento
-                </button>
-            </form>
-        </div>
-    </div>
-
-
-    <!-- 7. Modal: Configuración (Gist API) -->
-    <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden animate-fadeIn">
-        <!-- Overlay -->
-        <div id="settings-overlay" class="absolute inset-0 bg-gray-900/60 dark:bg-gray-900/80 backdrop-blur-sm"></div>
-        
-        <!-- Contenido del Modal -->
-        <div class="relative w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-6 animate-slideInUp">
-            
-            <!-- Encabezado -->
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-2xl font-bold text-gray-900 dark:text-white">Configuración de Gist</h3>
-                <button id="btn-close-settings" class="p-1.5 rounded-full text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
-                </button>
+                <!-- Fecha y Hora -->
+                <input type="datetime-local" id="movement-date" class="input-field w-full">
             </div>
 
-            <!-- Formulario -->
+            <!-- Acciones -->
+            <div class="mt-8 flex gap-4">
+                <button type="button" id="btn-modal-cancel" class="w-full py-2 px-4 rounded-md bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">Cancelar</button>
+                <button type="submit" id="btn-modal-save" class="w-full py-2 px-4 rounded-md bg-blue-600 hover:bg-blue-700 text-white">Guardar</button>
+            </div>
+        </form>
+    </div>
+
+
+    <!-- Modal: Configuración de Gist -->
+    <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm hidden">
+        <div class="card w-full max-w-md p-6 rounded-lg shadow-xl">
+            <h3 class="text-2xl font-semibold mb-6">Configuración de Gist</h3>
+            <p class="text-sm text-gray-400 mb-4">
+                Guarda tus finanzas de forma segura en un Gist de GitHub.
+                <a href="https://github.com/settings/tokens/new?scopes=gist&description=FinanzasApp" target="_blank" class="text-blue-400 hover:underline">
+                    Crea un nuevo PAT (con scope 'gist')
+                </a>.
+                Luego, <a href="https://gist.github.com/" target="_blank" class="text-blue-400 hover:underline">crea un Gist secreto</a> con un archivo (ej: `finanzas.json`) y pega el ID aquí.
+            </p>
             <form id="settings-form" class="space-y-4">
                 <div>
-                    <label for="gist-token" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Personal Access Token (PAT)</label>
-                    <input type="password" id="gist-token" autocomplete="off"
-                           class="w-full px-3 py-2 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="ghp_...">
-                    <a href="https://github.com/settings/tokens/new?scopes=gist&description=GestorDeFinanzasWebApp" target="_blank" 
-                       class="text-xs text-blue-600 dark:text-blue-400 hover:underline mt-1">
-                        Crear un nuevo PAT (con scope 'gist')
-                    </a>
+                    <label for="gist-pat" class="block text-sm font-medium mb-1">Personal Access Token (PAT)</label>
+                    <input type="password" id="gist-pat" class="input-field w-full" placeholder="ghp_...">
                 </div>
-
                 <div>
-                    <label for="gist-id" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Gist ID</label>
-                    <input type="text" id="gist-id" autocomplete="off"
-                           class="w-full px-3 py-2 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Ej: 12345abcdef...">
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                        Crea un Gist secreto en <a href="https://gist.github.com/" target="_blank" class="text-blue-600 dark:text-blue-400 hover:underline">gist.github.com</a> y pega el ID de la URL aquí.
-                    </p>
+                    <label for="gist-id" class="block text-sm font-medium mb-1">Gist ID</label>
+                    <input type="text" id="gist-id" class="input-field w-full" placeholder="ID de la URL de tu Gist">
                 </div>
-
                 <div>
-                    <label for="gist-filename" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre del Archivo en Gist</label>
-                    <input type="text" id="gist-filename" autocomplete="off"
-                           class="w-full px-3 py-2 text-base bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           placeholder="Ej: finanzas.json">
+                    <label for="gist-filename" class="block text-sm font-medium mb-1">Nombre del Archivo en Gist</label>
+                    <input type="text" id="gist-filename" class="input-field w-full" placeholder="finanzas.json">
                 </div>
-
-                <div class="pt-2 flex justify-end gap-3">
-                    <button type="button" id="btn-cancel-settings" class="px-4 py-2 rounded-lg bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 font-medium">
-                        Cancelar
-                    </button>
-                    <button type="submit" id="btn-save-settings" class="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium">
-                        Guardar y Sincronizar
-                    </button>
+                <div class="mt-6 flex gap-4">
+                    <button type="button" id="btn-settings-cancel" class="w-full py-2 px-4 rounded-md bg-gray-200 dark:bg-gray-600">Cancelar</button>
+                    <button type="submit" class="w-full py-2 px-4 rounded-md bg-blue-600 text-white">Guardar y Sincronizar</button>
                 </div>
             </form>
         </div>
     </div>
+    
+    <!-- Modal: Notificación (Toast) -->
+    <div id="toast" class="fixed top-5 right-5 card p-4 rounded-lg shadow-lg z-50 opacity-0 transition-opacity duration-300">
+        <p id="toast-message">Mensaje de notificación</p>
+    </div>
 
-    <!-- 8. Toast / Notificación -->
-    <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-full max-w-sm hidden">
-        <div id="toast-content" class="flex items-center gap-3 p-4 rounded-xl shadow-lg text-white">
-            <svg id="toast-icon-success" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 hidden">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-            </svg>
-            <svg id="toast-icon-error" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 hidden">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z" />
-            </svg>
-            <svg id="toast-icon-loading" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6 hidden animate-spin">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 11.667 0l3.181-3.183m-4.991-1.696v4.992m0 0h-4.992m4.992 0-3.181-3.183a8.25 8.25 0 0 0-11.667 0l-3.181 3.183" />
-            </svg>
-            <span id="toast-message" class="font-medium"></span>
+    <!-- Modal: Confirmación -->
+    <div id="confirm-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm hidden">
+        <div class="card w-full max-w-sm p-6 rounded-lg shadow-xl">
+            <h3 id="confirm-title" class="text-lg font-semibold mb-4">Confirmar Acción</h3>
+            <p id="confirm-message" class="text-sm text-gray-300 mb-6">¿Estás seguro?</p>
+            <div class="flex gap-4">
+                <button id="btn-confirm-cancel" class="w-full py-2 px-4 rounded-md bg-gray-200 dark:bg-gray-600">Cancelar</button>
+                <button id="btn-confirm-ok" class="w-full py-2 px-4 rounded-md bg-red-600 text-white">Confirmar</button>
+            </div>
         </div>
     </div>
 
 
-    <!-- ============================================= -->
-    <!-- ===== LÓGICA DE LA APLICACIÓN (JAVASCRIPT) ===== -->
-    <!-- ============================================= -->
+    <!-- === SCRIPTS === -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        // Configuración de Day.js
+        dayjs.extend(dayjs_plugin_customParseFormat);
+        dayjs.extend(dayjs_plugin_isoWeek);
+        dayjs.extend(dayjs_plugin_isToday);
+        
+        // --- Estado de la Aplicación ---
+        const appState = {
+            movements: [],
+            categories: {
+                ingreso: ["Impresiones", "Varios"],
+                egreso: ["Resmas A4", "Insumos", "Servicios", "Varios"]
+            },
+            gistConfig: {
+                pat: null,
+                gistId: null,
+                filename: null
+            },
+            ui: {
+                chartInstance: null,
+                isGistSyncing: false,
+                editingMovementId: null
+            }
+        };
 
-            // ==================================================
-            // 1. ESTADO Y VARIABLES GLOBALES
-            // ==================================================
-            
-            // Estado principal de la aplicación
-            let appState = {
-                // 'movements' se carga desde Gist/localStorage
-                movements: [], 
-                // 'categories' se carga y se guarda junto con 'movements'
-                categories: {
-                    ingreso: ['Impresiones', 'Varios'],
-                    egreso: ['Resmas A4', 'Insumos', 'Servicios', 'Varios']
-                },
-                // Configuración de Gist
-                gistConfig: {
-                    token: null,
-                    gistId: null,
-                    filename: null,
-                },
-                // Estado de la UI
-                currentChart: null,
-                currentEditId: null, // Guarda el ID del movimiento que se está editando
-                isSyncing: false, // Flag para evitar sincronizaciones múltiples
-            };
+        // --- Selectores del DOM ---
+        const $ = (selector) => document.querySelector(selector);
+        
+        // Modales
+        const settingsModal = $('#settings-modal');
+        const movementModal = $('#movement-modal');
+        const confirmModal = $('#confirm-modal');
+        const toast = $('#toast');
+        
+        // Formularios
+        const settingsForm = $('#settings-form');
+        const movementForm = $('#movement-form');
+        
+        // Inputs del Formulario de Movimiento
+        const modalTitle = $('#modal-title');
+        const movementIdInput = $('#movement-id');
+        const movementTypeVisual = $('#movement-type-visual');
+        const typeIngreso = $('#type-ingreso');
+        const typeEgreso = $('#type-egreso');
+        const movementAmountInput = $('#movement-amount');
+        const movementConceptInput = $('#movement-concept');
+        const movementCategorySelect = $('#movement-category');
+        const movementDateInput = $('#movement-date');
 
-            // Selectores del DOM (elementos principales)
-            const dom = {
-                app: document.getElementById('app'),
-                // Encabezado
-                btnToggleTheme: document.getElementById('btn-toggle-theme'),
-                iconSun: document.getElementById('icon-sun'),
-                iconMoon: document.getElementById('icon-moon'),
-                btnOpenSettings: document.getElementById('btn-open-settings'),
-                
-                // Botón Flotante
-                btnOpenModal: document.getElementById('btn-open-modal'),
+        // Dashboard
+        const balanceTodayEl = $('#balance-today');
+        const balanceMonthEl = $('#balance-month');
+        const projectionMonthEl = $('#projection-month');
+        const cardBalanceToday = $('#card-balance-today');
+        const cardBalanceMonth = $('#card-balance-month');
+        const iconBalanceToday = $('#icon-balance-today');
+        const iconBalanceMonth = $('#icon-balance-month');
+        
+        // Listas y Tablas
+        const todayList = $('#today-list');
+        const noTodayMovements = $('#no-today-movements');
+        const historyTableBody = $('#history-table-body');
+        const noHistoryMovements = $('#no-history-movements');
+        const movementCardTemplate = $('#movement-card-template');
 
-                // Resumen (Dashboard)
-                summaryBalance: document.getElementById('summary-balance'),
-                summaryIncome: document.getElementById('summary-income'),
-                summaryExpense: document.getElementById('summary-expense'),
-
-                // Lista de Movimientos del Día
-                dailyListContainer: document.getElementById('daily-list-container'),
-                dailyEmptyState: document.getElementById('daily-empty-state'),
-                dailyItemTemplate: document.getElementById('daily-item-template'),
-
-                // Historial y Gráfico
-                evolutionChart: document.getElementById('evolution-chart').getContext('2d'),
-                historySearch: document.getElementById('history-search'),
-                historyTableBody: document.getElementById('history-table-body'),
-                historyEmptyState: document.getElementById('history-empty-state'),
-
-                // Modal de Movimiento
-                movementModal: document.getElementById('movement-modal'),
-                modalOverlay: document.getElementById('modal-overlay'),
-                btnCloseModal: document.getElementById('btn-close-modal'),
-                modalTitle: document.getElementById('modal-title'),
-                movementForm: document.getElementById('movement-form'),
-                formMovementId: document.getElementById('form-movement-id'),
-                btnTypeIngreso: document.getElementById('btn-type-ingreso'),
-                btnTypeEgreso: document.getElementById('btn-type-egreso'),
-                formAmount: document.getElementById('form-amount'),
-                formConcept: document.getElementById('form-concept'),
-                formCategory: document.getElementById('form-category'),
-                btnAddCategory: document.getElementById('btn-add-category'),
-                formDate: document.getElementById('form-date'),
-                btnSaveMovement: document.getElementById('btn-save-movement'),
-
-                // Modal de Configuración
-                settingsModal: document.getElementById('settings-modal'),
-                settingsOverlay: document.getElementById('settings-overlay'),
-                btnCloseSettings: document.getElementById('btn-close-settings'),
-                settingsForm: document.getElementById('settings-form'),
-                gistToken: document.getElementById('gist-token'),
-                gistId: document.getElementById('gist-id'),
-                gistFilename: document.getElementById('gist-filename'),
-                btnSaveSettings: document.getElementById('btn-save-settings'),
-                btnCancelSettings: document.getElementById('btn-cancel-settings'),
-
-                // Toast (Notificación)
-                toast: document.getElementById('toast'),
-                toastContent: document.getElementById('toast-content'),
-                toastMessage: document.getElementById('toast-message'),
-                toastIconSuccess: document.getElementById('toast-icon-success'),
-                toastIconError: document.getElementById('toast-icon-error'),
-                toastIconLoading: document.getElementById('toast-icon-loading'),
-            };
-
-            // ==================================================
-            // 2. FUNCIONES PRINCIPALES (LÓGICA)
-            // ==================================================
-
-            /**
-             * Inicializa la aplicación: carga estado, configura tema y listeners.
-             */
-            async function initApp() {
-                console.log("Iniciando Gestor de Finanzas...");
-                setupEventListeners();
-                initTheme();
-                loadStateFromLocal();
-
-                if (appState.gistConfig.token && appState.gistConfig.gistId && appState.gistConfig.filename) {
-                    console.log("Configuración de Gist encontrada. Sincronizando...");
-                    await handlePullFromGist(); // Intenta cargar datos frescos al inicio
-                } else {
-                    console.log("No hay configuración de Gist. Mostrando modal.");
-                    // Retrasamos la apertura del modal para que la UI cargue
-                    setTimeout(openSettingsModal, 1000); 
+        // Filtros
+        const filterSearch = $('#filter-search');
+        const filterType = $('#filter-type');
+        const filterMonth = $('#filter-month');
+        
+        // --- API de Gist (Objeto) ---
+        const GistApi = {
+            async request(config, method = 'GET', body = null) {
+                if (appState.ui.isGistSyncing) {
+                    console.warn("Sync in progress, skipping request.");
+                    return null;
                 }
-                
-                // Renderizar la UI con los datos locales (o los recién cargados)
-                renderUI();
-            }
+                appState.ui.isGistSyncing = true;
+                setLoading(true);
 
-            /**
-             * Renderiza toda la interfaz de usuario basándose en appState.
-             */
-            function renderUI() {
-                console.log("Renderizando UI...");
-                // Ordenar movimientos por fecha (más reciente primero)
-                appState.movements.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                const todayStart = getTodayStart();
-                const todayMovements = appState.movements.filter(m => new Date(m.date) >= todayStart);
-                
-                renderSummary(todayMovements);
-                renderDailyMovements(todayMovements);
-                renderHistoryTable(appState.movements);
-                renderEvolutionChart(appState.movements);
-            }
-
-            /**
-             * Guarda un movimiento (nuevo o editado) y actualiza la UI.
-             * @param {object} movementData - Datos del movimiento.
-             */
-            function saveMovement(movementData) {
-                if (appState.currentEditId) {
-                    // --- Editar movimiento existente ---
-                    const index = appState.movements.findIndex(m => m.id === appState.currentEditId);
-                    if (index !== -1) {
-                        appState.movements[index] = { ...appState.movements[index], ...movementData };
-                        console.log("Movimiento actualizado:", appState.currentEditId);
-                        showToast('Movimiento actualizado', 'success');
-                    }
-                } else {
-                    // --- Agregar nuevo movimiento ---
-                    const newMovement = {
-                        id: `mov_${new Date().getTime()}_${Math.random().toString(36).substring(2, 9)}`,
-                        ...movementData
-                    };
-                    appState.movements.push(newMovement);
-                    console.log("Nuevo movimiento agregado:", newMovement.id);
-                    showToast('Movimiento agregado', 'success');
+                const { pat, gistId, filename } = config;
+                if (!pat || !gistId || !filename) {
+                    showToast("Error: Configuración de Gist incompleta.", 'error');
+                    appState.ui.isGistSyncing = false;
+                    setLoading(false);
+                    return null;
                 }
 
-                // Limpiar ID de edición
-                appState.currentEditId = null;
-
-                // Guardar y renderizar
-                saveStateToLocal();
-                renderUI();
-                
-                // Sincronizar con Gist en segundo plano
-                handlePushToGist(); 
-            }
-
-            /**
-             * Elimina un movimiento por su ID.
-             * @param {string} movementId - ID del movimiento a eliminar.
-             */
-            function deleteMovement(movementId) {
-                appState.movements = appState.movements.filter(m => m.id !== movementId);
-                console.log("Movimiento eliminado:", movementId);
-                
-                saveStateToLocal();
-                renderUI();
-                showToast('Movimiento eliminado', 'success');
-                
-                // Sincronizar con Gist
-                handlePushToGist();
-            }
-
-            /**
-             * Agrega una nueva categoría al estado.
-             * @param {string} type - 'ingreso' o 'egreso'
-             */
-            function addNewCategory(type) {
-                const newCategory = prompt(`Nueva categoría para ${type}:`);
-                if (newCategory && newCategory.trim() !== "") {
-                    const trimmedCategory = newCategory.trim();
-                    if (!appState.categories[type].includes(trimmedCategory)) {
-                        appState.categories[type].push(trimmedCategory);
-                        appState.categories[type].sort();
-                        
-                        saveStateToLocal(); // Guardar categorías
-                        handlePushToGist(); // Sincronizar categorías
-                        
-                        // Actualizar el select y seleccionarla
-                        updateCategorySelect(type);
-                        dom.formCategory.value = trimmedCategory;
-                        
-                        showToast('Categoría agregada', 'success');
-                    } else {
-                        showToast('La categoría ya existe', 'error');
-                    }
-                }
-            }
-
-
-            // ==================================================
-            // 3. RENDERIZADO DE COMPONENTES
-            // ==================================================
-
-            /**
-             * Renderiza las tarjetas de resumen (Saldo, Ingresos, Egresos).
-             * @param {Array} todayMovements - Movimientos del día.
-             */
-            function renderSummary(todayMovements) {
-                const totalIncome = todayMovements
-                    .filter(m => m.type === 'ingreso')
-                    .reduce((sum, m) => sum + m.amount, 0);
-
-                const totalExpense = todayMovements
-                    .filter(m => m.type === 'egreso')
-                    .reduce((sum, m) => sum + m.amount, 0);
-
-                const totalBalance = appState.movements
-                    .reduce((sum, m) => sum + (m.type === 'ingreso' ? m.amount : -m.amount), 0);
-                
-                dom.summaryBalance.textContent = formatCurrency(totalBalance);
-                dom.summaryIncome.textContent = formatCurrency(totalIncome);
-                dom.summaryExpense.textContent = formatCurrency(totalExpense);
-                
-                // Colorear saldo
-                dom.summaryBalance.classList.toggle('text-green-600', totalBalance >= 0);
-                dom.summaryBalance.classList.toggle('dark:text-green-500', totalBalance >= 0);
-                dom.summaryBalance.classList.toggle('text-red-600', totalBalance < 0);
-                dom.summaryBalance.classList.toggle('dark:text-red-500', totalBalance < 0);
-            }
-
-            /**
-             * Renderiza la lista de "Movimientos del Día".
-             * @param {Array} todayMovements - Movimientos del día.
-             */
-            function renderDailyMovements(todayMovements) {
-                dom.dailyListContainer.innerHTML = ''; // Limpiar lista
-
-                if (todayMovements.length === 0) {
-                    dom.dailyEmptyState.classList.remove('hidden');
-                    return;
-                }
-                
-                dom.dailyEmptyState.classList.add('hidden');
-                
-                // Íconos y estilos
-                const icons = {
-                    ingreso: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-green-600 dark:text-green-300"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"></path></svg>`,
-                    egreso: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6 text-red-600 dark:text-red-300"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14"></path></svg>`
-                };
-                const styles = {
-                    ingreso: {
-                        iconBg: 'bg-green-100 dark:bg-green-900',
-                        amountText: 'text-green-600 dark:text-green-500',
-                    },
-                    egreso: {
-                        iconBg: 'bg-red-100 dark:bg-red-900',
-                        amountText: 'text-red-600 dark:text-red-500',
-                    }
-                };
-                // Colores de categorías (simples)
-                const categoryColors = [
-                    'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 ring-blue-700/10 dark:ring-blue-300/20',
-                    'bg-yellow-50 dark:bg-yellow-900/50 text-yellow-800 dark:text-yellow-300 ring-yellow-600/10 dark:ring-yellow-300/20',
-                    'bg-indigo-50 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 ring-indigo-700/10 dark:ring-indigo-300/20',
-                    'bg-purple-50 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 ring-purple-700/10 dark:ring-purple-300/20',
-                    'bg-pink-50 dark:bg-pink-900/50 text-pink-700 dark:text-pink-300 ring-pink-700/10 dark:ring-pink-300/20',
-                    'bg-gray-50 dark:bg-gray-900/50 text-gray-700 dark:text-gray-300 ring-gray-700/10 dark:ring-gray-300/20',
-                ];
-                // Asignar un color a cada categoría
-                const allCategories = [...appState.categories.ingreso, ...appState.categories.egreso];
-                const categoryColorMap = allCategories.reduce((acc, category, index) => {
-                    acc[category] = categoryColors[index % categoryColors.length];
-                    return acc;
-                }, {});
-
-
-                todayMovements.forEach(movement => {
-                    const template = dom.dailyItemTemplate.content.cloneNode(true);
-                    const li = template.querySelector('li');
-                    li.dataset.id = movement.id; // Guardar ID en el elemento
-
-                    const style = styles[movement.type];
-                    const sign = movement.type === 'ingreso' ? '+' : '-';
-                    const categoryColor = categoryColorMap[movement.category] || categoryColors[categoryColors.length - 1]; // Fallback
-
-                    li.querySelector('.icon-container').innerHTML = icons[movement.type];
-                    li.querySelector('.icon-container').className += ` ${style.iconBg}`;
-                    
-                    li.querySelector('.concept-text').textContent = movement.concept;
-                    li.querySelector('.concept-text').title = movement.concept;
-                    
-                    li.querySelector('.category-badge').textContent = movement.category;
-                    li.querySelector('.category-badge').className += ` ${categoryColor}`;
-
-                    li.querySelector('.time-text span').textContent = formatTime(new Date(movement.date));
-                    
-                    li.querySelector('.amount-text').textContent = `${sign}${formatCurrency(movement.amount)}`;
-                    li.querySelector('.amount-text').className += ` ${style.amountText}`;
-                    
-                    // Listeners para botones de acción
-                    li.querySelector('.btn-edit-item').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        handleEditMovement(movement.id);
-                    });
-                    
-                    li.querySelector('.btn-delete-item').addEventListener('click', (e) => {
-                        e.stopPropagation();
-                        // Pedir confirmación
-                        if (confirm(`¿Estás seguro de eliminar "${movement.concept}"?`)) {
-                            deleteMovement(movement.id);
-                        }
-                    });
-
-                    dom.dailyListContainer.appendChild(li);
-                });
-            }
-
-            /**
-             * Renderiza la tabla de historial completo.
-             * @param {Array} movements - Todos los movimientos.
-             * @param {string} [filter=''] - Texto para filtrar.
-             */
-            function renderHistoryTable(movements, filter = '') {
-                dom.historyTableBody.innerHTML = '';
-                const searchTerm = filter.toLowerCase();
-
-                const filteredMovements = movements.filter(m => 
-                    m.concept.toLowerCase().includes(searchTerm) ||
-                    m.category.toLowerCase().includes(searchTerm)
-                );
-                
-                if (filteredMovements.length === 0) {
-                    dom.historyEmptyState.classList.remove('hidden');
-                    return;
-                }
-                
-                dom.historyEmptyState.classList.add('hidden');
-
-                filteredMovements.forEach(m => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-gray-50 dark:hover:bg-gray-700/50";
-                    
-                    const isIncome = m.type === 'ingreso';
-                    const amountColor = isIncome ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500';
-                    const sign = isIncome ? '+' : '-';
-
-                    tr.innerHTML = `
-                        <td class="px-4 py-3 text-gray-500 dark:text-gray-400">${formatDate(new Date(m.date))}</td>
-                        <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">${m.concept}</td>
-                        <td class="px-4 py-3 font-semibold text-right ${amountColor}">${sign}${formatCurrency(m.amount)}</td>
-                    `;
-                    dom.historyTableBody.appendChild(tr);
-                });
-            }
-
-            /**
-             * Renderiza el gráfico de evolución.
-             * @param {Array} movements - Todos los movimientos.
-             */
-            function renderEvolutionChart(movements) {
-                if (appState.currentChart) {
-                    appState.currentChart.destroy();
-                }
-
-                const last30Days = getNDaysAgo(30);
-                const dailyData = {};
-
-                // Inicializar los últimos 30 días
-                for (let i = 0; i < 30; i++) {
-                    const date = new Date(last30Days);
-                    date.setDate(date.getDate() + i);
-                    const dateString = date.toISOString().split('T')[0];
-                    dailyData[dateString] = { income: 0, expense: 0 };
-                }
-
-                // Acumular datos
-                movements.forEach(m => {
-                    if (new Date(m.date) >= last30Days) {
-                        const dateString = m.date.split('T')[0];
-                        if (dailyData[dateString]) {
-                            if (m.type === 'ingreso') {
-                                dailyData[dateString].income += m.amount;
-                            } else {
-                                dailyData[dateString].expense += m.amount;
-                            }
-                        }
-                    }
-                });
-
-                const labels = Object.keys(dailyData).sort();
-                const incomeData = labels.map(date => dailyData[date].income);
-                const expenseData = labels.map(date => dailyData[date].expense);
-
-                const isDarkMode = document.documentElement.classList.contains('dark');
-                const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
-                const textColor = isDarkMode ? '#e5e7eb' : '#374151';
-
-                appState.currentChart = new Chart(dom.evolutionChart, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Ingresos',
-                                data: incomeData,
-                                backgroundColor: 'rgba(34, 197, 94, 0.7)', // green-500
-                                borderColor: 'rgba(34, 197, 94, 1)',
-                                borderWidth: 1,
-                                borderRadius: 4,
-                            },
-                            {
-                                label: 'Egresos',
-                                data: expenseData,
-                                backgroundColor: 'rgba(239, 68, 68, 0.7)', // red-500
-                                borderColor: 'rgba(239, 68, 68, 1)',
-                                borderWidth: 1,
-                                borderRadius: 4,
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: { color: textColor }
-                            },
-                            tooltip: {
-                                callbacks: {
-                                    label: function(context) {
-                                        let label = context.dataset.label || '';
-                                        if (label) {
-                                            label += ': ';
-                                        }
-                                        if (context.parsed.y !== null) {
-                                            label += formatCurrency(context.parsed.y);
-                                        }
-                                        return label;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                type: 'time',
-                                time: {
-                                    unit: 'day',
-                                    displayFormats: {
-                                        day: 'MMM d'
-                                    },
-                                    tooltipFormat: 'MMM d, yyyy'
-                                },
-                                grid: { color: 'transparent' },
-                                ticks: { color: textColor }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                grid: { color: gridColor },
-                                ticks: { 
-                                    color: textColor,
-                                    callback: function(value) {
-                                        return '$' + value;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                });
-            }
-
-
-            // ==================================================
-            // 4. MANEJO DE EVENTOS (LISTENERS)
-            // ==================================================
-
-            function setupEventListeners() {
-                // Tema
-                dom.btnToggleTheme.addEventListener('click', toggleTheme);
-
-                // Configuración
-                dom.btnOpenSettings.addEventListener('click', openSettingsModal);
-                dom.settingsOverlay.addEventListener('click', closeSettingsModal);
-                dom.btnCloseSettings.addEventListener('click', closeSettingsModal);
-                dom.btnCancelSettings.addEventListener('click', closeSettingsModal);
-                dom.settingsForm.addEventListener('submit', handleSaveSettings);
-
-                // Modal de Movimiento
-                dom.btnOpenModal.addEventListener('click', () => openMovementModal());
-                dom.modalOverlay.addEventListener('click', closeMovementModal);
-                dom.btnCloseModal.addEventListener('click', closeMovementModal);
-                dom.movementForm.addEventListener('submit', handleSaveMovement);
-
-                // Formulario
-                dom.btnTypeIngreso.addEventListener('click', () => setMovementType('ingreso'));
-                dom.btnTypeEgreso.addEventListener('click', () => setMovementType('egreso'));
-                dom.btnAddCategory.addEventListener('click', () => {
-                    const currentType = dom.btnTypeIngreso.classList.contains('active') ? 'ingreso' : 'egreso';
-                    addNewCategory(currentType);
-                });
-
-                // Filtro de Historial
-                dom.historySearch.addEventListener('input', (e) => {
-                    renderHistoryTable(appState.movements, e.target.value);
-                });
-            }
-            
-            // ==================================================
-            // 5. MANEJADORES DE ACCIONES (HANDLERS)
-            // ==================================================
-
-            /**
-             * Handler: Guardar el formulario de movimiento.
-             */
-            function handleSaveMovement(e) {
-                e.preventDefault();
-                
-                const movementData = {
-                    type: dom.btnTypeIngreso.classList.contains('active') ? 'ingreso' : 'egreso',
-                    amount: parseFloat(dom.formAmount.value),
-                    concept: dom.formConcept.value.trim(),
-                    category: dom.formCategory.value,
-                    date: dom.formDate.value,
+                const url = `https://api.github.com/gists/${gistId}`;
+                const headers = {
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Authorization': `token ${pat}`,
+                    'X-GitHub-Api-Version': '2022-11-28'
                 };
                 
-                // Validación simple
-                if (!movementData.amount || movementData.amount <= 0) {
-                    showToast('Ingresa un monto válido', 'error');
-                    dom.formAmount.focus();
-                    return;
+                const options = { method, headers };
+                if (body) {
+                    options.body = JSON.stringify(body);
                 }
-                if (!movementData.concept) {
-                    showToast('Ingresa un concepto', 'error');
-                    dom.formConcept.focus();
-                    return;
-                }
-                if (!movementData.date) {
-                    showToast('Ingresa una fecha válida', 'error');
-                    dom.formDate.focus();
-                    return;
-                }
-
-                saveMovement(movementData);
-                closeMovementModal();
-            }
-
-            /**
-             * Handler: Abrir modal para editar un movimiento.
-             * @param {string} movementId - ID del movimiento.
-             */
-            function handleEditMovement(movementId) {
-                const movement = appState.movements.find(m => m.id === movementId);
-                if (!movement) {
-                    console.error("No se encontró el movimiento:", movementId);
-                    showToast('Error: No se encontró el movimiento', 'error');
-                    return;
-                }
-                
-                appState.currentEditId = movementId;
-                openMovementModal(movement);
-            }
-
-            /**
-             * Handler: Guardar configuración de Gist.
-             */
-            async function handleSaveSettings(e) {
-                e.preventDefault();
-                appState.gistConfig.token = dom.gistToken.value.trim();
-                appState.gistConfig.gistId = dom.gistId.value.trim();
-                appState.gistConfig.filename = dom.gistFilename.value.trim() || 'finanzas.json';
-
-                if (!appState.gistConfig.token || !appState.gistConfig.gistId || !appState.gistConfig.filename) {
-                    showToast('Por favor, completa todos los campos', 'error');
-                    return;
-                }
-
-                // Guardar config en localStorage
-                saveStateToLocal();
-                closeSettingsModal();
-                showToast('Configuración guardada. Sincronizando...', 'loading');
-
-                // Inmediatamente intentar cargar datos del Gist
-                await handlePullFromGist();
-                // Volver a renderizar la UI con los datos (nuevos o locales)
-                renderUI();
-            }
-
-
-            // ==================================================
-            // 6. LÓGICA DE API (GIST)
-            // ==================================================
-
-            /**
-             * Sube el estado actual (movements y categories) a Gist.
-             */
-            async function handlePushToGist() {
-                if (!appState.gistConfig.token || appState.isSyncing) {
-                    if (appState.isSyncing) console.log("Sincronización en progreso, omitiendo push.");
-                    return; // No sincronizar si no hay token o si ya está sincronizando
-                }
-                
-                appState.isSyncing = true;
-                console.log("Iniciando push a Gist...");
-                showToast('Sincronizando datos...', 'loading', 0); // Toast pegajoso
-
-                const { token, gistId, filename } = appState.gistConfig;
-                const GIST_API_URL = `https://api.github.com/gists/${gistId}`;
-
-                // Solo guardamos 'movements' y 'categories'
-                const contentToSave = {
-                    movements: appState.movements,
-                    categories: appState.categories
-                };
 
                 try {
-                    const response = await fetch(GIST_API_URL, {
-                        method: 'PATCH',
-                        headers: {
-                            'Authorization': `token ${token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'X-GitHub-Api-Version': '2022-11-28',
-                        },
-                        body: JSON.stringify({
-                            files: {
-                                [filename]: {
-                                    content: JSON.stringify(contentToSave, null, 2) // pretty print
-                                }
-                            }
-                        })
-                    });
+                    const response = await fetch(url, options);
 
                     if (!response.ok) {
                         const errorData = await response.json();
-                        throw new Error(`Error al guardar en Gist: ${errorData.message || response.statusText}`);
+                        throw new Error(`Error ${response.status}: ${errorData.message || 'Error de Gist'}`);
                     }
-
-                    console.log("Push a Gist exitoso.");
-                    showToast('Datos sincronizados con Gist', 'success');
-
+                    
+                    if (method === 'GET') {
+                        return await response.json();
+                    }
+                    return { ok: true }; // Para PATCH
+                    
                 } catch (error) {
-                    console.error("Error en handlePushToGist:", error);
-                    showToast(`Error de sincronización: ${error.message}`, 'error');
+                    console.error("Gist API Error:", error);
+                    showToast(error.message, 'error');
+                    return null;
                 } finally {
-                    appState.isSyncing = false;
+                    appState.ui.isGistSyncing = false;
+                    setLoading(false);
                 }
+            },
+
+            async pull() {
+                const config = appState.gistConfig;
+                const data = await this.request(config);
+                
+                if (data && data.files && data.files[config.filename]) {
+                    const content = data.files[config.filename].content;
+                    if (content) {
+                        try {
+                            return JSON.parse(content);
+                        } catch (e) {
+                            showToast("Error: Datos corruptos en Gist.", 'error');
+                            return null;
+                        }
+                    }
+                } else if (data) {
+                    showToast("Error: No se encontró el archivo en el Gist.", 'error');
+                }
+                return null;
+            },
+
+            async push(data) {
+                const config = appState.gistConfig;
+                const body = {
+                    files: {
+                        [config.filename]: {
+                            content: JSON.stringify(data, null, 2) // Pretty print JSON
+                        }
+                    }
+                };
+                return await this.request(config, 'PATCH', body);
+            }
+        };
+        
+        // --- Lógica de Sincronización ---
+
+        async function handlePushToGist(showSuccessToast = false) {
+            if (!appState.gistConfig.pat) {
+                console.warn("Push omitido: No hay configuración de Gist.");
+                return; // No molestar si no está configurado
             }
             
-            /**
-             * Descarga el estado desde Gist y lo fusiona con el local.
-             */
-            async function handlePullFromGist() {
-                if (!appState.gistConfig.token) {
-                    console.log("Pull omitido: No hay token.");
-                    return; // No sincronizar si no hay token
+            const dataToSave = {
+                movements: appState.movements,
+                categories: appState.categories
+            };
+            
+            const result = await GistApi.push(dataToSave);
+            if (result && result.ok && showSuccessToast) {
+                showToast("Sincronización exitosa.", 'success');
+            } else if (!result) {
+                showToast("Error de sincronización. Tus datos están guardados localmente.", 'error');
+            }
+        }
+
+        async function handlePullFromGist() {
+            if (!appState.gistConfig.pat) return; // No hacer nada si no hay config
+            
+            const data = await GistApi.pull();
+            if (data) {
+                // Sincronización simple: Gist sobreescribe local
+                appState.movements = data.movements || [];
+                appState.categories = data.categories || appState.categories;
+                
+                // Asegurarse de que las categorías importadas existan
+                if (!appState.categories.ingreso.includes("Importado")) {
+                    appState.categories.ingreso.push("Importado");
+                }
+                if (!appState.categories.egreso.includes("Importado")) {
+                    appState.categories.egreso.push("Importado");
+                }
+
+                saveStateToLocal();
+                renderAll();
+                showToast("Datos cargados desde Gist.", 'success');
+            } else {
+                showToast("No se pudo cargar desde Gist. Usando datos locales.", 'warning');
+            }
+        }
+
+        // --- Lógica de Estado Local ---
+
+        function saveStateToLocal() {
+            try {
+                const localData = {
+                    movements: appState.movements,
+                    categories: appState.categories
+                };
+                localStorage.setItem('finanzasApp', JSON.stringify(localData));
+            } catch (e) {
+                console.error("Error guardando en localStorage:", e);
+                showToast("Error al guardar datos locales.", 'error');
+            }
+        }
+
+        function loadStateFromLocal() {
+            try {
+                const localData = localStorage.getItem('finanzasApp');
+                if (localData) {
+                    const parsedData = JSON.parse(localData);
+                    appState.movements = parsedData.movements || [];
+                    appState.categories = parsedData.categories || appState.categories;
+                }
+            } catch (e) {
+                console.error("Error cargando de localStorage:", e);
+                appState.movements = []; // Empezar de cero si hay error
+                appState.categories = { ingreso: ["Impresiones", "Varios"], egreso: ["Resmas A4", "Insumos", "Servicios", "Varios"] };
+            }
+        }
+
+        function saveGistConfig() {
+            localStorage.setItem('finanzasGistConfig', JSON.stringify(appState.gistConfig));
+        }
+
+        function loadGistConfig() {
+            try {
+                const config = localStorage.getItem('finanzasGistConfig');
+                if (config) {
+                    appState.gistConfig = JSON.parse(config);
+                    // Actualizar inputs del modal de settings (sin la contraseña)
+                    $('#gist-id').value = appState.gistConfig.gistId || '';
+                    $('#gist-filename').value = appState.gistConfig.filename || '';
+                }
+            } catch (e) {
+                console.error("Error cargando config de Gist:", e);
+            }
+        }
+
+        // --- Lógica de Renderizado ---
+        
+        /**
+         * Formateador de moneda
+         */
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('es-AR', {
+                style: 'currency',
+                currency: 'ARS',
+                minimumFractionDigits: 2
+            }).format(amount);
+        };
+        
+        /**
+         * Renderiza todo el UI
+         */
+        function renderAll() {
+            // Ordenar movimientos por fecha (más nuevos primero)
+            appState.movements.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            const filters = getFilters();
+            const filteredMovements = filterMovements(appState.movements, filters);
+            
+            renderTodayList();
+            renderDashboard();
+            renderHistoryTable(filteredMovements);
+            renderHistoryChart(filteredMovements);
+        }
+
+        /**
+         * Renderiza el Dashboard (Resumen)
+         */
+        function renderDashboard() {
+            const now = dayjs();
+            const today = now.startOf('day');
+            const startOfMonth = now.startOf('month');
+            const endOfMonth = now.endOf('month');
+            
+            let todayIncome = 0;
+            let todayExpense = 0;
+            let monthIncome = 0;
+            let monthExpense = 0;
+
+            for (const mov of appState.movements) {
+                const movDate = dayjs(mov.date);
+                
+                // Cálculos para hoy
+                if (movDate.isSame(today, 'day')) {
+                    if (mov.type === 'ingreso') {
+                        todayIncome += mov.amount;
+                    } else {
+                        todayExpense += mov.amount;
+                    }
                 }
                 
-                if (appState.isSyncing) {
-                    console.log("Sincronización en progreso, omitiendo pull.");
-                    return;
-                }
-
-                appState.isSyncing = true;
-                console.log("Iniciando pull desde Gist...");
-                showToast('Actualizando datos...', 'loading', 0); // Toast pegajoso
-
-                const { token, gistId, filename } = appState.gistConfig;
-                const GIST_API_URL = `https://api.github.com/gists/${gistId}`;
-
-                try {
-                    const response = await fetch(GIST_API_URL, {
-                        method: 'GET',
-                        headers: {
-                            'Authorization': `token ${token}`,
-                            'Accept': 'application/vnd.github.v3+json',
-                            'X-GitHub-Api-Version': '2022-11-28',
-                        }
-                    });
-
-                    if (response.status === 404) {
-                        showToast('Error: Gist ID no encontrado (404)', 'error');
-                        throw new Error('Gist no encontrado');
+                // Cálculos para el mes
+                if (movDate.isAfter(startOfMonth) && movDate.isBefore(endOfMonth)) {
+                    if (mov.type === 'ingreso') {
+                        monthIncome += mov.amount;
+                    } else {
+                        monthExpense += mov.amount;
                     }
-                    if (response.status === 401) {
-                        showToast('Error: Token de Gist inválido (401)', 'error');
-                        throw new Error('Token inválido');
-                    }
-                    if (!response.ok) {
-                        throw new Error(`Error al cargar de Gist: ${response.statusText}`);
-                    }
-
-                    const gistData = await response.json();
-
-                    if (!gistData.files || !gistData.files[filename]) {
-                        showToast(`Error: Archivo "${filename}" no encontrado en el Gist`, 'error');
-                        throw new Error(`Archivo ${filename} no encontrado en el Gist`);
-                    }
-
-                    const rawContent = gistData.files[filename].content;
-                    const remoteData = JSON.parse(rawContent);
-
-                    // Fusionar datos (simple: Gist sobreescribe local)
-                    // Una estrategia más avanzada podría fusionar movimientos
-                    if (remoteData.movements) {
-                        appState.movements = remoteData.movements;
-                    }
-                    if (remoteData.categories) {
-                        appState.categories = remoteData.categories;
-                    }
-                    
-                    saveStateToLocal();
-                    console.log("Pull desde Gist exitoso. Datos fusionados.");
-                    showToast('Datos actualizados desde Gist', 'success');
-
-                } catch (error) {
-                    console.error("Error en handlePullFromGist:", error);
-                    showToast(`Error al cargar: ${error.message}`, 'error');
-                    // Si falla el pull, no hacemos nada, nos quedamos con los datos locales.
-                } finally {
-                    appState.isSyncing = false;
                 }
             }
 
+            const todayBalance = todayIncome - todayExpense;
+            const monthBalance = monthIncome - monthExpense;
 
-            // ==================================================
-            // 7. MANEJO DE MODALES Y UI
-            // ==================================================
+            // Cálculo de Proyección
+            const dayOfMonth = now.date();
+            const daysInMonth = now.daysInMonth();
+            const projection = (monthBalance / dayOfMonth) * daysInMonth;
 
-            /**
-             * Abre el modal de movimiento, opcionalmente cargando datos.
-             * @param {object} [movement=null] - Datos del movimiento a editar.
-             */
-            function openMovementModal(movement = null) {
-                dom.movementForm.reset(); // Limpiar formulario
+            // Actualizar UI
+            balanceTodayEl.textContent = formatCurrency(todayBalance);
+            balanceMonthEl.textContent = formatCurrency(monthBalance);
+            projectionMonthEl.textContent = formatCurrency(projection);
 
-                if (movement) {
-                    // --- Modo Edición ---
-                    appState.currentEditId = movement.id;
-                    dom.modalTitle.textContent = "Editar Movimiento";
-                    dom.btnSaveMovement.textContent = "Guardar Cambios";
-                    
-                    setMovementType(movement.type); // Actualiza select y botones
-                    dom.formAmount.value = movement.amount;
-                    dom.formConcept.value = movement.concept;
-                    dom.formCategory.value = movement.category;
-                    dom.formDate.value = movement.date; // Carga la fecha y hora completa
-                
-                } else {
-                    // --- Modo Nuevo ---
-                    appState.currentEditId = null;
-                    dom.modalTitle.textContent = "Nuevo Movimiento";
-                    dom.btnSaveMovement.textContent = "Guardar Movimiento";
-                    
-                    setMovementType('ingreso'); // Por defecto
-                    dom.formDate.value = getISOStringWithLocalTimezone(new Date()); // Fecha y hora actual
-                }
-                
-                dom.movementModal.classList.remove('hidden');
-                
-                // Foco automático en el monto
-                setTimeout(() => dom.formAmount.focus(), 100); 
+            // Actualizar colores
+            updateCardColor(cardBalanceToday, iconBalanceToday, todayBalance);
+            updateCardColor(cardBalanceMonth, iconBalanceMonth, monthBalance);
+        }
+
+        function updateCardColor(cardEl, iconEl, value) {
+            // Quitar clases anteriores
+            iconEl.classList.remove('bg-green-500', 'bg-red-500', 'bg-gray-500');
+            cardEl.classList.remove('border-green-500', 'border-red-500', 'border-gray-500');
+
+            if (value > 0) {
+                iconEl.classList.add('bg-green-500');
+                cardEl.classList.add('border-green-500'); // Asumiendo que se agrega un borde
+            } else if (value < 0) {
+                iconEl.classList.add('bg-red-500');
+                cardEl.classList.add('border-red-500');
+            } else {
+                iconEl.classList.add('bg-gray-500');
+                cardEl.classList.add('border-gray-500');
             }
-
-            /**
-             * Cierra el modal de movimiento.
-             */
-            function closeMovementModal() {
-                dom.movementModal.classList.add('hidden');
-                appState.currentEditId = null; // Limpiar ID de edición al cerrar
-            }
-
-            /**
-             * Abre el modal de configuración.
-             */
-            function openSettingsModal() {
-                // Cargar valores actuales en el formulario
-                dom.gistToken.value = appState.gistConfig.token || '';
-                dom.gistId.value = appState.gistConfig.gistId || '';
-                dom.gistFilename.value = appState.gistConfig.filename || 'finanzas.json';
-                
-                dom.settingsModal.classList.remove('hidden');
-                setTimeout(() => dom.gistToken.focus(), 100);
-            }
-
-            /**
-             * Cierra el modal de configuración.
-             */
-            function closeSettingsModal() {
-                dom.settingsModal.classList.add('hidden');
-            }
-
-            /**
-             * Establece el tipo de movimiento (ingreso/egreso) en el formulario.
-             * @param {string} type - 'ingreso' o 'egreso'
-             */
-            function setMovementType(type) {
-                if (type === 'ingreso') {
-                    dom.btnTypeIngreso.classList.add('active');
-                    dom.btnTypeEgreso.classList.remove('active');
-                } else {
-                    dom.btnTypeIngreso.classList.remove('active');
-                    dom.btnTypeEgreso.classList.add('active');
-                }
-                // Actualizar el <select> de categorías
-                updateCategorySelect(type);
-            }
-
-            /**
-             * Actualiza el <select> de categorías según el tipo.
-             * @param {string} type - 'ingreso' o 'egreso'
-             */
-            function updateCategorySelect(type) {
-                const categories = appState.categories[type] || [];
-                dom.formCategory.innerHTML = ''; // Limpiar opciones
-                
-                categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    dom.formCategory.appendChild(option);
+        }
+        
+        /**
+         * Renderiza la lista de Movimientos del Día
+         */
+        function renderTodayList() {
+            const todayMovements = appState.movements.filter(mov => dayjs(mov.date).isToday());
+            todayList.innerHTML = ''; // Limpiar lista
+            
+            if (todayMovements.length === 0) {
+                todayList.appendChild(noTodayMovements);
+                noTodayMovements.classList.remove('hidden');
+            } else {
+                noTodayMovements.classList.add('hidden');
+                todayMovements.forEach(mov => {
+                    const card = createMovementCard(mov);
+                    todayList.appendChild(card);
                 });
             }
-
-            /**
-             * Muestra un toast (notificación).
-             * @param {string} message - Mensaje a mostrar.
-             * @param {string} type - 'success', 'error', o 'loading'
-             * @param {number} [duration=3000] - Duración en ms (0 para pegajoso).
-             */
-            let toastTimer = null;
-            function showToast(message, type = 'success', duration = 3000) {
-                // Limpiar timer anterior si existe
-                if (toastTimer) {
-                    clearTimeout(toastTimer);
-                    toastTimer = null;
-                }
-
-                // Ocultar todos los iconos
-                dom.toastIconSuccess.classList.add('hidden');
-                dom.toastIconError.classList.add('hidden');
-                dom.toastIconLoading.classList.add('hidden');
-                
-                // Quitar clases de color anteriores
-                dom.toastContent.classList.remove('bg-green-600', 'bg-red-600', 'bg-blue-600');
-
-                // Configurar tipo
-                if (type === 'success') {
-                    dom.toastContent.classList.add('bg-green-600');
-                    dom.toastIconSuccess.classList.remove('hidden');
-                } else if (type === 'error') {
-                    dom.toastContent.classList.add('bg-red-600');
-                    dom.toastIconError.classList.remove('hidden');
-                } else if (type === 'loading') {
-                    dom.toastContent.classList.add('bg-blue-600');
-                    dom.toastIconLoading.classList.remove('hidden');
-                }
-
-                dom.toastMessage.textContent = message;
-                dom.toast.classList.remove('hidden');
-                dom.toast.classList.remove('animate-toastOut');
-                dom.toast.classList.add('animate-toastIn');
-                
-                // Ocultar automáticamente si la duración no es 0
-                if (duration > 0) {
-                    toastTimer = setTimeout(() => {
-                        dom.toast.classList.remove('animate-toastIn');
-                        dom.toast.classList.add('animate-toastOut');
-                        // Esperar a que termine la animación de salida para ocultar
-                        setTimeout(() => dom.toast.classList.add('hidden'), 500); 
-                    }, duration);
-                }
-            }
-
-
-            // ==================================================
-            // 8. MANEJO DE TEMA (CLARO/OSCURO)
-            // ==================================================
+        }
+        
+        /**
+         * Crea un elemento de tarjeta de movimiento
+         */
+        function createMovementCard(mov) {
+            const clone = movementCardTemplate.content.cloneNode(true);
+            const card = clone.querySelector('.movement-card');
             
-            /**
-             * Inicializa el tema al cargar la página.
-             */
-            function initTheme() {
-                if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                    setTheme('dark');
+            card.dataset.id = mov.id;
+            
+            const iconEl = card.querySelector('.movement-icon');
+            const conceptEl = card.querySelector('.movement-concept');
+            const categoryEl = card.querySelector('.movement-category-tag');
+            const timeEl = card.querySelector('.movement-time span');
+            const amountEl = card.querySelector('.movement-amount');
+            
+            conceptEl.textContent = mov.concept || (mov.type === 'ingreso' ? 'Ingreso' : 'Egreso');
+            categoryEl.textContent = mov.category;
+            timeEl.textContent = dayjs(mov.date).format('HH:mm');
+            amountEl.textContent = formatCurrency(mov.amount);
+
+            if (mov.type === 'ingreso') {
+                iconEl.innerHTML = `<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>`;
+                iconEl.classList.add('bg-green-500');
+                amountEl.classList.add('text-green-500');
+                categoryEl.classList.add('bg-green-200', 'text-green-800');
+            } else {
+                iconEl.innerHTML = `<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>`;
+                iconEl.classList.add('bg-red-500');
+                amountEl.classList.add('text-red-500');
+                categoryEl.classList.add('bg-red-200', 'text-red-800');
+            }
+            
+            // Listeners para botones de acción
+            card.querySelector('.btn-edit').addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleEditMovement(mov.id);
+            });
+            
+            card.querySelector('.btn-delete').addEventListener('click', (e) => {
+                e.stopPropagation();
+                handleDeleteMovement(mov.id);
+            });
+
+            return card;
+        }
+
+        /**
+         * Renderiza la Tabla de Historial
+         */
+        function renderHistoryTable(movements) {
+            historyTableBody.innerHTML = ''; // Limpiar tabla
+            
+            if (movements.length === 0) {
+                noHistoryMovements.classList.remove('hidden');
+            } else {
+                noHistoryMovements.classList.add('hidden');
+                movements.forEach(mov => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600';
+                    
+                    const isIngreso = mov.type === 'ingreso';
+                    const amountColor = isIngreso ? 'text-green-500' : 'text-red-500';
+                    const amountSign = isIngreso ? '+' : '-';
+
+                    row.innerHTML = `
+                        <td class="py-3 px-4 text-sm text-gray-400">${dayjs(mov.date).format('DD/MM/YYYY')}</td>
+                        <td class="py-3 px-4">${mov.concept || (isIngreso ? 'Ingreso' : 'Egreso')}</td>
+                        <td class="py-3 px-4 text-sm text-gray-400">${mov.category}</td>
+                        <td class="py-3 px-4 text-right font-medium ${amountColor}">
+                            ${amountSign} ${formatCurrency(mov.amount)}
+                        </td>
+                    `;
+                    historyTableBody.appendChild(row);
+                });
+            }
+        }
+
+        /**
+         * Renderiza el Gráfico de Historial
+         */
+        function renderHistoryChart(movements) {
+            const ctx = $('#history-chart').getContext('2d');
+            
+            // Agrupar por mes
+            const monthlyData = {};
+            
+            // Obtener el mes seleccionado en el filtro, si existe
+            const filterMonthValue = filterMonth.value; // Formato YYYY-MM
+            
+            const movementsToChart = filterMonthValue 
+                ? movements // Si hay filtro de mes, usa los movimientos ya filtrados
+                : appState.movements; // Si no, usa todos los movimientos
+
+            movementsToChart.forEach(mov => {
+                const month = dayjs(mov.date).format('YYYY-MM');
+                if (!monthlyData[month]) {
+                    monthlyData[month] = { ingreso: 0, egreso: 0 };
+                }
+                monthlyData[month][mov.type] += mov.amount;
+            });
+            
+            // Si filtramos por mes, queremos ver datos diarios
+            if (filterMonthValue) {
+                renderDailyChart(ctx, movements);
+                return;
+            }
+
+            // Ordenar meses
+            const sortedMonths = Object.keys(monthlyData).sort();
+            
+            // Tomar últimos 12 meses
+            const labels = sortedMonths.slice(-12).map(month => dayjs(month).format('MMM YYYY'));
+            const ingresos = sortedMonths.slice(-12).map(month => monthlyData[month].ingreso);
+            const egresos = sortedMonths.slice(-12).map(month => monthlyData[month].egreso);
+
+            if (appState.ui.chartInstance) {
+                appState.ui.chartInstance.destroy();
+            }
+
+            appState.ui.chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ingresos',
+                            data: ingresos,
+                            backgroundColor: 'rgba(34, 197, 94, 0.6)', // green-500
+                            borderColor: 'rgba(34, 197, 94, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Egresos',
+                            data: egresos,
+                            backgroundColor: 'rgba(239, 68, 68, 0.6)', // red-500
+                            borderColor: 'rgba(239, 68, 68, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => formatCurrency(value),
+                                color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                            },
+                            grid: {
+                                color: document.documentElement.classList.contains('dark') ? '#4b5563' : '#e5e7eb'
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                            },
+                             grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#1f2937'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += formatCurrency(context.parsed.y);
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        /**
+         * Renderiza el gráfico por días para un mes seleccionado
+         */
+        function renderDailyChart(ctx, movements) {
+            const dailyData = {};
+            const month = dayjs(filterMonth.value);
+            const daysInMonth = month.daysInMonth();
+            const labels = [];
+            
+            for (let i = 1; i <= daysInMonth; i++) {
+                const dayStr = month.date(i).format('YYYY-MM-DD');
+                labels.push(dayjs(dayStr).format('DD'));
+                dailyData[dayStr] = { ingreso: 0, egreso: 0 };
+            }
+
+            movements.forEach(mov => {
+                const dayStr = dayjs(mov.date).format('YYYY-MM-DD');
+                if (dailyData[dayStr]) {
+                    dailyData[dayStr][mov.type] += mov.amount;
+                }
+            });
+
+            const ingresos = labels.map(day => dailyData[month.format('YYYY-MM-') + day].ingreso);
+            const egresos = labels.map(day => dailyData[month.format('YYYY-MM-') + day].egreso);
+
+            if (appState.ui.chartInstance) {
+                appState.ui.chartInstance.destroy();
+            }
+
+            appState.ui.chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ingresos',
+                            data: ingresos,
+                            backgroundColor: 'rgba(34, 197, 94, 0.6)',
+                        },
+                        {
+                            label: 'Egresos',
+                            data: egresos,
+                            backgroundColor: 'rgba(239, 68, 68, 0.6)',
+                        }
+                    ]
+                },
+                options: {
+                    // Mismas opciones que renderHistoryChart
+                     responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { 
+                            stacked: true,
+                            ticks: {
+                                color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                            },
+                             grid: {
+                                display: false
+                            } 
+                        },
+                        y: { 
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => formatCurrency(value),
+                                color: document.documentElement.classList.contains('dark') ? '#9ca3af' : '#6b7280'
+                            },
+                            grid: {
+                                color: document.documentElement.classList.contains('dark') ? '#4b5563' : '#e5e7eb'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: document.documentElement.classList.contains('dark') ? '#f9fafb' : '#1f2937'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += formatCurrency(context.parsed.y);
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+
+        // --- Lógica de Filtros ---
+
+        function getFilters() {
+            return {
+                search: filterSearch.value.toLowerCase(),
+                type: filterType.value,
+                month: filterMonth.value // Formato YYYY-MM
+            };
+        }
+
+        function filterMovements(movements, filters) {
+            return movements.filter(mov => {
+                const concept = (mov.concept || '').toLowerCase();
+                const movDate = dayjs(mov.date);
+                
+                const searchMatch = !filters.search || concept.includes(filters.search);
+                const typeMatch = !filters.type || mov.type === filters.type;
+                const monthMatch = !filters.month || movDate.format('YYYY-MM') === filters.month;
+
+                return searchMatch && typeMatch && monthMatch;
+            });
+        }
+        
+        function handleFilterChange() {
+            const filters = getFilters();
+            const filteredMovements = filterMovements(appState.movements, filters);
+            renderHistoryTable(filteredMovements);
+            renderHistoryChart(filteredMovements); // El gráfico ahora se recalcula
+        }
+
+        // --- Lógica de UI (Modales, Toasts, etc.) ---
+
+        function showModal(modal) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0', '-translate-y-10', 'pointer-events-none');
+            }, 10);
+        }
+
+        function hideModal(modal) {
+            modal.classList.add('opacity-0', '-translate-y-10', 'pointer-events-none');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+        
+        function showConfirm(title, message) {
+            $('#confirm-title').textContent = title;
+            $('#confirm-message').textContent = message;
+            confirmModal.classList.remove('hidden');
+            
+            return new Promise((resolve) => {
+                $('#btn-confirm-ok').onclick = () => {
+                    confirmModal.classList.add('hidden');
+                    resolve(true);
+                };
+                $('#btn-confirm-cancel').onclick = () => {
+                    confirmModal.classList.add('hidden');
+                    resolve(false);
+                };
+            });
+        }
+
+        function showToast(message, type = 'info') {
+            const toastMessage = $('#toast-message');
+            toastMessage.textContent = message;
+            
+            toast.classList.remove('bg-green-500', 'bg-red-500', 'bg-blue-500', 'bg-yellow-500');
+            
+            switch (type) {
+                case 'success':
+                    toast.classList.add('bg-green-500');
+                    break;
+                case 'error':
+                    toast.classList.add('bg-red-500');
+                    break;
+                case 'warning':
+                    toast.classList.add('bg-yellow-500');
+                    break;
+                default:
+                    toast.classList.add('bg-blue-500');
+            }
+            
+            toast.classList.add('text-white');
+            toast.classList.remove('opacity-0');
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0');
+            }, 3000);
+        }
+        
+        function setLoading(isLoading) {
+            // Podríamos añadir un spinner global aquí
+            // console.log("Loading:", isLoading);
+        }
+
+        // --- Lógica de Formularios y Acciones ---
+
+        function updateCategorySelect(type) {
+            movementCategorySelect.innerHTML = '';
+            appState.categories[type].forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat;
+                option.textContent = cat;
+                movementCategorySelect.appendChild(option);
+            });
+        }
+        
+        function openMovementModal(movement = null) {
+            movementForm.reset();
+            appState.ui.editingMovementId = null;
+            
+            if (movement) {
+                // Editando
+                modalTitle.textContent = 'Editar Movimiento';
+                appState.ui.editingMovementId = movement.id;
+                
+                movementAmountInput.value = movement.amount;
+                movementConceptInput.value = movement.concept || '';
+                movementDateInput.value = dayjs(movement.date).format('YYYY-MM-DDTHH:mm');
+                
+                // Setear tipo y categorías
+                movementTypeVisual.value = movement.type;
+                updateCategorySelect(movement.type);
+                movementCategorySelect.value = movement.category;
+                
+            } else {
+                // Nuevo
+                modalTitle.textContent = 'Nuevo Movimiento';
+                
+                // Setear tipo y categorías por defecto
+                movementTypeVisual.value = 'ingreso';
+                updateCategorySelect('ingreso');
+                movementCategorySelect.value = appState.categories.ingreso[0] || ''; // 'Impresiones'
+                
+                // Setear fecha y hora actual
+                movementDateInput.value = dayjs().format('YYYY-MM-DDTHH:mm');
+            }
+            
+            // Actualizar el selector visual
+            updateTypeSelectorVisual(movement ? movement.type : 'ingreso');
+            
+            showModal(movementModal);
+            
+            // Foco en el monto (con un pequeño delay para la transición)
+            setTimeout(() => {
+                movementAmountInput.focus();
+                movementAmountInput.select();
+            }, 150);
+        }
+
+        function handleMovementFormSubmit(e) {
+            e.preventDefault();
+            
+            const movementData = {
+                id: appState.ui.editingMovementId || `mov_${new Date().getTime()}`,
+                type: movementTypeVisual.value,
+                amount: parseFloat(movementAmountInput.value),
+                concept: movementConceptInput.value || (movementTypeVisual.value === 'ingreso' ? 'Ingreso' : 'Egreso'),
+                category: movementCategorySelect.value,
+                date: dayjs(movementDateInput.value).toISOString()
+            };
+
+            if (isNaN(movementData.amount) || movementData.amount <= 0) {
+                showToast("Por favor, ingresa un monto válido.", 'error');
+                return;
+            }
+
+            if (!movementData.category) {
+                 showToast("Por favor, selecciona o agrega una categoría.", 'error');
+                return;
+            }
+            
+            if (appState.ui.editingMovementId) {
+                // Actualizar
+                const index = appState.movements.findIndex(m => m.id === appState.ui.editingMovementId);
+                if (index !== -1) {
+                    appState.movements[index] = movementData;
+                }
+            } else {
+                // Agregar
+                appState.movements.push(movementData);
+            }
+            
+            saveStateToLocal();
+            renderAll();
+            handlePushToGist(true); // Sincronizar con Gist
+            hideModal(movementModal);
+        }
+
+        function handleEditMovement(id) {
+            const movement = appState.movements.find(m => m.id === id);
+            if (movement) {
+                openMovementModal(movement);
+            }
+        }
+
+        async function handleDeleteMovement(id) {
+            const confirmed = await showConfirm(
+                'Eliminar Movimiento',
+                '¿Estás seguro de que deseas eliminar este movimiento? Esta acción no se puede deshacer.'
+            );
+            
+            if (confirmed) {
+                appState.movements = appState.movements.filter(m => m.id !== id);
+                saveStateToLocal();
+                renderAll();
+                handlePushToGist(true); // Sincronizar
+                showToast('Movimiento eliminado.', 'success');
+            }
+        }
+        
+        function handleAddCategory() {
+            const currentType = movementTypeVisual.value;
+            const newCategory = prompt(`Nueva categoría para "${currentType}":`);
+            
+            if (newCategory && newCategory.trim() !== '') {
+                if (!appState.categories[currentType].includes(newCategory)) {
+                    appState.categories[currentType].push(newCategory);
+                    saveStateToLocal();
+                    handlePushToGist(false); // Sincronizar categorías
+                    updateCategorySelect(currentType);
+                    movementCategorySelect.value = newCategory;
+                    showToast('Categoría agregada.', 'success');
                 } else {
-                    setTheme('light');
+                    showToast('Esa categoría ya existe.', 'warning');
                 }
             }
+        }
 
-            /**
-             * Cambia entre tema claro y oscuro.
-             */
-            function toggleTheme() {
-                const currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-                setTheme(newTheme);
+        function handleSettingsFormSubmit(e) {
+            e.preventDefault();
+            appState.gistConfig = {
+                pat: $('#gist-pat').value || appState.gistConfig.pat, // No sobreescribir si está vacío
+                gistId: $('#gist-id').value,
+                filename: $('#gist-filename').value
+            };
+            
+            if (!appState.gistConfig.pat || !appState.gistConfig.gistId || !appState.gistConfig.filename) {
+                showToast("Por favor, completa todos los campos.", 'error');
+                return;
             }
 
-            /**
-             * Aplica el tema seleccionado.
-             * @param {string} theme - 'dark' o 'light'
-             */
-            function setTheme(theme) {
-                if (theme === 'dark') {
+            saveGistConfig();
+            hideModal(settingsModal);
+            showToast("Configuración guardada. Sincronizando...", 'info');
+            handlePullFromGist(); // Cargar datos al guardar config
+        }
+        
+        function updateTypeSelectorVisual(newType) {
+            movementTypeVisual.value = newType;
+            if (newType === 'ingreso') {
+                typeIngreso.classList.add('active');
+                typeEgreso.classList.remove('active');
+            } else {
+                typeIngreso.classList.remove('active');
+                typeEgreso.classList.add('active');
+            }
+            // Actualizar categorías
+            updateCategorySelect(newType);
+        }
+
+        // --- Lógica del Tema Oscuro ---
+        function setupTheme() {
+            const themeToggle = $('#btn-toggle-dark');
+            const lightIcon = $('#theme-icon-light');
+            const darkIcon = $('#theme-icon-dark');
+
+            function setTheme(isDark) {
+                if (isDark) {
                     document.documentElement.classList.add('dark');
+                    lightIcon.classList.remove('hidden');
+                    darkIcon.classList.add('hidden');
                     localStorage.theme = 'dark';
-                    dom.iconSun.classList.remove('hidden');
-                    dom.iconMoon.classList.add('hidden');
                 } else {
                     document.documentElement.classList.remove('dark');
+                    lightIcon.classList.add('hidden');
+                    darkIcon.classList.remove('hidden');
                     localStorage.theme = 'light';
-                    dom.iconSun.classList.add('hidden');
-                    dom.iconMoon.classList.remove('hidden');
                 }
-                // Actualizar gráfico si existe
-                if (appState.currentChart) {
-                    renderEvolutionChart(appState.movements);
+                // Redibujar gráfico con colores del tema
+                if (appState.ui.chartInstance) {
+                   renderAll();
                 }
             }
 
+            themeToggle.addEventListener('click', () => {
+                setTheme(!document.documentElement.classList.contains('dark'));
+            });
 
-            // ==================================================
-            // 9. ALMACENAMIENTO LOCAL (PERSISTENCIA)
-            // ==================================================
-
-            const LOCAL_STORAGE_KEY = 'gestorFinanzasState_v2';
-
-            /**
-             * Guarda el estado relevante en localStorage.
-             */
-            function saveStateToLocal() {
-                try {
-                    const stateToSave = {
-                        movements: appState.movements,
-                        categories: appState.categories,
-                        gistConfig: appState.gistConfig,
-                    };
-                    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(stateToSave));
-                    console.log("Estado guardado en localStorage.");
-                } catch (error) {
-                    console.error("Error al guardar en localStorage:", error);
-                    showToast('Error al guardar datos locales', 'error');
-                }
+            // Setear tema al cargar
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                setTheme(true);
+            } else {
+                setTheme(false);
             }
+        }
+        
+        // --- Setup de Event Listeners ---
+        function setupEventListeners() {
+            // Botones principales
+            $('#btn-add-movement').addEventListener('click', () => openMovementModal(null));
+            $('#btn-settings').addEventListener('click', () => showModal(settingsModal));
+            
+            // Modal de Configuración
+            settingsForm.addEventListener('submit', handleSettingsFormSubmit);
+            $('#btn-settings-cancel').addEventListener('click', () => hideModal(settingsModal));
+            
+            // Modal de Movimiento
+            movementForm.addEventListener('submit', handleMovementFormSubmit);
+            $('#btn-modal-cancel').addEventListener('click', () => hideModal(movementModal));
+            $('#btn-add-category').addEventListener('click', handleAddCategory);
 
-            /**
-             * Carga el estado desde localStorage.
-             */
-            function loadStateFromLocal() {
-                try {
-                    const savedState = localStorage.getItem(LOCAL_STORAGE_KEY);
-                    if (savedState) {
-                        const parsedState = JSON.parse(savedState);
-                        // Fusionar estado guardado con el estado por defecto
-                        appState.movements = parsedState.movements || [];
-                        appState.categories = parsedState.categories || appState.categories;
-                        appState.gistConfig = parsedState.gistConfig || appState.gistConfig;
-                        console.log("Estado cargado desde localStorage.");
-                    } else {
-                        console.log("No se encontró estado local. Usando valores por defecto.");
-                    }
-                } catch (error) {
-                    console.error("Error al cargar desde localStorage:", error);
-                    // Si hay error, simplemente usa el estado por defecto
-                    appState.movements = [];
-                }
-            }
+            // Selector de Tipo (Ingreso/Egreso)
+            typeIngreso.addEventListener('click', () => updateTypeSelectorVisual('ingreso'));
+            typeEgreso.addEventListener('click', () => updateTypeSelectorVisual('egreso'));
 
+            // Filtros
+            filterSearch.addEventListener('input', handleFilterChange);
+            filterType.addEventListener('change', handleFilterChange);
+            filterMonth.addEventListener('change', handleFilterChange);
+        }
 
-            // ==================================================
-            // 10. UTILIDADES
-            // ==================================================
-
-            /**
-             * Formatea un número como moneda (USD/ARS).
-             * @param {number} amount - Monto.
-             * @returns {string} - Ej: $1,234.50
-             */
-            function formatCurrency(amount) {
-                return new Intl.NumberFormat('es-AR', {
-                    style: 'currency',
-                    currency: 'ARS', // Puedes cambiar a 'USD' o lo que prefieras
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                }).format(amount);
-            }
-
-            /**
-             * Formatea una fecha (Date) como "dd/MM/yyyy".
-             * @param {Date} date - Objeto Date.
-             * @returns {string} - Ej: 31/10/2025
-             */
-            function formatDate(date) {
-                return date.toLocaleDateString('es-ES', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                });
-            }
-
-            /**
-             * Formatea una fecha (Date) como "HH:mm".
-             * @param {Date} date - Objeto Date.
-             * @returns {string} - Ej: 14:30
-             */
-            function formatTime(date) {
-                return date.toLocaleTimeString('es-ES', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hour12: true // O false si prefieres 24hs
-                });
-            }
-
-            /**
-             * Obtiene el inicio del día de hoy (00:00:00).
-             * @returns {Date}
-             */
-            function getTodayStart() {
-                const now = new Date();
-                now.setHours(0, 0, 0, 0);
-                return now;
-            }
-
-            /**
-             * Obtiene la fecha de N días atrás.
-             * @param {number} n - Número de días.
-             * @returns {Date}
-             */
-            function getNDaysAgo(n) {
-                const date = new Date();
-                date.setDate(date.getDate() - (n - 1)); // -29 para incluir hoy (total 30)
-                date.setHours(0, 0, 0, 0);
-                return date;
-            }
-
-            /**
-             * Convierte un objeto Date a un string YYYY-MM-DDTHH:MM (formato de input datetime-local)
-             * respetando el timezone local.
-             * @param {Date} date - Objeto Date.
-             * @returns {string}
-             */
-            function getISOStringWithLocalTimezone(date) {
-                const offset = date.getTimezoneOffset();
-                const adjustedDate = new Date(date.getTime() - (offset * 60 * 1000));
-                return adjustedDate.toISOString().substring(0, 16);
+        // --- Inicialización de la App ---
+        async function initApp() {
+            setupTheme();
+            setupEventListeners();
+            loadStateFromLocal();
+            loadGistConfig();
+            
+            if (appState.gistConfig.pat) {
+                // Si hay config, intentar cargar de Gist primero
+                await handlePullFromGist();
+            } else {
+                // Si no, solo renderizar local
+                renderAll();
             }
             
+            // Si no hay config, mostrar el modal de settings
+            if (!appState.gistConfig.pat) {
+                setTimeout(() => showModal(settingsModal), 500);
+            }
+        }
+        
+        // Iniciar la aplicación
+        document.addEventListener('DOMContentLoaded', initApp);
 
-            // ==================================================
-            // 11. INICIAR LA APLICACIÓN
-            // ==================================================
-            initApp();
-
-        });
     </script>
+    
+    <!-- Estilos de Inputs para que coincidan en tema claro/oscuro -->
+    <style>
+        .input-field {
+            background-color: #4b5563; /* gray-600 */
+            border: 1px solid #6b7280; /* gray-500 */
+            border-radius: 0.375rem; /* rounded-md */
+            padding: 0.5rem 0.75rem;
+            color: #f9fafb; /* gray-50 */
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6; /* blue-500 */
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+        }
+        html:not(.dark) .input-field {
+            background-color: #f3f4f6; /* gray-100 */
+            border-color: #d1d5db; /* gray-300 */
+            color: #1f2937; /* gray-800 */
+        }
+        /* Color del calendario en modo oscuro */
+        html.dark .input-field::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+        }
+    </style>
 
 </body>
 </html>
-
 
