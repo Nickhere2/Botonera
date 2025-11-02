@@ -372,7 +372,7 @@
             <form id="settings-form" class="space-y-4">
                 <div>
                     <label for="gist-pat" class="block text-sm font-medium mb-1">Personal Access Token (PAT)</label>
-                    <input type="password" id="gist-pat" class="input-field w-full" placeholder="ghp_...">
+                    <input type="password" id="gist-pat" class="input-field w-full" placeholder="ghp_... o github_pat_...">
                 </div>
                 <div>
                     <label for="gist-id" class="block text-sm font-medium mb-1">Gist ID</label>
@@ -545,6 +545,10 @@
                             showToast("Error: Datos corruptos en Gist.", 'error');
                             return null;
                         }
+                    } else {
+                        // El archivo existe pero está vacío
+                        showToast("Archivo en Gist vacío. Iniciando localmente.", 'warning');
+                        return { movements: [], categories: appState.categories };
                     }
                 } else if (data) {
                     showToast("Error: No se encontró el archivo en el Gist.", 'error');
@@ -596,10 +600,10 @@
                 appState.categories = data.categories || appState.categories;
                 
                 // Asegurarse de que las categorías importadas existan
-                if (!appState.categories.ingreso.includes("Importado")) {
+                if (appState.categories.ingreso && !appState.categories.ingreso.includes("Importado")) {
                     appState.categories.ingreso.push("Importado");
                 }
-                if (!appState.categories.egreso.includes("Importado")) {
+                if (appState.categories.egreso && !appState.categories.egreso.includes("Importado")) {
                     appState.categories.egreso.push("Importado");
                 }
 
@@ -695,7 +699,7 @@
             const now = dayjs();
             const today = now.startOf('day');
             const startOfMonth = now.startOf('month');
-            const endOfMonth = now.endOf('month');
+            // Corregido: para incluir el día de hoy en el mes, usamos endOf('day') en la comparación
             
             let todayIncome = 0;
             let todayExpense = 0;
@@ -715,11 +719,13 @@
                 }
                 
                 // Cálculos para el mes
-                if (movDate.isAfter(startOfMonth) && movDate.isBefore(endOfMonth)) {
-                    if (mov.type === 'ingreso') {
-                        monthIncome += mov.amount;
-                    } else {
-                        monthExpense += mov.amount;
+                if (movDate.isAfter(startOfMonth.subtract(1, 'day')) && movDate.isBefore(now.endOf('day'))) {
+                    if (movDate.isSame(startOfMonth, 'month')) {
+                         if (mov.type === 'ingreso') {
+                            monthIncome += mov.amount;
+                        } else {
+                            monthExpense += mov.amount;
+                        }
                     }
                 }
             }
@@ -730,7 +736,10 @@
             // Cálculo de Proyección
             const dayOfMonth = now.date();
             const daysInMonth = now.daysInMonth();
-            const projection = (monthBalance / dayOfMonth) * daysInMonth;
+            let projection = 0;
+            if (dayOfMonth > 0) {
+                 projection = (monthBalance / dayOfMonth) * daysInMonth;
+            }
 
             // Actualizar UI
             balanceTodayEl.textContent = formatCurrency(todayBalance);
@@ -745,11 +754,12 @@
         function updateCardColor(cardEl, iconEl, value) {
             // Quitar clases anteriores
             iconEl.classList.remove('bg-green-500', 'bg-red-500', 'bg-gray-500');
-            cardEl.classList.remove('border-green-500', 'border-red-500', 'border-gray-500');
+            cardEl.classList.remove('border-l-4', 'border-green-500', 'border-red-500', 'border-gray-500');
+            cardEl.classList.add('border-l-4'); // Asegurar que tenga el borde
 
             if (value > 0) {
                 iconEl.classList.add('bg-green-500');
-                cardEl.classList.add('border-green-500'); // Asumiendo que se agrega un borde
+                cardEl.classList.add('border-green-500'); 
             } else if (value < 0) {
                 iconEl.classList.add('bg-red-500');
                 cardEl.classList.add('border-red-500');
@@ -802,12 +812,12 @@
                 iconEl.innerHTML = `<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>`;
                 iconEl.classList.add('bg-green-500');
                 amountEl.classList.add('text-green-500');
-                categoryEl.classList.add('bg-green-200', 'text-green-800');
+                categoryEl.classList.add('bg-green-200', 'text-green-800', 'dark:bg-green-700', 'dark:text-green-100');
             } else {
                 iconEl.innerHTML = `<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>`;
                 iconEl.classList.add('bg-red-500');
                 amountEl.classList.add('text-red-500');
-                categoryEl.classList.add('bg-red-200', 'text-red-800');
+                categoryEl.classList.add('bg-red-200', 'text-red-800', 'dark:bg-red-700', 'dark:text-red-100');
             }
             
             // Listeners para botones de acción
@@ -1160,6 +1170,11 @@
 
         function updateCategorySelect(type) {
             movementCategorySelect.innerHTML = '';
+            
+            if (!appState.categories[type]) {
+                appState.categories[type] = ["Varios"]; // Fallback
+            }
+
             appState.categories[type].forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat;
@@ -1292,8 +1307,19 @@
 
         function handleSettingsFormSubmit(e) {
             e.preventDefault();
+            
+            const patInput = $('#gist-pat');
+            const patValue = patInput.value;
+
+            // Solo actualizar el PAT si se ingresó uno nuevo.
+            // Si el campo está vacío, mantener el que está en appState.gistConfig.pat
+            // Acepta formatos ghp_ (clásico) y github_pat_ (nuevo)
+            const newPat = (patValue && (patValue.startsWith('ghp_') || patValue.startsWith('github_pat_'))) 
+                            ? patValue 
+                            : appState.gistConfig.pat;
+
             appState.gistConfig = {
-                pat: $('#gist-pat').value || appState.gistConfig.pat, // No sobreescribir si está vacío
+                pat: newPat,
                 gistId: $('#gist-id').value,
                 filename: $('#gist-filename').value
             };
@@ -1304,6 +1330,12 @@
             }
 
             saveGistConfig();
+            
+            // Limpiar el campo del PAT del formulario por seguridad
+            if (patValue) {
+                patInput.value = ''; 
+            }
+
             hideModal(settingsModal);
             showToast("Configuración guardada. Sincronizando...", 'info');
             handlePullFromGist(); // Cargar datos al guardar config
