@@ -132,6 +132,15 @@
             text-align: center;
             padding-right: 1rem;
         }
+        
+        /* Animación de Spinner */
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
     </style>
 </head>
 <body class="antialiased min-h-screen">
@@ -144,7 +153,20 @@
             <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-500">
                 Mis Finanzas
             </h1>
-            <div class="flex items-center space-x-2">
+            <div class="flex items-center space-x-3">
+                <!-- Indicador de Sincronización Gist -->
+                <div id="gist-sync-status" class="flex items-center space-x-2">
+                    <span id="gist-sync-spinner" class="hidden spinner">
+                        <svg class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2.086A9.002 9.002 0 0112 21a9.002 9.002 0 01-9-9 9.002 9.002 0 019-9 8.962 8.962 0 018.807 7.914M20 12v-5h-.581"></path></svg>
+                    </span>
+                    <span id="gist-sync-ok" class="hidden text-green-500" title="Sincronizado">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6h.1a5 5 0 011 9.9M9 19l2 2 4-4"></path></svg>
+                    </span>
+                    <span id="gist-sync-error" class="hidden text-red-500" title="Error de Sincronización">
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636M16 16l-4-4"></path></svg>
+                    </span>
+                </div>
+                
                 <button id="btn-toggle-dark" aria-label="Cambiar tema">
                     <!-- Icono Sol -->
                     <svg id="theme-icon-light" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -224,16 +246,14 @@
                             </span>
                         </div>
                         
-                        <!-- Concepto, Categoría y Hora -->
+                        <!-- Categoría, Nota y Hora -->
                         <div class="flex-grow min-w-0">
-                            <p class="movement-concept font-semibold truncate">Concepto del movimiento</p>
-                            <div class="flex items-center space-x-2 text-sm text-gray-400">
-                                <span class="movement-category-tag inline-block px-2 py-0.5 rounded text-xs font-medium">Categoría</span>
-                                <span class="movement-time flex items-center">
-                                    <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    <span>00:00</span>
-                                </span>
-                            </div>
+                            <p class="movement-category font-semibold truncate">Categoría</p>
+                            <p class="movement-note text-sm text-gray-400 truncate">Nota opcional...</p>
+                            <span class="movement-time flex items-center text-sm text-gray-400 mt-1">
+                                <svg class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>00:00</span>
+                            </span>
                         </div>
                         
                         <!-- Monto -->
@@ -261,7 +281,7 @@
             
             <!-- Controles de Filtro -->
             <div class="card-secondary p-4 rounded-lg mb-4 flex flex-wrap gap-4">
-                <input type="text" id="filter-search" placeholder="Buscar por concepto..." class="flex-grow input-field">
+                <input type="text" id="filter-search" placeholder="Buscar en notas..." class="flex-grow input-field">
                 <select id="filter-type" class="input-field">
                     <option value="">Tipo (Todos)</option>
                     <option value="ingreso">Ingreso</option>
@@ -281,8 +301,8 @@
                     <thead class="border-b border-gray-300 dark:border-gray-600">
                         <tr>
                             <th class="py-2 px-4 text-left">Fecha</th>
-                            <th class="py-2 px-4 text-left">Concepto</th>
                             <th class="py-2 px-4 text-left">Categoría</th>
+                            <th class="py-2 px-4 text-left">Nota</th>
                             <th class="py-2 px-4 text-right">Monto</th>
                         </tr>
                     </thead>
@@ -332,9 +352,6 @@
                     <input type="number" id="movement-amount" placeholder="0.00" step="0.01" min="0" class="monto-input input-field w-full bg-transparent border-b-2 border-gray-300 dark:border-gray-600 focus:border-blue-500 outline-none" required>
                 </div>
                 
-                <!-- Concepto -->
-                <input type="text" id="movement-concept" placeholder="Concepto (ej: Impresión A4)" class="input-field w-full">
-                
                 <!-- Categoría -->
                 <div class="flex gap-2">
                     <select id="movement-category" class="input-field flex-grow" required>
@@ -344,6 +361,9 @@
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                     </button>
                 </div>
+
+                <!-- Nota (Opcional) -->
+                <input type="text" id="movement-note" placeholder="Nota (opcional)" class="input-field w-full">
 
                 <!-- Fecha y Hora -->
                 <input type="datetime-local" id="movement-date" class="input-field w-full">
@@ -419,8 +439,8 @@
         const appState = {
             movements: [],
             categories: {
-                ingreso: ["Impresiones", "Varios"],
-                egreso: ["Resmas A4", "Insumos", "Servicios", "Varios"]
+                ingreso: ["Impresiones", "Varios", "Importado"],
+                egreso: ["Resmas A4", "Insumos", "Servicios", "Varios", "Importado"]
             },
             gistConfig: {
                 pat: null,
@@ -454,8 +474,8 @@
         const typeIngreso = $('#type-ingreso');
         const typeEgreso = $('#type-egreso');
         const movementAmountInput = $('#movement-amount');
-        const movementConceptInput = $('#movement-concept');
         const movementCategorySelect = $('#movement-category');
+        const movementNoteInput = $('#movement-note');
         const movementDateInput = $('#movement-date');
 
         // Dashboard
@@ -479,19 +499,26 @@
         const filterType = $('#filter-type');
         const filterMonth = $('#filter-month');
         
+        // Indicador Gist
+        const gistSyncStatus = $('#gist-sync-status');
+        const gistSpinner = $('#gist-sync-spinner');
+        const gistOk = $('#gist-sync-ok');
+        const gistError = $('#gist-sync-error');
+
         // --- API de Gist (Objeto) ---
         const GistApi = {
             async request(config, method = 'GET', body = null) {
-                if (appState.ui.isGistSyncing) {
+                if (appState.ui.isGistSyncing && method !== 'GET') { // Permitir GETs concurrentes
                     console.warn("Sync in progress, skipping request.");
                     return null;
                 }
                 appState.ui.isGistSyncing = true;
-                setLoading(true);
+                setLoading(true, method === 'PATCH'); // Mostrar spinner solo en push
 
                 const { pat, gistId, filename } = config;
                 if (!pat || !gistId || !filename) {
                     showToast("Error: Configuración de Gist incompleta.", 'error');
+                    setSyncStatus('error');
                     appState.ui.isGistSyncing = false;
                     setLoading(false);
                     return null;
@@ -504,7 +531,7 @@
                     'X-GitHub-Api-Version': '2022-11-28'
                 };
                 
-                const options = { method, headers };
+                const options = { method, headers, cache: 'no-store' }; // Evitar cache
                 if (body) {
                     options.body = JSON.stringify(body);
                 }
@@ -517,6 +544,8 @@
                         throw new Error(`Error ${response.status}: ${errorData.message || 'Error de Gist'}`);
                     }
                     
+                    setSyncStatus('ok');
+                    
                     if (method === 'GET') {
                         return await response.json();
                     }
@@ -525,6 +554,7 @@
                 } catch (error) {
                     console.error("Gist API Error:", error);
                     showToast(error.message, 'error');
+                    setSyncStatus('error');
                     return null;
                 } finally {
                     appState.ui.isGistSyncing = false;
@@ -543,15 +573,18 @@
                             return JSON.parse(content);
                         } catch (e) {
                             showToast("Error: Datos corruptos en Gist.", 'error');
+                            setSyncStatus('error');
                             return null;
                         }
                     } else {
                         // El archivo existe pero está vacío
                         showToast("Archivo en Gist vacío. Iniciando localmente.", 'warning');
+                        setSyncStatus('ok'); // Está OK, pero vacío
                         return { movements: [], categories: appState.categories };
                     }
                 } else if (data) {
                     showToast("Error: No se encontró el archivo en el Gist.", 'error');
+                    setSyncStatus('error');
                 }
                 return null;
             },
@@ -641,7 +674,7 @@
             } catch (e) {
                 console.error("Error cargando de localStorage:", e);
                 appState.movements = []; // Empezar de cero si hay error
-                appState.categories = { ingreso: ["Impresiones", "Varios"], egreso: ["Resmas A4", "Insumos", "Servicios", "Varios"] };
+                appState.categories = { ingreso: ["Impresiones", "Varios", "Importado"], egreso: ["Resmas A4", "Insumos", "Servicios", "Varios", "Importado"] };
             }
         }
 
@@ -699,7 +732,6 @@
             const now = dayjs();
             const today = now.startOf('day');
             const startOfMonth = now.startOf('month');
-            // Corregido: para incluir el día de hoy en el mes, usamos endOf('day') en la comparación
             
             let todayIncome = 0;
             let todayExpense = 0;
@@ -718,14 +750,12 @@
                     }
                 }
                 
-                // Cálculos para el mes
-                if (movDate.isAfter(startOfMonth.subtract(1, 'day')) && movDate.isBefore(now.endOf('day'))) {
-                    if (movDate.isSame(startOfMonth, 'month')) {
-                         if (mov.type === 'ingreso') {
-                            monthIncome += mov.amount;
-                        } else {
-                            monthExpense += mov.amount;
-                        }
+                // Cálculos para el mes (asegurarse de que sea el mismo mes Y año)
+                if (movDate.isSame(startOfMonth, 'month')) {
+                     if (mov.type === 'ingreso') {
+                        monthIncome += mov.amount;
+                    } else {
+                        monthExpense += mov.amount;
                     }
                 }
             }
@@ -737,8 +767,11 @@
             const dayOfMonth = now.date();
             const daysInMonth = now.daysInMonth();
             let projection = 0;
-            if (dayOfMonth > 0) {
+            // Solo proyectar si ya ha pasado al menos un día y hay movimientos
+            if (dayOfMonth > 0 && (monthIncome > 0 || monthExpense > 0)) {
                  projection = (monthBalance / dayOfMonth) * daysInMonth;
+            } else if (dayOfMonth === 0) {
+                 projection = 0; // Evitar división por cero
             }
 
             // Actualizar UI
@@ -798,13 +831,20 @@
             card.dataset.id = mov.id;
             
             const iconEl = card.querySelector('.movement-icon');
-            const conceptEl = card.querySelector('.movement-concept');
-            const categoryEl = card.querySelector('.movement-category-tag');
+            const categoryEl = card.querySelector('.movement-category');
+            const noteEl = card.querySelector('.movement-note');
             const timeEl = card.querySelector('.movement-time span');
             const amountEl = card.querySelector('.movement-amount');
             
-            conceptEl.textContent = mov.concept || (mov.type === 'ingreso' ? 'Ingreso' : 'Egreso');
             categoryEl.textContent = mov.category;
+            
+            if (mov.note) {
+                noteEl.textContent = mov.note;
+                noteEl.classList.remove('hidden');
+            } else {
+                noteEl.classList.add('hidden');
+            }
+            
             timeEl.textContent = dayjs(mov.date).format('HH:mm');
             amountEl.textContent = formatCurrency(mov.amount);
 
@@ -812,12 +852,10 @@
                 iconEl.innerHTML = `<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>`;
                 iconEl.classList.add('bg-green-500');
                 amountEl.classList.add('text-green-500');
-                categoryEl.classList.add('bg-green-200', 'text-green-800', 'dark:bg-green-700', 'dark:text-green-100');
             } else {
                 iconEl.innerHTML = `<svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path></svg>`;
                 iconEl.classList.add('bg-red-500');
                 amountEl.classList.add('text-red-500');
-                categoryEl.classList.add('bg-red-200', 'text-red-800', 'dark:bg-red-700', 'dark:text-red-100');
             }
             
             // Listeners para botones de acción
@@ -854,8 +892,8 @@
 
                     row.innerHTML = `
                         <td class="py-3 px-4 text-sm text-gray-400">${dayjs(mov.date).format('DD/MM/YYYY')}</td>
-                        <td class="py-3 px-4">${mov.concept || (isIngreso ? 'Ingreso' : 'Egreso')}</td>
-                        <td class="py-3 px-4 text-sm text-gray-400">${mov.category}</td>
+                        <td class="py-3 px-4">${mov.category}</td>
+                        <td class="py-3 px-4 text-sm text-gray-400">${mov.note || ''}</td>
                         <td class="py-3 px-4 text-right font-medium ${amountColor}">
                             ${amountSign} ${formatCurrency(mov.amount)}
                         </td>
@@ -1082,10 +1120,12 @@
 
         function filterMovements(movements, filters) {
             return movements.filter(mov => {
-                const concept = (mov.concept || '').toLowerCase();
+                const note = (mov.note || '').toLowerCase();
+                const category = (mov.category || '').toLowerCase();
                 const movDate = dayjs(mov.date);
                 
-                const searchMatch = !filters.search || concept.includes(filters.search);
+                // Buscar en nota Y categoría
+                const searchMatch = !filters.search || note.includes(filters.search) || category.includes(filters.search);
                 const typeMatch = !filters.type || mov.type === filters.type;
                 const monthMatch = !filters.month || movDate.format('YYYY-MM') === filters.month;
 
@@ -1161,9 +1201,32 @@
             }, 3000);
         }
         
-        function setLoading(isLoading) {
-            // Podríamos añadir un spinner global aquí
-            // console.log("Loading:", isLoading);
+        function setSyncStatus(status) { // 'loading', 'ok', 'error'
+            gistSpinner.classList.add('hidden');
+            gistOk.classList.add('hidden');
+            gistError.classList.add('hidden');
+
+            switch (status) {
+                case 'loading':
+                    gistSpinner.classList.remove('hidden');
+                    break;
+                case 'ok':
+                    gistOk.classList.remove('hidden');
+                    break;
+                case 'error':
+                    gistError.classList.remove('hidden');
+                    break;
+            }
+        }
+
+        function setLoading(isLoading, isSync = false) {
+            if (isSync) {
+                if (isLoading) {
+                    setSyncStatus('loading');
+                }
+                // El estado 'ok' o 'error' lo setea la propia función de GistApi
+            }
+            // Aquí se podría manejar un spinner global si quisiéramos
         }
 
         // --- Lógica de Formularios y Acciones ---
@@ -1193,7 +1256,7 @@
                 appState.ui.editingMovementId = movement.id;
                 
                 movementAmountInput.value = movement.amount;
-                movementConceptInput.value = movement.concept || '';
+                movementNoteInput.value = movement.note || '';
                 movementDateInput.value = dayjs(movement.date).format('YYYY-MM-DDTHH:mm');
                 
                 // Setear tipo y categorías
@@ -1233,8 +1296,8 @@
                 id: appState.ui.editingMovementId || `mov_${new Date().getTime()}`,
                 type: movementTypeVisual.value,
                 amount: parseFloat(movementAmountInput.value),
-                concept: movementConceptInput.value || (movementTypeVisual.value === 'ingreso' ? 'Ingreso' : 'Egreso'),
                 category: movementCategorySelect.value,
+                note: movementNoteInput.value || '', // Campo opcional
                 date: dayjs(movementDateInput.value).toISOString()
             };
 
@@ -1385,7 +1448,7 @@
             // Setear tema al cargar
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 setTheme(true);
-            } else {
+_            } else {
                 setTheme(false);
             }
         }
@@ -1424,10 +1487,12 @@
             
             if (appState.gistConfig.pat) {
                 // Si hay config, intentar cargar de Gist primero
+                setSyncStatus('loading'); // Indicar carga inicial
                 await handlePullFromGist();
             } else {
                 // Si no, solo renderizar local
                 renderAll();
+                setSyncStatus('error'); // Indicar que no hay config
             }
             
             // Si no hay config, mostrar el modal de settings
