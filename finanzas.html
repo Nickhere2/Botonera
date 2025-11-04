@@ -59,13 +59,14 @@
         .type-selector {
             display: flex;
             border-radius: 0.5rem;
-            background-color: #4b5563; /* gray-600 */
-            padding: 0.25rem;
+            /* background-color: #4b5563; */ /* gray-600 - Eliminado */
+            /* padding: 0.25rem; */ /* Eliminado */
             position: relative;
+            gap: 0.5rem; /* Añadido */
         }
-        html:not(.dark) .type-selector {
-            background-color: #e5e7eb; /* gray-200 */
-        }
+        /* html:not(.dark) .type-selector {
+            background-color: #e5e7eb; */ /* gray-200 - Eliminado */
+        /* } */
 
         .type-selector-option {
             flex: 1;
@@ -74,39 +75,43 @@
             border-radius: 0.5rem;
             cursor: pointer;
             position: relative;
-            z-index: 10;
-            transition: color 0.3s ease;
-            color: #d1d5db; /* gray-300 */
-        }
-        html:not(.dark) .type-selector-option {
-            color: #6b7280; /* gray-500 */
-        }
-
-        .type-selector-option.active {
-            color: #ffffff; /* white */
-        }
-        html:not(.dark) .type-selector-option.active {
-            color: #1f2937; /* gray-800 */
-        }
-        
-        .type-selector-slider {
-            position: absolute;
-            top: 0.25rem;
-            bottom: 0.25rem;
-            width: calc(50% - 0.25rem);
-            border-radius: 0.5rem;
-            transition: transform 0.3s ease, background-color 0.3s ease;
-            z-index: 5;
+            /* z-index: 10; */ /* No es necesario */
+            transition: all 0.3s ease;
+            font-weight: 600;
+            opacity: 0.7; /* Inactivo por defecto */
+            color: white; /* Texto blanco siempre */
         }
 
-        #movement-type-visual[value="ingreso"] + .type-selector-slider {
-            transform: translateX(0%);
+        /* Colores base */
+        #type-ingreso {
             background-color: var(--color-ingreso);
         }
-        #movement-type-visual[value="egreso"] + .type-selector-slider {
-            transform: translateX(100%);
+        #type-egreso {
             background-color: var(--color-egreso);
         }
+
+        /* Estado activo */
+        .type-selector-option.active {
+            opacity: 1;
+            box-shadow: 0 0 0 2px var(--color-text-dark); /* Borde blanco/oscuro */
+        }
+        html:not(.dark) .type-selector-option.active {
+            box-shadow: 0 0 0 2px var(--color-text-light); /* Borde negro/claro */
+        }
+        
+        /* Quitar estilos de texto inactivo/activo que ya no aplican */
+        /* html:not(.dark) .type-selector-option { ... } */
+        /* .type-selector-option.active { ... } */
+        /* html:not(.dark) .type-selector-option.active { ... } */
+        
+        .type-selector-slider {
+            display: none; /* Slider eliminado */
+        }
+
+        /* Quitar estilos relacionados al slider */
+        /* #movement-type-visual[value="ingreso"] + .type-selector-slider { ... } */
+        /* #movement-type-visual[value="egreso"] + .type-selector-slider { ... } */
+
 
         /* Ocultar input[radio] real */
         #movement-type-visual {
@@ -340,9 +345,9 @@
                     
                     <!-- Selector visual -->
                     <div class="type-selector">
-                        <div id="type-ingreso" class="type-selector-option active" data-type="ingreso">Ingreso</div>
+                        <div id="type-ingreso" class="type-selector-option" data-type="ingreso">Ingreso</div>
                         <div id="type-egreso" class="type-selector-option" data-type="egreso">Egreso</div>
-                        <div class="type-selector-slider"></div>
+                        <!-- Slider eliminado -->
                     </div>
                 </div>
 
@@ -1238,7 +1243,10 @@
                 appState.categories[type] = ["Varios"]; // Fallback
             }
 
-            appState.categories[type].forEach(cat => {
+            // Filtramos "Importado" para que no aparezca en el dropdown
+            const categoriesToShow = appState.categories[type].filter(cat => cat !== 'Importado');
+
+            categoriesToShow.forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat;
                 option.textContent = cat;
@@ -1448,7 +1456,7 @@
             // Setear tema al cargar
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 setTheme(true);
-_            } else {
+            } else {
                 setTheme(false);
             }
         }
