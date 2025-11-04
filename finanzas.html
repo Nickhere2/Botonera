@@ -403,10 +403,11 @@
                     <label for="gist-id" class="block text-sm font-medium mb-1">Gist ID</label>
                     <input type="text" id="gist-id" class="input-field w-full" placeholder="ID de la URL de tu Gist">
                 </div>
-                <div>
+                <!-- CAMPO DE NOMBRE DE ARCHIVO ELIMINADO -->
+                <!-- <div>
                     <label for="gist-filename" class="block text-sm font-medium mb-1">Nombre del Archivo en Gist</label>
                     <input type="text" id="gist-filename" class="input-field w-full" placeholder="finanzas.json">
-                </div>
+                </div> -->
                 <div class="mt-6 flex gap-4">
                     <button type="button" id="btn-settings-cancel" class="w-full py-2 px-4 rounded-md bg-gray-200 dark:bg-gray-600">Cancelar</button>
                     <button type="submit" class="w-full py-2 px-4 rounded-md bg-blue-600 text-white">Guardar y Sincronizar</button>
@@ -520,8 +521,8 @@
                 appState.ui.isGistSyncing = true;
                 setLoading(true, method === 'PATCH'); // Mostrar spinner solo en push
 
-                const { pat, gistId, filename } = config;
-                if (!pat || !gistId || !filename) {
+                const { pat, gistId } = config; // Se elimina filename de esta validación
+                if (!pat || !gistId) { // Se elimina filename de esta validación
                     showToast("Error: Configuración de Gist incompleta.", 'error');
                     setSyncStatus('error');
                     appState.ui.isGistSyncing = false;
@@ -571,24 +572,44 @@
                 const config = appState.gistConfig;
                 const data = await this.request(config);
                 
-                if (data && data.files && data.files[config.filename]) {
-                    const content = data.files[config.filename].content;
-                    if (content) {
-                        try {
-                            return JSON.parse(content);
-                        } catch (e) {
-                            showToast("Error: Datos corruptos en Gist.", 'error');
-                            setSyncStatus('error');
-                            return null;
+                if (data && data.files) {
+                    const fileKeys = Object.keys(data.files);
+                    let discoveredFilename;
+
+                    if (fileKeys.length > 0) {
+                        discoveredFilename = fileKeys[0]; // Coge el primer archivo
+                        if (fileKeys.length > 1) {
+                            showToast("Advertencia: Tu Gist tiene múltiples archivos. Se usará el primero.", 'warning');
                         }
                     } else {
-                        // El archivo existe pero está vacío
-                        showToast("Archivo en Gist vacío. Iniciando localmente.", 'warning');
-                        setSyncStatus('ok'); // Está OK, pero vacío
-                        return { movements: [], categories: appState.categories };
+                        // Gist está vacío. Usar un nombre por defecto para el primer 'push'
+                        discoveredFilename = 'finanzas.json';
                     }
+
+                    // Guardar el nombre de archivo descubierto (o el por defecto) para usar en 'push'
+                    appState.gistConfig.filename = discoveredFilename;
+                    saveGistConfig(); // Guardar la config actualizada (con el filename)
+
+                    if (data.files[discoveredFilename] && data.files[discoveredFilename].content) {
+                        const content = data.files[discoveredFilename].content;
+                        if (content) {
+                            try {
+                                return JSON.parse(content);
+                            } catch (e) {
+                                showToast("Error: Datos corruptos en Gist.", 'error');
+                                setSyncStatus('error');
+                                return null;
+                            }
+                        }
+                    }
+                    
+                    // Si el archivo no existe (Gist vacío) o el contenido está vacío
+                    showToast("Gist vacío. Iniciando localmente.", 'warning');
+                    setSyncStatus('ok'); // Está OK, pero vacío
+                    return { movements: [], categories: appState.categories };
+
                 } else if (data) {
-                    showToast("Error: No se encontró el archivo en el Gist.", 'error');
+                    showToast("Error: No se pudo leer los archivos del Gist.", 'error');
                     setSyncStatus('error');
                 }
                 return null;
@@ -596,6 +617,14 @@
 
             async push(data) {
                 const config = appState.gistConfig;
+                // Ahora el filename es requerido aquí, pero debió ser seteado por 'pull'
+                const { pat, gistId, filename } = config; 
+                if (!pat || !gistId || !filename) {
+                    showToast("Error: Configuración de Gist incompleta (falta filename).", 'error');
+                    setSyncStatus('error');
+                    return null;
+                }
+
                 const body = {
                     files: {
                         [config.filename]: {
@@ -694,7 +723,8 @@
                     appState.gistConfig = JSON.parse(config);
                     // Actualizar inputs del modal de settings (sin la contraseña)
                     $('#gist-id').value = appState.gistConfig.gistId || '';
-                    $('#gist-filename').value = appState.gistConfig.filename || '';
+                    // Se elimina la carga del nombre de archivo
+                    // $('#gist-filename').value = appState.gistConfig.filename || '';
                 }
             } catch (e) {
                 console.error("Error cargando config de Gist:", e);
@@ -1392,11 +1422,11 @@
             appState.gistConfig = {
                 pat: newPat,
                 gistId: $('#gist-id').value,
-                filename: $('#gist-filename').value
+                filename: appState.gistConfig.filename || null // Mantener el filename si ya existe, o null para forzar descubrimiento
             };
             
-            if (!appState.gistConfig.pat || !appState.gistConfig.gistId || !appState.gistConfig.filename) {
-                showToast("Por favor, completa todos los campos.", 'error');
+            if (!appState.gistConfig.pat || !appState.gistConfig.gistId) { // Se elimina la validación del filename
+                showToast("Por favor, completa el PAT y el Gist ID.", 'error');
                 return;
             }
 
@@ -1541,4 +1571,5 @@
 
 </body>
 </html>
+
 
