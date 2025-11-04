@@ -19,35 +19,48 @@
         :root {
             --color-ingreso: #22c55e; /* green-500 */
             --color-egreso: #ef4444; /* red-500 */
-            --color-bg-dark: #1f2937; /* gray-800 */
-            --color-text-dark: #f9fafb; /* gray-50 */
-            --color-bg-light: #f9fafb; /* gray-50 */
-            --color-text-light: #1f2937; /* gray-800 */
+            --color-bg-dark: #0f172a; /* slate-900 */
+            --color-text-dark: #f8fafc; /* slate-50 */
+            --color-bg-light: #f1f5f9; /* slate-100 */
+            --color-text-light: #0f172a; /* slate-900 */
         }
         
         /* Tema Oscuro (default) */
         html.dark body {
             background-color: var(--color-bg-dark);
             color: var(--color-text-dark);
+            /* Fondo Aurora Animado */
+            background-image: radial-gradient(at 27% 37%, hsla(215, 98%, 61%, 0.1) 0px, transparent 0%), radial-gradient(at 97% 21%, hsla(125, 98%, 72%, 0.1) 0px, transparent 50%), radial-gradient(at 52% 99%, hsla(355, 98%, 61%, 0.1) 0px, transparent 50%), radial-gradient(at 10% 29%, hsla(256, 96%, 61%, 0.1) 0px, transparent 50%), radial-gradient(at 97% 96%, hsla(38, 60%, 74%, 0.1) 0px, transparent 50%), radial-gradient(at 33% 50%, hsla(222, 67%, 73%, 0.1) 0px, transparent 50%), radial-gradient(at 79% 53%, hsla(343, 68%, 79%, 0.1) 0px, transparent 50%);
+            animation: aurora 10s ease-in-out infinite alternate;
         }
+
         html.dark .card {
-            background-color: #374151; /* gray-700 */
+            background-color: rgba(30, 41, 59, 0.5); /* slate-800/50 */
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(51, 65, 85, 0.5); /* slate-700/50 */
         }
         html.dark .card-secondary {
-            background-color: #4b5563; /* gray-600 */
+            background-color: rgba(51, 65, 85, 0.5); /* slate-700/50 */
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(71, 85, 105, 0.5); /* slate-600/50 */
         }
         
         /* Tema Claro */
         html:not(.dark) body {
             background-color: var(--color-bg-light);
+            background-image: linear-gradient(to bottom right, #f8fafc, #eef2f7); /* slate-50 to slate-200 */
             color: var(--color-text-light);
         }
         html:not(.dark) .card {
-            background-color: #ffffff;
-            border: 1px solid #e5e7eb; /* gray-200 */
+            background-color: rgba(255, 255, 255, 0.7); /* white/70 */
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3); /* white/30 */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
         html:not(.dark) .card-secondary {
-            background-color: #f3f4f6; /* gray-100 */
+            background-color: rgba(241, 245, 249, 0.7); /* slate-100/70 */
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5); /* white/50 */
         }
         
         /* Estilos del modal */
@@ -59,14 +72,9 @@
         .type-selector {
             display: flex;
             border-radius: 0.5rem;
-            /* background-color: #4b5563; */ /* gray-600 - Eliminado */
-            /* padding: 0.25rem; */ /* Eliminado */
             position: relative;
             gap: 0.5rem; /* Añadido */
         }
-        /* html:not(.dark) .type-selector {
-            background-color: #e5e7eb; */ /* gray-200 - Eliminado */
-        /* } */
 
         .type-selector-option {
             flex: 1;
@@ -75,7 +83,6 @@
             border-radius: 0.5rem;
             cursor: pointer;
             position: relative;
-            /* z-index: 10; */ /* No es necesario */
             transition: all 0.3s ease;
             font-weight: 600;
             opacity: 0.7; /* Inactivo por defecto */
@@ -99,19 +106,9 @@
             box-shadow: 0 0 0 2px var(--color-text-light); /* Borde negro/claro */
         }
         
-        /* Quitar estilos de texto inactivo/activo que ya no aplican */
-        /* html:not(.dark) .type-selector-option { ... } */
-        /* .type-selector-option.active { ... } */
-        /* html:not(.dark) .type-selector-option.active { ... } */
-        
         .type-selector-slider {
             display: none; /* Slider eliminado */
         }
-
-        /* Quitar estilos relacionados al slider */
-        /* #movement-type-visual[value="ingreso"] + .type-selector-slider { ... } */
-        /* #movement-type-visual[value="egreso"] + .type-selector-slider { ... } */
-
 
         /* Ocultar input[radio] real */
         #movement-type-visual {
@@ -146,23 +143,31 @@
         .spinner {
             animation: spin 1s linear infinite;
         }
+        
+        /* Animación de Fondo Aurora */
+        @keyframes aurora {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
     </style>
 </head>
-<body class="antialiased min-h-screen">
+<body class="min-h-screen transition-colors duration-300">
 
     <!-- Contenedor principal -->
     <div class="container mx-auto max-w-4xl p-4 pb-24">
 
         <!-- Encabezado -->
         <header class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-teal-500">
+            <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-teal-500">
                 Mis Finanzas
             </h1>
             <div class="flex items-center space-x-3">
                 <!-- Indicador de Sincronización Gist -->
                 <div id="gist-sync-status" class="flex items-center space-x-2">
                     <span id="gist-sync-spinner" class="hidden spinner">
-                        <svg class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2.086A9.002 9.002 0 0112 21a9.002 9.002 0 01-9-9 9.002 9.002 0 019-9 8.962 8.962 0 018.807 7.914M20 12v-5h-.581"></path></svg>
+                        <svg class="h-5 w-5 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2.086A9.002 9.002 0 0112 21a9.002 9.002 0 01-9-9 9.002 9.002 0 019-9 8.962 8.962 0 018.807 7.914M20 12v-5h-.581"></path></svg>
                     </span>
                     <span id="gist-sync-ok" class="hidden text-green-500" title="Sincronizado">
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6h.1a5 5 0 011 9.9M9 19l2 2 4-4"></path></svg>
@@ -221,7 +226,7 @@
                 </div>
                 <!-- Card Proyección Mes -->
                 <div id="card-projection-month" class="card p-4 rounded-lg shadow-md flex items-center space-x-4">
-                    <div id="icon-projection-month" class="p-3 rounded-full bg-blue-500">
+                    <div id="icon-projection-month" class="p-3 rounded-full bg-cyan-500">
                         <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                         </svg>
@@ -322,7 +327,7 @@
     </div> <!-- Fin contenedor principal -->
 
     <!-- Botón Flotante (+) -->
-    <button id="btn-add-movement" class="fixed bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-4 shadow-lg transition-transform transform hover:scale-110" aria-label="Agregar movimiento">
+    <button id="btn-add-movement" class="fixed bottom-6 right-6 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full p-4 shadow-lg transition-transform transform hover:scale-110" aria-label="Agregar movimiento">
         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
         </svg>
@@ -377,7 +382,7 @@
             <!-- Acciones -->
             <div class="mt-8 flex gap-4">
                 <button type="button" id="btn-modal-cancel" class="w-full py-2 px-4 rounded-md bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500">Cancelar</button>
-                <button type="submit" id="btn-modal-save" class="w-full py-2 px-4 rounded-md bg-blue-600 hover:bg-blue-700 text-white">Guardar</button>
+                <button type="submit" id="btn-modal-save" class="w-full py-2 px-4 rounded-md bg-cyan-600 hover:bg-cyan-700 text-white">Guardar</button>
             </div>
         </form>
     </div>
@@ -389,10 +394,10 @@
             <h3 class="text-2xl font-semibold mb-6">Configuración de Gist</h3>
             <p class="text-sm text-gray-400 mb-4">
                 Guarda tus finanzas de forma segura en un Gist de GitHub.
-                <a href="https://github.com/settings/tokens/new?scopes=gist&description=FinanzasApp" target="_blank" class="text-blue-400 hover:underline">
+                <a href="https://github.com/settings/tokens/new?scopes=gist&description=FinanzasApp" target="_blank" class="text-cyan-400 hover:underline">
                     Crea un nuevo PAT (con scope 'gist')
                 </a>.
-                Luego, <a href="https://gist.github.com/" target="_blank" class="text-blue-400 hover:underline">crea un Gist secreto</a> con un archivo (ej: `finanzas.json`) y pega el ID aquí.
+                Luego, <a href="https://gist.github.com/" target="_blank" class="text-blue-400 hover:underline">crea un Gist secreto</a> y pega el ID aquí.
             </p>
             <form id="settings-form" class="space-y-4">
                 <div>
@@ -404,13 +409,9 @@
                     <input type="text" id="gist-id" class="input-field w-full" placeholder="ID de la URL de tu Gist">
                 </div>
                 <!-- CAMPO DE NOMBRE DE ARCHIVO ELIMINADO -->
-                <!-- <div>
-                    <label for="gist-filename" class="block text-sm font-medium mb-1">Nombre del Archivo en Gist</label>
-                    <input type="text" id="gist-filename" class="input-field w-full" placeholder="finanzas.json">
-                </div> -->
                 <div class="mt-6 flex gap-4">
                     <button type="button" id="btn-settings-cancel" class="w-full py-2 px-4 rounded-md bg-gray-200 dark:bg-gray-600">Cancelar</button>
-                    <button type="submit" class="w-full py-2 px-4 rounded-md bg-blue-600 text-white">Guardar y Sincronizar</button>
+                    <button type="submit" class="w-full py-2 px-4 rounded-md bg-cyan-600 hover:bg-cyan-700 text-white">Guardar y Sincronizar</button>
                 </div>
             </form>
         </div>
@@ -461,55 +462,18 @@
         };
 
         // --- Selectores del DOM ---
+        // Se mueven las declaraciones aquí para que sean globales al script
         const $ = (selector) => document.querySelector(selector);
         
-        // Modales
-        const settingsModal = $('#settings-modal');
-        const movementModal = $('#movement-modal');
-        const confirmModal = $('#confirm-modal');
-        const toast = $('#toast');
-        
-        // Formularios
-        const settingsForm = $('#settings-form');
-        const movementForm = $('#movement-form');
-        
-        // Inputs del Formulario de Movimiento
-        const modalTitle = $('#modal-title');
-        const movementIdInput = $('#movement-id');
-        const movementTypeVisual = $('#movement-type-visual');
-        const typeIngreso = $('#type-ingreso');
-        const typeEgreso = $('#type-egreso');
-        const movementAmountInput = $('#movement-amount');
-        const movementCategorySelect = $('#movement-category');
-        const movementNoteInput = $('#movement-note');
-        const movementDateInput = $('#movement-date');
-
-        // Dashboard
-        const balanceTodayEl = $('#balance-today');
-        const balanceMonthEl = $('#balance-month');
-        const projectionMonthEl = $('#projection-month');
-        const cardBalanceToday = $('#card-balance-today');
-        const cardBalanceMonth = $('#card-balance-month');
-        const iconBalanceToday = $('#icon-balance-today');
-        const iconBalanceMonth = $('#icon-balance-month');
-        
-        // Listas y Tablas
-        const todayList = $('#today-list');
-        const noTodayMovements = $('#no-today-movements');
-        const historyTableBody = $('#history-table-body');
-        const noHistoryMovements = $('#no-history-movements');
-        const movementCardTemplate = $('#movement-card-template');
-
-        // Filtros
-        const filterSearch = $('#filter-search');
-        const filterType = $('#filter-type');
-        const filterMonth = $('#filter-month');
-        
-        // Indicador Gist
-        const gistSyncStatus = $('#gist-sync-status');
-        const gistSpinner = $('#gist-sync-spinner');
-        const gistOk = $('#gist-sync-ok');
-        const gistError = $('#gist-sync-error');
+        let settingsModal, movementModal, confirmModal, toast,
+            settingsForm, movementForm, modalTitle, movementIdInput,
+            movementTypeVisual, typeIngreso, typeEgreso, movementAmountInput,
+            movementCategorySelect, movementNoteInput, movementDateInput,
+            balanceTodayEl, balanceMonthEl, projectionMonthEl,
+            cardBalanceToday, cardBalanceMonth, iconBalanceToday, iconBalanceMonth,
+            todayList, noTodayMovements, historyTableBody, noHistoryMovements,
+            movementCardTemplate, filterSearch, filterType, filterMonth,
+            gistSyncStatus, gistSpinner, gistOk, gistError;
 
         // --- API de Gist (Objeto) ---
         const GistApi = {
@@ -609,7 +573,7 @@
                     return { movements: [], categories: appState.categories };
 
                 } else if (data) {
-                    showToast("Error: No se pudo leer los archivos del Gist.", 'error');
+                    showToast("Error: No se pudo leer los archivos del Gist. ¿Gist ID correcto?", 'error');
                     setSyncStatus('error');
                 }
                 return null;
@@ -722,9 +686,9 @@
                 if (config) {
                     appState.gistConfig = JSON.parse(config);
                     // Actualizar inputs del modal de settings (sin la contraseña)
-                    $('#gist-id').value = appState.gistConfig.gistId || '';
-                    // Se elimina la carga del nombre de archivo
-                    // $('#gist-filename').value = appState.gistConfig.filename || '';
+                    if (gistId) { // Solo si gistId ya fue seleccionado
+                        gistId.value = appState.gistConfig.gistId || '';
+                    }
                 }
             } catch (e) {
                 console.error("Error cargando config de Gist:", e);
@@ -1212,7 +1176,7 @@
             const toastMessage = $('#toast-message');
             toastMessage.textContent = message;
             
-            toast.classList.remove('bg-green-500', 'bg-red-500', 'bg-blue-500', 'bg-yellow-500');
+            toast.classList.remove('bg-green-500', 'bg-red-500', 'bg-cyan-500', 'bg-yellow-500');
             
             switch (type) {
                 case 'success':
@@ -1225,7 +1189,7 @@
                     toast.classList.add('bg-yellow-500');
                     break;
                 default:
-                    toast.classList.add('bg-blue-500');
+                    toast.classList.add('bg-cyan-500');
             }
             
             toast.classList.add('text-white');
@@ -1518,6 +1482,44 @@
 
         // --- Inicialización de la App ---
         async function initApp() {
+            // *** ¡LA CORRECCIÓN ESTÁ AQUÍ! ***
+            // Inicializar todos los selectores DESPUÉS de que el DOM esté cargado.
+            settingsModal = $('#settings-modal');
+            movementModal = $('#movement-modal');
+            confirmModal = $('#confirm-modal');
+            toast = $('#toast');
+            settingsForm = $('#settings-form');
+            movementForm = $('#movement-form');
+            modalTitle = $('#modal-title');
+            movementIdInput = $('#movement-id');
+            movementTypeVisual = $('#movement-type-visual');
+            typeIngreso = $('#type-ingreso');
+            typeEgreso = $('#type-egreso');
+            movementAmountInput = $('#movement-amount');
+            movementCategorySelect = $('#movement-category');
+            movementNoteInput = $('#movement-note');
+            movementDateInput = $('#movement-date');
+            balanceTodayEl = $('#balance-today');
+            balanceMonthEl = $('#balance-month');
+            projectionMonthEl = $('#projection-month');
+            cardBalanceToday = $('#card-balance-today');
+            cardBalanceMonth = $('#card-balance-month');
+            iconBalanceToday = $('#icon-balance-today');
+            iconBalanceMonth = $('#icon-balance-month');
+            todayList = $('#today-list');
+            noTodayMovements = $('#no-today-movements');
+            historyTableBody = $('#history-table-body');
+            noHistoryMovements = $('#no-history-movements');
+            movementCardTemplate = $('#movement-card-template');
+            filterSearch = $('#filter-search');
+            filterType = $('#filter-type');
+            filterMonth = $('#filter-month');
+            gistSyncStatus = $('#gist-sync-status');
+            gistSpinner = $('#gist-sync-spinner');
+            gistOk = $('#gist-sync-ok');
+            gistError = $('#gist-sync-error');
+            
+            // Ahora se pueden llamar a las funciones que usan los selectores
             setupTheme();
             setupEventListeners();
             loadStateFromLocal();
@@ -1552,16 +1554,22 @@
             border-radius: 0.375rem; /* rounded-md */
             padding: 0.5rem 0.75rem;
             color: #f9fafb; /* gray-50 */
+            /* Efecto Glassmorphism para inputs */
+            background-color: rgba(75, 85, 99, 0.5); /* gray-600/50 */
+            border: 1px solid rgba(107, 114, 128, 0.5); /* gray-500/50 */
         }
         .input-field:focus {
             outline: none;
-            border-color: #3b82f6; /* blue-500 */
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+            border-color: #22d3ee; /* cyan-400 */
+            box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.4); /* cyan-400/40 */
         }
         html:not(.dark) .input-field {
             background-color: #f3f4f6; /* gray-100 */
             border-color: #d1d5db; /* gray-300 */
             color: #1f2937; /* gray-800 */
+            /* Efecto Glassmorphism para inputs */
+            background-color: rgba(243, 244, 246, 0.7); /* gray-100/70 */
+            border: 1px solid rgba(209, 213, 219, 0.7); /* gray-300/70 */
         }
         /* Color del calendario en modo oscuro */
         html.dark .input-field::-webkit-calendar-picker-indicator {
@@ -1571,5 +1579,4 @@
 
 </body>
 </html>
-
 
