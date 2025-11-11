@@ -919,7 +919,7 @@
                 : appState.movements; // Si no, usa todos los movimientos
 
             movementsToChart.forEach(mov => {
-                const month = dayjs(mov.date).format('YYYY-MM');
+                const month = dayjs(mov.date).format('YYYYY-MM');
                 if (!monthlyData[month]) {
                     monthlyData[month] = { ingreso: 0, egreso: 0 };
                 }
@@ -936,7 +936,7 @@
             const sortedMonths = Object.keys(monthlyData).sort();
             
             // Tomar últimos 12 meses
-            const labels = sortedMonths.slice(-12).map(month => dayjs(month).format('MMM YYYY'));
+            const labels = sortedMonths.slice(-12).map(month => dayjs(month).format('MMM YYYYY'));
             const ingresos = sortedMonths.slice(-12).map(month => monthlyData[month].ingreso);
             const egresos = sortedMonths.slice(-12).map(month => monthlyData[month].egreso);
 
@@ -1021,20 +1021,20 @@
             const labels = [];
             
             for (let i = 1; i <= daysInMonth; i++) {
-                const dayStr = month.date(i).format('YYYY-MM-DD');
+                const dayStr = month.date(i).format('YYYYY-MM-DD');
                 labels.push(dayjs(dayStr).format('DD'));
                 dailyData[dayStr] = { ingreso: 0, egreso: 0 };
             }
 
             movements.forEach(mov => {
-                const dayStr = dayjs(mov.date).format('YYYY-MM-DD');
+                const dayStr = dayjs(mov.date).format('YYYYY-MM-DD');
                 if (dailyData[dayStr]) {
                     dailyData[dayStr][mov.type] += mov.amount;
                 }
             });
 
-            const ingresos = labels.map(day => dailyData[month.format('YYYY-MM-') + day].ingreso);
-            const egresos = labels.map(day => dailyData[month.format('YYYY-MM-') + day].egreso);
+            const ingresos = labels.map(day => dailyData[month.format('YYYYY-MM-') + day].ingreso);
+            const egresos = labels.map(day => dailyData[month.format('YYYYY-MM-') + day].egreso);
 
             if (appState.ui.chartInstance) {
                 appState.ui.chartInstance.destroy();
@@ -1126,7 +1126,7 @@
                 // Buscar en nota Y categoría
                 const searchMatch = !filters.search || note.includes(filters.search) || category.includes(filters.search);
                 const typeMatch = !filters.type || mov.type === filters.type;
-                const monthMatch = !filters.month || movDate.format('YYYY-MM') === filters.month;
+                const monthMatch = !filters.month || movDate.format('YYYYY-MM') === filters.month;
 
                 return searchMatch && typeMatch && monthMatch;
             });
@@ -1259,7 +1259,7 @@
                 
                 movementAmountInput.value = movement.amount;
                 movementNoteInput.value = movement.note || '';
-                movementDateInput.value = dayjs(movement.date).format('YYYY-MM-DDTHH:mm');
+                movementDateInput.value = dayjs(movement.date).format('YYYYY-MM-DDTHH:mm');
                 
                 // Setear tipo y categorías
                 movementTypeVisual.value = movement.type;
@@ -1276,7 +1276,7 @@
                 movementCategorySelect.value = appState.categories.ingreso[0] || ''; // 'Impresiones'
                 
                 // Setear fecha y hora actual
-                movementDateInput.value = dayjs().format('YYYY-MM-DDTHH:mm');
+                movementDateInput.value = dayjs().format('YYYYY-MM-DDTHH:mm');
             }
             
             // Actualizar el selector visual
