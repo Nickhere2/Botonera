@@ -1537,7 +1537,7 @@
             
             // Si no hay config, mostrar el modal de settings
             if (!appState.gistConfig.pat) {
-                setTimeout(() => showModal(settingsModal), 500);
+                showModal(settingsModal); // Mostrar inmediatamente sin delay;
             }
         }
         
