@@ -1537,10 +1537,7 @@
             }
             
             // Si no hay config, mostrar el modal de settings
-    if (!appState.gistConfig.pat || !appState.gistConfig.gistId) {                showModal(settingsModal); // Mostrar inmediatamente sin delay;
-            }
-        }
-        
+    showModal(settingsModal); // Siempre mostrar el modal de configuración al inicio            }       
         // Iniciar la aplicación
         document.addEventListener('DOMContentLoaded', initApp);
 
