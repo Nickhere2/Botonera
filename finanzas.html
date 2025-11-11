@@ -1481,7 +1481,8 @@
         }
 
         // --- Inicialización de la App ---
-        async function initApp() {
+        1540
+            () {
             // *** ¡LA CORRECCIÓN ESTÁ AQUÍ! ***
             // Inicializar todos los selectores DESPUÉS de que el DOM esté cargado.
             settingsModal = $('#settings-modal');
@@ -1536,8 +1537,7 @@
             }
             
             // Si no hay config, mostrar el modal de settings
-            if (!appState.gistConfig.pat) {
-                showModal(settingsModal); // Mostrar inmediatamente sin delay;
+    if (!appState.gistConfig.pat || !appState.gistConfig.gistId) {                showModal(settingsModal); // Mostrar inmediatamente sin delay;
             }
         }
         
