@@ -686,7 +686,7 @@
                 if (config) {
                     appState.gistConfig = JSON.parse(config);
                     // Actualizar inputs del modal de settings (sin la contraseña)
-                    if (gistId) { // Solo si gistId ya fue seleccionado
+                    if ($('#gist-id')) { // Solo si gistId ya fue seleccionado
                         gistId.value = appState.gistConfig.gistId || '';
                     }
                 }
