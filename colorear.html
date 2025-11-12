@@ -197,7 +197,7 @@
                     Guardar y Continuar
                 </button>
                 <p class="text-xs text-gray-500 mt-3 text-center">La clave se guarda en tu navegador.</p>
-            </div>
+             </div>
         </div>
 
         <!-- Modal de Confirmación de Lote -->
@@ -251,12 +251,13 @@
         <div id="initialView" class="text-center p-10 bg-white rounded-lg shadow-md">
              <h2 class="text-2xl font-bold mb-4 text-gray-700">Bienvenido</h2>
              <p class="text-gray-600 mb-6">Copia tu lista de pedidos en el portapapeles y luego presiona el botón para comenzar.</p>
-            <button id="ingresarPedidoButton" class="w-full max-w-xs mx-auto bg-green-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2">
+            <!-- BOTÓN MODIFICADO: Añadido <span> y disabled:opacity-75 -->
+            <button id="ingresarPedidoButton" class="w-full max-w-xs mx-auto bg-green-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2 disabled:opacity-75">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                   <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
                   <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
                 </svg>
-                Ingresar Pedido (Pegar)
+                <span>Ingresar Pedido (Pegar)</span>
             </button>
         </div>
 
@@ -332,48 +333,48 @@
                  <!-- Controles de Edición -->
                  <div id="imageEditGroup" class="flex flex-col gap-4">
                      <button id="undoButton" class="w-full bg-gray-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-600 transition duration-300 disabled:opacity-50" disabled>
-                        ↩️ Deshacer
+                         ↩️ Deshacer
                      </button>
                      <button id="saveToStockButton" class="w-full bg-teal-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-teal-600 transition duration-300 disabled:opacity-50" disabled>
-                        💾 Guardar en Stock Local
+                         💾 Guardar en Stock Local
                      </button>
                      <div class="border-t pt-4">
-                        <label for="scaleSlider" class="block text-sm font-medium text-gray-700 mb-1">Escala: <span id="scaleValue">100</span>%</label>
-                        <input type="range" id="scaleSlider" min="10" max="300" value="100" class="w-full">
+                         <label for="scaleSlider" class="block text-sm font-medium text-gray-700 mb-1">Escala: <span id="scaleValue">100</span>%</label>
+                         <input type="range" id="scaleSlider" min="10" max="300" value="100" class="w-full">
                      </div>
                      <div class="flex items-center">
-                        <input type="checkbox" id="filterToggle" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
-                        <label for="filterToggle" class="ml-2 block text-sm text-gray-900">Aplicar Filtro "Falsos Blancos"</label>
+                         <input type="checkbox" id="filterToggle" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                         <label for="filterToggle" class="ml-2 block text-sm text-gray-900">Aplicar Filtro "Falsos Blancos"</label>
                      </div>
                  </div>
 
                  <!-- Herramienta de Borrador -->
                  <div class="border-t pt-4 flex flex-col gap-3">
-                    <button id="eraseButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
-                        Activar Borrador
-                    </button>
-                    <div>
-                        <label for="brushSizeSlider" class="block text-sm font-medium text-gray-700 mb-1">Tamaño Borrador: <span id="brushSizeValue">20</span>px</label>
-                        <input type="range" id="brushSizeSlider" min="2" max="100" value="20" class="w-full">
-                    </div>
+                   <button id="eraseButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
+                       Activar Borrador
+                   </button>
+                   <div>
+                       <label for="brushSizeSlider" class="block text-sm font-medium text-gray-700 mb-1">Tamaño Borrador: <span id="brushSizeValue">20</span>px</label>
+                       <input type="range" id="brushSizeSlider" min="2" max="100" value="20" class="w-full">
+                   </div>
                  </div>
 
                  <!-- Herramienta de Recortar -->
                  <div class="border-t pt-4 flex flex-col gap-3">
-                    <button id="cropButton" class="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-600 transition duration-300">
-                        Activar Modo Recortar
-                    </button>
-                    <button id="applyCropButton" class="w-full bg-indigo-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-800 transition duration-300 hidden">
-                        Aplicar Recorte
-                    </button>
+                   <button id="cropButton" class="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-600 transition duration-300">
+                       Activar Modo Recortar
+                   </button>
+                   <button id="applyCropButton" class="w-full bg-indigo-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-800 transition duration-300 hidden">
+                       Aplicar Recorte
+                   </button>
                  </div>
 
                  <!-- Imágenes Recientes movido aquí -->
                  <div id="recentImagesSection" class="border-t pt-4 hidden">
-                     <h3 class="text-md font-bold text-gray-800 mb-2">Imágenes Recientes</h3>
-                     <div id="recentImagesContainer">
-                         <!-- Miniaturas se insertarán aquí -->
-                     </div>
+                      <h3 class="text-md font-bold text-gray-800 mb-2">Imágenes Recientes</h3>
+                      <div id="recentImagesContainer">
+                          <!-- Miniaturas se insertarán aquí -->
+                      </div>
                  </div>
 
                  <div id="noImageToolsMessage" class="text-center text-gray-500 mt-auto pt-4"> <!-- mt-auto para empujar abajo -->
@@ -447,33 +448,87 @@
         function switchToTab(tabContentId) { tabs.forEach(t => { t.btn.classList.remove('active'); t.content.classList.remove('active'); if (t.content.id === tabContentId) { t.btn.classList.add('active'); t.content.classList.add('active'); } }); }
 
         // --- Lógica Principal del Flujo (Wizard) ---
-        ingresarPedidoButton.addEventListener('click', async () => { try { originalClipboardContent = await navigator.clipboard.readText(); if (!originalClipboardContent) { alert("Portapapeles vacío."); return; } jobQueue = parseRequests(originalClipboardContent); if (jobQueue.length > 0) { populateJobQueueModal(); showJobQueueModal(); } else { alert("No se encontraron pedidos."); } } catch (err) { console.error("Error clipboard:", err); alert("No se pudo leer clipboard."); } });
+        // --- MODIFICADO: Ahora usa IA para parsear y muestra modal vacío si falla ---
+        ingresarPedidoButton.addEventListener('click', async () => {
+            // 1. Mostrar estado de carga
+            ingresarPedidoButton.disabled = true;
+            const buttonSpan = ingresarPedidoButton.querySelector('span');
+            if (buttonSpan) buttonSpan.textContent = 'Procesando...';
+
+            try { 
+                originalClipboardContent = await navigator.clipboard.readText(); 
+                
+                if (!originalClipboardContent) { 
+                    // 2. Si no hay contenido, mostrar modal vacío para entrada manual
+                    console.log("Portapapeles vacío, mostrando modal para entrada manual.");
+                    jobQueue = [];
+                } else {
+                    // 3. Si hay contenido, intentar parsear con IA
+                    console.log("Intentando parsear con IA...");
+                    jobQueue = await parseRequestsWithAI(originalClipboardContent);
+                    if (jobQueue.length === 0) {
+                        console.log("IA no reconoció pedidos, mostrando modal para entrada manual.");
+                    } else {
+                        console.log("IA reconoció pedidos:", jobQueue);
+                    }
+                }
+
+                // 4. Siempre mostramos el modal, pre-llenado (si IA funcionó) o vacío
+                populateJobQueueModal(); 
+                showJobQueueModal(); 
+
+            } catch (err) { 
+                console.error("Error clipboard o AI parse:", err); 
+                // No usar alert, el modal vacío es suficiente
+                // alert("Error al leer el portapapeles o procesar el texto: " + err.message); 
+                
+                // 5. Si todo falla, mostrar modal vacío
+                jobQueue = [];
+                populateJobQueueModal(); 
+                showJobQueueModal();
+            } finally {
+                // 6. Restaurar botón
+                ingresarPedidoButton.disabled = false;
+                if (buttonSpan) buttonSpan.textContent = 'Ingresar Pedido (Pegar)';
+            }
+        });
+
 
         // --- Funciones de Modal de Lote ---
         function showJobQueueModal() { jobQueueModal.style.display = 'flex'; }
         function hideJobQueueModal() { jobQueueModal.style.display = 'none'; }
-        function populateJobQueueModal() { jobQueueList.innerHTML = ''; originalClipboardText.textContent = originalClipboardContent; jobQueue.forEach((job, index) => { addRowToJobQueueList(job, index); }); }
+        function populateJobQueueModal() { 
+            jobQueueList.innerHTML = ''; 
+            // Mostrar el texto original pegado, incluso si está vacío o no se reconoció
+            originalClipboardText.textContent = originalClipboardContent || "(Portapapeles vacío o no se pudo leer)"; 
+            jobQueue.forEach((job, index) => { addRowToJobQueueList(job, index); }); 
+        }
         function addRowToJobQueueList(job, index) { const row = document.createElement('div'); row.className = 'job-queue-row'; row.dataset.index = index; const currentJob = job || { name: "", age: "", theme: "", quantity: 1 }; row.innerHTML = ` <input type="text" data-field="name" value="${escapeHTML(currentJob.name)}" class="job-input-name"> <input type="text" data-field="age" value="${escapeHTML(currentJob.age)}" class="job-input-age"> <input type="text" data-field="theme" value="${escapeHTML(currentJob.theme)}" class="job-input-theme"> <input type="number" data-field="quantity" value="${currentJob.quantity || 1}" min="1" class="job-input-quantity w-16"> <button class="deleteJobButton" data-index="${index}">&times;</button> `; jobQueueList.appendChild(row); row.querySelector('.deleteJobButton').addEventListener('click', handleDeleteJobRow); }
         function handleDeleteJobRow(e) { const rowElement = e.currentTarget.closest('.job-queue-row'); if (rowElement) { rowElement.remove(); } }
         addJobRowButton.addEventListener('click', () => { const nextIndex = jobQueueList.children.length; addRowToJobQueueList(null, nextIndex); });
         cancelJobQueueButton.addEventListener('click', () => { hideJobQueueModal(); });
         confirmJobQueueButton.addEventListener('click', () => {
+            // Esta lógica está BIEN. Lee los valores FINALES del modal,
+            // después de que el usuario los haya confirmado o editado.
             const finalJobQueue = [];
             const rows = jobQueueList.querySelectorAll('.job-queue-row');
-            rows.forEach((row, rowIndex) => { // Añadido rowIndex
+            rows.forEach((row, rowIndex) => { 
                 const name = row.querySelector('.job-input-name').value;
                 const age = row.querySelector('.job-input-age').value;
                 const theme = row.querySelector('.job-input-theme').value;
                 const quantity = parseInt(row.querySelector('.job-input-quantity').value) || 1;
 
-                for (let i = 0; i < quantity; i++) {
-                    finalJobQueue.push({
-                        name: name,
-                        age: age,
-                        theme: theme,
-                        originalIndex: rows.length > 1 ? `${rowIndex + 1}-${i + 1}` : `${i+1}`,
-                        done: false
-                    });
+                // Solo añadir si hay un tema
+                if (theme && name) {
+                    for (let i = 0; i < quantity; i++) {
+                        finalJobQueue.push({
+                            name: name,
+                            age: age,
+                            theme: theme,
+                            originalIndex: rows.length > 1 ? `${rowIndex + 1}-${i + 1}` : `${i+1}`,
+                            done: false
+                        });
+                    }
                 }
             });
 
@@ -493,7 +548,92 @@
             switchToTab('tabContentLote');
         });
         function escapeHTML(str) { return str ? String(str).replace(/"/g, '&quot;') : ''; }
-        function parseRequests(text) { const lines = text.split('\n').filter(line => line.trim() !== ''); const requests = []; const regex = /•?\s*(.+?)\s*(\d+)\s*a(?:ñ|n)os?\s*\((.+?)\)/i; lines.forEach(line => { const match = line.match(regex); if (match) { const [, name, age, themesRaw] = match; if (themesRaw.toLowerCase().includes('ya te confirmo')) return; const themes = themesRaw.split(/\s+y\s+|\s*,\s*|\s*&\s*/i).map(t => t.trim()).filter(t => t); if (themes.length > 0) { themes.forEach(theme => { requests.push({ name: name.trim(), age: age.trim(), theme: theme, quantity: 1, done: false }); }); } } }); return requests; }
+        
+        // --- NUEVA FUNCIÓN: Parsear con IA (Gemini) ---
+        async function parseRequestsWithAI(text) {
+            if (!apiKey) {
+                showApiKeyModal();
+                throw new Error("API Key no configurada.");
+            }
+            
+            // Usamos la misma apiKey global que el usuario proveyó
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const systemPrompt = "Eres un asistente que extrae pedidos de una lista para una app de hojas de colorear. El usuario te pasará un texto, a veces desordenado. Extrae el nombre de la persona (name), la edad (age), el tema del dibujo (theme) y la cantidad (quantity). 'años' significa 'years old'. Si no se especifica cantidad, usa 1. Responde SÓLO con el array JSON. Si el texto es incomprensible o no parece un pedido, responde con un array JSON vacío [].";
+            
+            const schema = {
+                type: "ARRAY",
+                items: {
+                    type: "OBJECT",
+                    properties: {
+                        "name": { "type": "STRING", "description": "Nombre del niño" },
+                        "age": { "type": "STRING", "description": "Edad del niño, ej: '6' o '6 años'" },
+                        "theme": { "type": "STRING", "description": "Tema del dibujo, ej: 'Capibara'" },
+                        "quantity": { "type": "NUMBER", "description": "Cantidad, default 1 si no se especifica" }
+                    },
+                    required: ["name", "age", "theme", "quantity"]
+                }
+            };
+
+            const payload = {
+                contents: [{ parts: [{ text: text }] }],
+                systemInstruction: {
+                    parts: [{ text: systemPrompt }]
+                },
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: schema
+                }
+            };
+
+            try {
+                // Implementar reintentos simples
+                let response;
+                for (let attempt = 0; attempt < 3; attempt++) {
+                     response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) break; // Éxito
+                    if (response.status === 429 && attempt < 2) { // Rate limit
+                        await new Promise(res => setTimeout(res, 1000 * (attempt + 1)));
+                    } else if (!response.ok) {
+                        throw new Error(`Status ${response.status}`);
+                    }
+                }
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error("Error API (parseRequestsWithAI):", errorText);
+                    throw new Error(`Error de la API de texto: ${response.statusText}`);
+                }
+
+                const result = await response.json();
+                
+                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts[0].text) {
+                    const jsonText = result.candidates[0].content.parts[0].text;
+                    const parsedJson = JSON.parse(jsonText);
+                    // Devolver el JSON parseado. La cantidad será manejada/confirmada en el modal.
+                    return parsedJson.map(job => ({
+                        name: job.name || "",
+                        age: job.age || "",
+                        theme: job.theme || "",
+                        quantity: parseInt(job.quantity) || 1
+                    }));
+                } else {
+                    console.warn("Respuesta JSON inesperada de IA:", result);
+                    return []; // Array vacío si no se pudo parsear
+                }
+            } catch (error) {
+                console.error("Error en fetch de parseRequestsWithAI:", error);
+                // No mostrar alert, solo devolver array vacío para que el usuario llene manually
+                return []; 
+            }
+        }
+
+        // --- FUNCIÓN ANTIGUA (parseRequests) ELIMINADA ---
+
         function loadCurrentJob() { if (currentJobIndex < 0 || currentJobIndex >= jobQueue.length) { alert("¡Lote completado!"); resetApp(); return; } const job = jobQueue[currentJobIndex]; jobStatusLabel.textContent = `Procesando Hoja ${currentJobIndex + 1} de ${jobQueue.length}`; jobStatusName.textContent = `${job.name} (${job.age} años)`; themeStatusLabel.textContent = `Tema: ${job.theme}`; nameInput.value = job.name; ageInput.value = job.age; generateButton.dataset.theme = job.theme; searchButton.dataset.theme = job.theme; resetImageState(); redrawCanvas(); }
         function resetImageState() { currentUserImage = null; isImageLoaded = false; scaleSlider.value = 100; imageScale = 1.0; imagePos = { x: 240, y: 340 }; filterToggle.checked = false; useFilter = false; if (isEraseMode) toggleEraseMode(true); if (isCropMode) toggleCropMode(true); undoStack = []; updateControlsVisibility(); }
         function advanceJob() { jobQueue[currentJobIndex].done = true; currentJobIndex++; loadCurrentJob(); switchToTab('tabContentLote'); }
@@ -514,12 +654,12 @@
         generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
         searchButton.addEventListener('click', (e) => { const theme = e.currentTarget.dataset.theme; const query = `${theme} para colorear`; const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`; window.open(url, '_blank'); switchToTab('tabContentImagen'); });
         pasteButton.addEventListener('click', async () => {
-            try {
-                if (!navigator.clipboard || !navigator.clipboard.read) { alert("Navegador no soporta pegar."); return; }
-                const items = await navigator.clipboard.read(); let foundImage = false;
-                for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); foundImage = true; break; } }
-                if (!foundImage) alert("No se encontró imagen compatible.");
-            } catch (err) { console.error("Error al pegar:", err); if (err.name === 'NotAllowedError') { alert("Permiso denegado para portapapeles."); } else if (err.name === 'NotFoundError') { alert("No se encontró contenido compatible."); } else if (err.message.toLowerCase().includes('permission')) { alert("Permiso denegado."); } else { alert(`Error al pegar: ${err.name} - ${err.message}.`); } }
+             try {
+                 if (!navigator.clipboard || !navigator.clipboard.read) { alert("Navegador no soporta pegar."); return; }
+                 const items = await navigator.clipboard.read(); let foundImage = false;
+                 for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); foundImage = true; break; } }
+                 if (!foundImage) alert("No se encontró imagen compatible.");
+             } catch (err) { console.error("Error al pegar:", err); if (err.name === 'NotAllowedError') { alert("Permiso denegado para portapapeles."); } else if (err.name === 'NotFoundError') { alert("No se encontró contenido compatible."); } else if (err.message.toLowerCase().includes('permission')) { alert("Permiso denegado."); } else { alert(`Error al pegar: ${err.name} - ${err.message}.`); } }
         });
         function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; updateControlsVisibility(); }; currentUserImage.src = imageUrl; }
         function setLoading(isLoading) { const span = generateButton.querySelector('span'); generateButton.disabled = isLoading; generateSpinner.classList.toggle('hidden', !isLoading); if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; }
@@ -601,11 +741,11 @@
              if (isCropping) {
                  isCropping=false;
                  if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) {
-                    applyCropButton.classList.remove('hidden');
-                    const {x, y} = getCanvasCoordinates(e);
-                    visualCropRect.endX = Math.max(0, Math.min(previewCanvas.width, x));
-                    visualCropRect.endY = Math.max(0, Math.min(previewCanvas.height, y));
-                    redrawCanvas();
+                     applyCropButton.classList.remove('hidden');
+                     const {x, y} = getCanvasCoordinates(e);
+                     visualCropRect.endX = Math.max(0, Math.min(previewCanvas.width, x));
+                     visualCropRect.endY = Math.max(0, Math.min(previewCanvas.height, y));
+                     redrawCanvas();
                  } else {
                      visualCropRect = null; // Invalidar rect
                      applyCropButton.classList.add('hidden');
@@ -683,8 +823,50 @@
         // --- Lógica de API de Gemini ---
         async function generateImage(prompt,attempt=1){if(!apiKey){showApiKeyModal();throw new Error("API Key no configurada.");}const apiUrl=`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;const payload={instances:[{prompt:prompt}],parameters:{"sampleCount":1}};console.log(`Generating image for prompt: "${prompt}" (Attempt ${attempt})`);try{const response=await fetch(apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!response.ok){if(response.status===429&&attempt<5){const delay=Math.pow(2,attempt)*1000+Math.random()*1000;console.warn(`Rate limited (429). Retrying in ${Math.round(delay/1000)}s...`);await new Promise(resolve=>setTimeout(resolve,delay));return generateImage(prompt,attempt+1);}const errorText=await response.text();console.error(`API Error (${response.status}): ${errorText}`);throw new Error(`Error API (${response.status}): ${response.statusText}`);}const result=await response.json();if(result.predictions&&result.predictions.length>0&&result.predictions[0].bytesBase64Encoded){const base64Data=result.predictions[0].bytesBase64Encoded;return`data:image/png;base64,${base64Data}`;}else{console.error("Respuesta API inesperada:",result);throw new Error("Respuesta API inesperada.");}}catch(error){if(attempt<5){const delay=Math.pow(2,attempt)*1000+Math.random()*1000;console.warn(`Fetch error: ${error.message}. Retrying in ${Math.round(delay/1000)}s...`);await new Promise(resolve=>setTimeout(resolve,delay));return generateImage(prompt,attempt+1);}else{console.error("Error final:",error);throw error;}}}
 
-        // --- Exportación de PDF ---
-        exportPdfButton.addEventListener('click', async()=>{if(pdfSheets.length===0){alert("No hay hojas.");return;}exportPdfButton.disabled=true;exportPdfButton.textContent='Generando PDF...';const{jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'portrait',unit:'px',format:[480,680]});try{for(let i=0;i<pdfSheets.length;i++){const canvas=pdfSheets[i];if(i>0)pdf.addPage([480,680],'portrait');const imgData=canvas.toDataURL('image/jpeg',0.9);pdf.addImage(imgData,'JPEG',0,0,480,680);await new Promise(resolve=>setTimeout(resolve,10));}pdf.save('hojas_para_colorear_lote.pdf');}catch(error){console.error("Error PDF:",error);alert('Error PDF: '+error.message);}finally{exportPdfButton.disabled=false;updateExportButtonsCount();}});
+        // --- Exportación de PDF (MODIFICADO) ---
+        exportPdfButton.addEventListener('click', async()=>{
+            if(pdfSheets.length===0){
+                alert("No hay hojas.");
+                return;
+            }
+            exportPdfButton.disabled=true;
+            exportPdfButton.textContent='Generando PDF...';
+            
+            const{jsPDF}=window.jspdf;
+            // 1. Crear PDF en tamaño A4 (unidad en milímetros)
+            const pdf=new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+            
+            try{
+                // Obtener dimensiones de la página A4
+                const pageWidth = pdf.internal.pageSize.getWidth();
+                const pageHeight = pdf.internal.pageSize.getHeight();
+            
+                for(let i=0;i<pdfSheets.length;i++){
+                    const canvas=pdfSheets[i];
+                    if(i>0) {
+                        // 2. Añadir nueva página en formato A4
+                        pdf.addPage('a4', 'portrait');
+                    }
+                    
+                    // 3. Usar PNG para alta calidad (ideal para arte lineal)
+                    const imgData=canvas.toDataURL('image/png');
+                    
+                    // 4. Añadir imagen escalada al tamaño de la página A4
+                    // Se usa 'FAST' para compresión PNG y evitar archivos gigantes
+                    pdf.addImage(imgData,'PNG',0,0,pageWidth,pageHeight, undefined, 'FAST');
+                    
+                    await new Promise(resolve=>setTimeout(resolve,10)); // Pequeña pausa
+                }
+                pdf.save('hojas_para_colorear_lote.pdf');
+            }catch(error){
+                console.error("Error PDF:",error);
+                alert('Error PDF: '+error.message);
+            }finally{
+                exportPdfButton.disabled=false;
+                updateExportButtonsCount();
+            }
+        });
+
 
         // --- Exportación de ZIP ---
         exportZipButton.addEventListener('click', async()=>{if(imagesForZip.length===0){alert("No hay imágenes.");return;}exportZipButton.disabled=true;exportZipButton.textContent='Comprimiendo...';try{const zip=new JSZip();for(const img of imagesForZip){const base64Data=img.dataUrl.split(',')[1];zip.file(img.name,base64Data,{base64:true});}const content=await zip.generateAsync({type:"blob"});triggerDownload(content,'imagenes_editadas.zip');}catch(error){console.error("Error ZIP:",error);alert('Error ZIP: '+error.message);}finally{exportZipButton.disabled=false;updateExportButtonsCount();}});
@@ -698,4 +880,3 @@
 
 </body>
 </html>
-
