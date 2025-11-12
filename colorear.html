@@ -307,8 +307,7 @@
                     <div id="tabContentImagen" class="tab-content flex flex-col gap-3 h-full">
                          <h3 class="text-md font-bold text-gray-800">Obtener Imagen del Tema</h3>
 <button onclick="window.open('https://gemini.google.com/', '_blank')" class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-purple-700 transition duration-300">Generar con Gemini</button>
-    <button onclick="window.open('https://nanobanana.ai/', '_blank')" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-700 transition duration-300">Generar con NanoBanana</button>
-                         <button id="searchButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
+<button id="searchButton" onclick="window.open('https://www.google.com/search?q=' + encodeURIComponent(document.getElementById('themeName').textContent || 'dibujo para colorear') + '&tbm=isch', '_blank')" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
                          <button id="pasteButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Pegar Imagen</button>
                          <!-- Imágenes Recientes movido a Herramientas -->
                     </div>
@@ -614,7 +613,7 @@
                         name: job.name || "",
                         age: job.age || "",
                         theme: job.theme || "",
-                        quantity: parseInt(job.quantity) || 1
+                        quantity: parseInt(job.quantity) || 3
                     }));
                 } else {
                     console.warn("Respuesta JSON inesperada de IA:", result);
