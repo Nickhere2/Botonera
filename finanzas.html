@@ -686,8 +686,8 @@
                 if (config) {
                     appState.gistConfig = JSON.parse(config);
                     // Actualizar inputs del modal de settings (sin la contraseña)
-                    if ($('#gist-id')) { // Solo si gistId ya fue seleccionado
-                        $('#gist-id').value = appState.gistConfig.gistId || '';
+                    if (gistId) { // Solo si gistId ya fue seleccionado
+                        gistId.value = appState.gistConfig.gistId || '';
                     }
                 }
             } catch (e) {
@@ -936,7 +936,7 @@
             const sortedMonths = Object.keys(monthlyData).sort();
             
             // Tomar últimos 12 meses
-            const labels = sortedMonths.slice(-12).map(month => dayjs(month).format('MMM YYYYY'));
+            const labels = sortedMonths.slice(-12).map(month => dayjs(month).format('MMM YYYY'));
             const ingresos = sortedMonths.slice(-12).map(month => monthlyData[month].ingreso);
             const egresos = sortedMonths.slice(-12).map(month => monthlyData[month].egreso);
 
@@ -1481,8 +1481,7 @@
         }
 
         // --- Inicialización de la App ---
-        1540
-            () {
+        async function initApp() {
             // *** ¡LA CORRECCIÓN ESTÁ AQUÍ! ***
             // Inicializar todos los selectores DESPUÉS de que el DOM esté cargado.
             settingsModal = $('#settings-modal');
@@ -1537,7 +1536,11 @@
             }
             
             // Si no hay config, mostrar el modal de settings
-    showModal(settingsModal); // Siempre mostrar el modal de configuración al inicio            }       
+            if (!appState.gistConfig.pat) {
+                setTimeout(() => showModal(settingsModal), 500);
+            }
+        }
+        
         // Iniciar la aplicación
         document.addEventListener('DOMContentLoaded', initApp);
 
@@ -1576,4 +1579,3 @@
 
 </body>
 </html>
-
