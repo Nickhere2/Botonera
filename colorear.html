@@ -497,7 +497,7 @@
             originalClipboardText.textContent = originalClipboardContent || "(Portapapeles vacío o no se pudo leer)"; 
             jobQueue.forEach((job, index) => { addRowToJobQueueList(job, index); }); 
         }
-        function addRowToJobQueueList(job, index) { const row = document.createElement('div'); row.className = 'job-queue-row'; row.dataset.index = index; const currentJob = job || { name: "", age: "", theme: "", quantity: 1 }; row.innerHTML = ` <input type="text" data-field="name" value="${escapeHTML(currentJob.name)}" class="job-input-name"> <input type="text" data-field="age" value="${escapeHTML(currentJob.age)}" class="job-input-age"> <input type="text" data-field="theme" value="${escapeHTML(currentJob.theme)}" class="job-input-theme"> <input type="number" data-field="quantity" value="${currentJob.quantity || 1}" min="1" class="job-input-quantity w-16"> <button class="deleteJobButton" data-index="${index}">&times;</button> `; jobQueueList.appendChild(row); row.querySelector('.deleteJobButton').addEventListener('click', handleDeleteJobRow); }
+        function addRowToJobQueueList(job, index) { const row = document.createElement('div'); row.className = 'job-queue-row'; row.dataset.index = index; const currentJob = job || { name: "", age: "", theme: "", quantity: 1 }; row.innerHTML = ` <input type="text" data-field="name" value="${escapeHTML(currentJob.name)}" class="job-input-name"> <input type="text" data-field="age" value="${escapeHTML(currentJob.age)}" class="job-input-age"> <input type="text" data-field="theme" value="${escapeHTML(currentJob.theme)}" class="job-input-theme"> <input type="number" data-field="quantity" value="${currentJob.quantity || 3}" min="1" class="job-input-quantity w-16"> <button class="deleteJobButton" data-index="${index}">&times;</button> `; jobQueueList.appendChild(row); row.querySelector('.deleteJobButton').addEventListener('click', handleDeleteJobRow); }
         function handleDeleteJobRow(e) { const rowElement = e.currentTarget.closest('.job-queue-row'); if (rowElement) { rowElement.remove(); } }
         addJobRowButton.addEventListener('click', () => { const nextIndex = jobQueueList.children.length; addRowToJobQueueList(null, nextIndex); });
         cancelJobQueueButton.addEventListener('click', () => { hideJobQueueModal(); });
@@ -613,7 +613,7 @@
                         name: job.name || "",
                         age: job.age || "",
                         theme: job.theme || "",
-                        quantity: parseInt(job.quantity) || 3
+                        quantity: parseInt(job.quantity) || 3 || 3
                     }));
                 } else {
                     console.warn("Respuesta JSON inesperada de IA:", result);
