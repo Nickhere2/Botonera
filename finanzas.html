@@ -1536,8 +1536,7 @@
             
             // Si no hay config, mostrar el modal de settings
             if (!appState.gistConfig.pat) {
-                setTimeout(() => showModal(settingsModal), 500);
-            }
+  setTimeout(() => { console.log('Abriendo modal de config'); showModal(settingsModal); }, 800);            }
         }
         
         // Iniciar la aplicación
