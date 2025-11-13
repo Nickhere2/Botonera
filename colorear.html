@@ -231,7 +231,7 @@
 
                 <div class="mt-6 flex justify-between">
                      <button id="cancelJobQueueButton" class="bg-gray-500 text-white py-2 px-6 rounded-lg hover:bg-gray-600 transition duration-300">
-                        Cancelar
+                         Cancelar
                     </button>
                     <button id="confirmJobQueueButton" class="bg-green-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-green-700 transition duration-300">
                         Confirmar e Iniciar Lote
@@ -314,16 +314,24 @@
                              <span>Generar (IA)</span>
                          </button>
                          <button id="searchButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
-                         <button id="pasteButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Pegar Imagen</button>
-                         <!-- Imágenes Recientes movido a Herramientas -->
+                         <!-- BOTÓN 'Pegar Imagen' ELIMINADO DE AQUÍ -->
                     </div>
                      <!-- Pestaña Edición eliminada -->
                 </div>
             </div>
 
             <!-- Panel del Canvas (Centro) -->
-            <div id="canvasPanel">
+            <div id="canvasPanel" class="relative"> <!-- AÑADIDO 'relative' -->
                 <canvas id="previewCanvas" width="480" height="680" class="bg-white shadow-md"></canvas>
+                
+                <!-- BOTÓN 'Pegar Imagen' MOVIDO AQUÍ -->
+                <button id="pasteButton" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-700 text-white py-3 px-5 rounded-lg font-bold hover:bg-gray-800 transition duration-300 flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                       <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                       <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                    </svg>
+                    Pegar Imagen
+                </button>
             </div>
 
             <!-- Panel de Herramientas (Derecha 1) -->
@@ -398,652 +406,719 @@
     </div>
 
         <script>
-        // --- Variables de Estado de la App ---
-        let apiKey = localStorage.getItem('geminiApiKey');
-        let jobQueue = []; let pdfSheets = []; let imagesForZip = []; let recentImages = [];
-        let originalClipboardContent = ""; let currentJobIndex = -1;
-        let pieImage = null; let currentUserImage = null;
-        let editCanvas = document.createElement('canvas'); let editCtx = editCanvas.getContext('2d', { willReadFrequently: true });
-        let undoStack = [];
-        let imageScale = 1.0; let imagePos = { x: 240, y: 340 }; let useFilter = false; let isImageLoaded = false;
-        let textPos = { x: 240, y: 660 }; // Posición inicial del texto
-        let isDragging = false; let dragStart = { x: 0, y: 0 };
-        let isDraggingText = false; // Nuevo estado para arrastrar texto
-        let isEraseMode = false; let isPainting = false; let brushSize = 20;
-        let isCropMode = false; let isCropping = false; let cropRect = { startX: 0, startY: 0, endX: 0, endY: 0 }; let visualCropRect = null;
- 
-        // --- Selectores del DOM ---
-        const apiKeyModal = document.getElementById('apiKeyModal'); const apiKeyInput = document.getElementById('apiKeyInput'); const saveApiKeyButton = document.getElementById('saveApiKeyButton');
-        const jobQueueModal = document.getElementById('jobQueueModal'); const jobQueueList = document.getElementById('jobQueueList'); const confirmJobQueueButton = document.getElementById('confirmJobQueueButton'); const cancelJobQueueButton = document.getElementById('cancelJobQueueButton'); const originalClipboardText = document.getElementById('originalClipboardText'); const addJobRowButton = document.getElementById('addJobRowButton');
-        const initialView = document.getElementById('initialView'); const ingresarPedidoButton = document.getElementById('ingresarPedidoButton'); const mainAppView = document.getElementById('mainAppView');
-        const tabButtonLote = document.getElementById('tabButtonLote'); const tabButtonImagen = document.getElementById('tabButtonImagen');
-        const tabContentLote = document.getElementById('tabContentLote'); const tabContentImagen = document.getElementById('tabContentImagen');
-        const tabs = [ { btn: tabButtonLote, content: tabContentLote }, { btn: tabButtonImagen, content: tabContentImagen } ]; // Solo 2 pestañas
-        const jobStatusLabel = document.getElementById('jobStatusLabel'); const jobStatusName = document.getElementById('jobStatusName'); const themeStatusLabel = document.getElementById('themeStatusLabel');
-        const nameInput = document.getElementById('nameInput'); const ageInput = document.getElementById('ageInput');
-        const generateButton = document.getElementById('generateButton'); const generateSpinner = document.getElementById('generateSpinner'); const searchButton = document.getElementById('searchButton'); const pasteButton = document.getElementById('pasteButton');
-        const recentImagesSection = document.getElementById('recentImagesSection'); const recentImagesContainer = document.getElementById('recentImagesContainer');
-        const imageEditGroup = document.getElementById('imageEditGroup');
-        //const noImageEditMessage = document.getElementById('noImageEditMessage'); // No se usa
-        const scaleSlider = document.getElementById('scaleSlider'); const scaleValue = document.getElementById('scaleValue'); const filterToggle = document.getElementById('filterToggle');
-        const eraseButton = document.getElementById('eraseButton'); const brushSizeSlider = document.getElementById('brushSizeSlider'); const brushSizeValue = document.getElementById('brushSizeValue');
-        const cropButton = document.getElementById('cropButton'); const applyCropButton = document.getElementById('applyCropButton'); const undoButton = document.getElementById('undoButton'); const saveToStockButton = document.getElementById('saveToStockButton');
-        const confirmButton = document.getElementById('confirmButton'); const skipButton = document.getElementById('skipButton'); const discardButton = document.getElementById('discardButton');
-        const previewCanvas = document.getElementById('previewCanvas'); const ctx = previewCanvas.getContext('2d');
-        const toastNotification = document.getElementById('toastNotification');
-        const exportPanel = document.getElementById('exportPanel'); const exportPdfButton = document.getElementById('exportPdfButton'); const exportZipButton = document.getElementById('exportZipButton');
-        const toolsPanel = document.getElementById('toolsPanel');
-        const noImageToolsMessage = document.getElementById('noImageToolsMessage');
-
-
-        // --- Carga Inicial ---
-        if (!apiKey) { showApiKeyModal(); } else { hideApiKeyModal(); loadPieImage(); }
-
-        // --- Handlers de API Key y Carga ---
-        saveApiKeyButton.addEventListener('click', () => { const key = apiKeyInput.value.trim(); if (key) { apiKey = key; localStorage.setItem('geminiApiKey', key); hideApiKeyModal(); loadPieImage(); console.log("API Key guardada."); } else { alert('Ingresa clave API.'); } });
-        function showApiKeyModal() { apiKeyModal.classList.add('flex'); apiKeyModal.classList.remove('hidden'); }
-        function hideApiKeyModal() { apiKeyModal.classList.add('hidden'); apiKeyModal.classList.remove('flex'); }
-        async function loadPieImage() { try { pieImage = new Image(); pieImage.src = 'pie.png'; await pieImage.decode(); console.log('pie.png cargado.'); redrawCanvas(); } catch (err) { console.error('Error pie.png:', err); /*alert('Error: No se pudo cargar pie.png.');*/ pieImage = null; } } // --- CAMBIO: No mostrar alert por pie.png ---
-
-        // --- Lógica de Pestañas ---
-        tabs.forEach(tab => { tab.btn.addEventListener('click', () => { tabs.forEach(t => { t.btn.classList.remove('active'); t.content.classList.remove('active'); }); tab.btn.classList.add('active'); tab.content.classList.add('active'); }); });
-        function switchToTab(tabContentId) { tabs.forEach(t => { t.btn.classList.remove('active'); t.content.classList.remove('active'); if (t.content.id === tabContentId) { t.btn.classList.add('active'); t.content.classList.add('active'); } }); }
-
-        // --- Lógica Principal del Flujo (Wizard) ---
-        // --- MODIFICADO: Ahora usa IA para parsear y muestra modal vacío si falla ---
-        ingresarPedidoButton.addEventListener('click', async () => {
-            // 1. Mostrar estado de carga
-            ingresarPedidoButton.disabled = true;
-            // MODIFICACIÓN: Buscar el <span> dentro del botón
-            const buttonSpan = ingresarPedidoButton.querySelector('span');
-            if (buttonSpan) buttonSpan.textContent = 'Procesando...';
-
-            try { 
-                originalClipboardContent = await navigator.clipboard.readText(); 
-                
-                if (!originalClipboardContent) { 
-                    // 2. Si no hay contenido, mostrar modal vacío para entrada manual
-                    console.log("Portapapeles vacío, mostrando modal para entrada manual.");
-                    jobQueue = [];
-                } else {
-                    // 3. Si hay contenido, intentar parsear con IA
-                    console.log("Intentando parsear con IA...");
-                    jobQueue = await parseRequestsWithAI(originalClipboardContent);
-                    if (jobQueue.length === 0) {
-                        console.log("IA no reconoció pedidos, mostrando modal para entrada manual.");
+        // Corregido: Envolver todo en DOMContentLoaded para asegurar que el HTML esté listo.
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Variables de Estado de la App ---
+            let apiKey = localStorage.getItem('geminiApiKey');
+            let jobQueue = []; let pdfSheets = []; let imagesForZip = []; let recentImages = [];
+            let originalClipboardContent = ""; let currentJobIndex = -1;
+            let pieImage = null; let currentUserImage = null;
+            let editCanvas = document.createElement('canvas'); let editCtx = editCanvas.getContext('2d', { willReadFrequently: true });
+            let undoStack = [];
+            let imageScale = 1.0; let imagePos = { x: 240, y: 340 }; let useFilter = false; let isImageLoaded = false;
+            let textPos = { x: 240, y: 660 }; // Posición inicial del texto
+            let isDragging = false; let dragStart = { x: 0, y: 0 };
+            let isDraggingText = false; // Nuevo estado para arrastrar texto
+            let isEraseMode = false; let isPainting = false; let brushSize = 20;
+            let isCropMode = false; let isCropping = false; let cropRect = { startX: 0, startY: 0, endX: 0, endY: 0 }; let visualCropRect = null;
+     
+            // --- Selectores del DOM ---
+            const apiKeyModal = document.getElementById('apiKeyModal'); const apiKeyInput = document.getElementById('apiKeyInput'); const saveApiKeyButton = document.getElementById('saveApiKeyButton');
+            const jobQueueModal = document.getElementById('jobQueueModal'); const jobQueueList = document.getElementById('jobQueueList'); const confirmJobQueueButton = document.getElementById('confirmJobQueueButton'); const cancelJobQueueButton = document.getElementById('cancelJobQueueButton'); const originalClipboardText = document.getElementById('originalClipboardText'); const addJobRowButton = document.getElementById('addJobRowButton');
+            const initialView = document.getElementById('initialView'); const ingresarPedidoButton = document.getElementById('ingresarPedidoButton'); const mainAppView = document.getElementById('mainAppView');
+            const tabButtonLote = document.getElementById('tabButtonLote'); const tabButtonImagen = document.getElementById('tabButtonImagen');
+            const tabContentLote = document.getElementById('tabContentLote'); const tabContentImagen = document.getElementById('tabContentImagen');
+            const tabs = [ { btn: tabButtonLote, content: tabContentLote }, { btn: tabButtonImagen, content: tabContentImagen } ]; // Solo 2 pestañas
+            const jobStatusLabel = document.getElementById('jobStatusLabel'); const jobStatusName = document.getElementById('jobStatusName'); const themeStatusLabel = document.getElementById('themeStatusLabel');
+            const nameInput = document.getElementById('nameInput'); const ageInput = document.getElementById('ageInput');
+            const generateButton = document.getElementById('generateButton'); const generateSpinner = document.getElementById('generateSpinner'); const searchButton = document.getElementById('searchButton'); const pasteButton = document.getElementById('pasteButton');
+            const recentImagesSection = document.getElementById('recentImagesSection'); const recentImagesContainer = document.getElementById('recentImagesContainer');
+            const imageEditGroup = document.getElementById('imageEditGroup');
+            //const noImageEditMessage = document.getElementById('noImageEditMessage'); // No se usa
+            const scaleSlider = document.getElementById('scaleSlider'); const scaleValue = document.getElementById('scaleValue'); const filterToggle = document.getElementById('filterToggle');
+            const eraseButton = document.getElementById('eraseButton'); const brushSizeSlider = document.getElementById('brushSizeSlider'); const brushSizeValue = document.getElementById('brushSizeValue');
+            const cropButton = document.getElementById('cropButton'); const applyCropButton = document.getElementById('applyCropButton'); const undoButton = document.getElementById('undoButton'); const saveToStockButton = document.getElementById('saveToStockButton');
+            const confirmButton = document.getElementById('confirmButton'); const skipButton = document.getElementById('skipButton'); const discardButton = document.getElementById('discardButton');
+            const previewCanvas = document.getElementById('previewCanvas'); const ctx = previewCanvas.getContext('2d');
+            const toastNotification = document.getElementById('toastNotification');
+            const exportPanel = document.getElementById('exportPanel'); const exportPdfButton = document.getElementById('exportPdfButton'); const exportZipButton = document.getElementById('exportZipButton');
+            const toolsPanel = document.getElementById('toolsPanel');
+            const noImageToolsMessage = document.getElementById('noImageToolsMessage');
+    
+            // --- Carga Inicial ---
+            if (!apiKey) { showApiKeyModal(); } else { hideApiKeyModal(); loadPieImage(); }
+    
+            // --- Handlers de API Key y Carga ---
+            saveApiKeyButton.addEventListener('click', () => { const key = apiKeyInput.value.trim(); if (key) { apiKey = key; localStorage.setItem('geminiApiKey', key); hideApiKeyModal(); loadPieImage(); console.log("API Key guardada."); } else { alert('Ingresa clave API.'); } });
+            function showApiKeyModal() { apiKeyModal.classList.add('flex'); apiKeyModal.classList.remove('hidden'); }
+            function hideApiKeyModal() { apiKeyModal.classList.add('hidden'); apiKeyModal.classList.remove('flex'); }
+            async function loadPieImage() { try { pieImage = new Image(); pieImage.src = 'pie.png'; await pieImage.decode(); console.log('pie.png cargado.'); redrawCanvas(); } catch (err) { console.error('Error pie.png:', err); /*alert('Error: No se pudo cargar pie.png.');*/ pieImage = null; } } // --- CAMBIO: No mostrar alert por pie.png ---
+    
+            // --- Lógica de Pestañas ---
+            tabs.forEach(tab => { tab.btn.addEventListener('click', () => { tabs.forEach(t => { t.btn.classList.remove('active'); t.content.classList.remove('active'); }); tab.btn.classList.add('active'); tab.content.classList.add('active'); }); });
+            function switchToTab(tabContentId) { tabs.forEach(t => { t.btn.classList.remove('active'); t.content.classList.remove('active'); if (t.content.id === tabContentId) { t.btn.classList.add('active'); t.content.classList.add('active'); } }); }
+    
+            // --- Lógica Principal del Flujo (Wizard) ---
+            // --- MODIFICADO: Ahora usa IA para parsear y muestra modal vacío si falla ---
+            ingresarPedidoButton.addEventListener('click', async () => {
+                // 1. Mostrar estado de carga
+                ingresarPedidoButton.disabled = true;
+                // MODIFICACIÓN: Buscar el <span> dentro del botón
+                const buttonSpan = ingresarPedidoButton.querySelector('span');
+                if (buttonSpan) buttonSpan.textContent = 'Procesando...';
+    
+                try { 
+                    originalClipboardContent = await navigator.clipboard.readText(); 
+                    
+                    if (!originalClipboardContent) { 
+                        // 2. Si no hay contenido, mostrar modal vacío para entrada manual
+                        console.log("Portapapeles vacío, mostrando modal para entrada manual.");
+                        jobQueue = [];
                     } else {
-                        console.log("IA reconoció pedidos:", jobQueue);
+                        // 3. Si hay contenido, intentar parsear con IA
+                        console.log("Intentando parsear con IA...");
+                        jobQueue = await parseRequestsWithAI(originalClipboardContent);
+                        if (jobQueue.length === 0) {
+                            console.log("IA no reconoció pedidos, mostrando modal para entrada manual.");
+                        } else {
+                            console.log("IA reconoció pedidos:", jobQueue);
+                        }
                     }
-                }
-
-                // 4. Siempre mostramos el modal, pre-llenado (si IA funcionó) o vacío
-                populateJobQueueModal(); 
-                showJobQueueModal(); 
-
-            } catch (err) { 
-                console.error("Error clipboard o AI parse:", err); 
-                // No usar alert, el modal vacío es suficiente
-                // alert("Error al leer el portapapeles o procesar el texto: " + err.message); 
-                
-                // 5. Si todo falla, mostrar modal vacío
-                jobQueue = [];
-                populateJobQueueModal(); 
-                showJobQueueModal();
-            } finally {
-                // 6. Restaurar botón
-                ingresarPedidoButton.disabled = false;
-                if (buttonSpan) buttonSpan.textContent = 'Ingresar Pedido (Pegar)';
-            }
-        });
-
-
-        // --- Funciones de Modal de Lote ---
-        function showJobQueueModal() { jobQueueModal.style.display = 'flex'; }
-        function hideJobQueueModal() { jobQueueModal.style.display = 'none'; }
-        function populateJobQueueModal() { 
-            jobQueueList.innerHTML = ''; 
-            // Mostrar el texto original pegado, incluso si está vacío o no se reconoció
-            originalClipboardText.textContent = originalClipboardContent || "(Portapapeles vacío o no se pudo leer)"; 
-            jobQueue.forEach((job, index) => { addRowToJobQueueList(job, index); }); 
-        }
-        function addRowToJobQueueList(job, index) { const row = document.createElement('div'); row.className = 'job-queue-row'; row.dataset.index = index; const currentJob = job || { name: "", age: "", theme: "", quantity: 3 }; row.innerHTML = ` <input type="text" data-field="name" value="${escapeHTML(currentJob.name)}" class="job-input-name"> <input type="text" data-field="age" value="${escapeHTML(currentJob.age)}" class="job-input-age"> <input type="text" data-field="theme" value="${escapeHTML(currentJob.theme)}" class="job-input-theme"> <input type="number" data-field="quantity" value="${currentJob.quantity || 3}" min="1" class="job-input-quantity w-16"> <button class="deleteJobButton" data-index="${index}">&times;</button> `; jobQueueList.appendChild(row); row.querySelector('.deleteJobButton').addEventListener('click', handleDeleteJobRow); }
-        function handleDeleteJobRow(e) { const rowElement = e.currentTarget.closest('.job-queue-row'); if (rowElement) { rowElement.remove(); } }
-        addJobRowButton.addEventListener('click', () => { const nextIndex = jobQueueList.children.length; addRowToJobQueueList(null, nextIndex); });
-        cancelJobQueueButton.addEventListener('click', () => { hideJobQueueModal(); });
-        confirmJobQueueButton.addEventListener('click', () => {
-            // Esta lógica está BIEN. Lee los valores FINALES del modal,
-            // después de que el usuario los haya confirmado o editado.
-            const finalJobQueue = [];
-            const rows = jobQueueList.querySelectorAll('.job-queue-row');
-            rows.forEach((row, rowIndex) => { 
-                const name = row.querySelector('.job-input-name').value;
-                const age = row.querySelector('.job-input-age').value;
-                const theme = row.querySelector('.job-input-theme').value;
-                const quantity = parseInt(row.querySelector('.job-input-quantity').value) || 1;
-
-                // Solo añadir si hay un tema
-                if (theme && name) {
-                    for (let i = 0; i < quantity; i++) {
-                        finalJobQueue.push({
-                            name: name,
-                            age: age,
-                            theme: theme,
-                            originalIndex: rows.length > 1 ? `${rowIndex + 1}-${i + 1}` : `${i+1}`,
-                            done: false
-                        });
-                    }
+    
+                    // 4. Siempre mostramos el modal, pre-llenado (si IA funcionó) o vacío
+                    populateJobQueueModal(); 
+                    showJobQueueModal(); 
+    
+                } catch (err) { 
+                    console.error("Error clipboard o AI parse:", err); 
+                    alert("Error al leer el portapapeles o procesar el texto: " + err.message); 
+                    
+                    // 5. Si todo falla, mostrar modal vacío
+                    jobQueue = [];
+                    populateJobQueueModal(); 
+                    showJobQueueModal();
+                } finally {
+                    // 6. Restaurar botón
+                    ingresarPedidoButton.disabled = false;
+                    if (buttonSpan) buttonSpan.textContent = 'Ingresar Pedido (Pegar)';
                 }
             });
-
-            jobQueue = finalJobQueue;
-
-            if (jobQueue.length === 0) {
-                alert("No hay trabajos en la cola.");
-                hideJobQueueModal(); return;
+    
+    
+            // --- Funciones de Modal de Lote ---
+            function showJobQueueModal() { jobQueueModal.style.display = 'flex'; }
+            function hideJobQueueModal() { jobQueueModal.style.display = 'none'; }
+            function populateJobQueueModal() { 
+                jobQueueList.innerHTML = ''; 
+                // Mostrar el texto original pegado, incluso si está vacío o no se reconoció
+                originalClipboardText.textContent = originalClipboardContent || "(Portapapeles vacío o no se pudo leer)"; 
+                jobQueue.forEach((job, index) => { addRowToJobQueueList(job, index); }); 
             }
-            pdfSheets = []; imagesForZip = []; recentImages = [];
-            updateRecentImagesUI(); updateExportButtonsCount();
-            currentJobIndex = 0;
-            initialView.style.display = 'none';
-            mainAppView.style.display = 'grid';
-            hideJobQueueModal();
-            loadCurrentJob();
-            switchToTab('tabContentLote');
-        });
-        function escapeHTML(str) { return str ? String(str).replace(/"/g, '&quot;') : ''; }
-        
-        // --- NUEVA FUNCIÓN: Parsear con IA (Gemini) ---
-        async function parseRequestsWithAI(text) {
-            if (!apiKey) {
-                showApiKeyModal();
-                throw new Error("API Key no configurada.");
-            }
-            
-            // Usamos la misma apiKey global que el usuario proveyó
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-            const systemPrompt = "Eres un asistente que extrae pedidos de una lista para una app de hojas de colorear. El usuario te pasará un texto, a veces desordenado. Extrae el nombre de la persona (name), la edad (age) (SOLO EL NÚMERO, ej: '6'), el tema del dibujo (theme) y la cantidad (quantity). 'años' significa 'years old'. Si no se especifica cantidad, usa 3. Responde SÓLO con el array JSON. Si el texto es incomprensible o no parece un pedido, responde con un array JSON vacío [].";
-            
-            const schema = {
-                type: "ARRAY",
-                items: {
-                    type: "OBJECT",
-                    properties: {
-                        "name": { "type": "STRING", "description": "Nombre del niño" },
-                        "age": { "type": "STRING", "description": "Edad del niño, ej: '6' (solo el número)" },
-                        "theme": { "type": "STRING", "description": "Tema del dibujo, ej: 'Capibara'" },
-                        "quantity": { "type": "NUMBER", "description": "Cantidad, default 3 si no se especifica" }
-                    },
-                    required: ["name", "age", "theme", "quantity"]
-                }
-            };
-
-            const payload = {
-                contents: [{ parts: [{ text: text }] }],
-                systemInstruction: {
-                    parts: [{ text: systemPrompt }]
-                },
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: schema
-                }
-            };
-
-            try {
-                // Implementar reintentos simples
-                let response;
-                for (let attempt = 0; attempt < 3; attempt++) {
-                     response = await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    if (response.ok) break; // Éxito
-                    if (response.status === 429 && attempt < 2) { // Rate limit
-                        await new Promise(res => setTimeout(res, 1000 * (attempt + 1)));
-                    } else if (!response.ok) {
-                        throw new Error(`Status ${response.status}`);
+            function addRowToJobQueueList(job, index) { const row = document.createElement('div'); row.className = 'job-queue-row'; row.dataset.index = index; const currentJob = job || { name: "", age: "", theme: "", quantity: 3 }; row.innerHTML = ` <input type="text" data-field="name" value="${escapeHTML(currentJob.name)}" class="job-input-name"> <input type="text" data-field="age" value="${escapeHTML(currentJob.age)}" class="job-input-age"> <input type="text" data-field="theme" value="${escapeHTML(currentJob.theme)}" class="job-input-theme"> <input type="number" data-field="quantity" value="${currentJob.quantity || 3}" min="1" class="job-input-quantity w-16"> <button class="deleteJobButton" data-index="${index}">&times;</button> `; jobQueueList.appendChild(row); row.querySelector('.deleteJobButton').addEventListener('click', handleDeleteJobRow); }
+            function handleDeleteJobRow(e) { const rowElement = e.currentTarget.closest('.job-queue-row'); if (rowElement) { rowElement.remove(); } }
+            addJobRowButton.addEventListener('click', () => { const nextIndex = jobQueueList.children.length; addRowToJobQueueList(null, nextIndex); });
+            cancelJobQueueButton.addEventListener('click', () => { hideJobQueueModal(); });
+            confirmJobQueueButton.addEventListener('click', () => {
+                // Esta lógica está BIEN. Lee los valores FINALES del modal,
+                // después de que el usuario los haya confirmado o editado.
+                const finalJobQueue = [];
+                const rows = jobQueueList.querySelectorAll('.job-queue-row');
+                rows.forEach((row, rowIndex) => { 
+                    const name = row.querySelector('.job-input-name').value;
+                    const age = row.querySelector('.job-input-age').value;
+                    const theme = row.querySelector('.job-input-theme').value;
+                    const quantity = parseInt(row.querySelector('.job-input-quantity').value) || 1;
+    
+                    // Solo añadir si hay un tema
+                    if (theme && name) {
+                        for (let i = 0; i < quantity; i++) {
+                            finalJobQueue.push({
+                                name: name,
+                                age: age,
+                                theme: theme,
+                                originalIndex: rows.length > 1 ? `${rowIndex + 1}-${i + 1}` : `${i+1}`,
+                                done: false
+                            });
+                        }
                     }
+                });
+    
+                jobQueue = finalJobQueue;
+    
+                if (jobQueue.length === 0) {
+                    alert("No hay trabajos en la cola.");
+                    hideJobQueueModal(); return;
                 }
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error("Error API (parseRequestsWithAI):", errorText);
-                    throw new Error(`Error de la API de texto: ${response.statusText}`);
-                }
-
-                const result = await response.json();
-                
-                if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts[0].text) {
-                    const jsonText = result.candidates[0].content.parts[0].text;
-                    const parsedJson = JSON.parse(jsonText);
-                    // Devolver el JSON parseado. La cantidad será manejada/confirmada en el modal.
-                    return parsedJson.map(job => ({
-                        name: job.name || "",
-                        age: job.age || "",
-                        theme: job.theme || "",
-                        quantity: parseInt(job.quantity) || 3
-                    }));
-                } else {
-                    console.warn("Respuesta JSON inesperada de IA:", result);
-                    return []; // Array vacío si no se pudo parsear
-                }
-            } catch (error) {
-                console.error("Error en fetch de parseRequestsWithAI:", error);
-                // No mostrar alert, solo devolver array vacío para que el usuario llene manually
-                return []; 
-            }
-        }
-
-        // --- FUNCIÓN ANTIGUA (parseRequests) ELIMINADA ---
-        // function parseRequests(text) { ... }
- 
-        function loadCurrentJob() { if (currentJobIndex < 0 || currentJobIndex >= jobQueue.length) { alert("¡Lote completado!"); resetApp(); return; } const job = jobQueue[currentJobIndex]; jobStatusLabel.textContent = `Procesando Hoja ${currentJobIndex + 1} de ${jobQueue.length}`; jobStatusName.textContent = `${job.name} (${job.age} años)`; themeStatusLabel.textContent = `Tema: ${job.theme}`; nameInput.value = job.name; ageInput.value = job.age; generateButton.dataset.theme = job.theme; searchButton.dataset.theme = job.theme; resetImageState(); redrawCanvas(); }
-        function resetImageState() { 
-            currentUserImage = null; isImageLoaded = false; 
-            scaleSlider.value = 100; imageScale = 1.0; imagePos = { x: 240, y: 340 }; 
-            filterToggle.checked = false; useFilter = false; 
-            if (isEraseMode) toggleEraseMode(true); 
-            if (isCropMode) toggleCropMode(true); 
-            undoStack = []; 
+                pdfSheets = []; imagesForZip = []; recentImages = [];
+                updateRecentImagesUI(); updateExportButtonsCount();
+                currentJobIndex = 0;
+                initialView.style.display = 'none';
+                mainAppView.style.display = 'grid';
+                hideJobQueueModal();
+                loadCurrentJob();
+                switchToTab('tabContentLote');
+            });
+            function escapeHTML(str) { return str ? String(str).replace(/"/g, '&quot;') : ''; }
             
-            // Resetear posición del texto
-            let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } 
-            textPos = { x: 240, y: 680 - pieH - 20 };
-
-            updateControlsVisibility(); 
-        }
-        function advanceJob() { jobQueue[currentJobIndex].done = true; currentJobIndex++; loadCurrentJob(); switchToTab('tabContentLote'); }
-        function resetApp() {
-            if (pdfSheets.length === 0) {
-                 jobQueue = []; currentJobIndex = -1; recentImages = [];
-                 updateRecentImagesUI(); initialView.style.display = 'block'; mainAppView.style.display = 'none';
-             } else {
-                 jobStatusLabel.textContent = `Lote Completado (${pdfSheets.length} hojas)`; jobStatusName.textContent = "Listo para Exportar"; themeStatusLabel.textContent = "";
-                 resetImageState(); redrawCanvas(); switchToTab('tabContentLote');
-                 confirmButton.disabled = true;
-                 skipButton.disabled = true;
-                 discardButton.disabled = true;
-             }
-        }
-
-        // --- Handlers de Acciones de Imagen ---
-        generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
-        searchButton.addEventListener('click', (e) => { const theme = e.currentTarget.dataset.theme; const query = `${theme} para colorear`; const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`; window.open(url, '_blank'); switchToTab('tabContentImagen'); });
-        pasteButton.addEventListener('click', async () => {
-             try {
-                 if (!navigator.clipboard || !navigator.clipboard.read) { alert("Navegador no soporta pegar."); return; }
-                 const items = await navigator.clipboard.read(); let foundImage = false;
-                 for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); foundImage = true; break; } }
-                 if (!foundImage) alert("No se encontró imagen compatible.");
-             } catch (err) { console.error("Error al pegar:", err); if (err.name === 'NotAllowedError') { alert("Permiso denegado para portapapeles."); } else if (err.name === 'NotFoundError') { alert("No se encontró contenido compatible."); } else if (err.message.toLowerCase().includes('permission')) { alert("Permiso denegado."); } else { alert(`Error al pegar: ${err.name} - ${err.message}.`); } }
-        });
-        function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; updateControlsVisibility(); }; currentUserImage.src = imageUrl; }
-        function setLoading(isLoading) { const span = generateButton.querySelector('span'); generateButton.disabled = isLoading; generateSpinner.classList.toggle('hidden', !isLoading); if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; }
-
-        // --- Handlers de Imágenes Recientes ---
-        function updateRecentImagesUI() { recentImagesContainer.innerHTML = ''; if (recentImages.length > 0) { recentImagesSection.classList.remove('hidden'); const uniqueThemes = new Map(); for (let i = recentImages.length - 1; i >= 0; i--) { const img = recentImages[i]; if (!uniqueThemes.has(img.theme)) { uniqueThemes.set(img.theme, img.dataUrl); } } Array.from(uniqueThemes.entries()).forEach(([theme, dataUrl]) => { const imgEl = document.createElement('img'); imgEl.src = dataUrl; imgEl.title = `Reusar ${theme}`; imgEl.className = 'recent-image'; imgEl.addEventListener('click', () => { loadImageOntoCanvas(dataUrl); showToast(`Imagen de "${theme}" reutilizada.`); }); recentImagesContainer.appendChild(imgEl); }); } else { recentImagesSection.classList.add('hidden'); } }
-
-        // --- Handlers de Stock Local ---
-        saveToStockButton.addEventListener('click', () => { alert("Stock Local no implementado. Usa Exportar ZIP."); });
-
-        // --- Handlers de Edición de Imagen ---
-        scaleSlider.addEventListener('input', (e) => { imageScale = parseInt(e.target.value)/100; scaleValue.textContent = e.target.value; redrawCanvas(); });
-        filterToggle.addEventListener('change', (e) => { useFilter = e.target.checked; redrawCanvas(); });
-        function saveStateForUndo() { if (!isImageLoaded) return; const tCan = document.createElement('canvas'); tCan.width = editCanvas.width; tCan.height = editCanvas.height; tCan.getContext('2d').drawImage(editCanvas, 0, 0); undoStack.push(tCan); if (undoStack.length > 10) { undoStack.shift(); } updateControlsVisibility(); }
-        undoButton.addEventListener('click', () => { if (undoStack.length > 1) { undoStack.pop(); const last = undoStack[undoStack.length - 1]; editCanvas.width = last.width; editCanvas.height = last.height; editCtx.drawImage(last, 0, 0); redrawCanvas(); } else if (undoStack.length === 1) { const orig = undoStack[0]; editCanvas.width = orig.width; editCanvas.height = orig.height; editCtx.drawImage(orig, 0, 0); redrawCanvas(); } updateControlsVisibility(); });
-        brushSizeSlider.addEventListener('input', (e) => { brushSize = parseInt(e.target.value); brushSizeValue.textContent = `${brushSize}px`; });
-        eraseButton.addEventListener('click', () => toggleEraseMode(false));
-        function toggleEraseMode(forceOff = false) { if (forceOff) isEraseMode = true; isEraseMode = !isEraseMode; if (isEraseMode) { if (isCropMode) toggleCropMode(true); eraseButton.textContent = 'Desactivar Borrador'; eraseButton.classList.add('bg-red-500', 'text-white'); eraseButton.classList.remove('bg-yellow-500', 'text-black'); previewCanvas.classList.add('erase-mode'); } else { eraseButton.textContent = 'Activar Borrador'; eraseButton.classList.remove('bg-red-500', 'text-white'); eraseButton.classList.add('bg-yellow-500', 'text-black'); previewCanvas.classList.remove('erase-mode'); isPainting = false; } }
-        function paintOnCanvas(cX, cY) { editCtx.fillStyle = 'white'; editCtx.beginPath(); editCtx.arc(cX, cY, brushSize / imageScale, 0, Math.PI * 2); editCtx.fill(); redrawCanvas(); }
-
-        // --- Función getCanvasCoordinates corregida ---
-        function getCanvasCoordinates(e) {
-            const rect = previewCanvas.getBoundingClientRect();
-            const scaleX = previewCanvas.width / rect.width;
-            const scaleY = previewCanvas.height / rect.height;
-            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            const canvasX = (clientX - rect.left);
-            const canvasY = (clientY - rect.top);
-            const x = Math.max(0, canvasX * scaleX);
-            const y = Math.max(0, canvasY * scaleY);
-            return {x, y};
-        }
-
-        cropButton.addEventListener('click', () => toggleCropMode(false));
-        applyCropButton.addEventListener('click', () => { if (!visualCropRect) return; saveStateForUndo(); const nR={x1:Math.min(visualCropRect.startX,visualCropRect.endX),y1:Math.min(visualCropRect.startY,visualCropRect.endY),x2:Math.max(visualCropRect.startX,visualCropRect.endX),y2:Math.max(visualCropRect.startY,visualCropRect.endY)}; const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale; const iX1=imagePos.x-iW/2; const iY1=imagePos.y-iH/2; const cX1=Math.max(nR.x1,iX1); const cY1=Math.max(nR.y1,iY1); const cX2=Math.min(nR.x2,iX1+iW); const cY2=Math.min(nR.y2,iY1+iH); if(cX2<=cX1||cY2<=cY1){toggleCropMode(true);return;} const sX=(cX1-iX1)/imageScale; const sY=(cY1-iY1)/imageScale; const sW=(cX2-cX1)/imageScale; const sH=(cY2-cY1)/imageScale; const tCan=document.createElement('canvas'); tCan.width=sW; tCan.height=sH; tCan.getContext('2d').drawImage(editCanvas,sX,sY,sW,sH,0,0,sW,sH); editCanvas.width=sW; editCanvas.height=sH; editCtx.drawImage(tCan,0,0); toggleCropMode(true); loadImageOntoCanvas(editCanvas.toDataURL()); });
-        function toggleCropMode(forceOff = false) { if (forceOff) isCropMode = true; isCropMode = !isCropMode; if (isCropMode) { if (isEraseMode) toggleEraseMode(true); cropButton.textContent = 'Cancelar Recorte'; cropButton.classList.add('bg-red-500', 'text-white'); cropButton.classList.remove('bg-indigo-500'); previewCanvas.classList.add('crop-mode'); } else { cropButton.textContent = 'Activar Modo Recortar'; cropButton.classList.remove('bg-red-500', 'text-white'); cropButton.classList.add('bg-indigo-500'); previewCanvas.classList.remove('crop-mode'); isCropping = false; visualCropRect = null; applyCropButton.classList.add('hidden'); redrawCanvas(); } }
-        function drawCropRect() { if (!visualCropRect) return; ctx.save(); ctx.strokeStyle = 'rgba(255,0,0,0.7)'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); const w=visualCropRect.endX-visualCropRect.startX; const h=visualCropRect.endY-visualCropRect.startY; ctx.strokeRect(visualCropRect.startX,visualCropRect.startY,w,h); ctx.restore(); }
-
-        // --- Handlers de Arrastrar Imagen (Drag) ---
-        previewCanvas.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            const {x, y} = getCanvasCoordinates(e); // Usar la función corregida
-
-            if (!isImageLoaded) {
-                 // Permitir arrastrar texto incluso si no hay imagen
-                 const {tBox} = getTextBoundingBox();
-                 if (x > tBox.x1 && x < tBox.x2 && y > tBox.y1 && y < tBox.y2) {
+            // --- NUEVA FUNCIÓN: Parsear con IA (Gemini) ---
+            async function parseRequestsWithAI(text) {
+                if (!apiKey) {
+                    showApiKeyModal();
+                    throw new Error("API Key no configurada.");
+                }
+                
+                // Usamos la misma apiKey global que el usuario proveyó
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+    
+                const systemPrompt = "Eres un asistente que extrae pedidos de una lista para una app de hojas de colorear. El usuario te pasará un texto, a veces desordenado. Extrae el nombre de la persona (name), la edad (age) (SOLO EL NÚMERO, ej: '6'), el tema del dibujo (theme) y la cantidad (quantity). 'años' significa 'years old'. Si no se especifica cantidad, usa 3. Responde SÓLO con el array JSON. Si el texto es incomprensible o no parece un pedido, responde con un array JSON vacío [].";
+                
+                const schema = {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            "name": { "type": "STRING", "description": "Nombre del niño" },
+                            "age": { "type": "STRING", "description": "Edad del niño, ej: '6' (solo el número)" },
+                            "theme": { "type": "STRING", "description": "Tema del dibujo, ej: 'Capibara'" },
+                            "quantity": { "type": "NUMBER", "description": "Cantidad, default 3 si no se especifica" }
+                        },
+                        required: ["name", "age", "theme", "quantity"]
+                    }
+                };
+    
+                const payload = {
+                    contents: [{ parts: [{ text: text }] }],
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
+                    },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: schema
+                    }
+                };
+    
+                try {
+                    // Implementar reintentos simples
+                    let response;
+                    for (let attempt = 0; attempt < 3; attempt++) {
+                         response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (response.ok) break; // Éxito
+                        if (response.status === 429 && attempt < 2) { // Rate limit
+                            await new Promise(res => setTimeout(res, 1000 * (attempt + 1)));
+                        } else if (!response.ok) {
+                            throw new Error(`Status ${response.status}`);
+                        }
+                    }
+    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error("Error API (parseRequestsWithAI):", errorText);
+                        throw new Error(`Error de la API de texto: ${response.statusText}`);
+                    }
+    
+                    const result = await response.json();
+                    
+                    if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts[0].text) {
+                        const jsonText = result.candidates[0].content.parts[0].text;
+                        const parsedJson = JSON.parse(jsonText);
+                        // Devolver el JSON parseado. La cantidad será manejada/confirmada en el modal.
+                        return parsedJson.map(job => ({
+                            name: job.name || "",
+                            age: job.age || "",
+                            theme: job.theme || "",
+                            quantity: parseInt(job.quantity) || 3
+                        }));
+                    } else {
+                        console.warn("Respuesta JSON inesperada de IA:", result);
+                        return []; // Array vacío si no se pudo parsear
+                    }
+                } catch (error) {
+                    console.error("Error en fetch de parseRequestsWithAI:", error);
+                    // No mostrar alert, solo devolver array vacío para que el usuario llene manually
+                    return []; 
+                }
+            }
+    
+            // --- FUNCIÓN ANTIGUA (parseRequests) ELIMINADA ---
+            // function parseRequests(text) { ... }
+     
+            function loadCurrentJob() { if (currentJobIndex < 0 || currentJobIndex >= jobQueue.length) { alert("¡Lote completado!"); resetApp(); return; } const job = jobQueue[currentJobIndex]; jobStatusLabel.textContent = `Procesando Hoja ${currentJobIndex + 1} de ${jobQueue.length}`; jobStatusName.textContent = `${job.name} (${job.age} años)`; themeStatusLabel.textContent = `Tema: ${job.theme}`; nameInput.value = job.name; ageInput.value = job.age; generateButton.dataset.theme = job.theme; searchButton.dataset.theme = job.theme; resetImageState(); redrawCanvas(); }
+            function resetImageState() { 
+                currentUserImage = null; isImageLoaded = false; 
+                scaleSlider.value = 100; imageScale = 1.0; imagePos = { x: 240, y: 340 }; 
+                filterToggle.checked = false; useFilter = false; 
+                if (isEraseMode) toggleEraseMode(true); 
+                if (isCropMode) toggleCropMode(true); 
+                undoStack = []; 
+                
+                // Resetear posición del texto
+                let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } 
+                textPos = { x: 240, y: 680 - pieH - 20 };
+    
+                updateControlsVisibility(); 
+            }
+            function advanceJob() { jobQueue[currentJobIndex].done = true; currentJobIndex++; loadCurrentJob(); switchToTab('tabContentLote'); }
+            function resetApp() {
+                if (pdfSheets.length === 0) {
+                     jobQueue = []; currentJobIndex = -1; recentImages = [];
+                     updateRecentImagesUI(); initialView.style.display = 'block'; mainAppView.style.display = 'none';
+                 } else {
+                     jobStatusLabel.textContent = `Lote Completado (${pdfSheets.length} hojas)`; jobStatusName.textContent = "Listo para Exportar"; themeStatusLabel.textContent = "";
+                     resetImageState(); redrawCanvas(); switchToTab('tabContentLote');
+                     confirmButton.disabled = true;
+                     skipButton.disabled = true;
+                     discardButton.disabled = true;
+                 }
+            }
+    
+            // --- Handlers de Acciones de Imagen ---
+            generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
+            searchButton.addEventListener('click', (e) => { const theme = e.currentTarget.dataset.theme; const query = `${theme} para colorear`; const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`; window.open(url, '_blank'); switchToTab('tabContentImagen'); });
+            pasteButton.addEventListener('click', async () => {
+                 try {
+                     if (!navigator.clipboard || !navigator.clipboard.read) { alert("Navegador no soporta pegar."); return; }
+                     const items = await navigator.clipboard.read(); let foundImage = false;
+                     for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); foundImage = true; break; } }
+                     if (!foundImage) alert("No se encontró imagen compatible.");
+                 } catch (err) { console.error("Error al pegar:", err); if (err.name === 'NotAllowedError') { alert("Permiso denegado para portapapeles."); } else if (err.name === 'NotFoundError') { alert("No se encontró contenido compatible."); } else if (err.message.toLowerCase().includes('permission')) { alert("Permiso denegado."); } else { alert(`Error al pegar: ${err.name} - ${err.message}.`); } }
+            });
+            function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; updateControlsVisibility(); }; currentUserImage.src = imageUrl; }
+            function setLoading(isLoading) { const span = generateButton.querySelector('span'); generateButton.disabled = isLoading; generateSpinner.classList.toggle('hidden', !isLoading); if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; }
+    
+            // --- Handlers de Imágenes Recientes ---
+            function updateRecentImagesUI() { recentImagesContainer.innerHTML = ''; if (recentImages.length > 0) { recentImagesSection.classList.remove('hidden'); const uniqueThemes = new Map(); for (let i = recentImages.length - 1; i >= 0; i--) { const img = recentImages[i]; if (!uniqueThemes.has(img.theme)) { uniqueThemes.set(img.theme, img.dataUrl); } } Array.from(uniqueThemes.entries()).forEach(([theme, dataUrl]) => { const imgEl = document.createElement('img'); imgEl.src = dataUrl; imgEl.title = `Reusar ${theme}`; imgEl.className = 'recent-image'; imgEl.addEventListener('click', () => { loadImageOntoCanvas(dataUrl); showToast(`Imagen de "${theme}" reutilizada.`); }); recentImagesContainer.appendChild(imgEl); }); } else { recentImagesSection.classList.add('hidden'); } }
+    
+            // --- Handlers de Stock Local ---
+            saveToStockButton.addEventListener('click', () => { alert("Stock Local no implementado. Usa Exportar ZIP."); });
+    
+            // --- Handlers de Edición de Imagen ---
+            scaleSlider.addEventListener('input', (e) => { imageScale = parseInt(e.target.value)/100; scaleValue.textContent = e.target.value; redrawCanvas(); });
+            filterToggle.addEventListener('change', (e) => { useFilter = e.target.checked; redrawCanvas(); });
+            function saveStateForUndo() { if (!isImageLoaded) return; const tCan = document.createElement('canvas'); tCan.width = editCanvas.width; tCan.height = editCanvas.height; tCan.getContext('2d').drawImage(editCanvas, 0, 0); undoStack.push(tCan); if (undoStack.length > 10) { undoStack.shift(); } updateControlsVisibility(); }
+            undoButton.addEventListener('click', () => { if (undoStack.length > 1) { undoStack.pop(); const last = undoStack[undoStack.length - 1]; editCanvas.width = last.width; editCanvas.height = last.height; editCtx.drawImage(last, 0, 0); redrawCanvas(); } else if (undoStack.length === 1) { const orig = undoStack[0]; editCanvas.width = orig.width; editCanvas.height = orig.height; editCtx.drawImage(orig, 0, 0); redrawCanvas(); } updateControlsVisibility(); });
+            brushSizeSlider.addEventListener('input', (e) => { brushSize = parseInt(e.target.value); brushSizeValue.textContent = `${brushSize}px`; });
+            eraseButton.addEventListener('click', () => toggleEraseMode(false));
+            function toggleEraseMode(forceOff = false) { if (forceOff) isEraseMode = true; isEraseMode = !isEraseMode; if (isEraseMode) { if (isCropMode) toggleCropMode(true); eraseButton.textContent = 'Desactivar Borrador'; eraseButton.classList.add('bg-red-500', 'text-white'); eraseButton.classList.remove('bg-yellow-500', 'text-black'); previewCanvas.classList.add('erase-mode'); } else { eraseButton.textContent = 'Activar Borrador'; eraseButton.classList.remove('bg-red-500', 'text-white'); eraseButton.classList.add('bg-yellow-500', 'text-black'); previewCanvas.classList.remove('erase-mode'); isPainting = false; } }
+            function paintOnCanvas(cX, cY) { editCtx.fillStyle = 'white'; editCtx.beginPath(); editCtx.arc(cX, cY, brushSize / imageScale, 0, Math.PI * 2); editCtx.fill(); redrawCanvas(); }
+    
+            // --- Función getCanvasCoordinates corregida ---
+            function getCanvasCoordinates(e) {
+                const rect = previewCanvas.getBoundingClientRect();
+                const scaleX = previewCanvas.width / rect.width;
+                const scaleY = previewCanvas.height / rect.height;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const canvasX = (clientX - rect.left);
+                const canvasY = (clientY - rect.top);
+                const x = Math.max(0, canvasX * scaleX);
+                const y = Math.max(0, canvasY * scaleY);
+                return {x, y};
+            }
+    
+            cropButton.addEventListener('click', () => toggleCropMode(false));
+            applyCropButton.addEventListener('click', () => { if (!visualCropRect) return; saveStateForUndo(); const nR={x1:Math.min(visualCropRect.startX,visualCropRect.endX),y1:Math.min(visualCropRect.startY,visualCropRect.endY),x2:Math.max(visualCropRect.startX,visualCropRect.endX),y2:Math.max(visualCropRect.startY,visualCropRect.endY)}; const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale; const iX1=imagePos.x-iW/2; const iY1=imagePos.y-iH/2; const cX1=Math.max(nR.x1,iX1); const cY1=Math.max(nR.y1,iY1); const cX2=Math.min(nR.x2,iX1+iW); const cY2=Math.min(nR.y2,iY1+iH); if(cX2<=cX1||cY2<=cY1){toggleCropMode(true);return;} const sX=(cX1-iX1)/imageScale; const sY=(cY1-iY1)/imageScale; const sW=(cX2-cX1)/imageScale; const sH=(cY2-cY1)/imageScale; const tCan=document.createElement('canvas'); tCan.width=sW; tCan.height=sH; tCan.getContext('2d').drawImage(editCanvas,sX,sY,sW,sH,0,0,sW,sH); editCanvas.width=sW; editCanvas.height=sH; editCtx.drawImage(tCan,0,0); toggleCropMode(true); loadImageOntoCanvas(editCanvas.toDataURL()); });
+            function toggleCropMode(forceOff = false) { if (forceOff) isCropMode = true; isCropMode = !isEraseMode; if (isCropMode) { if (isEraseMode) toggleEraseMode(true); cropButton.textContent = 'Cancelar Recorte'; cropButton.classList.add('bg-red-500', 'text-white'); cropButton.classList.remove('bg-indigo-500'); previewCanvas.classList.add('crop-mode'); } else { cropButton.textContent = 'Activar Modo Recortar'; cropButton.classList.remove('bg-red-500', 'text-white'); cropButton.classList.add('bg-indigo-500'); previewCanvas.classList.remove('crop-mode'); isCropping = false; visualCropRect = null; applyCropButton.classList.add('hidden'); redrawCanvas(); } }
+            function drawCropRect() { if (!visualCropRect) return; ctx.save(); ctx.strokeStyle = 'rgba(255,0,0,0.7)'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); const w=visualCropRect.endX-visualCropRect.startX; const h=visualCropRect.endY-visualCropRect.startY; ctx.strokeRect(visualCropRect.startX,visualCropRect.startY,w,h); ctx.restore(); }
+    
+            // --- Handlers de Arrastrar Imagen (Drag) ---
+            previewCanvas.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                const {x, y} = getCanvasCoordinates(e); // Usar la función corregida
+    
+                if (!isImageLoaded) {
+                     // Permitir arrastrar texto incluso si no hay imagen
+                     const {tBox} = getTextBoundingBox();
+                     if (x > tBox.x1 && x < tBox.x2 && y > tBox.y1 && y < tBox.y2) {
+                        isDraggingText = true;
+                        dragStart.x = x - textPos.x;
+                        dragStart.y = y - textPos.y;
+                        previewCanvas.style.cursor = 'move';
+                        return;
+                     }
+                     return; // Salir si no hay imagen y no se hizo clic en el texto
+                }
+    
+                // 1. Revisar si se hizo clic en el texto PRIMERO
+                const {tBox} = getTextBoundingBox();
+                if (x > tBox.x1 && x < tBox.x2 && y > tBox.y1 && y < tBox.y2) {
                     isDraggingText = true;
                     dragStart.x = x - textPos.x;
                     dragStart.y = y - textPos.y;
                     previewCanvas.style.cursor = 'move';
+                    return; // Importante: no activar otros modos si se arrastra el texto
+                }
+    
+                // 2. Revisar modos de edición (Borrador, Recorte)
+                if (isEraseMode) {
+                     if(!isPainting) saveStateForUndo();
+                     isPainting = true;
+                     const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
+                     const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
+                     paintOnCanvas(iX,iY);
+                     return;
+                }
+                if (isCropMode) { isCropping = true; visualCropRect = {startX:x,startY:y,endX:x,endY:y}; applyCropButton.classList.add('hidden'); redrawCanvas(); return; }
+                
+                // 3. Si no es nada de lo anterior, revisar si se arrastra la imagen
+                const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale;
+                if(x>imagePos.x-iW/2&&x<imagePos.x+iW/2&&y>imagePos.y-iH/2&&y<imagePos.y+iH/2) { isDragging=true; dragStart.x=x-imagePos.x; dragStart.y=y-imagePos.y; previewCanvas.style.cursor='grabbing'; }
+            });
+    
+            previewCanvas.addEventListener('mousemove', (e) => {
+                e.preventDefault();
+                const {x,y}=getCanvasCoordinates(e); // Usar la función corregida
+                
+                // 1. Mover texto
+                if (isDraggingText) {
+                    textPos.x = x - dragStart.x;
+                    textPos.y = y - dragStart.y;
+                    redrawCanvas();
                     return;
-                 }
-                 return; // Salir si no hay imagen y no se hizo clic en el texto
-            }
-
-            // 1. Revisar si se hizo clic en el texto PRIMERO
-            const {tBox} = getTextBoundingBox();
-            if (x > tBox.x1 && x < tBox.x2 && y > tBox.y1 && y < tBox.y2) {
-                isDraggingText = true;
-                dragStart.x = x - textPos.x;
-                dragStart.y = y - textPos.y;
-                previewCanvas.style.cursor = 'move';
-                return; // Importante: no activar otros modos si se arrastra el texto
-            }
-
-            // 2. Revisar modos de edición (Borrador, Recorte)
-            if (isEraseMode) {
-                 if(!isPainting) saveStateForUndo();
-                 isPainting = true;
-                 const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
-                 const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
-                 paintOnCanvas(iX,iY);
-                 return;
-            }
-            if (isCropMode) { isCropping = true; visualCropRect = {startX:x,startY:y,endX:x,endY:y}; applyCropButton.classList.add('hidden'); redrawCanvas(); return; }
-            
-            // 3. Si no es nada de lo anterior, revisar si se arrastra la imagen
-            const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale;
-            if(x>imagePos.x-iW/2&&x<imagePos.x+iW/2&&y>imagePos.y-iH/2&&y<imagePos.y+iH/2) { isDragging=true; dragStart.x=x-imagePos.x; dragStart.y=y-imagePos.y; previewCanvas.style.cursor='grabbing'; }
-        });
-
-        previewCanvas.addEventListener('mousemove', (e) => {
-            e.preventDefault();
-            const {x,y}=getCanvasCoordinates(e); // Usar la función corregida
-            
-            // 1. Mover texto
-            if (isDraggingText) {
-                textPos.x = x - dragStart.x;
-                textPos.y = y - dragStart.y;
+                }
+    
+                // 2. Mover borrador
+                if (isEraseMode&&isPainting) {
+                    const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
+                    const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
+                    paintOnCanvas(iX,iY);
+                    return;
+                }
+                // 3. Mover recorte
+                if (isCropMode&&isCropping) { visualCropRect.endX=x; visualCropRect.endY=y; redrawCanvas(); return; }
+                
+                // 4. Mover imagen
+                if (!isDragging) return; 
+                imagePos.x=x-dragStart.x; 
+                imagePos.y=y-dragStart.y; 
                 redrawCanvas();
-                return;
-            }
-
-            // 2. Mover borrador
-            if (isEraseMode&&isPainting) {
-                const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
-                const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
-                paintOnCanvas(iX,iY);
-                return;
-            }
-            // 3. Mover recorte
-            if (isCropMode&&isCropping) { visualCropRect.endX=x; visualCropRect.endY=y; redrawCanvas(); return; }
-            
-            // 4. Mover imagen
-            if (!isDragging) return; 
-            imagePos.x=x-dragStart.x; 
-            imagePos.y=y-dragStart.y; 
-            redrawCanvas();
-        });
-
-        previewCanvas.addEventListener('mouseup', (e) => {
-            e.preventDefault();
-            
-            // 1. Soltar texto
-            if (isDraggingText) isDraggingText = false;
-            
-            // 2. Soltar borrador
-            if (isEraseMode&&isPainting) isPainting=false;
-
-            // 3. Soltar recorte
-            if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); visualCropRect=null; redrawCanvas(); } }
-            
-            // 4. Soltar imagen
-            isDragging=false; 
-            
-            // Resetear cursor
-            let c='default'; 
-            if (isEraseMode) c='crosshair'; 
-            if (isCropMode) c='crosshair'; 
-            previewCanvas.style.cursor=c;
-        });
-
-        previewCanvas.addEventListener('mouseleave', (e) => {
-             e.preventDefault();
-             // 1. Soltar texto
-             if (isDraggingText) {
-                isDraggingText = false;
-                previewCanvas.style.cursor='default';
-             }
-             // 2. Soltar imagen
-             if (isDragging) { isDragging=false; previewCanvas.style.cursor='default'; }
-             // 3. Soltar borrador
-             if (isPainting) { isPainting = false; }
-             // 4. Soltar recorte
-             if (isCropping) {
-                 isCropping=false;
-                 if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) {
-                     applyCropButton.classList.remove('hidden');
-                     const {x, y} = getCanvasCoordinates(e);
-                     visualCropRect.endX = Math.max(0, Math.min(previewCanvas.width, x));
-                     visualCropRect.endY = Math.max(0, Math.min(previewCanvas.height, y));
-                     redrawCanvas();
-                 } else {
-                     visualCropRect = null; // Invalidar rect
-                     applyCropButton.classList.add('hidden');
-                     redrawCanvas(); // Limpiar visualmente
+            });
+    
+            previewCanvas.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                
+                // 1. Soltar texto
+                if (isDraggingText) isDraggingText = false;
+                
+                // 2. Soltar borrador
+                if (isEraseMode&&isPainting) isPainting=false;
+    
+                // 3. Soltar recorte
+                if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); visualCropRect=null; redrawCanvas(); } }
+                
+                // 4. Soltar imagen
+                isDragging=false; 
+                
+                // Resetear cursor
+                let c='default'; 
+                if (isEraseMode) c='crosshair'; 
+                if (isCropMode) c='crosshair'; 
+                previewCanvas.style.cursor=c;
+            });
+    
+            previewCanvas.addEventListener('mouseleave', (e) => {
+                 e.preventDefault();
+                 // 1. Soltar texto
+                 if (isDraggingText) {
+                    isDraggingText = false;
+                    previewCanvas.style.cursor='default';
                  }
-             }
-        });
-         // Listeners para eventos táctiles (corregidos)
-         previewCanvas.addEventListener('touchstart', (e) => {
-             if (e.touches.length === 1) {
-                  e.preventDefault(); // Evitar scroll/zoom
-                 previewCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }));
-             }
-         }, { passive: false });
-         previewCanvas.addEventListener('touchmove', (e) => {
-             if (e.touches.length === 1) {
-                 e.preventDefault(); // Evitar scroll/zoom
-                 previewCanvas.dispatchEvent(new MouseEvent('mousemove', { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }));
-             }
-         }, { passive: false });
-         previewCanvas.addEventListener('touchend', (e) => {
-             // Siempre llamar mouseup, incluso si no hay toques (para terminar acciones)
-             previewCanvas.dispatchEvent(new MouseEvent('mouseup', {}));
-         });
-         previewCanvas.addEventListener('touchcancel', (e) => {
-             previewCanvas.dispatchEvent(new MouseEvent('mouseleave', {}));
-             previewCanvas.dispatchEvent(new MouseEvent('mouseup', {}));
-         });
-
-
-        // --- Handlers de Acciones de Lote ---
-        confirmButton.addEventListener('click', () => { if (!isImageLoaded) { alert("Carga una imagen."); return; } const fCan=document.createElement('canvas'); fCan.width=480; fCan.height=680; redrawCanvas(fCan.getContext('2d')); pdfSheets.push(fCan); const job=jobQueue[currentJobIndex]; const theme=job.theme; const sTh=theme.replace(/[^a-z0-9_.-]/gi,'_'); const sN=job.name.replace(/[^a-z0-9_.-]/gi,'_'); const fn=`${sN}_-_${sTh}_${job.originalIndex || currentJobIndex + 1}.png`; const iDU=editCanvas.toDataURL('image/png'); imagesForZip.push({name:fn,dataUrl:iDU}); const tDU=editCanvas.toDataURL('image/png',0.5); recentImages.unshift({theme:theme,dataUrl:tDU}); if (recentImages.length>5) recentImages.pop(); updateRecentImagesUI(); updateExportButtonsCount(); showToast(`✔️ Hoja de ${job.name} (${theme}) añadida!`); advanceJob(); });
-        skipButton.addEventListener('click', () => { if(confirm("¿Saltar hoja?")) advanceJob(); });
-        discardButton.addEventListener('click', () => { if(confirm("¿Terminar lote?")) resetApp(); });
-        function updateControlsVisibility() {
-             const showTools = isImageLoaded;
-             // --- CAMBIO: Eliminar referencia a noImageEditMessage ---
-             // if(noImageEditMessage) noImageEditMessage.style.display = 'none'; // Ya no se usa
-             if (noImageToolsMessage) noImageToolsMessage.style.display = showTools ? 'none' : 'block';
-             else console.error("Elemento 'noImageToolsMessage' no encontrado en updateControlsVisibility."); // Debug extra
-
-             // --- CAMBIO: Añadir chequeos para cada botón ---
-             if (confirmButton) confirmButton.disabled = !showTools;
-             else console.error("Elemento 'confirmButton' no encontrado.");
-
-             if (undoButton) undoButton.disabled = undoStack.length <= 1;
-             else console.error("Elemento 'undoButton' no encontrado.");
-
-             if (saveToStockButton) saveToStockButton.disabled = !showTools;
-             else console.error("Elemento 'saveToStockButton' no encontrado.");
-
-             if (scaleSlider) scaleSlider.disabled = !showTools;
-             else console.error("Elemento 'scaleSlider' no encontrado.");
-
-             if (filterToggle) filterToggle.disabled = !showTools;
-             else console.error("Elemento 'filterToggle' no encontrado.");
-
-             if (eraseButton) eraseButton.disabled = !showTools;
-             else console.error("Elemento 'eraseButton' no encontrado.");
-
-             if (brushSizeSlider) brushSizeSlider.disabled = !showTools;
-             else console.error("Elemento 'brushSizeSlider' no encontrado.");
-
-             if (cropButton) cropButton.disabled = !showTools;
-             else console.error("Elemento 'cropButton' no encontrado.");
-
-             // Apply crop se maneja en mouseup/mouseleave
-        }
-        function updateExportButtonsCount() { const c=pdfSheets.length; if(c>0){exportPdfButton.disabled=false;exportPdfButton.textContent=`Exportar PDF (${c} Hojas)`;}else{exportPdfButton.disabled=true;exportPdfButton.textContent=`Exportar PDF (0 Hojas)`;} if(c>0){exportZipButton.disabled=false;exportZipButton.textContent=`Exportar Imágenes (${c}.zip)`;}else{exportZipButton.disabled=true;exportZipButton.textContent=`Exportar Imágenes (.zip)`;} }
-        let toastTimer=null; function showToast(m){if(toastTimer)clearTimeout(toastTimer);toastNotification.textContent=m;toastNotification.classList.add('show');toastTimer=setTimeout(()=>{toastNotification.classList.remove('show');},3000);}
-
-        // --- Lógica de Dibujado en Canvas ---
-        // Función auxiliar para calcular la caja del texto
-        function getTextBoundingBox() {
-            const name=nameInput.value.toUpperCase();
-            const ageVal = ageInput.value;
-            // Lógica para añadir 'AÑOS' solo si no está ya
-            let ageT = "";
-            if (ageVal) {
-                if (String(ageVal).toUpperCase().includes('AÑO')) {
-                     ageT = ageVal.toUpperCase();
+                 // 2. Soltar imagen
+                 if (isDragging) { isDragging=false; previewCanvas.style.cursor='default'; }
+                 // 3. Soltar borrador
+                 if (isPainting) { isPainting = false; }
+                 // 4. Soltar recorte
+                 if (isCropping) {
+                     isCropping=false;
+                     if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) {
+                         applyCropButton.classList.remove('hidden');
+                         const {x, y} = getCanvasCoordinates(e);
+                         visualCropRect.endX = Math.max(0, Math.min(previewCanvas.width, x));
+                         visualCropRect.endY = Math.max(0, Math.min(previewCanvas.height, y));
+                         redrawCanvas();
+                     } else {
+                         visualCropRect = null; // Invalidar rect
+                         applyCropButton.classList.add('hidden');
+                         redrawCanvas(); // Limpiar visualmente
+                     }
+                 }
+            });
+             // Listeners para eventos táctiles (corregidos)
+             previewCanvas.addEventListener('touchstart', (e) => {
+                 if (e.touches.length === 1) {
+                      e.preventDefault(); // Evitar scroll/zoom
+                     previewCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }));
+                 }
+             }, { passive: false });
+             previewCanvas.addEventListener('touchmove', (e) => {
+                 if (e.touches.length === 1) {
+                     e.preventDefault(); // Evitar scroll/zoom
+                     previewCanvas.dispatchEvent(new MouseEvent('mousemove', { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }));
+                 }
+             }, { passive: false });
+             previewCanvas.addEventListener('touchend', (e) => {
+                 // Siempre llamar mouseup, incluso si no hay toques (para terminar acciones)
+                 previewCanvas.dispatchEvent(new MouseEvent('mouseup', {}));
+             });
+             previewCanvas.addEventListener('touchcancel', (e) => {
+                 previewCanvas.dispatchEvent(new MouseEvent('mouseleave', {}));
+                 previewCanvas.dispatchEvent(new MouseEvent('mouseup', {}));
+             });
+    
+    
+            // --- Handlers de Acciones de Lote ---
+            confirmButton.addEventListener('click', () => { if (!isImageLoaded) { alert("Carga una imagen."); return; } const fCan=document.createElement('canvas'); fCan.width=480; fCan.height=680; redrawCanvas(fCan.getContext('2d')); pdfSheets.push(fCan); const job=jobQueue[currentJobIndex]; const theme=job.theme; const sTh=theme.replace(/[^a-z0-9_.-]/gi,'_'); const sN=job.name.replace(/[^a-z0-9_.-]/gi,'_'); const fn=`${sN}_-_${sTh}_${job.originalIndex || currentJobIndex + 1}.png`; const iDU=editCanvas.toDataURL('image/png'); imagesForZip.push({name:fn,dataUrl:iDU}); const tDU=editCanvas.toDataURL('image/png',0.5); recentImages.unshift({theme:theme,dataUrl:tDU}); if (recentImages.length>5) recentImages.pop(); updateRecentImagesUI(); updateExportButtonsCount(); showToast(`✔️ Hoja de ${job.name} (${theme}) añadida!`); advanceJob(); });
+            skipButton.addEventListener('click', () => { 
+                if(confirm("¿Saltar hoja?")) advanceJob(); 
+            });
+            discardButton.addEventListener('click', () => { 
+                if(confirm("¿Terminar lote?")) resetApp(); 
+            });
+            function updateControlsVisibility() {
+                 const showTools = isImageLoaded;
+                 // --- CAMBIO: Eliminar referencia a noImageEditMessage ---
+                 // if(noImageEditMessage) noImageEditMessage.style.display = 'none'; // Ya no se usa
+                 if (noImageToolsMessage) noImageToolsMessage.style.display = showTools ? 'none' : 'block';
+                 else console.error("Elemento 'noImageToolsMessage' no encontrado en updateControlsVisibility."); // Debug extra
+    
+                 // --- CAMBIO: Añadir chequeos para cada botón ---
+                 if (confirmButton) confirmButton.disabled = !showTools;
+                 else console.error("Elemento 'confirmButton' no encontrado.");
+    
+                 if (undoButton) undoButton.disabled = undoStack.length <= 1;
+                 else console.error("Elemento 'undoButton' no encontrado.");
+    
+                 if (saveToStockButton) saveToStockButton.disabled = !showTools;
+                 else console.error("Elemento 'saveToStockButton' no encontrado.");
+    
+                 if (scaleSlider) scaleSlider.disabled = !showTools;
+                 else console.error("Elemento 'scaleSlider' no encontrado.");
+    
+                 if (filterToggle) filterToggle.disabled = !showTools;
+                 else console.error("Elemento 'filterToggle' no encontrado.");
+    
+                 if (eraseButton) eraseButton.disabled = !showTools;
+                 else console.error("Elemento 'eraseButton' no encontrado.");
+    
+                 if (brushSizeSlider) brushSizeSlider.disabled = !showTools;
+                 else console.error("Elemento 'brushSizeSlider' no encontrado.");
+    
+                 if (cropButton) cropButton.disabled = !showTools;
+                 else console.error("Elemento 'cropButton' no encontrado.");
+    
+                 // Apply crop se maneja en mouseup/mouseleave
+            }
+            function updateExportButtonsCount() { const c=pdfSheets.length; if(c>0){exportPdfButton.disabled=false;exportPdfButton.textContent=`Exportar PDF (${c} Hojas)`;}else{exportPdfButton.disabled=true;exportPdfButton.textContent=`Exportar PDF (0 Hojas)`;} if(c>0){exportZipButton.disabled=false;exportZipButton.textContent=`Exportar Imágenes (${c}.zip)`;}else{exportZipButton.disabled=true;exportZipButton.textContent=`Exportar Imágenes (.zip)`;} }
+            
+            let toastTimer=null; 
+            function showToast(m, type = 'success'){
+                if(toastTimer) clearTimeout(toastTimer);
+                
+                toastNotification.textContent = m;
+                
+                // Reset classes
+                toastNotification.classList.remove('bg-green-600', 'bg-red-600', 'bg-blue-600');
+                
+                // Apply new class based on type
+                if (type === 'error') {
+                    toastNotification.classList.add('bg-red-600');
+                } else if (type === 'info') {
+                    toastNotification.classList.add('bg-blue-600');
                 } else {
-                     ageT = `${ageVal} AÑOS`;
+                    toastNotification.classList.add('bg-green-600');
                 }
+                
+                toastNotification.classList.add('show');
+                toastTimer=setTimeout(()=>{
+                    toastNotification.classList.remove('show');
+                }, 3000);
             }
-            
-            const fullT=ageT?`${name} - ${ageT}`:name;
-            const fs=28;
-            const ff='"Patrick Hand", cursive';
-            ctx.font = `bold ${fs}px ${ff}`; // Asegurarse que el contexto tenga la fuente correcta
-            
-            const textMetrics = ctx.measureText(fullT);
-            const textWidth = textMetrics.width;
-            const textHeight = 28; // Tamaño de fuente aproximado
-            
-            // Ajustar la caja de colisión para que sea un poco más grande y centrada
-            const tBox = { 
-                x1: textPos.x - textWidth / 2 - 10, // 10px padding
-                y1: textPos.y - textHeight - 5,      // 5px padding top
-                x2: textPos.x + textWidth / 2 + 10, // 10px padding
-                y2: textPos.y + textHeight / 2 + 5       // 5px padding bottom
-            };
-            
-            return { fullT, fs, ff, tBox };
-        }
-
-        function redrawCanvas(targetCtx=ctx){
-            targetCtx.fillStyle='white';
-            targetCtx.fillRect(0,0,480,680);
-            
-            // 1. Dibujar Imagen
-            if(isImageLoaded&&currentUserImage){
-                targetCtx.save();
-                if(useFilter) targetCtx.filter='contrast(130%) brightness(105%)';
-                targetCtx.translate(imagePos.x,imagePos.y);
-                targetCtx.scale(imageScale,imageScale);
-                targetCtx.drawImage(editCanvas,-editCanvas.width/2,-editCanvas.height/2);
-                targetCtx.restore();
-            } else {
-                targetCtx.fillStyle='#9ca3af';
-                targetCtx.font='16px Inter';
-                targetCtx.textAlign='center';
-                targetCtx.fillText("Usa los botones para añadir una imagen",240,300);
-            }
-            
-            // 2. Dibujar Pie de página
-            let pieH=0;
-            if(pieImage&&pieImage.complete){
-                const pTW=480*0.95;const pS=pTW/pieImage.width;
-                const pTH=pieImage.height*pS;const pX=(480-pTW)/2;
-                const pY=680-pTH-10;
-                targetCtx.drawImage(pieImage,pX,pY,pTW,pTH);
-                pieH=pTH+10;
-            }
-
-            // 3. Dibujar Texto (Nombre/Edad)
-            const { fullT, fs, ff } = getTextBoundingBox(); // Obtener texto y fuente
-            
-            targetCtx.font = `bold ${fs}px ${ff}`;
-            targetCtx.textAlign='center';
-            targetCtx.lineWidth=4;
-            targetCtx.strokeStyle='black';
-            targetCtx.fillStyle='white';
-            
-            // Usar textPos para X e Y
-            if(fullT){
-                targetCtx.strokeText(fullT, textPos.x, textPos.y);
-                targetCtx.fillText(fullT, textPos.x, textPos.y);
-            }
-
-            // 4. Dibujar Recorte (si está activo)
-            if(targetCtx===ctx&&isCropMode&&visualCropRect){
-                drawCropRect();
-            }
-        }
- 
-        // --- Lógica de API de Gemini ---
-        async function generateImage(prompt,attempt=1){if(!apiKey){showApiKeyModal();throw new Error("API Key no configurada.");}const apiUrl=`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;const payload={instances:[{prompt:prompt}],parameters:{"sampleCount":1}};console.log(`Generating image for prompt: "${prompt}" (Attempt ${attempt})`);try{const response=await fetch(apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!response.ok){if(response.status===429&&attempt<5){const delay=Math.pow(2,attempt)*1000+Math.random()*1000;console.warn(`Rate limited (429). Retrying in ${Math.round(delay/1000)}s...`);await new Promise(resolve=>setTimeout(resolve,delay));return generateImage(prompt,attempt+1);}const errorText=await response.text();console.error(`API Error (${response.status}): ${errorText}`);throw new Error(`Error API (${response.status}): ${response.statusText}`);}const result=await response.json();if(result.predictions&&result.predictions.length>0&&result.predictions[0].bytesBase64Encoded){const base64Data=result.predictions[0].bytesBase64Encoded;return`data:image/png;base64,${base64Data}`;}else{console.error("Respuesta API inesperada:",result);throw new Error("Respuesta API inesperada.");}}catch(error){if(attempt<5){const delay=Math.pow(2,attempt)*1000+Math.random()*1000;console.warn(`Fetch error: ${error.message}. Retrying in ${Math.round(delay/1000)}s...`);await new Promise(resolve=>setTimeout(resolve,delay));return generateImage(prompt,attempt+1);}else{console.error("Error final:",error);throw error;}}}
-
-        // --- Exportación de PDF (MODIFICADO) ---
-        exportPdfButton.addEventListener('click', async()=>{
-            if(pdfSheets.length===0){
-                alert("No hay hojas.");
-                return;
-            }
-            exportPdfButton.disabled=true;
-            exportPdfButton.textContent='Generando PDF...';
-            
-            const{jsPDF}=window.jspdf;
-            // 1. Crear PDF en tamaño A4 (unidad en milímetros)
-            const pdf=new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
-            
-            try{
-                // Obtener dimensiones de la página A4
-                const pageWidth = pdf.internal.pageSize.getWidth();
-                const pageHeight = pdf.internal.pageSize.getHeight();
-            
-                for(let i=0;i<pdfSheets.length;i++){
-                    const canvas=pdfSheets[i];
-                    if(i>0) {
-                        // 2. Añadir nueva página en formato A4
-                        pdf.addPage('a4', 'portrait');
+    
+            // --- Lógica de Dibujado en Canvas ---
+            // Función auxiliar para calcular la caja del texto
+            function getTextBoundingBox() {
+                const name=nameInput.value.toUpperCase();
+                const ageVal = ageInput.value;
+                // Lógica para añadir 'AÑOS' solo si no está ya
+                let ageT = "";
+                if (ageVal) {
+                    if (String(ageVal).toUpperCase().includes('AÑO')) {
+                         ageT = ageVal.toUpperCase();
+                    } else {
+                         ageT = `${ageVal} AÑOS`;
                     }
-                    
-                    // 3. Usar PNG para alta calidad (ideal para arte lineal)
-                    const imgData=canvas.toDataURL('image/png');
-                    
-                    // 4. Añadir imagen escalada al tamaño de la página A4
-                    // Se usa 'FAST' para compresión PNG y evitar archivos gigantes
-                    pdf.addImage(imgData,'PNG',0,0,pageWidth,pageHeight, undefined, 'FAST');
-                    
-                    await new Promise(resolve=>setTimeout(resolve,10)); // Pequeña pausa
                 }
-                pdf.save('hojas_para_colorear_lote.pdf');
-            }catch(error){
-                console.error("Error PDF:",error);
-                alert('Error PDF: '+error.message);
-            }finally{
-                exportPdfButton.disabled=false;
-                updateExportButtonsCount();
+                
+                const fullT=ageT?`${name} - ${ageT}`:name;
+                const fs=28;
+                const ff='"Patrick Hand", cursive';
+                ctx.font = `bold ${fs}px ${ff}`; // Asegurarse que el contexto tenga la fuente correcta
+                
+                const textMetrics = ctx.measureText(fullT);
+                const textWidth = textMetrics.width;
+                const textHeight = 28; // Tamaño de fuente aproximado
+                
+                // Ajustar la caja de colisión para que sea un poco más grande y centrada
+                const tBox = { 
+                    x1: textPos.x - textWidth / 2 - 10, // 10px padding
+                    y1: textPos.y - textHeight - 5,      // 5px padding top
+                    x2: textPos.x + textWidth / 2 + 10, // 10px padding
+                    y2: textPos.y + textHeight / 2 + 5       // 5px padding bottom
+                };
+                
+                return { fullT, fs, ff, tBox };
             }
-        });
-
-
-        // --- Exportación de ZIP ---
-        exportZipButton.addEventListener('click', async()=>{if(imagesForZip.length===0){alert("No hay imágenes.");return;}exportZipButton.disabled=true;exportZipButton.textContent='Comprimiendo...';try{const zip=new JSZip();for(const img of imagesForZip){const base64Data=img.dataUrl.split(',')[1];zip.file(img.name,base64Data,{base64:true});}const content=await zip.generateAsync({type:"blob"});triggerDownload(content,'imagenes_editadas.zip');}catch(error){console.error("Error ZIP:",error);alert('Error ZIP: '+error.message);}finally{exportZipButton.disabled=false;updateExportButtonsCount();}});
-        function triggerDownload(blob,filename){const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download=filename;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);window.URL.revokeObjectURL(url);},0);}
-
-        // --- Listeners de Inputs ---
-        nameInput.addEventListener('input', () => redrawCanvas());
-        ageInput.addEventListener('input', () => redrawCanvas());
-
-    </script>
-
-</body>
+    
+            function redrawCanvas(targetCtx=ctx){
+                // Obtener el botón de pegar
+                const pasteBtn = document.getElementById('pasteButton');
+                
+                targetCtx.fillStyle='white';
+                targetCtx.fillRect(0,0,480,680);
+                
+                // 1. Dibujar Imagen
+                if(isImageLoaded&&currentUserImage){
+                    targetCtx.save();
+                    if(useFilter) targetCtx.filter='contrast(130%) brightness(105%)';
+                    targetCtx.translate(imagePos.x,imagePos.y);
+                    targetCtx.scale(imageScale,imageScale);
+                    targetCtx.drawImage(editCanvas,-editCanvas.width/2,-editCanvas.height/2);
+                    targetCtx.restore();
+                    if (pasteBtn) pasteBtn.classList.add('hidden'); // Ocultar botón si hay imagen
+                } else {
+                    targetCtx.fillStyle='#9ca3af';
+                    targetCtx.font='16px Inter';
+                    targetCtx.textAlign='center';
+                    targetCtx.fillText("Usa los botones para añadir una imagen",240,300);
+                    if (pasteBtn) pasteBtn.classList.remove('hidden'); // Mostrar botón si no hay imagen
+                }
+                
+                // 2. Dibujar Pie de página
+                let pieH=0;
+                if(pieImage&&pieImage.complete){
+                    const pTW=480*0.95;const pS=pTW/pieImage.width;
+                    const pTH=pieImage.height*pS;const pX=(480-pTW)/2;
+                    const pY=680-pTH-10;
+                    targetCtx.drawImage(pieImage,pX,pY,pTW,pTH);
+                    pieH=pTH+10;
+                }
+    
+                // 3. Dibujar Texto (Nombre/Edad)
+                const { fullT, fs, ff } = getTextBoundingBox(); // Obtener texto y fuente
+                
+                targetCtx.font = `bold ${fs}px ${ff}`;
+                targetCtx.textAlign='center';
+                targetCtx.lineWidth=4;
+                targetCtx.strokeStyle='black';
+                targetCtx.fillStyle='white';
+                
+                // Usar textPos para X e Y
+                if(fullT){
+                    targetCtx.strokeText(fullT, textPos.x, textPos.y);
+                    targetCtx.fillText(fullT, textPos.x, textPos.y);
+                }
+    
+                // 4. Dibujar Recorte (si está activo)
+                if(targetCtx===ctx&&isCropMode&&visualCropRect){
+                    drawCropRect();
+                }
+            }
+     
+            // --- Lógica de API de Gemini ---
+            async function generateImage(prompt,attempt=1){if(!apiKey){showApiKeyModal();throw new Error("API Key no configurada.");}const apiUrl=`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;const payload={instances:[{prompt:prompt}],parameters:{"sampleCount":1}};console.log(`Generating image for prompt: "${prompt}" (Attempt ${attempt})`);try{const response=await fetch(apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!response.ok){if(response.status===429&&attempt<5){const delay=Math.pow(2,attempt)*1000+Math.random()*1000;console.warn(`Rate limited (429). Retrying in ${Math.round(delay/1000)}s...`);await new Promise(resolve=>setTimeout(resolve,delay));return generateImage(prompt,attempt+1);}const errorText=await response.text();console.error(`API Error (${response.status}): ${errorText}`);throw new Error(`Error API (${response.status}): ${response.statusText}`);}const result=await response.json();if(result.predictions&&result.predictions.length>0&&result.predictions[0].bytesBase64Encoded){const base64Data=result.predictions[0].bytesBase64Encoded;return`data:image/png;base64,${base64Data}`;}else{console.error("Respuesta API inesperada:",result);throw new Error("Respuesta API inesperada.");}}catch(error){if(attempt<5){const delay=Math.pow(2,attempt)*1000+Math.random()*1000;console.warn(`Fetch error: ${error.message}. Retrying in ${Math.round(delay/1000)}s...`);await new Promise(resolve=>setTimeout(resolve,delay));return generateImage(prompt,attempt+1);}else{console.error("Error final:",error);throw error;}}}
+    
+            // --- Exportación de PDF (MODIFICADO) ---
+            exportPdfButton.addEventListener('click', async()=>{
+                if(pdfSheets.length===0){
+                    alert("No hay hojas.");
+                    return;
+                }
+                exportPdfButton.disabled=true;
+                exportPdfButton.textContent='Generando PDF...';
+                
+                const{jsPDF}=window.jspdf;
+                // 1. Crear PDF en tamaño A4 (unidad en milímetros)
+                const pdf=new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+                
+                try{
+                    // Obtener dimensiones de la página A4
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                
+                    for(let i=0;i<pdfSheets.length;i++){
+                        const canvas=pdfSheets[i];
+                        if(i>0) {
+                            // 2. Añadir nueva página en formato A4
+                            pdf.addPage('a4', 'portrait');
+                        }
+                        
+                        // 3. Usar PNG para alta calidad (ideal para arte lineal)
+                        const imgData=canvas.toDataURL('image/png');
+                        
+                        // 4. Añadir imagen escalada al tamaño de la página A4
+                        // Se usa 'FAST' para compresión PNG y evitar archivos gigantes
+                        pdf.addImage(imgData,'PNG',0,0,pageWidth,pageHeight, undefined, 'FAST');
+                        
+                        await new Promise(resolve=>setTimeout(resolve,10)); // Pequeña pausa
+                    }
+                    pdf.save('hojas_para_colorear_lote.pdf');
+                }catch(error){
+                    console.error("Error PDF:",error);
+                    alert('Error PDF: '+error.message);
+                }finally{
+                    exportPdfButton.disabled=false;
+                    updateExportButtonsCount();
+                }
+            });
+    
+    
+            // --- Exportación de ZIP ---
+            exportZipButton.addEventListener('click', async()=>{
+                if(imagesForZip.length===0){
+                    alert("No hay imágenes.");
+                    return;
+                }
+                exportZipButton.disabled=true;
+                exportZipButton.textContent='Comprimiendo...';
+                try{
+                    const zip=new JSZip();
+                    for(const img of imagesForZip){
+                        const base64Data=img.dataUrl.split(',')[1];
+                        zip.file(img.name,base64Data,{base64:true});
+                    }
+                    const content=await zip.generateAsync({type:"blob"});
+                    triggerDownload(content,'imagenes_editadas.zip');
+                }catch(error){
+                    console.error("Error ZIP:",error);
+                    alert('Error ZIP: '+error.message);
+                }finally{
+                    exportZipButton.disabled=false;
+                    updateExportButtonsCount();
+                }
+            });
+            function triggerDownload(blob,filename){
+                const a=document.createElement('a');
+                const url=URL.createObjectURL(blob);
+                a.href=url;
+                a.download=filename;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(()=>{
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                },0);
+            }
+    
+            // --- Listeners de Inputs ---
+            nameInput.addEventListener('input', () => redrawCanvas());
+            ageInput.addEventListener('input', () => redrawCanvas());
+        
+        }); // Fin del DOMContentLoaded
+        </script>
+    
+    </body>
 </html>
