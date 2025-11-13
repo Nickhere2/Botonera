@@ -306,8 +306,14 @@
                     <!-- Pestaña 2: Imagen -->
                     <div id="tabContentImagen" class="tab-content flex flex-col gap-3 h-full">
                          <h3 class="text-md font-bold text-gray-800">Obtener Imagen del Tema</h3>
-<button onclick="window.open('https://gemini.google.com/', '_blank')" class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-purple-700 transition duration-300">Generar con Gemini</button>
-<button id="searchButton" onclick="window.open('https://www.google.com/search?q=' + encodeURIComponent(document.getElementById('searchButton').dataset.theme || 'dibujo para colorear') + '&tbm=isch', '_blank')" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
+                         <button id="generateButton" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2">
+                             <svg class="animate-spin h-5 w-5 text-white hidden" id="generateSpinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                             </svg>
+                             <span>Generar (IA)</span>
+                         </button>
+                         <button id="searchButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
                          <button id="pasteButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Pegar Imagen</button>
                          <!-- Imágenes Recientes movido a Herramientas -->
                     </div>
@@ -446,6 +452,7 @@
         ingresarPedidoButton.addEventListener('click', async () => {
             // 1. Mostrar estado de carga
             ingresarPedidoButton.disabled = true;
+            // MODIFICACIÓN: Buscar el <span> dentro del botón
             const buttonSpan = ingresarPedidoButton.querySelector('span');
             if (buttonSpan) buttonSpan.textContent = 'Procesando...';
 
@@ -497,7 +504,7 @@
             originalClipboardText.textContent = originalClipboardContent || "(Portapapeles vacío o no se pudo leer)"; 
             jobQueue.forEach((job, index) => { addRowToJobQueueList(job, index); }); 
         }
-        function addRowToJobQueueList(job, index) { const row = document.createElement('div'); row.className = 'job-queue-row'; row.dataset.index = index; const currentJob = job || { name: "", age: "", theme: "", quantity: 1 }; row.innerHTML = ` <input type="text" data-field="name" value="${escapeHTML(currentJob.name)}" class="job-input-name"> <input type="text" data-field="age" value="${escapeHTML(currentJob.age)}" class="job-input-age"> <input type="text" data-field="theme" value="${escapeHTML(currentJob.theme)}" class="job-input-theme"> <input type="number" data-field="quantity" value="${currentJob.quantity || 3}" min="1" class="job-input-quantity w-16"> <button class="deleteJobButton" data-index="${index}">&times;</button> `; jobQueueList.appendChild(row); row.querySelector('.deleteJobButton').addEventListener('click', handleDeleteJobRow); }
+        function addRowToJobQueueList(job, index) { const row = document.createElement('div'); row.className = 'job-queue-row'; row.dataset.index = index; const currentJob = job || { name: "", age: "", theme: "", quantity: 3 }; row.innerHTML = ` <input type="text" data-field="name" value="${escapeHTML(currentJob.name)}" class="job-input-name"> <input type="text" data-field="age" value="${escapeHTML(currentJob.age)}" class="job-input-age"> <input type="text" data-field="theme" value="${escapeHTML(currentJob.theme)}" class="job-input-theme"> <input type="number" data-field="quantity" value="${currentJob.quantity || 3}" min="1" class="job-input-quantity w-16"> <button class="deleteJobButton" data-index="${index}">&times;</button> `; jobQueueList.appendChild(row); row.querySelector('.deleteJobButton').addEventListener('click', handleDeleteJobRow); }
         function handleDeleteJobRow(e) { const rowElement = e.currentTarget.closest('.job-queue-row'); if (rowElement) { rowElement.remove(); } }
         addJobRowButton.addEventListener('click', () => { const nextIndex = jobQueueList.children.length; addRowToJobQueueList(null, nextIndex); });
         cancelJobQueueButton.addEventListener('click', () => { hideJobQueueModal(); });
@@ -510,7 +517,7 @@
                 const name = row.querySelector('.job-input-name').value;
                 const age = row.querySelector('.job-input-age').value;
                 const theme = row.querySelector('.job-input-theme').value;
-                const quantity = parseInt(row.querySelector('.job-input-quantity').value) || 3;
+                const quantity = parseInt(row.querySelector('.job-input-quantity').value) || 1;
 
                 // Solo añadir si hay un tema
                 if (theme && name) {
@@ -553,7 +560,7 @@
             // Usamos la misma apiKey global que el usuario proveyó
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
 
-            const systemPrompt = "Eres un asistente que extrae pedidos de una lista para una app de hojas de colorear. El usuario te pasará un texto, a veces desordenado. Extrae el nombre de la persona (name), la edad (age), el tema del dibujo (theme) y la cantidad (quantity). 'años' significa 'years old'. Si no se especifica cantidad, usa 1. Responde SÓLO con el array JSON. Si el texto es incomprensible o no parece un pedido, responde con un array JSON vacío [].";
+            const systemPrompt = "Eres un asistente que extrae pedidos de una lista para una app de hojas de colorear. El usuario te pasará un texto, a veces desordenado. Extrae el nombre de la persona (name), la edad (age), el tema del dibujo (theme) y la cantidad (quantity). 'años' significa 'years old'. Si no se especifica cantidad, usa 3. Responde SÓLO con el array JSON. Si el texto es incomprensible o no parece un pedido, responde con un array JSON vacío [].";
             
             const schema = {
                 type: "ARRAY",
@@ -563,7 +570,7 @@
                         "name": { "type": "STRING", "description": "Nombre del niño" },
                         "age": { "type": "STRING", "description": "Edad del niño, ej: '6' o '6 años'" },
                         "theme": { "type": "STRING", "description": "Tema del dibujo, ej: 'Capibara'" },
-                        "quantity": { "type": "NUMBER", "description": "Cantidad, default 1 si no se especifica" }
+                        "quantity": { "type": "NUMBER", "description": "Cantidad, default 3 si no se especifica" }
                     },
                     required: ["name", "age", "theme", "quantity"]
                 }
@@ -613,7 +620,7 @@
                         name: job.name || "",
                         age: job.age || "",
                         theme: job.theme || "",
-                        quantity: parseInt(job.quantity) || 3 || 3
+                        quantity: parseInt(job.quantity) || 3
                     }));
                 } else {
                     console.warn("Respuesta JSON inesperada de IA:", result);
@@ -627,6 +634,7 @@
         }
 
         // --- FUNCIÓN ANTIGUA (parseRequests) ELIMINADA ---
+        // function parseRequests(text) { ... }
 
         function loadCurrentJob() { if (currentJobIndex < 0 || currentJobIndex >= jobQueue.length) { alert("¡Lote completado!"); resetApp(); return; } const job = jobQueue[currentJobIndex]; jobStatusLabel.textContent = `Procesando Hoja ${currentJobIndex + 1} de ${jobQueue.length}`; jobStatusName.textContent = `${job.name} (${job.age} años)`; themeStatusLabel.textContent = `Tema: ${job.theme}`; nameInput.value = job.name; ageInput.value = job.age; generateButton.dataset.theme = job.theme; searchButton.dataset.theme = job.theme; resetImageState(); redrawCanvas(); }
         function resetImageState() { currentUserImage = null; isImageLoaded = false; scaleSlider.value = 100; imageScale = 1.0; imagePos = { x: 240, y: 340 }; filterToggle.checked = false; useFilter = false; if (isEraseMode) toggleEraseMode(true); if (isCropMode) toggleCropMode(true); undoStack = []; updateControlsVisibility(); }
@@ -645,7 +653,16 @@
         }
 
         // --- Handlers de Acciones de Imagen ---
-
+        generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
+        searchButton.addEventListener('click', (e) => { const theme = e.currentTarget.dataset.theme; const query = `${theme} para colorear`; const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`; window.open(url, '_blank'); switchToTab('tabContentImagen'); });
+        pasteButton.addEventListener('click', async () => {
+             try {
+                 if (!navigator.clipboard || !navigator.clipboard.read) { alert("Navegador no soporta pegar."); return; }
+                 const items = await navigator.clipboard.read(); let foundImage = false;
+                 for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); foundImage = true; break; } }
+                 if (!foundImage) alert("No se encontró imagen compatible.");
+             } catch (err) { console.error("Error al pegar:", err); if (err.name === 'NotAllowedError') { alert("Permiso denegado para portapapeles."); } else if (err.name === 'NotFoundError') { alert("No se encontró contenido compatible."); } else if (err.message.toLowerCase().includes('permission')) { alert("Permiso denegado."); } else { alert(`Error al pegar: ${err.name} - ${err.message}.`); } }
+        });
         function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; updateControlsVisibility(); }; currentUserImage.src = imageUrl; }
         function setLoading(isLoading) { const span = generateButton.querySelector('span'); generateButton.disabled = isLoading; generateSpinner.classList.toggle('hidden', !isLoading); if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; }
 
@@ -803,7 +820,7 @@
         let toastTimer=null; function showToast(m){if(toastTimer)clearTimeout(toastTimer);toastNotification.textContent=m;toastNotification.classList.add('show');toastTimer=setTimeout(()=>{toastNotification.classList.remove('show');},3000);}
 
         // --- Lógica de Dibujado en Canvas ---
-        function redrawCanvas(targetCtx=ctx){targetCtx.fillStyle='white';targetCtx.fillRect(0,0,480,680);if(isImageLoaded&&currentUserImage){targetCtx.save();if(useFilter)targetCtx.filter='contrast(130%) brightness(105%)';targetCtx.translate(imagePos.x,imagePos.y);targetCtx.scale(imageScale,imageScale);targetCtx.drawImage(editCanvas,-editCanvas.width/2,-editCanvas.height/2);targetCtx.restore();}else{targetCtx.fillStyle='#9ca3af';targetCtx.font='16px Inter';targetCtx.textAlign='center';targetCtx.fillText("Usa los botones para añadir una imagen",240,300);}let pieH=0;if(pieImage&&pieImage.complete){const pTW=480*0.95;const pS=pTW/pieImage.width;const pTH=pieImage.height*pS;const pX=(480-pTW)/2;const pY=680-pTH-10;targetCtx.drawImage(pieImage,pX,pY,pTW,pTH);pieH=pTH+10;}const name=nameInput.value.toUpperCase();const ageT=ageInput.value?`${ageInput.value} AÑOS`:"";const fullT=ageT?`${name} - ${ageT}`:`${name}``${name} - ${ageT}`:name;const fs=28;const ff='"Patrick Hand", cursive';targetCtx.font=`bold ${fs}px ${ff}`;targetCtx.textAlign='center';targetCtx.lineWidth=4;targetCtx.strokeStyle='black';targetCtx.fillStyle='white';const tY=680-pieH-20;if(fullT){targetCtx.strokeText(fullT,240,tY);targetCtx.fillText(fullT,240,tY);}if(targetCtx===ctx&&isCropMode&&visualCropRect){drawCropRect();}}
+        function redrawCanvas(targetCtx=ctx){targetCtx.fillStyle='white';targetCtx.fillRect(0,0,480,680);if(isImageLoaded&&currentUserImage){targetCtx.save();if(useFilter)targetCtx.filter='contrast(130%) brightness(105%)';targetCtx.translate(imagePos.x,imagePos.y);targetCtx.scale(imageScale,imageScale);targetCtx.drawImage(editCanvas,-editCanvas.width/2,-editCanvas.height/2);targetCtx.restore();}else{targetCtx.fillStyle='#9ca3af';targetCtx.font='16px Inter';targetCtx.textAlign='center';targetCtx.fillText("Usa los botones para añadir una imagen",240,300);}let pieH=0;if(pieImage&&pieImage.complete){const pTW=480*0.95;const pS=pTW/pieImage.width;const pTH=pieImage.height*pS;const pX=(480-pTW)/2;const pY=680-pTH-10;targetCtx.drawImage(pieImage,pX,pY,pTW,pTH);pieH=pTH+10;}const name=nameInput.value.toUpperCase();const ageT=ageInput.value?`${ageInput.value} AÑOS`:"";const fullT=ageT?`${name} - ${ageT}`:name;const fs=28;const ff='"Patrick Hand", cursive';targetCtx.font=`bold ${fs}px ${ff}`;targetCtx.textAlign='center';targetCtx.lineWidth=4;targetCtx.strokeStyle='black';targetCtx.fillStyle='white';const tY=680-pieH-20;if(fullT){targetCtx.strokeText(fullT,240,tY);targetCtx.fillText(fullT,240,tY);}if(targetCtx===ctx&&isCropMode&&visualCropRect){drawCropRect();}}
 
         // --- Lógica de API de Gemini ---
         async function generateImage(prompt,attempt=1){if(!apiKey){showApiKeyModal();throw new Error("API Key no configurada.");}const apiUrl=`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;const payload={instances:[{prompt:prompt}],parameters:{"sampleCount":1}};console.log(`Generating image for prompt: "${prompt}" (Attempt ${attempt})`);try{const response=await fetch(apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!response.ok){if(response.status===429&&attempt<5){const delay=Math.pow(2,attempt)*1000+Math.random()*1000;console.warn(`Rate limited (429). Retrying in ${Math.round(delay/1000)}s...`);await new Promise(resolve=>setTimeout(resolve,delay));return generateImage(prompt,attempt+1);}const errorText=await response.text();console.error(`API Error (${response.status}): ${errorText}`);throw new Error(`Error API (${response.status}): ${response.statusText}`);}const result=await response.json();if(result.predictions&&result.predictions.length>0&&result.predictions[0].bytesBase64Encoded){const base64Data=result.predictions[0].bytesBase64Encoded;return`data:image/png;base64,${base64Data}`;}else{console.error("Respuesta API inesperada:",result);throw new Error("Respuesta API inesperada.");}}catch(error){if(attempt<5){const delay=Math.pow(2,attempt)*1000+Math.random()*1000;console.warn(`Fetch error: ${error.message}. Retrying in ${Math.round(delay/1000)}s...`);await new Promise(resolve=>setTimeout(resolve,delay));return generateImage(prompt,attempt+1);}else{console.error("Error final:",error);throw error;}}}
@@ -865,6 +882,3 @@
 
 </body>
 </html>
-<!-- Updated: Deploy refresh force at 2025-11-12 -->
-
-<!-- Final rebuild force: 2025-11-12 13:00+ -->
