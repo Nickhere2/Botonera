@@ -1419,7 +1419,39 @@ function mergeMovements(localMovements, remoteMovements) {
             }
         }
 
-        function handleSettingsFormSubmit(e) {
+        // Función para descubrir el Gist ID a partir del token
+async function discoverGistIdFromToken(pat) {
+    try {
+        const response = await fetch('https://api.github.com/user/gists', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/vnd.github.v3+json',
+                'Authorization': `token ${pat}`,
+                'X-GitHub-Api-Version': '2022-11-28'
+            },
+            cache: 'no-store'
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Error ${response.status}: ${errorData.message || 'No se pudo acceder a Gists'}`);
+        }
+
+        const gists = await response.json();
+        if (gists && gists.length > 0) {
+            return gists[0].id;  // Retorna el ID del primer Gist
+        } else {
+            throw new Error('No hay Gists disponibles. Crea uno en GitHub primero.');
+        }
+    } catch (error) {
+        console.error('Error descubriendo Gist ID:', error);
+        showToast(error.message, 'error');
+        return null;
+    }
+}
+
+
+        async 1400(e) {
             e.preventDefault();
             
             const patInput = $('#gist-pat');
@@ -1429,18 +1461,22 @@ function mergeMovements(localMovements, remoteMovements) {
             // Si el campo está vacío, mantener el que está en appState.gistConfig.pat
             // Acepta formatos ghp_ (clásico) y github_pat_ (nuevo)
             const newPat = (patValue && (patValue.startsWith('ghp_') || patValue.startsWith('github_pat_'))) 
-                            ? patValue 
-                            : appState.gistConfig.pat;
+
+                    // Descubrir el Gist ID usando el PAT
+    if (newPat) {
+        const discoveredGistId = await discoverGistIdFromToken(newPat);
+        if (!discoveredGistId) {
+            showToast("No se pudo descubrir el Gist ID. Verifica que tu token sea válido.", 'error');
+            return;
+        }
+        appState.gistConfig.gistId = discoveredGistId;
+    }
 
             appState.gistConfig = {
                 pat: newPat,
-                gistId: $('#gist-id').value,
                 filename: appState.gistConfig.filename || null // Mantener el filename si ya existe, o null para forzar descubrimiento
             };
             
-            if (!appState.gistConfig.pat || !appState.gistConfig.gistId) { // Se elimina la validación del filename
-                showToast("Por favor, completa el PAT y el Gist ID.", 'error');
-                return;
             }
 
             saveGistConfig();
