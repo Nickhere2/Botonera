@@ -395,19 +395,12 @@
             <p class="text-sm text-gray-400 mb-4">
                 Guarda tus finanzas de forma segura en un Gist de GitHub.
                 <a href="https://github.com/settings/tokens/new?scopes=gist&description=FinanzasApp" target="_blank" class="text-cyan-400 hover:underline">
-                    Crea un nuevo PAT (con scope 'gist')
-                </a>.
-                Luego, <a href="https://gist.github.com/" target="_blank" class="text-blue-400 hover:underline">crea un Gist secreto</a> y pega el ID aquí.
-            </p>
-            <form id="settings-form" class="space-y-4">
+Solo necesitas tu Personal Access Token (PAT). El Gist ID se descubrirá automáticamente. [Crea un nuevo PAT (con scope 'gist')]                </a>.
                 <div>
                     <label for="gist-pat" class="block text-sm font-medium mb-1">Personal Access Token (PAT)</label>
                     <input type="password" id="gist-pat" class="input-field w-full" placeholder="ghp_... o github_pat_...">
                 </div>
                 <div>
-                    <label for="gist-id" class="block text-sm font-medium mb-1">Gist ID</label>
-                    <input type="text" id="gist-id" class="input-field w-full" placeholder="ID de la URL de tu Gist">
-                </div>
                 <!-- CAMPO DE NOMBRE DE ARCHIVO ELIMINADO -->
                 <div class="mt-6 flex gap-4">
                     <button type="button" id="btn-settings-cancel" class="w-full py-2 px-4 rounded-md bg-gray-200 dark:bg-gray-600">Cancelar</button>
