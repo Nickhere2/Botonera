@@ -180,6 +180,18 @@
              height: 680px;
              touch-action: none; /* Evitar scroll/zoom en móvil al tocar */
         }
+        
+        /* --- NUEVO: Estilo para Arrastrar y Soltar (Drag and Drop) --- */
+        #canvasPanel.drag-over {
+            border: 4px dashed #3b82f6; /* border-blue-500 */
+            background-color: #eff6ff; /* bg-blue-50 */
+            opacity: 0.9;
+        }
+        #canvasPanel.drag-over #previewCanvas,
+        #canvasPanel.drag-over #actionCenter {
+            opacity: 0.7;
+            pointer-events: none; /* Evitar que los botones interfieran */
+        }
 
 
     </style>
@@ -314,27 +326,40 @@
                              <span>Generar (IA)</span>
                          </button>
                          <button id="searchButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
-                         <!-- BOTÓN 'Pegar Imagen' ELIMINADO DE AQUÍ -->
-                    </div>
-                     <!-- Pestaña Edición eliminada -->
+                 <!-- BOTÓN 'Pegar Imagen' ELIMINADO DE AQUÍ -->
+            </div>
+             <!-- Pestaña Edición eliminada -->
                 </div>
             </div>
 
             <!-- Panel del Canvas (Centro) -->
-            <div id="canvasPanel" class="relative"> <!-- AÑADIDO 'relative' -->
-                <canvas id="previewCanvas" width="480" height="680" class="bg-white shadow-md"></canvas>
-                
-                <!-- BOTÓN 'Pegar Imagen' MOVIDO AQUÍ -->
-                <button id="pasteButton" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gray-700 text-white py-3 px-5 rounded-lg font-bold hover:bg-gray-800 transition duration-300 flex items-center justify-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                       <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-                       <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-                    </svg>
-                    Pegar Imagen
-                </button>
-            </div>
+    <div id="canvasPanel" class="relative"> <!-- AÑADIDO 'relative' -->
+        <canvas id="previewCanvas" width="480" height="680" class="bg-white shadow-md"></canvas>
+        
+        <!-- Centro de Acciones sobre el Canvas -->
+        <div id="actionCenter" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 w-64">
+            <p class="text-gray-500 text-center">Carga una imagen para empezar</p>
+            <button id="actionCenterGenerate" class="w-full bg-blue-600 text-white py-3 px-5 rounded-lg font-bold hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2">
+                <svg class="animate-spin h-5 w-5 text-white hidden" id="actionCenterSpinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>✨ Generar (IA)</span>
+            </button>
+            <button id="actionCenterPaste" class="w-full bg-gray-700 text-white py-3 px-5 rounded-lg font-bold hover:bg-gray-800 transition duration-300 flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                   <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                   <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                </svg>
+                <span>📋 Pegar Imagen</span>
+            </button>
+            <button id="actionCenterSearch" class="w-full bg-gray-700 text-white py-3 px-5 rounded-lg font-bold hover:bg-gray-800 transition duration-300">
+                🔍 Buscar en Google
+            </button>
+        </div>
+    </div>
 
-            <!-- Panel de Herramientas (Derecha 1) -->
+    <!-- Panel de Herramientas (Derecha 1) -->
             <div id="toolsPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
                  <h3 class="text-md font-bold text-gray-800 border-b pb-2">Herramientas y Edición</h3>
 
@@ -432,7 +457,15 @@
             const tabs = [ { btn: tabButtonLote, content: tabContentLote }, { btn: tabButtonImagen, content: tabContentImagen } ]; // Solo 2 pestañas
             const jobStatusLabel = document.getElementById('jobStatusLabel'); const jobStatusName = document.getElementById('jobStatusName'); const themeStatusLabel = document.getElementById('themeStatusLabel');
             const nameInput = document.getElementById('nameInput'); const ageInput = document.getElementById('ageInput');
-            const generateButton = document.getElementById('generateButton'); const generateSpinner = document.getElementById('generateSpinner'); const searchButton = document.getElementById('searchButton'); const pasteButton = document.getElementById('pasteButton');
+            const generateButton = document.getElementById('generateButton'); const generateSpinner = document.getElementById('generateSpinner'); const searchButton = document.getElementById('searchButton'); 
+            
+            // --- Selectores del Centro de Acciones ---
+            const actionCenter = document.getElementById('actionCenter');
+            const actionCenterGenerate = document.getElementById('actionCenterGenerate');
+            const actionCenterPaste = document.getElementById('actionCenterPaste');
+            const actionCenterSearch = document.getElementById('actionCenterSearch');
+            const actionCenterSpinner = document.getElementById('actionCenterSpinner');
+            
             const recentImagesSection = document.getElementById('recentImagesSection'); const recentImagesContainer = document.getElementById('recentImagesContainer');
             const imageEditGroup = document.getElementById('imageEditGroup');
             //const noImageEditMessage = document.getElementById('noImageEditMessage'); // No se usa
@@ -445,6 +478,9 @@
             const exportPanel = document.getElementById('exportPanel'); const exportPdfButton = document.getElementById('exportPdfButton'); const exportZipButton = document.getElementById('exportZipButton');
             const toolsPanel = document.getElementById('toolsPanel');
             const noImageToolsMessage = document.getElementById('noImageToolsMessage');
+            
+            // --- NUEVO: Selector del Panel del Canvas ---
+            const canvasPanel = document.getElementById('canvasPanel');
     
             // --- Carga Inicial ---
             if (!apiKey) { showApiKeyModal(); } else { hideApiKeyModal(); loadPieImage(); }
@@ -459,6 +495,58 @@
             tabs.forEach(tab => { tab.btn.addEventListener('click', () => { tabs.forEach(t => { t.btn.classList.remove('active'); t.content.classList.remove('active'); }); tab.btn.classList.add('active'); tab.content.classList.add('active'); }); });
             function switchToTab(tabContentId) { tabs.forEach(t => { t.btn.classList.remove('active'); t.content.classList.remove('active'); if (t.content.id === tabContentId) { t.btn.classList.add('active'); t.content.classList.add('active'); } }); }
     
+            // --- NUEVO: Lógica de Arrastrar y Soltar (Drag and Drop) ---
+            
+            // 1. Prevenir comportamientos por defecto
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                canvasPanel.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false); // Prevenir que el navegador abra la imagen
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            // 2. Resaltar al arrastrar sobre el canvas
+            ['dragenter', 'dragover'].forEach(eventName => {
+                canvasPanel.addEventListener(eventName, () => {
+                    canvasPanel.classList.add('drag-over');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                canvasPanel.addEventListener(eventName, () => {
+                    canvasPanel.classList.remove('drag-over');
+                }, false);
+            });
+
+            // 3. Manejar el archivo soltado
+            canvasPanel.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                let dt = e.dataTransfer;
+                let files = dt.files;
+
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e_reader) => {
+                            loadImageOntoCanvas(e_reader.target.result);
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        alert("Por favor, suelta solo archivos de imagen.");
+                    }
+                } else {
+                    // No se encontraron archivos (probablemente arrastrado desde otra pestaña)
+                    alert("Arrastrar desde otra pestaña no es compatible. Por favor, arrastra un archivo de imagen desde tu escritorio.");
+                }
+            }
+            
+            // --- FIN DE Lógica de Arrastrar y Soltar ---
+            
             // --- Lógica Principal del Flujo (Wizard) ---
             // --- MODIFICADO: Ahora usa IA para parsear y muestra modal vacío si falla ---
             ingresarPedidoButton.addEventListener('click', async () => {
@@ -647,7 +735,29 @@
             // --- FUNCIÓN ANTIGUA (parseRequests) ELIMINADA ---
             // function parseRequests(text) { ... }
      
-            function loadCurrentJob() { if (currentJobIndex < 0 || currentJobIndex >= jobQueue.length) { alert("¡Lote completado!"); resetApp(); return; } const job = jobQueue[currentJobIndex]; jobStatusLabel.textContent = `Procesando Hoja ${currentJobIndex + 1} de ${jobQueue.length}`; jobStatusName.textContent = `${job.name} (${job.age} años)`; themeStatusLabel.textContent = `Tema: ${job.theme}`; nameInput.value = job.name; ageInput.value = job.age; generateButton.dataset.theme = job.theme; searchButton.dataset.theme = job.theme; resetImageState(); redrawCanvas(); }
+            function loadCurrentJob() { 
+                if (currentJobIndex < 0 || currentJobIndex >= jobQueue.length) { 
+                    alert("¡Lote completado!"); 
+                    resetApp(); 
+                    return; 
+                } 
+                const job = jobQueue[currentJobIndex]; 
+                jobStatusLabel.textContent = `Procesando Hoja ${currentJobIndex + 1} de ${jobQueue.length}`; 
+                jobStatusName.textContent = `${job.name} (${job.age} años)`; 
+                themeStatusLabel.textContent = `Tema: ${job.theme}`; 
+                nameInput.value = job.name; 
+                ageInput.value = job.age; 
+                generateButton.dataset.theme = job.theme; 
+                searchButton.dataset.theme = job.theme; 
+                
+                // --- NUEVO: Actualizar botones del Action Center ---
+                actionCenterGenerate.dataset.theme = job.theme;
+                actionCenterSearch.dataset.theme = job.theme;
+                // --- FIN NUEVO ---
+                
+                resetImageState(); 
+                redrawCanvas(); 
+            }
             function resetImageState() { 
                 currentUserImage = null; isImageLoaded = false; 
                 scaleSlider.value = 100; imageScale = 1.0; imagePos = { x: 240, y: 340 }; 
@@ -677,18 +787,70 @@
             }
     
             // --- Handlers de Acciones de Imagen ---
-            generateButton.addEventListener('click', async (e) => { const theme = e.currentTarget.dataset.theme; const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`; setLoading(true); try { const imageUrl = await generateImage(prompt); loadImageOntoCanvas(imageUrl); } catch (error) { alert(`Error IA: ${error.message}`); } setLoading(false); });
-            searchButton.addEventListener('click', (e) => { const theme = e.currentTarget.dataset.theme; const query = `${theme} para colorear`; const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`; window.open(url, '_blank'); switchToTab('tabContentImagen'); });
-            pasteButton.addEventListener('click', async () => {
+            
+            // 1. Botones de la Pestaña "Imagen"
+            generateButton.addEventListener('click', handleGenerateImage);
+            searchButton.addEventListener('click', handleSearchImage);
+    
+            // 2. Botones del "Centro de Acciones"
+            actionCenterGenerate.addEventListener('click', handleGenerateImage);
+            actionCenterSearch.addEventListener('click', handleSearchImage);
+            actionCenterPaste.addEventListener('click', handlePasteImage);
+            
+            // --- Lógica Refactorizada ---
+            
+            async function handleGenerateImage(e) {
+                const theme = e.currentTarget.dataset.theme;
+                if (!theme) {
+                    alert("No hay un tema seleccionado. Asegúrate de estar en un lote.");
+                    return;
+                }
+                const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`;
+                setLoading(true); // Usar la nueva función de loading
+                try {
+                    const imageUrl = await generateImage(prompt);
+                    loadImageOntoCanvas(imageUrl);
+                } catch (error) {
+                    alert(`Error IA: ${error.message}`);
+                }
+                setLoading(false);
+            }
+    
+            function handleSearchImage(e) {
+                const theme = e.currentTarget.dataset.theme;
+                if (!theme) {
+                    alert("No hay un tema seleccionado. Asegúrate de estar en un lote.");
+                    return;
+                }
+                const query = `${theme} para colorear`;
+                const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`;
+                window.open(url, '_blank');
+                switchToTab('tabContentImagen'); // Mantener esto, es útil
+            }
+    
+            async function handlePasteImage() {
                  try {
                      if (!navigator.clipboard || !navigator.clipboard.read) { alert("Navegador no soporta pegar."); return; }
                      const items = await navigator.clipboard.read(); let foundImage = false;
                      for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); foundImage = true; break; } }
                      if (!foundImage) alert("No se encontró imagen compatible.");
                  } catch (err) { console.error("Error al pegar:", err); if (err.name === 'NotAllowedError') { alert("Permiso denegado para portapapeles."); } else if (err.name === 'NotFoundError') { alert("No se encontró contenido compatible."); } else if (err.message.toLowerCase().includes('permission')) { alert("Permiso denegado."); } else { alert(`Error al pegar: ${err.name} - ${err.message}.`); } }
-            });
+            }
+            
             function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; updateControlsVisibility(); }; currentUserImage.src = imageUrl; }
-            function setLoading(isLoading) { const span = generateButton.querySelector('span'); generateButton.disabled = isLoading; generateSpinner.classList.toggle('hidden', !isLoading); if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; }
+            
+            function setLoading(isLoading) { 
+                const span = generateButton.querySelector('span'); 
+                generateButton.disabled = isLoading; 
+                generateSpinner.classList.toggle('hidden', !isLoading); 
+                if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)";
+                
+                // Nuevo: Sincronizar el spinner del Action Center
+                const actionSpan = actionCenterGenerate.querySelector('span');
+                actionCenterGenerate.disabled = isLoading;
+                actionCenterSpinner.classList.toggle('hidden', !isLoading);
+                if(actionSpan) actionSpan.textContent = isLoading ? "Generando..." : "✨ Generar (IA)";
+            }
     
             // --- Handlers de Imágenes Recientes ---
             function updateRecentImagesUI() { recentImagesContainer.innerHTML = ''; if (recentImages.length > 0) { recentImagesSection.classList.remove('hidden'); const uniqueThemes = new Map(); for (let i = recentImages.length - 1; i >= 0; i--) { const img = recentImages[i]; if (!uniqueThemes.has(img.theme)) { uniqueThemes.set(img.theme, img.dataUrl); } } Array.from(uniqueThemes.entries()).forEach(([theme, dataUrl]) => { const imgEl = document.createElement('img'); imgEl.src = dataUrl; imgEl.title = `Reusar ${theme}`; imgEl.className = 'recent-image'; imgEl.addEventListener('click', () => { loadImageOntoCanvas(dataUrl); showToast(`Imagen de "${theme}" reutilizada.`); }); recentImagesContainer.appendChild(imgEl); }); } else { recentImagesSection.classList.add('hidden'); } }
@@ -974,8 +1136,8 @@
             }
     
             function redrawCanvas(targetCtx=ctx){
-                // Obtener el botón de pegar
-                const pasteBtn = document.getElementById('pasteButton');
+                // Obtener el action center
+                const actionCenterDiv = document.getElementById('actionCenter');
                 
                 targetCtx.fillStyle='white';
                 targetCtx.fillRect(0,0,480,680);
@@ -988,13 +1150,10 @@
                     targetCtx.scale(imageScale,imageScale);
                     targetCtx.drawImage(editCanvas,-editCanvas.width/2,-editCanvas.height/2);
                     targetCtx.restore();
-                    if (pasteBtn) pasteBtn.classList.add('hidden'); // Ocultar botón si hay imagen
+                    if (actionCenterDiv) actionCenterDiv.classList.add('hidden'); // Ocultar div si hay imagen
                 } else {
-                    targetCtx.fillStyle='#9ca3af';
-                    targetCtx.font='16px Inter';
-                    targetCtx.textAlign='center';
-                    targetCtx.fillText("Usa los botones para añadir una imagen",240,300);
-                    if (pasteBtn) pasteBtn.classList.remove('hidden'); // Mostrar botón si no hay imagen
+                    // NO dibujar texto en canvas, mostrar el div
+                    if (actionCenterDiv) actionCenterDiv.classList.remove('hidden'); // Mostrar div si no hay imagen
                 }
                 
                 // 2. Dibujar Pie de página
