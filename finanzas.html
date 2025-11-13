@@ -601,6 +601,27 @@
         
         // --- Lógica de Sincronización ---
 
+        // Función auxiliar para combinar movimientos locales con remotos
+function mergeMovements(localMovements, remoteMovements) {
+  // Crear un Map de movimientos remotos indexados por ID para búsqueda rápida
+  const remoteMap = new Map(remoteMovements.map(m => [m.id, m]));
+  
+  // Crear array resultado con todos los movimientos locales
+  const merged = localMovements.map(local => {
+    // Si remoto tiene este ID, preferir remoto (es más reciente en el servidor)
+    return remoteMap.has(local.id) ? remoteMap.get(local.id) : local;
+  });
+  
+  // Agregar movimientos remotos que no existen en local
+  remoteMovements.forEach(remote => {
+    if (!localMovements.some(m => m.id === remote.id)) {
+      merged.push(remote);
+    }
+  });
+  
+  return merged;
+}
+
         async function handlePushToGist(showSuccessToast = false) {
             if (!appState.gistConfig.pat) {
                 console.warn("Push omitido: No hay configuración de Gist.");
@@ -618,7 +639,43 @@
             } else if (!result) {
                 showToast("Error de sincronización. Tus datos están guardados localmente.", 'error');
             }
-        }
+        }async function handlePushToGist(showSuccessToast = false) {
+  if (!appState.gistConfig.pat) {
+    console.warn("Push omitido: No hay configuración de Gist.");
+    return; // No molestar si no está configurado
+  }
+
+  try {
+    // PASO 1: Auto-actualizar - Obtener datos frescos de Gist ANTES de guardar
+    const remoteData = await GistApi.pull();
+    
+    if (remoteData && remoteData.movements) {
+      // PASO 2: Combinar movimientos locales con remotos
+      const mergedMovements = mergeMovements(appState.movements, remoteData.movements);
+      
+      // PASO 3: Actualizar estado local con datos combinados
+      appState.movements = mergedMovements;
+      saveStateToLocal(); // Guardar datos combinados localmente
+    }
+    
+    // PASO 4: Preparar datos con movimientos potencialmente combinados
+    const dataToSave = {
+      movements: appState.movements,
+      categories: appState.categories
+    };
+
+    // PASO 5: Enviar datos combinados a Gist
+    const result = await GistApi.push(dataToSave);
+    if (result && result.ok && showSuccessToast) {
+      showToast("Sincronización exitosa.", 'success');
+    } else if (!result) {
+      showToast("Error de sincronización. Tus datos están guardados localmente.", 'error');
+    }
+  } catch (error) {
+    console.error("Error en handlePushToGist:", error);
+    showToast("Error de sincronización. Tus datos están guardados localmente.", 'error');
+  }
+}
 
         async function handlePullFromGist() {
             if (!appState.gistConfig.pat) return; // No hacer nada si no hay config
