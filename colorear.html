@@ -315,51 +315,49 @@
                             </button>
                         </div>
                     </div>
-                    <!-- Pestaña 2: Imagen -->
+                    <!-- Pestaña 2: Imagen (MODIFICADA) -->
                     <div id="tabContentImagen" class="tab-content flex flex-col gap-3 h-full">
-                         <h3 class="text-md font-bold text-gray-800">Obtener Imagen del Tema</h3>
-                         <button id="generateButton" class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2">
-                             <svg class="animate-spin h-5 w-5 text-white hidden" id="generateSpinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                             </svg>
-                             <span>Generar (IA)</span>
-                         </button>
-                         <button id="searchButton" class="w-full bg-gray-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-800 transition duration-300">Buscar en Google</button>
-                 <!-- BOTÓN 'Pegar Imagen' ELIMINADO DE AQUÍ -->
-            </div>
-             <!-- Pestaña Edición eliminada -->
+                         <h3 class="text-md font-bold text-gray-800">Cargar Imagen</h3>
+                         <p class="text-sm text-gray-600">
+                             Todas las acciones (Generar, Pegar, Buscar) ahora se encuentran en el centro del lienzo cuando está vacío para un acceso más rápido.
+                         </p>
+                         <p class="text-sm text-gray-600 mt-4">
+                             También puedes arrastrar y soltar un archivo de imagen desde tu escritorio directamente sobre el lienzo.
+                         </p>
+                         <!-- Botones duplicados eliminados -->
+                    </div>
+                     <!-- Pestaña Edición eliminada -->
                 </div>
             </div>
 
             <!-- Panel del Canvas (Centro) -->
-    <div id="canvasPanel" class="relative"> <!-- AÑADIDO 'relative' -->
-        <canvas id="previewCanvas" width="480" height="680" class="bg-white shadow-md"></canvas>
-        
-        <!-- Centro de Acciones sobre el Canvas -->
-        <div id="actionCenter" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 w-64">
-            <p class="text-gray-500 text-center">Carga una imagen para empezar</p>
-            <button id="actionCenterGenerate" class="w-full bg-blue-600 text-white py-3 px-5 rounded-lg font-bold hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2">
-                <svg class="animate-spin h-5 w-5 text-white hidden" id="actionCenterSpinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                </svg>
-                <span>✨ Generar (IA)</span>
-            </button>
-            <button id="actionCenterPaste" class="w-full bg-gray-700 text-white py-3 px-5 rounded-lg font-bold hover:bg-gray-800 transition duration-300 flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                   <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
-                   <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
-                </svg>
-                <span>📋 Pegar Imagen</span>
-            </button>
-            <button id="actionCenterSearch" class="w-full bg-gray-700 text-white py-3 px-5 rounded-lg font-bold hover:bg-gray-800 transition duration-300">
-                🔍 Buscar en Google
-            </button>
-        </div>
-    </div>
+            <div id="canvasPanel" class="relative"> <!-- AÑADIDO 'relative' -->
+                <canvas id="previewCanvas" width="480" height="680" class="bg-white shadow-md"></canvas>
+                
+                <!-- Centro de Acciones sobre el Canvas -->
+                <div id="actionCenter" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 w-64">
+                    <p class="text-gray-500 text-center">Carga una imagen para empezar</p>
+                    <button id="actionCenterGenerate" class="w-full bg-blue-600 text-white py-3 px-5 rounded-lg font-bold hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2">
+                        <svg class="animate-spin h-5 w-5 text-white hidden" id="actionCenterSpinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>✨ Generar (IA)</span>
+                    </button>
+                    <button id="actionCenterPaste" class="w-full bg-gray-700 text-white py-3 px-5 rounded-lg font-bold hover:bg-gray-800 transition duration-300 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                           <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                           <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                        </svg>
+                        <span>📋 Pegar Imagen</span>
+                    </button>
+                    <button id="actionCenterSearch" class="w-full bg-gray-700 text-white py-3 px-5 rounded-lg font-bold hover:bg-gray-800 transition duration-300">
+                        🔍 Buscar en Google
+                    </button>
+                </div>
+            </div>
 
-    <!-- Panel de Herramientas (Derecha 1) -->
+            <!-- Panel de Herramientas (Derecha 1) -->
             <div id="toolsPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
                  <h3 class="text-md font-bold text-gray-800 border-b pb-2">Herramientas y Edición</h3>
 
@@ -457,7 +455,11 @@
             const tabs = [ { btn: tabButtonLote, content: tabContentLote }, { btn: tabButtonImagen, content: tabContentImagen } ]; // Solo 2 pestañas
             const jobStatusLabel = document.getElementById('jobStatusLabel'); const jobStatusName = document.getElementById('jobStatusName'); const themeStatusLabel = document.getElementById('themeStatusLabel');
             const nameInput = document.getElementById('nameInput'); const ageInput = document.getElementById('ageInput');
-            const generateButton = document.getElementById('generateButton'); const generateSpinner = document.getElementById('generateSpinner'); const searchButton = document.getElementById('searchButton'); 
+            
+            // --- Selectores del DOM (LIMPIEZA) ---
+            // const generateButton = document.getElementById('generateButton'); // Ya no existe
+            // const generateSpinner = document.getElementById('generateSpinner'); // Ya no existe
+            // const searchButton = document.getElementById('searchButton'); // Ya no existe
             
             // --- Selectores del Centro de Acciones ---
             const actionCenter = document.getElementById('actionCenter');
@@ -747,8 +749,8 @@
                 themeStatusLabel.textContent = `Tema: ${job.theme}`; 
                 nameInput.value = job.name; 
                 ageInput.value = job.age; 
-                generateButton.dataset.theme = job.theme; 
-                searchButton.dataset.theme = job.theme; 
+                // generateButton.dataset.theme = job.theme; // ELIMINADO
+                // searchButton.dataset.theme = job.theme; // ELIMINADO
                 
                 // --- NUEVO: Actualizar botones del Action Center ---
                 actionCenterGenerate.dataset.theme = job.theme;
@@ -788,9 +790,9 @@
     
             // --- Handlers de Acciones de Imagen ---
             
-            // 1. Botones de la Pestaña "Imagen"
-            generateButton.addEventListener('click', handleGenerateImage);
-            searchButton.addEventListener('click', handleSearchImage);
+            // 1. Botones de la Pestaña "Imagen" (ELIMINADOS)
+            // generateButton.addEventListener('click', handleGenerateImage);
+            // searchButton.addEventListener('click', handleSearchImage);
     
             // 2. Botones del "Centro de Acciones"
             actionCenterGenerate.addEventListener('click', handleGenerateImage);
@@ -840,10 +842,10 @@
             function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; updateControlsVisibility(); }; currentUserImage.src = imageUrl; }
             
             function setLoading(isLoading) { 
-                const span = generateButton.querySelector('span'); 
-                generateButton.disabled = isLoading; 
-                generateSpinner.classList.toggle('hidden', !isLoading); 
-                if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)";
+                // const span = generateButton.querySelector('span'); // ELIMINADO
+                // generateButton.disabled = isLoading; // ELIMINADO
+                // generateSpinner.classList.toggle('hidden', !isLoading); // ELIMINADO
+                // if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; // ELIMINADO
                 
                 // Nuevo: Sincronizar el spinner del Action Center
                 const actionSpan = actionCenterGenerate.querySelector('span');
@@ -1255,7 +1257,7 @@
                     console.error("Error ZIP:",error);
                     alert('Error ZIP: '+error.message);
                 }finally{
-                    exportZipButton.disabled=false;
+                    exportPdfButton.disabled=false;
                     updateExportButtonsCount();
                 }
             });
