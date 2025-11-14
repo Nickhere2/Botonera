@@ -1460,7 +1460,7 @@ async function discoverGistIdFromToken(pat) {
             // Solo actualizar el PAT si se ingresó uno nuevo.
             // Si el campo está vacío, mantener el que está en appState.gistConfig.pat
             // Acepta formatos ghp_ (clásico) y github_pat_ (nuevo)
-            const newPat = (patValue && (patValue.startsWith('ghp_') || patValue.startsWith('github_pat_'))) 
+            const newPat = (patValue && (patValue.startsWith('ghp_') || patValue.startsWith('github_pat_')))  ? patValue : appState.gistConfig.pat;
 
                     // Descubrir el Gist ID usando el PAT
     if (newPat) {
