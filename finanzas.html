@@ -593,7 +593,7 @@ Solo necesitas tu Personal Access Token (PAT). El Gist ID se descubrirá automá
         };
         
         // --- Lógica de Sincronización ---
-
+                                        
         // Función auxiliar para combinar movimientos locales con remotos
 function mergeMovements(localMovements, remoteMovements) {
   // Crear un Map de movimientos remotos indexados por ID para búsqueda rápida
@@ -615,23 +615,6 @@ function mergeMovements(localMovements, remoteMovements) {
   return merged;
 }
 
-        async function handlePushToGist(showSuccessToast = false) {
-            if (!appState.gistConfig.pat) {
-                console.warn("Push omitido: No hay configuración de Gist.");
-                return; // No molestar si no está configurado
-            }
-            
-            const dataToSave = {
-                movements: appState.movements,
-                categories: appState.categories
-            };
-            
-            const result = await GistApi.push(dataToSave);
-            if (result && result.ok && showSuccessToast) {
-                showToast("Sincronización exitosa.", 'success');
-            } else if (!result) {
-                showToast("Error de sincronización. Tus datos están guardados localmente.", 'error');
-            }
         }async function handlePushToGist(showSuccessToast = false) {
   if (!appState.gistConfig.pat) {
     console.warn("Push omitido: No hay configuración de Gist.");
