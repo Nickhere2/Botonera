@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Finanzas</title>
     <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+<!--     <script src="https://cdn.tailwindcss.com"></script> -->
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <!-- Day.js para manejo de fechas -->
@@ -1571,7 +1571,7 @@ async function discoverGistIdFromToken(pat) {
             // *** ¡LA CORRECCIÓN ESTÁ AQUÍ! ***
             // Inicializar todos los selectores DESPUÉS de que el DOM esté cargado.
 
-            // --- Sistema de Caché Local ---
+/*             // --- Sistema de Caché Local ---
 function saveToLocalCache(data) {
   const cacheData = {
     gistId: appState.gistConfig.gistId,
@@ -1659,7 +1659,8 @@ async function syncInBackground() {
             gistSpinner = $('#gist-sync-spinner');
             gistOk = $('#gist-sync-ok');
             gistError = $('#gist-sync-error');
-            
+
+             */
             // Ahora se pueden llamar a las funciones que usan los selectores
             setupTheme();
             setupEventListeners();
