@@ -890,12 +890,12 @@ function mergeMovements(localMovements, remoteMovements) {
             }
             
             // Listeners para botones de acción
-            card.querySelector('.btn-edit').addEventListener('click', (e) => {
+            card.querySelector('.btn-edit').addEaddEventListener('click', (e) => {
                 e.stopPropagation();
                 handleEditMovement(mov.id);
             });
             
-            card.querySelector('.btn-delete').addEventListener('click', (e) => {
+            card.querySelector('.btn-delete').addEaddEventListener('click', (e) => {
                 e.stopPropagation();
                 handleDeleteMovement(mov.id);
             });
@@ -1512,7 +1512,7 @@ async function discoverGistIdFromToken(pat) {
                 }
             }
 
-            themeToggle.addEventListener('click', () => {
+            themeToggle.addEaddEventListener('click', () => {
                 setTheme(!document.documentElement.classList.contains('dark'));
             });
 
@@ -1525,28 +1525,28 @@ async function discoverGistIdFromToken(pat) {
         }
         
         // --- Setup de Event Listeners ---
-        function setupEventListeners() {
+        function setupEaddEventListeners() {
             // Botones principales
-            $('#btn-add-movement').addEventListener('click', () => openMovementModal(null));
-            $('#btn-settings').addEventListener('click', () => showModal(settingsModal));
+            $('#btn-add-movement').addEaddEventListener('click', () => openMovementModal(null));
+            $('#btn-settings').addEaddEventListener('click', () => showModal(settingsModal));
             
             // Modal de Configuración
-            settingsForm.addEventListener('submit', handleSettingsFormSubmit);
-            $('#btn-settings-cancel').addEventListener('click', () => hideModal(settingsModal));
+            settingsForm.addEaddEventListener('submit', handleSettingsFormSubmit);
+            $('#btn-settings-cancel').addEaddEventListener('click', () => hideModal(settingsModal));
             
             // Modal de Movimiento
-            movementForm.addEventListener('submit', handleMovementFormSubmit);
-            $('#btn-modal-cancel').addEventListener('click', () => hideModal(movementModal));
-            $('#btn-add-category').addEventListener('click', handleAddCategory);
+            movementForm.addEaddEventListener('submit', handleMovementFormSubmit);
+            $('#btn-modal-cancel').addEaddEventListener('click', () => hideModal(movementModal));
+            $('#btn-add-category').addEaddEventListener('click', handleAddCategory);
 
             // Selector de Tipo (Ingreso/Egreso)
-            typeIngreso.addEventListener('click', () => updateTypeSelectorVisual('ingreso'));
-            typeEgreso.addEventListener('click', () => updateTypeSelectorVisual('egreso'));
+            typeIngreso.addEaddEventListener('click', () => updateTypeSelectorVisual('ingreso'));
+            typeEgreso.addEaddEventListener('click', () => updateTypeSelectorVisual('egreso'));
 
             // Filtros
-            filterSearch.addEventListener('input', handleFilterChange);
-            filterType.addEventListener('change', handleFilterChange);
-            filterMonth.addEventListener('change', handleFilterChange);
+            filterSearch.addEaddEventListener('input', handleFilterChange);
+            filterType.addEaddEventListener('change', handleFilterChange);
+            filterMonth.addEaddEventListener('change', handleFilterChange);
         }
 
         // --- Inicialización de la App ---
@@ -1646,7 +1646,7 @@ async function syncInBackground() {
              */
             // Ahora se pueden llamar a las funciones que usan los selectores
             setupTheme();
-            setupEventListeners();
+            setupEaddEventListeners();
             loadStateFromLocal();
             loadGistConfig();
             
@@ -1664,7 +1664,7 @@ renderAll();
   }
         
         // Iniciar la aplicación
-document.ventListener('DOMContentLoaded', initApp);
+document.addEventListener('DOMContentLoaded', initApp);
 
     </script>
     
