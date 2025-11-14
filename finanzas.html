@@ -1676,10 +1676,8 @@ async function syncInBackground() {
                 setSyncStatus('error'); // Indicar que no hay config
             }
             
-            // Si no hay config, mostrar el modal de settings
-            if (!appState.gistConfig.pat) {
-  setTimeout(() => { console.log('Abriendo modal de config'); showModal(settingsModal); }, 800);            }
-        }
+  await loadAppWithCache();
+  }
         
         // Iniciar la aplicación
         document.addEventListener('DOMContentLoaded', initApp);
