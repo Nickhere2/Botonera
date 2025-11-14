@@ -1480,6 +1480,7 @@ async function discoverGistIdFromToken(pat) {
             }
 
             saveGistConfig();
+        
             
             // Limpiar el campo del PAT del formulario por seguridad
             if (patValue) {
@@ -1569,6 +1570,61 @@ async function discoverGistIdFromToken(pat) {
         async function initApp() {
             // *** ¡LA CORRECCIÓN ESTÁ AQUÍ! ***
             // Inicializar todos los selectores DESPUÉS de que el DOM esté cargado.
+
+            // --- Sistema de Caché Local ---
+function saveToLocalCache(data) {
+  const cacheData = {
+    gistId: appState.gistConfig.gistId,
+    movements: data.movements || appState.movements,
+    timestamp: new Date().getTime(),
+    version: 1
+  };
+  localStorage.setItem('finanzasCache', JSON.stringify(cacheData));
+}
+
+function getFromLocalCache() {
+  try {
+    const cached = localStorage.getItem('finanzasCache');
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+}
+
+async function loadAppWithCache() {
+  const cachedData = getFromLocalCache();
+  
+  if (cachedData && cachedData.gistId) {
+    // 1. Cargar datos del caché inmediatamente
+    appState.movements = cachedData.movements || [];
+    appState.gistConfig.gistId = cachedData.gistId;
+    renderAll(); // Mostrar UI rápidamente ⚡
+    
+    // 2. Si hay PAT guardado, sincronizar en background
+    if (appState.gistConfig.pat) {
+      setTimeout(() => syncInBackground(), 500);
+    }
+  } else {
+    // Sin caché: mostrar modal de configuración
+    renderAll(); // Mostrar UI en blanco
+    setTimeout(() => {
+      showModal(settingsModal);
+    }, 800);
+  }
+}
+
+async function syncInBackground() {
+  if (!appState.gistConfig.pat || !appState.gistConfig.gistId) return;
+  
+  const remoteData = await GistApi.pull();
+  if (remoteData && remoteData.movements) {
+    appState.movements = remoteData.movements;
+    saveToLocalCache(remoteData);
+    renderAll(); // Actualizar UI con datos frescos
+    showToast('Datos sincronizados desde Gist', 'success');
+  }
+}
+
             settingsModal = $('#settings-modal');
             movementModal = $('#movement-modal');
             confirmModal = $('#confirm-modal');
