@@ -314,6 +314,7 @@
                             <th class="py-2 px-4 text-left">Categoría</th>
                             <th class="py-2 px-4 text-left">Nota</th>
                             <th class="py-2 px-4 text-right">Monto</th>
+                            <th class="py-2 px-4 text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="history-table-body">
@@ -889,14 +890,50 @@
                     const amountColor = isIngreso ? 'text-green-500' : 'text-red-500';
                     const amountSign = isIngreso ? '+' : '-';
 
-                    row.innerHTML = `
-                        <td class="py-3 px-4 text-sm text-gray-400">${dayjs(mov.date).format('DD/MM/YYYY')}</td>
-                        <td class="py-3 px-4">${mov.category}</td>
-                        <td class="py-3 px-4 text-sm text-gray-400">${mov.note || ''}</td>
-                        <td class="py-3 px-4 text-right font-medium ${amountColor}">
-                            ${amountSign} ${formatCurrency(mov.amount)}
-                        </td>
-                    `;
+                    // Celda de Fecha
+                    const cellDate = document.createElement('td');
+                    cellDate.className = 'py-3 px-4 text-sm text-gray-400';
+                    cellDate.textContent = dayjs(mov.date).format('DD/MM/YYYY');
+                    row.appendChild(cellDate);
+
+                    // Celda de Categoría
+                    const cellCategory = document.createElement('td');
+                    cellCategory.className = 'py-3 px-4';
+                    cellCategory.textContent = mov.category;
+                    row.appendChild(cellCategory);
+
+                    // Celda de Nota
+                    const cellNote = document.createElement('td');
+                    cellNote.className = 'py-3 px-4 text-sm text-gray-400';
+                    cellNote.textContent = mov.note || '';
+                    row.appendChild(cellNote);
+
+                    // Celda de Monto
+                    const cellAmount = document.createElement('td');
+                    cellAmount.className = `py-3 px-4 text-right font-medium ${amountColor}`;
+                    cellAmount.textContent = `${amountSign} ${formatCurrency(mov.amount)}`;
+                    row.appendChild(cellAmount);
+
+                    // Celda de Acciones (Nueva)
+                    const cellActions = document.createElement('td');
+                    cellActions.className = 'py-3 px-4 text-right';
+
+                    const editButton = document.createElement('button');
+                    editButton.className = 'p-1.5 rounded-md text-cyan-600 dark:text-cyan-400 hover:bg-cyan-100 dark:hover:bg-gray-700';
+                    editButton.setAttribute('aria-label', 'Editar');
+                    editButton.innerHTML = `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>`;
+                    editButton.onclick = () => handleEditMovement(mov.id);
+                    
+                    const deleteButton = document.createElement('button');
+                    deleteButton.className = 'p-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-gray-700 ml-1';
+                    deleteButton.setAttribute('aria-label', 'Eliminar');
+                    deleteButton.innerHTML = `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
+                    deleteButton.onclick = () => handleDeleteMovement(mov.id);
+
+                    cellActions.appendChild(editButton);
+                    cellActions.appendChild(deleteButton);
+                    row.appendChild(cellActions);
+                    
                     historyTableBody.appendChild(row);
                 });
             }
