@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Finanzas</title>
     <!-- Tailwind CSS -->
-<!--     <script src="https://cdn.tailwindcss.com"></script> -->
+    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <!-- Day.js para manejo de fechas -->
@@ -395,12 +395,19 @@
             <p class="text-sm text-gray-400 mb-4">
                 Guarda tus finanzas de forma segura en un Gist de GitHub.
                 <a href="https://github.com/settings/tokens/new?scopes=gist&description=FinanzasApp" target="_blank" class="text-cyan-400 hover:underline">
-Solo necesitas tu Personal Access Token (PAT). El Gist ID se descubrirá automáticamente. [Crea un nuevo PAT (con scope 'gist')]                </a>.
+                    Crea un nuevo PAT (con scope 'gist')
+                </a>.
+                Luego, <a href="https://gist.github.com/" target="_blank" class="text-blue-400 hover:underline">crea un Gist secreto</a> y pega el ID aquí.
+            </p>
+            <form id="settings-form" class="space-y-4">
                 <div>
                     <label for="gist-pat" class="block text-sm font-medium mb-1">Personal Access Token (PAT)</label>
                     <input type="password" id="gist-pat" class="input-field w-full" placeholder="ghp_... o github_pat_...">
                 </div>
                 <div>
+                    <label for="gist-id" class="block text-sm font-medium mb-1">Gist ID</label>
+                    <input type="text" id="gist-id" class="input-field w-full" placeholder="ID de la URL de tu Gist">
+                </div>
                 <!-- CAMPO DE NOMBRE DE ARCHIVO ELIMINADO -->
                 <div class="mt-6 flex gap-4">
                     <button type="button" id="btn-settings-cancel" class="w-full py-2 px-4 rounded-md bg-gray-200 dark:bg-gray-600">Cancelar</button>
@@ -444,7 +451,8 @@ Solo necesitas tu Personal Access Token (PAT). El Gist ID se descubrirá automá
             },
             gistConfig: {
                 pat: null,
-  gistId: null,
+                gistId: null,
+                filename: null
             },
             ui: {
                 chartInstance: null,
@@ -593,65 +601,25 @@ Solo necesitas tu Personal Access Token (PAT). El Gist ID se descubrirá automá
         };
         
         // --- Lógica de Sincronización ---
-                                        
-        // Función auxiliar para combinar movimientos locales con remotos
-function mergeMovements(localMovements, remoteMovements) {
-  // Crear un Map de movimientos remotos indexados por ID para búsqueda rápida
-  const remoteMap = new Map(remoteMovements.map(m => [m.id, m]));
-  
-  // Crear array resultado con todos los movimientos locales
-  const merged = localMovements.map(local => {
-    // Si remoto tiene este ID, preferir remoto (es más reciente en el servidor)
-    return remoteMap.has(local.id) ? remoteMap.get(local.id) : local;
-  });
-  
-  // Agregar movimientos remotos que no existen en local
-  remoteMovements.forEach(remote => {
-    if (!localMovements.some(m => m.id === remote.id)) {
-      merged.push(remote);
-    }
-  });
-  
-  return merged;
-}
 
-        }async function handlePushToGist(showSuccessToast = false) {
-  if (!appState.gistConfig.pat) {
-    console.warn("Push omitido: No hay configuración de Gist.");
-    return; // No molestar si no está configurado
-  }
-
-  try {
-    // PASO 1: Auto-actualizar - Obtener datos frescos de Gist ANTES de guardar
-    const remoteData = await GistApi.pull();
-    
-    if (remoteData && remoteData.movements) {
-      // PASO 2: Combinar movimientos locales con remotos
-      const mergedMovements = mergeMovements(appState.movements, remoteData.movements);
-      
-      // PASO 3: Actualizar estado local con datos combinados
-      appState.movements = mergedMovements;
-      saveStateToLocal(); // Guardar datos combinados localmente
-    }
-    
-    // PASO 4: Preparar datos con movimientos potencialmente combinados
-    const dataToSave = {
-      movements: appState.movements,
-      categories: appState.categories
-    };
-
-    // PASO 5: Enviar datos combinados a Gist
-    const result = await GistApi.push(dataToSave);
-    if (result && result.ok && showSuccessToast) {
-      showToast("Sincronización exitosa.", 'success');
-    } else if (!result) {
-      showToast("Error de sincronización. Tus datos están guardados localmente.", 'error');
-    }
-  } catch (error) {
-    console.error("Error en handlePushToGist:", error);
-    showToast("Error de sincronización. Tus datos están guardados localmente.", 'error');
-  }
-}
+        async function handlePushToGist(showSuccessToast = false) {
+            if (!appState.gistConfig.pat) {
+                console.warn("Push omitido: No hay configuración de Gist.");
+                return; // No molestar si no está configurado
+            }
+            
+            const dataToSave = {
+                movements: appState.movements,
+                categories: appState.categories
+            };
+            
+            const result = await GistApi.push(dataToSave);
+            if (result && result.ok && showSuccessToast) {
+                showToast("Sincronización exitosa.", 'success');
+            } else if (!result) {
+                showToast("Error de sincronización. Tus datos están guardados localmente.", 'error');
+            }
+        }
 
         async function handlePullFromGist() {
             if (!appState.gistConfig.pat) return; // No hacer nada si no hay config
@@ -890,12 +858,12 @@ function mergeMovements(localMovements, remoteMovements) {
             }
             
             // Listeners para botones de acción
-            card.querySelector('.btn-edit').addEaddEventListener('click', (e) => {
+            card.querySelector('.btn-edit').addEventListener('click', (e) => {
                 e.stopPropagation();
                 handleEditMovement(mov.id);
             });
             
-            card.querySelector('.btn-delete').addEaddEventListener('click', (e) => {
+            card.querySelector('.btn-delete').addEventListener('click', (e) => {
                 e.stopPropagation();
                 handleDeleteMovement(mov.id);
             });
@@ -1402,39 +1370,7 @@ function mergeMovements(localMovements, remoteMovements) {
             }
         }
 
-        // Función para descubrir el Gist ID a partir del token
-async function discoverGistIdFromToken(pat) {
-    try {
-        const response = await fetch('https://api.github.com/user/gists', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/vnd.github.v3+json',
-                'Authorization': `token ${pat}`,
-                'X-GitHub-Api-Version': '2022-11-28'
-            },
-            cache: 'no-store'
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Error ${response.status}: ${errorData.message || 'No se pudo acceder a Gists'}`);
-        }
-
-        const gists = await response.json();
-        if (gists && gists.length > 0) {
-            return gists[0].id;  // Retorna el ID del primer Gist
-        } else {
-            throw new Error('No hay Gists disponibles. Crea uno en GitHub primero.');
-        }
-    } catch (error) {
-        console.error('Error descubriendo Gist ID:', error);
-        showToast(error.message, 'error');
-        return null;
-    }
-}
-
-
-        async function handleSettingsFormSubmit(e) {
+        function handleSettingsFormSubmit(e) {
             e.preventDefault();
             
             const patInput = $('#gist-pat');
@@ -1443,27 +1379,22 @@ async function discoverGistIdFromToken(pat) {
             // Solo actualizar el PAT si se ingresó uno nuevo.
             // Si el campo está vacío, mantener el que está en appState.gistConfig.pat
             // Acepta formatos ghp_ (clásico) y github_pat_ (nuevo)
-            const newPat = (patValue && (patValue.startsWith('ghp_') || patValue.startsWith('github_pat_')))  ? patValue : appState.gistConfig.pat;
-
-                    // Descubrir el Gist ID usando el PAT
-    if (newPat) {
-        const discoveredGistId = await discoverGistIdFromToken(newPat);
-        if (!discoveredGistId) {
-            showToast("No se pudo descubrir el Gist ID. Verifica que tu token sea válido.", 'error');
-            return;
-        }
-        appState.gistConfig.gistId = discoveredGistId;
-    }
+            const newPat = (patValue && (patValue.startsWith('ghp_') || patValue.startsWith('github_pat_'))) 
+                            ? patValue 
+                            : appState.gistConfig.pat;
 
             appState.gistConfig = {
                 pat: newPat,
+                gistId: $('#gist-id').value,
                 filename: appState.gistConfig.filename || null // Mantener el filename si ya existe, o null para forzar descubrimiento
             };
             
+            if (!appState.gistConfig.pat || !appState.gistConfig.gistId) { // Se elimina la validación del filename
+                showToast("Por favor, completa el PAT y el Gist ID.", 'error');
+                return;
             }
 
             saveGistConfig();
-        
             
             // Limpiar el campo del PAT del formulario por seguridad
             if (patValue) {
@@ -1512,7 +1443,7 @@ async function discoverGistIdFromToken(pat) {
                 }
             }
 
-            themeToggle.addEaddEventListener('click', () => {
+            themeToggle.addEventListener('click', () => {
                 setTheme(!document.documentElement.classList.contains('dark'));
             });
 
@@ -1525,90 +1456,34 @@ async function discoverGistIdFromToken(pat) {
         }
         
         // --- Setup de Event Listeners ---
-        function setupEaddEventListeners() {
+        function setupEventListeners() {
             // Botones principales
-            $('#btn-add-movement').addEaddEventListener('click', () => openMovementModal(null));
-            $('#btn-settings').addEaddEventListener('click', () => showModal(settingsModal));
+            $('#btn-add-movement').addEventListener('click', () => openMovementModal(null));
+            $('#btn-settings').addEventListener('click', () => showModal(settingsModal));
             
             // Modal de Configuración
-            settingsForm.addEaddEventListener('submit', handleSettingsFormSubmit);
-            $('#btn-settings-cancel').addEaddEventListener('click', () => hideModal(settingsModal));
+            settingsForm.addEventListener('submit', handleSettingsFormSubmit);
+            $('#btn-settings-cancel').addEventListener('click', () => hideModal(settingsModal));
             
             // Modal de Movimiento
-            movementForm.addEaddEventListener('submit', handleMovementFormSubmit);
-            $('#btn-modal-cancel').addEaddEventListener('click', () => hideModal(movementModal));
-            $('#btn-add-category').addEaddEventListener('click', handleAddCategory);
+            movementForm.addEventListener('submit', handleMovementFormSubmit);
+            $('#btn-modal-cancel').addEventListener('click', () => hideModal(movementModal));
+            $('#btn-add-category').addEventListener('click', handleAddCategory);
 
             // Selector de Tipo (Ingreso/Egreso)
-            typeIngreso.addEaddEventListener('click', () => updateTypeSelectorVisual('ingreso'));
-            typeEgreso.addEaddEventListener('click', () => updateTypeSelectorVisual('egreso'));
+            typeIngreso.addEventListener('click', () => updateTypeSelectorVisual('ingreso'));
+            typeEgreso.addEventListener('click', () => updateTypeSelectorVisual('egreso'));
 
             // Filtros
-            filterSearch.addEaddEventListener('input', handleFilterChange);
-            filterType.addEaddEventListener('change', handleFilterChange);
-            filterMonth.addEaddEventListener('change', handleFilterChange);
+            filterSearch.addEventListener('input', handleFilterChange);
+            filterType.addEventListener('change', handleFilterChange);
+            filterMonth.addEventListener('change', handleFilterChange);
         }
 
         // --- Inicialización de la App ---
         async function initApp() {
             // *** ¡LA CORRECCIÓN ESTÁ AQUÍ! ***
             // Inicializar todos los selectores DESPUÉS de que el DOM esté cargado.
-
-/*             // --- Sistema de Caché Local ---
-function saveToLocalCache(data) {
-  const cacheData = {
-    gistId: appState.gistConfig.gistId,
-    movements: data.movements || appState.movements,
-    timestamp: new Date().getTime(),
-    version: 1
-  };
-  localStorage.setItem('finanzasCache', JSON.stringify(cacheData));
-}
-
-function getFromLocalCache() {
-  try {
-    const cached = localStorage.getItem('finanzasCache');
-    return cached ? JSON.parse(cached) : null;
-  } catch {
-    return null;
-  }
-}
-
-async function loadAppWithCache() {
-  const cachedData = getFromLocalCache();
-  
-  if (cachedData && cachedData.gistId) {
-    // 1. Cargar datos del caché inmediatamente
-    appState.movements = cachedData.movements || [];
-    appState.gistConfig.gistId = cachedData.gistId;
-    renderAll(); // Mostrar UI rápidamente ⚡
-    
-    // 2. Si hay PAT guardado, sincronizar en background
-    if (appState.gistConfig.pat) {
-      setTimeout(() => syncInBackground(), 500);
-    }
-  } else {
-    // Sin caché: mostrar modal de configuración
-    renderAll(); // Mostrar UI en blanco
-    setTimeout(() => {
-      showModal(settingsModal);
-    }, 800);
-  }
-}
-
-async function syncInBackground() {
-  if (!appState.gistConfig.pat || !appState.gistConfig.gistId) return;
-  
-  const remoteData = await GistApi.pull();
-  if (remoteData && remoteData.movements) {
-    appState.movements = remoteData.movements;
-    saveToLocalCache(remoteData);
-    renderAll(); // Actualizar UI con datos frescos
-    showToast('Datos sincronizados desde Gist', 'success');
-  }
-}
-*/
-
             settingsModal = $('#settings-modal');
             movementModal = $('#movement-modal');
             confirmModal = $('#confirm-modal');
@@ -1643,10 +1518,10 @@ async function syncInBackground() {
             gistSpinner = $('#gist-sync-spinner');
             gistOk = $('#gist-sync-ok');
             gistError = $('#gist-sync-error');
-
+            
             // Ahora se pueden llamar a las funciones que usan los selectores
             setupTheme();
-            setupEaddEventListeners();
+            setupEventListeners();
             loadStateFromLocal();
             loadGistConfig();
             
@@ -1660,11 +1535,14 @@ async function syncInBackground() {
                 setSyncStatus('error'); // Indicar que no hay config
             }
             
-renderAll();
-  }
+            // Si no hay config, mostrar el modal de settings
+            if (!appState.gistConfig.pat) {
+                setTimeout(() => showModal(settingsModal), 500);
+            }
+        }
         
         // Iniciar la aplicación
-document.addEventListener('DOMContentLoaded', initApp);
+        document.addEventListener('DOMContentLoaded', initApp);
 
     </script>
     
