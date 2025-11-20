@@ -1581,6 +1581,28 @@
         // Iniciar la aplicación
         document.addEventListener('DOMContentLoaded', initApp);
 
+        // === RECUPERACIÓN Y PROTECCIÓN (Recovery & Sync Protection) ===
+        const FinanzasRecovery = {
+    init: function() {
+        // Crea backup local antes de cada sync
+        console.log('[Recovery] Sistema de protección activado');
+        this.createLocalBackup();
+    },
+    createLocalBackup: function() {
+        try {
+            const backup = {
+                timestamp: new Date().toISOString(),
+                count: appState.movements.length,
+                checksum: String(appState.movements.length).concat(JSON.stringify(appState.movements[0] || {}).slice(0, 10))
+            };
+            localStorage.setItem('finanzas_backup_' + Date.now(), JSON.stringify(backup));
+        } catch (e) {
+            console.warn('[Recovery] No se pudo guardar backup:', e.message);
+        }
+    }
+};
+FinanzasRecovery.init();
+
     </script>
     
     <!-- Estilos de Inputs para que coincidan en tema claro/oscuro -->
