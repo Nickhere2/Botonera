@@ -3,8 +3,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Finanzas</title>
-        <!-- BUILD VERSION: v2.0.1 - 2025-11-22 - Cache Buster -->
-    <!-- Tailwind CSS -->
+    <!-- BUILD VERSION: v2.0.2 - 2025-11-22 - FIXED gistId Reference Error -->    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
@@ -722,7 +721,7 @@ async function handlePushToGistSafe(showSuccessToast = false) {
                 if (config) {
                     appState.gistConfig = JSON.parse(config);
                     // Actualizar inputs del modal de settings (sin la contraseña)
-                    if (gistId) { // Solo si gistId ya fue seleccionado
+                    if ($('#gist-id').value) { // Solo si gistId ya fue seleccionado
                         gistId.value = appState.gistConfig.gistId || '';
                     }
                 }
