@@ -621,6 +621,26 @@
             }
         }
 
+        // ========================================
+// FUNCIÓN DE SINCRONIZACIÓN SEGURA
+// ========================================
+// Esta función es más robusta y validar que:
+// 1. gistId esté configurado
+// 2. Los datos se sincronicen correctamente
+// 3. Si falla, guarda localmente y notifica
+async function handlePushToGistSafe(showSuccessToast = false) {
+    // Validación crítica: gistId DEBE estar configurado
+    if (!appState.gistConfig.pat || !appState.gistConfig.gistId) {
+        console.warn("Push omitido: Configuración de Gist incompleta.");
+        return false; // NO hacer nada si no está configurado
+    }
+    
+    // Intentar sincronizar
+    const result = await handlePushToGist(showSuccessToast);
+    return !!result; // Retorna true si tuvo éxito
+}
+
+
         async function handlePullFromGist() {
             if (!appState.gistConfig.pat) return; // No hacer nada si no hay config
             
