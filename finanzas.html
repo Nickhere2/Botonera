@@ -676,6 +676,21 @@
             }
         }
 
+            // AUTO-LOAD desde Gist público (si el local está vacío)
+    if (!appState.movements || appState.movements.length === 0) {
+      fetch('https://gist.githubusercontent.com/Nickhere2/cfa46aa08df27e376fa3261679ac9f7c/raw')
+        .then(r => r.json())
+        .then(data => {
+          if (data.movements && data.movements.length > 0) {
+            appState.movements = data.movements;
+            appState.categories = data.categories || appState.categories;
+            saveStateToLocal();
+            console.log('✅ Datos cargados desde Gist: ' + appState.movements.length + ' movimientos');
+          }
+        })
+        .catch(e => console.log('Info: No se pudo cargar del Gist público:', e.message));
+    }
+
         function saveGistConfig() {
             localStorage.setItem('finanzasGistConfig', JSON.stringify(appState.gistConfig));
         }
