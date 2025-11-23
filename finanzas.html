@@ -1531,7 +1531,7 @@ async function handlePushToGistSafe(showSuccessToast = false) {
         function setupEventListeners() {
             // Botones principales
             $('#btn-add-movement').addEventListener('click', () => openMovementModal(null));
-            $('#btn-settings').addEventListener('click', () => showModal(settingsModal));
+            document.getElementById('btn-settings').addEventListener('click', () => showModal(settingsModal));
             
             // Modal de Configuración
             settingsForm.addEventListener('submit', handleSettingsFormSubmit);
