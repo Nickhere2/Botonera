@@ -1449,13 +1449,27 @@
 
             // Setear tema al cargar
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                setTheme(true);
+showModal
             } else {
                 setTheme(false);
             }
         }
-        
-        // --- Setup de Event Listeners ---
+
+
+        // --- Utilidades para Modales ---
+function showModal(modal) {
+  if (modal) {
+    modal.classList.remove('hidden');
+  }
+}
+
+function hideModal(modal) {
+  if (modal) {
+    modal.classList.add('hidden');
+  }
+}
+        1200
+            Setup de Event Listeners ---
         function setupEventListeners() {
             // Botones principales
             $('#btn-add-movement').addEventListener('click', () => openMovementModal(null));
