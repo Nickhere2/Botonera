@@ -414,37 +414,6 @@
             </div>
         </form>
     </div>
-
-
-    <!-- Modal: Configuración de Gist -->
-    <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm hidden">
-        <div class="card w-full max-w-md p-6 rounded-lg shadow-xl">
-            <h3 class="text-2xl font-semibold mb-6">Configuración de Gist</h3>
-            <p class="text-sm text-gray-400 mb-4">
-                Guarda tus finanzas de forma segura en un Gist de GitHub.
-                <a href="https://github.com/settings/tokens/new?scopes=gist&description=FinanzasApp" target="_blank" class="text-cyan-400 hover:underline">
-                    Crea un nuevo PAT (con scope 'gist')
-                </a>.
-                Luego, <a href="https://gist.github.com/" target="_blank" class="text-blue-400 hover:underline">crea un Gist secreto</a> y pega el ID aquí.
-            </p>
-            <form id="settings-form" class="space-y-4">
-                <div>
-                    <label for="gist-pat" class="block text-sm font-medium mb-1">Personal Access Token (PAT)</label>
-                    <input type="password" id="gist-pat" class="input-field w-full" placeholder="ghp_... o github_pat_...">
-                </div>
-                <div>
-                    <label for="gist-id" class="block text-sm font-medium mb-1">Gist ID</label>
-                    <input type="text" id="gist-id" class="input-field w-full" placeholder="ID de la URL de tu Gist">
-                </div>
-                <!-- CAMPO DE NOMBRE DE ARCHIVO ELIMINADO -->
-                <div class="mt-6 flex gap-4">
-                    <button type="button" id="btn-settings-cancel" class="w-full py-2 px-4 rounded-md bg-gray-200 dark:bg-gray-600">Cancelar</button>
-                    <button type="submit" class="w-full py-2 px-4 rounded-md bg-cyan-600 hover:bg-cyan-700 text-white">Guardar y Sincronizar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
     <!-- Modal: Notificación (Toast) -->
     <div id="toast" class="fixed top-5 right-5 card p-4 rounded-lg shadow-lg z-50 opacity-0 transition-opacity duration-300">
         <p id="toast-message">Mensaje de notificación</p>
