@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="es" class="dark"><head>
+<html lang="es" class="dark">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Finanzas</title>
-<!-- <script src="https://cdn.tailwindcss.com"></script> --> <!-- NOTA: Tailwind CSS NO se debe usar desde CDN en producción. Instálalo localmente -->    <!-- Chart.js -->
-    <!-- Para producción: npm install -D tailwindcss && npx tailwindcss build -o output.css -->
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <!-- Day.js para manejo de fechas -->
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
@@ -312,7 +314,6 @@
                             <th class="py-2 px-4 text-left">Categoría</th>
                             <th class="py-2 px-4 text-left">Nota</th>
                             <th class="py-2 px-4 text-right">Monto</th>
-                            <th class="py-2 px-4 text-right">Acciones</th>
                         </tr>
                     </thead>
                     <tbody id="history-table-body">
@@ -534,7 +535,6 @@
             async pull() {
                 const config = appState.gistConfig;
                 const data = await this.request(config);
-                 console.log('[Gist Pull] Datos cargados desde Gist:', data ? Object.keys(data.files || {}).length + ' archivos' : 'null');
                 
                 if (data && data.files) {
                     const fileKeys = Object.keys(data.files);
@@ -621,27 +621,7 @@
             }
         }
 
-        // ========================================
-// FUNCIÓN DE SINCRONIZACIÓN SEGURA
-// ========================================
-// Esta función es más robusta y validar que:
-// 1. gistId esté configurado
-// 2. Los datos se sincronicen correctamente
-// 3. Si falla, guarda localmente y notifica
-async function handlePushToGistSafe(showSuccessToast = false) {
-    // Validación crítica: gistId DEBE estar configurado
-    if (!appState.gistConfig.pat || !appState.gistConfig.gistId) {
-        console.warn("Push omitido: Configuración de Gist incompleta.");
-        return false; // NO hacer nada si no está configurado
-    }
-    
-    // Intentar sincronizar
-    const result = await handlePushToGist(showSuccessToast);
-    return !!result; // Retorna true si tuvo éxito
-}
-
-
-async function handlePullFromGist()            () {
+        async function handlePullFromGist() {
             if (!appState.gistConfig.pat) return; // No hacer nada si no hay config
             
             const data = await GistApi.pull();
@@ -696,21 +676,6 @@ async function handlePullFromGist()            () {
             }
         }
 
-            // AUTO-LOAD desde Gist público (si el local está vacío)
-    if (!appState.movements || appState.movements.length === 0) {
-      fetch('https://gist.githubusercontent.com/Nickhere2/cfa46aa08df27e376fa3261679ac9f7c/raw')
-        .then(r => r.json())
-        .then(data => {
-          if (data.movements && data.movements.length > 0) {
-            appState.movements = data.movements;
-            appState.categories = data.categories || appState.categories;
-            saveStateToLocal();
-            console.log('✅ Datos cargados desde Gist: ' + appState.movements.length + ' movimientos');
-          }
-        })
-        .catch(e => console.log('Info: No se pudo cargar del Gist público:', e.message));
-    }
-
         function saveGistConfig() {
             localStorage.setItem('finanzasGistConfig', JSON.stringify(appState.gistConfig));
         }
@@ -721,8 +686,8 @@ async function handlePullFromGist()            () {
                 if (config) {
                     appState.gistConfig = JSON.parse(config);
                     // Actualizar inputs del modal de settings (sin la contraseña)
-                    if ($('#gist-id').value) { // Solo si gistId ya fue seleccionado
-                        gistId.value = appState.gistConfig.gistId || '';
+                    if ($('#gist-id')) { // Solo si gistId ya fue seleccionado
+                        $('#gist-id').value = appState.gistConfig.gistId || '';
                     }
                 }
             } catch (e) {
@@ -924,50 +889,14 @@ async function handlePullFromGist()            () {
                     const amountColor = isIngreso ? 'text-green-500' : 'text-red-500';
                     const amountSign = isIngreso ? '+' : '-';
 
-                    // Celda de Fecha
-                    const cellDate = document.createElement('td');
-                    cellDate.className = 'py-3 px-4 text-sm text-gray-400';
-                    cellDate.textContent = dayjs(mov.date).format('DD/MM/YYYY');
-                    row.appendChild(cellDate);
-
-                    // Celda de Categoría
-                    const cellCategory = document.createElement('td');
-                    cellCategory.className = 'py-3 px-4';
-                    cellCategory.textContent = mov.category;
-                    row.appendChild(cellCategory);
-
-                    // Celda de Nota
-                    const cellNote = document.createElement('td');
-                    cellNote.className = 'py-3 px-4 text-sm text-gray-400';
-                    cellNote.textContent = mov.note || '';
-                    row.appendChild(cellNote);
-
-                    // Celda de Monto
-                    const cellAmount = document.createElement('td');
-                    cellAmount.className = `py-3 px-4 text-right font-medium ${amountColor}`;
-                    cellAmount.textContent = `${amountSign} ${formatCurrency(mov.amount)}`;
-                    row.appendChild(cellAmount);
-
-                    // Celda de Acciones (Nueva)
-                    const cellActions = document.createElement('td');
-                    cellActions.className = 'py-3 px-4 text-right';
-
-                    const editButton = document.createElement('button');
-                    editButton.className = 'p-1.5 rounded-md text-cyan-600 dark:text-cyan-400 hover:bg-cyan-100 dark:hover:bg-gray-700';
-                    editButton.setAttribute('aria-label', 'Editar');
-                    editButton.innerHTML = `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>`;
-                    editButton.onclick = () => handleEditMovement(mov.id);
-                    
-                    const deleteButton = document.createElement('button');
-                    deleteButton.className = 'p-1.5 rounded-md text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-gray-700 ml-1';
-                    deleteButton.setAttribute('aria-label', 'Eliminar');
-                    deleteButton.innerHTML = `<svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
-                    deleteButton.onclick = () => handleDeleteMovement(mov.id);
-
-                    cellActions.appendChild(editButton);
-                    cellActions.appendChild(deleteButton);
-                    row.appendChild(cellActions);
-                    
+                    row.innerHTML = `
+                        <td class="py-3 px-4 text-sm text-gray-400">${dayjs(mov.date).format('DD/MM/YYYY')}</td>
+                        <td class="py-3 px-4">${mov.category}</td>
+                        <td class="py-3 px-4 text-sm text-gray-400">${mov.note || ''}</td>
+                        <td class="py-3 px-4 text-right font-medium ${amountColor}">
+                            ${amountSign} ${formatCurrency(mov.amount)}
+                        </td>
+                    `;
                     historyTableBody.appendChild(row);
                 });
             }
@@ -1007,7 +936,7 @@ async function handlePullFromGist()            () {
             const sortedMonths = Object.keys(monthlyData).sort();
             
             // Tomar últimos 12 meses
-            const labels = sortedMonths.slice(-12).map(month => dayjs(month).format('MMM YYYY'));
+            const labels = sortedMonths.slice(-12).map(month => dayjs(month).format('MMM YYYYY'));
             const ingresos = sortedMonths.slice(-12).map(month => monthlyData[month].ingreso);
             const egresos = sortedMonths.slice(-12).map(month => monthlyData[month].egreso);
 
@@ -1397,7 +1326,7 @@ async function handlePullFromGist()            () {
             
             saveStateToLocal();
             renderAll();
-            handlePushToGistSafe(true); // Sincronizar con Gist
+            handlePushToGist(true); // Sincronizar con Gist
             hideModal(movementModal);
         }
 
@@ -1418,7 +1347,7 @@ async function handlePullFromGist()            () {
                 appState.movements = appState.movements.filter(m => m.id !== id);
                 saveStateToLocal();
                 renderAll();
-                handlePushToGistSafe(true); // Sincronizar
+                handlePushToGist(true); // Sincronizar
                 showToast('Movimiento eliminado.', 'success');
             }
         }
@@ -1530,7 +1459,7 @@ async function handlePullFromGist()            () {
         function setupEventListeners() {
             // Botones principales
             $('#btn-add-movement').addEventListener('click', () => openMovementModal(null));
-            document.getElementById('btn-settings').addEventListener('click', () => showModal(settingsModal));
+            $('#btn-settings').addEventListener('click', () => showModal(settingsModal));
             
             // Modal de Configuración
             settingsForm.addEventListener('submit', handleSettingsFormSubmit);
@@ -1552,7 +1481,8 @@ async function handlePullFromGist()            () {
         }
 
         // --- Inicialización de la App ---
-        async function initApp() {
+        1540
+            () {
             // *** ¡LA CORRECCIÓN ESTÁ AQUÍ! ***
             // Inicializar todos los selectores DESPUÉS de que el DOM esté cargado.
             settingsModal = $('#settings-modal');
@@ -1607,37 +1537,10 @@ async function handlePullFromGist()            () {
             }
             
             // Si no hay config, mostrar el modal de settings
-            if (!appState.gistConfig.pat) {
-                setTimeout(() => showModal(settingsModal), 500);
-            }
-        }
-        
+    showModal(settingsModal); // Siempre mostrar el modal de configuración al inicio            }       
         // Iniciar la aplicación
         document.addEventListener('DOMContentLoaded', initApp);
 
-        // === RECUPERACIÓN Y PROTECCIÓN (Recovery & Sync Protection) ===
-        const FinanzasRecovery = {
-    init: function() {
-        // Crea backup local antes de cada sync
-        console.log('[Recovery] Sistema de protección activado');
-        this.createLocalBackup();
-    },
-    createLocalBackup: function() {
-        try {
-            const backup = {
-                timestamp: new Date().toISOString(),
-                count: appState.movements.length,
-                checksum: String(appState.movements.length).concat(JSON.stringify(appState.movements[0] || {}).slice(0, 10))
-            };
-            localStorage.setItem('finanzas_backup_' + Date.now(), JSON.stringify(backup));
-        } catch (e) {
-            console.warn('[Recovery] No se pudo guardar backup:', e.message);
-        }
-    }
-};
-FinanzasRecovery.init();
-
-    
     </script>
     
     <!-- Estilos de Inputs para que coincidan en tema claro/oscuro -->
@@ -1670,19 +1573,6 @@ FinanzasRecovery.init();
             filter: invert(1);
         }
     </style>
-    <script>
-// Fix: Asegurar que el modal de settings se abra cuando no hay configuración
-document.addEventListener('DOMContentLoaded', function() {
-  setTimeout(function() {
-    if (!localStorage.getItem('finanzasGistConfig') || JSON.parse(localStorage.getItem('finanzasGistConfig') || '{}').pat === null) {
-      const settingsModal = document.getElementById('settings-modal');
-      if (settingsModal) {
-        settingsModal.classList.remove('hidden');
-      }
-    }
-  }, 1000);
-});
-</script>
 
 </body>
 </html>
