@@ -3,8 +3,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Finanzas</title>
-    <!-- BUILD VERSION: v2.0.2 - 2025-11-22 - FIXED gistId Reference Error -->    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
+ <!-- BUILD VERSION: v2.0.3 - 2025-11-23 - Ver todos los movimientos del Gist --> <!-- Tailwind CSS -->    <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <!-- Day.js para manejo de fechas -->
@@ -535,6 +534,7 @@
             async pull() {
                 const config = appState.gistConfig;
                 const data = await this.request(config);
+                 console.log('[Gist Pull] Datos cargados desde Gist:', data ? Object.keys(data.files || {}).length + ' archivos' : 'null');
                 
                 if (data && data.files) {
                     const fileKeys = Object.keys(data.files);
@@ -641,7 +641,8 @@ async function handlePushToGistSafe(showSuccessToast = false) {
 }
 
 
-        async function handlePullFromGist() {
+        async function 550
+            () {
             if (!appState.gistConfig.pat) return; // No hacer nada si no hay config
             
             const data = await GistApi.pull();
