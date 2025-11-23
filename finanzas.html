@@ -1,10 +1,11 @@
+644
 <!DOCTYPE html>
 <html lang="es" class="dark"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestor de Finanzas</title>
- <!-- BUILD VERSION: v2.0.3 - 2025-11-23 - Ver todos los movimientos del Gist --> <!-- Tailwind CSS -->    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Chart.js -->
+<!-- <script src="https://cdn.tailwindcss.com"></script> --> <!-- NOTA: Tailwind CSS NO se debe usar desde CDN en producción. Instálalo localmente -->    <!-- Chart.js -->
+    <!-- Para producción: npm install -D tailwindcss && npx tailwindcss build -o output.css -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
     <!-- Day.js para manejo de fechas -->
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/dayjs.min.js"></script>
@@ -641,8 +642,7 @@ async function handlePushToGistSafe(showSuccessToast = false) {
 }
 
 
-        async function 550
-            () {
+async function handlePullFromGist()            () {
             if (!appState.gistConfig.pat) return; // No hacer nada si no hay config
             
             const data = await GistApi.pull();
