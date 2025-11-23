@@ -1519,7 +1519,10 @@
             gistSpinner = $('#gist-sync-spinner');
             gistOk = $('#gist-sync-ok');
             gistError = $('#gist-sync-error');
+
             
+// --- Inicialización de la App ---
+            async function initApp() {
             // Ahora se pueden llamar a las funciones que usan los selectores
             setupTheme();
             setupEventListeners();
@@ -1537,7 +1540,8 @@
             }
             
             // Si no hay config, mostrar el modal de settings
-    showModal(settingsModal); // Siempre mostrar el modal de configuración al inicio            }       
+    showModal(settingsModal); // Siempre mostrar el modal de configuración al inicio            }
+                }
         // Iniciar la aplicación
         document.addEventListener('DOMContentLoaded', initApp);
 
