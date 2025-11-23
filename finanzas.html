@@ -336,6 +336,33 @@
 
     <!-- === MODALES === -->
 
+    <!-- Modal: Configuración de Gist -->
+<div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur hidden">
+  <div class="card w-full max-w-md p-6 rounded-lg shadow-xl">
+    <h3 class="text-2xl font-semibold mb-6 text-center">Configuración de Gist</h3>
+    <p class="text-sm text-gray-400 mb-4">
+      Guarda tus finanzas de forma segura en un Gist de GitHub.
+      <a href="https://github.com/settings/tokens/new?scopes=gist&description=FinanzasApp" target="_blank" class="text-blue-400 hover:underline">Crea un nuevo PAT (con scope 'gist')</a>.
+      Luego, <a href="https://gist.github.com/" target="_blank" class="text-blue-400 hover:underline">crea un Gist secreto</a> y pega el ID aquí.
+    </p>
+    <form id="settings-form" class="space-y-4">
+      <div>
+        <label for="gist-pat" class="block text-sm font-medium mb-1">Personal Access Token (PAT)</label>
+        <input type="password" id="gist-pat" class="input-field w-full" placeholder="ghp_... o github_pat_..." required>
+      </div>
+      <div>
+        <label for="gist-id" class="block text-sm font-medium mb-1">Gist ID</label>
+        <input type="text" id="gist-id" class="input-field w-full" placeholder="ID de la URL de tu Gist" required>
+      </div>
+      <div class="mt-6 flex gap-4">
+        <button type="button" id="btn-settings-cancel" class="w-full py-2 px-4 rounded-md bg-gray-200 dark:bg-gray-600 text-gray-800 dark:text-white hover:bg-gray-300 dark:hover:bg-gray-500">Cancelar</button>
+        <button type="submit" id="btn-settings-submit" class="w-full py-2 px-4 rounded-md bg-cyan-600 hover:bg-cyan-700 text-white">Guardar y Sincronizar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
     <!-- Modal: Agregar/Editar Movimiento -->
     <div id="movement-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-70 backdrop-blur-sm opacity-0 -translate-y-10 pointer-events-none">
         <form id="movement-form" class="card w-full max-w-md p-6 rounded-lg shadow-xl">
