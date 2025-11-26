@@ -1928,17 +1928,6 @@ function openEditPanel(itemId = null, prefillData = null) {
         document.getElementById('deleteItemButton').onclick = (e) => deleteItem(e, item.id);
     }
     
-    modal.querySelector('.type-selector').addEventListener('click', e => {
-        const button = e.target.closest('.type-btn');
-        if (button) {
-            const newType = button.dataset.type;
-            modal.querySelectorAll('.type-btn').forEach(b => b.classList.replace('btn-primary', 'btn-secondary'));
-            button.classList.replace('btn-secondary', 'btn-primary');
-            document.getElementById('newType').value = newType;
-            updateEditFormFields(newType, initialData);
-        }
-    });
-    
     const pasteBtn = document.getElementById('paste-url-btn');
     if (pasteBtn) {
         pasteBtn.onclick = async () => {
@@ -2538,7 +2527,8 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
     buttons.forEach(b => b.disabled = true);
     triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
 
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    // FIX: Se cambió el modelo de 'gemini-2.5-flash-preview-05-20' a 'gemini-2.5-flash', el modelo estable para la API v1beta.
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const payload = {
         contents: [{ parts: [{ text: prompt }] }]
@@ -2548,33 +2538,61 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
         payload.generationConfig = generationConfig;
     }
 
-    if (!generationConfig || !generationConfig.responseMimeType) {
+    // Usar Google Search grounding si no se está pidiendo un JSON específico para el que no se requiera búsqueda (ej. categorización interna).
+    // Si responseMimeType es JSON, la IA NO puede usar la herramienta de Google Search.
+    if (!generationConfig || (generationConfig.responseMimeType !== "application/json")) {
             payload.tools = [{ "google_search": {} }];
     }
 
 
     try {
-        const response = await fetch(API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-
-        if (!response.ok) {
-            let errorMessage = `Error HTTP: ${response.status}`;
+        let response;
+        let attempt = 0;
+        const maxRetries = 3;
+        
+        while (attempt < maxRetries) {
             try {
-                const errorData = await response.json();
-                errorMessage = errorData.error?.message || errorMessage;
-                if (response.status === 400 && errorMessage.includes('API key not valid')) {
-                    errorMessage = "API Key inválida o mal configurada. Revísala en Ajustes.";
-                } else if (response.status === 429) {
-                    errorMessage = "Límite de peticiones a la API alcanzado. Inténtalo más tarde.";
+                response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) break; // Success, exit loop
+                
+                // Handle 429 rate limit error with backoff
+                if (response.status === 429 && attempt < maxRetries - 1) {
+                    const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    attempt++;
+                    continue; // Retry
                 }
-            } catch(e) {
-                // Couldn't parse JSON, stick with the status code
+
+                // Handle other HTTP errors
+                let errorMessage = `Error HTTP: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error?.message || errorMessage;
+                    if (response.status === 400 && errorMessage.includes('API key not valid')) {
+                        errorMessage = "API Key inválida o mal configurada. Revísala en Ajustes.";
+                    } else if (response.status === 429) {
+                        errorMessage = "Límite de peticiones a la API alcanzado. Inténtalo más tarde.";
+                    }
+                } catch(e) { /* Couldn't parse JSON */ }
+                throw new Error(errorMessage);
+
+            } catch (fetchError) {
+                if (attempt === maxRetries - 1) throw fetchError; // Re-throw the last error
+                const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                await new Promise(resolve => setTimeout(resolve, delay));
+                attempt++;
             }
-            throw new Error(errorMessage);
         }
+        
+        if (!response || !response.ok) {
+            throw new Error('Máximo de reintentos alcanzado o error desconocido.');
+        }
+
 
         const responseData = await response.json();
         // Check for empty or malformed response from Gemini
@@ -2650,14 +2668,35 @@ async function handleNoteAction(action) {
 function replaceNoteText(button) {
     const rawResult = button.parentElement.querySelector('.raw-result').innerText;
     const decodedText = decodeURIComponent(atob(rawResult));
-    document.getElementById('newActionRich').innerHTML = simpleMarkdownToHtml(decodedText).replace(/<p>/g, '<div>').replace(/<\/p>/g, '</div>');
+    // Mantener la estructura de div en lugar de p si es posible
+    let htmlContent = simpleMarkdownToHtml(decodedText);
+    if (htmlContent.startsWith('<p>') && htmlContent.endsWith('</p>')) {
+        htmlContent = htmlContent.slice(3, -4); // Remove outer <p> tags
+    }
+    // Reemplazar <p> internos con <div> para consistencia del editor de notas
+    htmlContent = htmlContent.replace(/<p>/g, '<div>').replace(/<\/p>/g, '</div>').replace(/<div><\/div>/g, '');
+    document.getElementById('newActionRich').innerHTML = htmlContent;
 }
 
 function appendNoteText(button) {
     const rawResult = button.parentElement.querySelector('.raw-result').innerText;
     const decodedText = decodeURIComponent(atob(rawResult));
     const editor = document.getElementById('newActionRich');
-    editor.innerHTML += ` ${simpleMarkdownToHtml(decodedText).replace(/<p>/g, '<div>').replace(/<\/p>/g, '</div>')}`;
+    
+    // Convertir el resultado a HTML usando simpleMarkdownToHtml
+    let htmlContent = simpleMarkdownToHtml(decodedText);
+    if (htmlContent.startsWith('<p>') && htmlContent.endsWith('</p>')) {
+        htmlContent = htmlContent.slice(3, -4); // Remove outer <p> tags
+    }
+    htmlContent = htmlContent.replace(/<p>/g, '<div>').replace(/<\/p>/g, '</div>').replace(/<div><\/div>/g, '');
+    
+    // Asegurar que haya un espacio si no termina en un div
+    let prefix = '';
+    if (editor.innerHTML.trim() !== '' && !editor.innerHTML.trim().endsWith('</div>')) {
+        prefix = ' ';
+    }
+    
+    editor.innerHTML += prefix + htmlContent;
 }
 
 async function handleTaskSuggestion() {
@@ -2742,6 +2781,19 @@ async function handleSmartScratchpad() {
     
     const generationConfig = {
       responseMimeType: "application/json",
+      // Es importante que el modelo sepa la estructura exacta que queremos
+      responseSchema: {
+          type: "ARRAY",
+          items: {
+              type: "OBJECT",
+              properties: {
+                  "type": { "type": "STRING", "description": "task, note, link, video, or search" },
+                  "title": { "type": "STRING", "description": "A brief, descriptive title for the item." },
+                  "content": { "type": "STRING", "description": "The full text, URL, or action for the item." }
+              },
+              required: ["type", "title", "content"]
+          }
+      }
     };
 
     const rawResult = await callGeminiAPI(prompt, triggerButton, [], generationConfig);
@@ -2791,15 +2843,22 @@ function showGeneratedItemsModal(items) {
     modal.querySelector('#confirmOk').onclick = () => {
         items.forEach((item, index) => {
             let action;
+            let finalType;
             if (item.type === 'task') {
                 action = [{ text: item.content, status: false }];
-            } else { // note
+                finalType = 'Tarea';
+            } else if (item.type === 'note') { // note
                 action = `<div>${item.content}</div>`;
+                finalType = 'Nota';
+            } else {
+                 // Fallback for types not strictly requested (link, video, etc.)
+                action = item.content;
+                finalType = item.type.charAt(0).toUpperCase() + item.type.slice(1);
             }
             
             const newItemData = {
                 id: Date.now() + index,
-                type: item.type === 'task' ? 'Tarea' : 'Nota',
+                type: finalType,
                 title: item.title,
                 action: action,
                 category: 'Desde Bloc de Notas',
@@ -2903,12 +2962,50 @@ Usa tu conocimiento y la herramienta de búsqueda de Google para obtener la info
 
     const generationConfig = {
       responseMimeType: "application/json",
+      // Define el schema para asegurar la respuesta
+      responseSchema: {
+          type: "OBJECT",
+          properties: {
+              "type": { "type": "STRING", "enum": ["Video", "Link", "Buscador", "Nota", "Tarea", "Promp"] },
+              "title": { "type": "STRING" },
+              "action": { "type": "STRING" },
+              "category": { "type": "STRING" },
+              "tags": { "type": "ARRAY", "items": { "type": "STRING" } },
+              "icon": { "type": "STRING" }
+          },
+          required: ["type", "title", "action", "category", "tags", "icon"]
+      }
     };
 
     try {
         const rawResult = await callGeminiAPI(prompt, smartAddButton, [], generationConfig);
+        
         if (rawResult) {
-            const aiData = JSON.parse(rawResult);
+            const cleanedJson = cleanGeminiJsonResponse(rawResult);
+            const aiData = JSON.parse(cleanedJson);
+            
+            // Reemplazar iconos genéricos por favicon si es URL y la IA usó un icono genérico
+            if ((aiData.type === 'Link' || aiData.type === 'Video' || aiData.type === 'Buscador') && 
+                (aiData.icon.includes('fa-link') || aiData.icon.includes('fa-question') || aiData.icon.includes('fa-globe'))) {
+                try {
+                    const url = new URL(aiData.action);
+                    aiData.icon = `https://www.google.com/s2/favicons?domain=${url.hostname}&sz=64`;
+                } catch (e) {
+                     // Keep the AI's icon if URL is invalid
+                }
+            }
+            
+            // For tasks, convert single string action to the required array format
+            if (aiData.type === 'Tarea' && typeof aiData.action === 'string') {
+                // Assuming action is a list separated by newlines or commas
+                const taskList = aiData.action.split(/[\r\n,]+/).map(t => t.trim()).filter(Boolean);
+                aiData.action = taskList.map(t => ({ text: t, status: false }));
+            }
+            // For Notes/Prompts, ensure the action is an HTML string
+             if ((aiData.type === 'Nota' || aiData.type === 'Promp') && typeof aiData.action === 'string') {
+                aiData.action = `<div>${aiData.action.replace(/\n/g, '</div><div>')}</div>`;
+            }
+
             openEditPanel(null, aiData);
         } else {
             // If AI fails, open the manual panel as a fallback
@@ -2959,11 +3056,17 @@ Responde solo con el array de IDs en formato JSON.`;
     
     const generationConfig = {
       responseMimeType: "application/json",
+      // Es importante que el modelo sepa la estructura exacta que queremos
+      responseSchema: {
+          type: "ARRAY",
+          items: { "type": "INTEGER" } // IDs should be integers
+      }
     };
 
     try {
         aiResult = await callGeminiAPI(prompt, searchButton, [], generationConfig);
-        const resultIds = JSON.parse(aiResult);
+        const cleanedJson = cleanGeminiJsonResponse(aiResult);
+        const resultIds = JSON.parse(cleanedJson);
         
         if (Array.isArray(resultIds)) {
             const foundItems = data.items.filter(item => resultIds.map(String).includes(String(item.id)));
