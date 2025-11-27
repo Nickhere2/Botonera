@@ -43,12 +43,33 @@
         .prose ul { list-style: disc; margin-left: 1.5em; margin-bottom: 1em; } .prose ol { list-style: decimal; margin-left: 1.5em; margin-bottom: 1em; }
         .prose li { margin-bottom: 0.5em; } .prose pre { background-color: var(--secondary); padding: 1em; border-radius: var(--radius); }
         .dark .prose-invert { color: var(--foreground); }
-         /* Estilos específicos para la Fábrica de Asistentes de IA */
-        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1.5rem; }
+         
+        /* Estilos específicos para la Fábrica de Asistentes de IA */
+        .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 1.5rem; }
+        
         .ai-bot-card { display: flex; flex-direction: column; background: var(--card-background); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: var(--radius); padding: 1.25rem; position: relative; transition: all 0.2s ease-in-out; }
         .ai-bot-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
-        .bot-grid-item { display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--card-background); border: 1px solid var(--border); box-shadow: var(--shadow); border-radius: var(--radius); padding: 1.5rem; cursor: pointer; transition: all 0.2s ease-in-out; text-align: center; height: 150px; }
+        
+        /* Grid Item Actualizado para títulos largos */
+        .bot-grid-item { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: flex-start; /* Alineación superior para consistencia */
+            background: var(--card-background); 
+            border: 1px solid var(--border); 
+            box-shadow: var(--shadow); 
+            border-radius: var(--radius); 
+            padding: 1.5rem; 
+            cursor: pointer; 
+            transition: all 0.2s ease-in-out; 
+            text-align: center; 
+            min-height: 180px; /* Aumentado un poco */
+            height: 100%; /* Llenar la celda del grid */
+            gap: 1rem; /* Espacio entre icono y texto */
+        }
         .bot-grid-item:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
+        
         .ai-bot-card .dropdown-menu { position: absolute; top: 1rem; right: 1rem; background-color: var(--card-background); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); z-index: 10; min-width: 140px; }
         .ai-bot-card .dropdown-menu button { display: flex; align-items: center; width: 100%; padding: 0.5rem 1rem; text-align: left; font-weight: 500; color: var(--foreground); transition: background-color 0.1s ease; }
         .ai-bot-card .dropdown-menu button:hover { background-color: var(--muted); }
@@ -65,7 +86,7 @@
     <main class="p-4 sm:p-6 lg:p-8">
         <header id="main-header" class="flex justify-between items-center mb-6 pb-4 border-b border-border gap-4">
             <div class="flex items-center gap-4">
-                <a href="bactual.html" class="btn btn-ghost !p-2">
+                <a href="index.html" class="btn btn-ghost !p-2">
                     <i class="fas fa-arrow-left text-xl"></i>
                 </a>
                 <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Fábrica de Asistentes de IA</h1>
@@ -104,7 +125,6 @@ const mockData = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-    // Cargar tema
     const currentTheme = localStorage.getItem('theme') || 'dark';
     document.body.classList.remove('light', 'dark');
     document.body.classList.add(currentTheme);
@@ -207,7 +227,7 @@ function renderBotGrid(searchTerm = '') {
                 <i class="fas fa-key text-4xl text-muted-foreground mb-4"></i>
                 <h3 class="text-xl font-semibold">Configuración Requerida</h3>
                 <p class="text-muted-foreground mt-2 mb-4">Para usar la Fábrica de IA, necesitas agregar tu API Key de Gemini en los ajustes de la página principal.</p>
-                <a href="bactual.html" class="btn btn-primary">Ir a la Página Principal</a>
+                <a href="index.html" class="btn btn-primary">Ir a la Página Principal</a>
             </div>
         `;
         return;
@@ -253,9 +273,10 @@ function createBotGridItem(bot) {
     item.className = 'bot-grid-item';
     item.dataset.id = bot.id;
     item.onclick = () => openAssistantView(bot.id);
+    // Mejoras en el título: sin truncate, con break-words, y centrado.
     item.innerHTML = `
-        <div class="w-16 h-16 mb-4 flex items-center justify-center">${getIconHtml(bot.icon, 'text-4xl')}</div>
-        <h4 class="font-semibold text-sm truncate w-full">${bot.title}</h4>
+        <div class="w-16 h-16 mt-2 flex items-center justify-center flex-shrink-0">${getIconHtml(bot.icon, 'text-4xl')}</div>
+        <h4 class="font-semibold text-sm text-center w-full break-words leading-snug" title="${bot.title}">${bot.title}</h4>
     `;
     return item;
 }
@@ -423,7 +444,7 @@ function copyConversation(botId, event) {
     }
 
     const conversation = `Petición:\n${userInput}\n\nRespuesta:\n${aiResponse}`;
-    copyToClipboard(conversation, 'Conversación copiada al portapapeles.');
+    copyToClipboard(conversation, 'Conversación copiada al portapapeles.', event.currentTarget);
 }
 
 
@@ -435,10 +456,10 @@ function copyBotResponse(botId, event) {
         showToast('No hay contenido para copiar.', 'info');
         return;
     }
-    copyToClipboard(textToCopy, 'Respuesta copiada al portapapeles.');
+    copyToClipboard(textToCopy, 'Respuesta copiada al portapapeles.', event.currentTarget);
 }
 
-function copyToClipboard(text, message) {
+function copyToClipboard(text, message, buttonElement = null) {
     const tempTextarea = document.createElement('textarea');
     tempTextarea.value = text;
     document.body.appendChild(tempTextarea);
@@ -446,6 +467,16 @@ function copyToClipboard(text, message) {
     try {
         document.execCommand('copy');
         showToast(message);
+        // Visual feedback on the button
+        if (buttonElement) {
+            const originalHTML = buttonElement.innerHTML;
+            buttonElement.innerHTML = `<i class="fas fa-check mr-1"></i>Copiado`;
+            buttonElement.classList.add('text-green-400');
+            setTimeout(() => {
+                buttonElement.innerHTML = originalHTML;
+                buttonElement.classList.remove('text-green-400');
+            }, 2000);
+        }
     } catch (err) {
         showToast('Error al copiar el texto.', 'error');
     } finally {
@@ -619,7 +650,6 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
     buttons.forEach(b => b.disabled = true);
     triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
     
-    // FIX: Usamos el modelo estable 'gemini-2.5-flash' en lugar de la versión preview antigua
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
     
     const payload = {
@@ -647,7 +677,6 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
 
                 if (response.ok) break; // Éxito
 
-                // Manejo de error 429 (Rate limit) con backoff exponencial
                 if (response.status === 429 && attempt < maxRetries - 1) {
                     const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
                     await new Promise(resolve => setTimeout(resolve, delay));
