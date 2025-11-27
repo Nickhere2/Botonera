@@ -65,7 +65,7 @@
     <main class="p-4 sm:p-6 lg:p-8">
         <header id="main-header" class="flex justify-between items-center mb-6 pb-4 border-b border-border gap-4">
             <div class="flex items-center gap-4">
-                <a href="index.html" class="btn btn-ghost !p-2">
+                <a href="bactual.html" class="btn btn-ghost !p-2">
                     <i class="fas fa-arrow-left text-xl"></i>
                 </a>
                 <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Fábrica de Asistentes de IA</h1>
@@ -104,6 +104,11 @@ const mockData = {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
+    // Cargar tema
+    const currentTheme = localStorage.getItem('theme') || 'dark';
+    document.body.classList.remove('light', 'dark');
+    document.body.classList.add(currentTheme);
+
     loadData();
     document.getElementById('addBotButton').addEventListener('click', () => openBotManagerModal());
     document.getElementById('ai-search-input').addEventListener('input', (e) => renderBotGrid(e.target.value));
@@ -202,7 +207,7 @@ function renderBotGrid(searchTerm = '') {
                 <i class="fas fa-key text-4xl text-muted-foreground mb-4"></i>
                 <h3 class="text-xl font-semibold">Configuración Requerida</h3>
                 <p class="text-muted-foreground mt-2 mb-4">Para usar la Fábrica de IA, necesitas agregar tu API Key de Gemini en los ajustes de la página principal.</p>
-                <a href="index.html" class="btn btn-primary">Ir a la Página Principal</a>
+                <a href="bactual.html" class="btn btn-primary">Ir a la Página Principal</a>
             </div>
         `;
         return;
@@ -613,7 +618,10 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
     const buttons = allButtonsToDisable.length > 0 ? allButtonsToDisable : [triggerButton];
     buttons.forEach(b => b.disabled = true);
     triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+    
+    // FIX: Usamos el modelo estable 'gemini-2.5-flash' en lugar de la versión preview antigua
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    
     const payload = {
         contents: [{ parts: [{ text: prompt }] }]
     };
@@ -624,10 +632,48 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
         payload.tools = [{ "google_search": {} }];
     }
 
-
     try {
-        const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+        let response;
+        let attempt = 0;
+        const maxRetries = 3;
+
+        while (attempt < maxRetries) {
+            try {
+                response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.ok) break; // Éxito
+
+                // Manejo de error 429 (Rate limit) con backoff exponencial
+                if (response.status === 429 && attempt < maxRetries - 1) {
+                    const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    attempt++;
+                    continue;
+                }
+
+                let errorMessage = `Error HTTP: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error?.message || errorMessage;
+                } catch(e) { /* Error de parseo */ }
+                throw new Error(errorMessage);
+
+            } catch (fetchError) {
+                if (attempt === maxRetries - 1) throw fetchError;
+                const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
+                await new Promise(resolve => setTimeout(resolve, delay));
+                attempt++;
+            }
+        }
+
+        if (!response || !response.ok) {
+            throw new Error('Máximo de reintentos alcanzado o error de red.');
+        }
+
         const responseData = await response.json();
         if (!responseData.candidates || !responseData.candidates[0].content || !responseData.candidates[0].content.parts) {
             throw new Error("La IA devolvió una respuesta vacía o con formato incorrecto.");
@@ -661,4 +707,3 @@ function showConfirmModal(message, callback) {
 </script>
 </body>
 </html>
-
