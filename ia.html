@@ -79,6 +79,43 @@
         .ai-bot-card .result-area.has-content .copy-button { opacity: 1; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 16px; height: 16px; background: var(--primary); cursor: pointer; border-radius: 50%; }
         input[type="range"]::-moz-range-thumb { width: 16px; height: 16px; background: var(--primary); cursor: pointer; border-radius: 50%; border: none; }
+
+        /* Estilos para el selector de iconos */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+            gap: 0.5rem;
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: var(--secondary);
+            margin-top: 0.5rem;
+        }
+        .icon-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            width: 40px;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--card-background);
+            border: 1px solid transparent;
+            color: var(--muted-foreground);
+        }
+        .icon-option:hover {
+            border-color: var(--primary);
+            background: var(--accent);
+            color: var(--primary);
+        }
+        .icon-option.selected {
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
     </style>
 </head>
 <body class="dark">
@@ -501,6 +538,14 @@ function openBotManagerModal(botId = null, event) {
     const modal = document.getElementById('iaBotManagerPanel');
     const bot = botId ? data.iaBots.find(b => b.id == botId) : null;
 
+    // Iconos comunes para el selector
+    const commonIcons = [
+        'fas fa-robot', 'fas fa-brain', 'fas fa-comments', 'fas fa-magic', 'fas fa-lightbulb', 
+        'fas fa-pen-nib', 'fas fa-code', 'fab fa-whatsapp', 'fab fa-google', 'fas fa-search', 
+        'fas fa-envelope', 'fas fa-calendar-alt', 'fas fa-music', 'fas fa-video', 'fas fa-image', 
+        'fas fa-user-tie', 'fas fa-globe', 'fas fa-calculator'
+    ];
+
     modal.innerHTML = `
         <div class="modal-container w-full max-w-2xl p-6">
             <div class="flex justify-between items-center mb-6">
@@ -511,7 +556,17 @@ function openBotManagerModal(botId = null, event) {
                 <input type="hidden" id="botId" value="${bot?.id || ''}">
                 <div><label for="botTitle" class="font-semibold block mb-2">Título del Asistente</label><input type="text" id="botTitle" class="input-base" value="${bot?.title || ''}" required></div>
                 <div><label for="botDescription" class="font-semibold block mb-2">Descripción</label><textarea id="botDescription" class="input-base" rows="2" placeholder="Una breve descripción de lo que hace este asistente">${bot?.description || ''}</textarea></div>
-                <div><label for="botIcon" class="font-semibold block mb-2">Icono (Clase FontAwesome, ej: fas fa-robot)</label><input type="text" id="botIcon" class="input-base" value="${bot?.icon || 'fas fa-robot'}" placeholder="fas fa-robot"></div>
+                <div>
+                    <label for="botIcon" class="font-semibold block mb-2">Icono</label>
+                    <input type="text" id="botIcon" class="input-base" value="${bot?.icon || 'fas fa-robot'}" placeholder="fas fa-robot" oninput="document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'))">
+                    <div class="icon-grid">
+                        ${commonIcons.map(iconClass => `
+                            <div class="icon-option ${bot && bot.icon === iconClass ? 'selected' : ''}" onclick="selectIcon(this, '${iconClass}')">
+                                <i class="${iconClass}"></i>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
                 <div><label for="botSystemPrompt" class="font-semibold block mb-2">Prompt de Sistema (Instrucciones para el Asistente)</label><textarea id="botSystemPrompt" class="input-base" rows="8" placeholder="Ej: Eres un asistente de ventas profesional y amable...">${bot?.systemPrompt || ''}</textarea></div>
                 <div class="flex justify-end gap-2 pt-4">
                     <button type="button" onclick="document.getElementById('iaBotManagerPanel').classList.add('hidden')" class="btn btn-secondary">Cancelar</button>
@@ -522,6 +577,13 @@ function openBotManagerModal(botId = null, event) {
     modal.classList.remove('hidden');
     document.getElementById('botManagerForm').onsubmit = handleSaveBot;
 }
+
+// Función global para el selector de iconos
+window.selectIcon = function(element, iconClass) {
+    document.getElementById('botIcon').value = iconClass;
+    document.querySelectorAll('.icon-option').forEach(el => el.classList.remove('selected'));
+    element.classList.add('selected');
+};
 
 function handleSaveBot(event) {
     event.preventDefault();
