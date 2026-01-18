@@ -2,221 +2,460 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ImpresionesVCP</title>
+    <!-- Google Fonts: Poppins -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
-            /* New Improved Color Palette */
-            --primary-color: #00796B; /* Teal */
-            --secondary-color: #34495E; /* Dark Slate Gray */
-            --background-light: #F4F6F7; /* Lighter Gray */
-            --background-white: #ffffff;
-            --border-color: #E0E0E0;
-            --text-dark: #2C3E50;
-            --text-light: #7F8C8D;
-            --danger-color: #E74C3C; /* Red */
-            --success-color: #2ECC71; /* Green */
-            --whatsapp-color: #25D366;
+            /* Modern Palette */
+            --primary-color: #00897B; /* Teal 600 */
+            --primary-light: #E0F2F1;
+            --secondary-color: #263238; /* Blue Gray 900 */
+            --accent-color: #FF7043; /* Deep Orange 400 */
+            
+            --bg-body: #F0F2F5;
+            --bg-panel: #FFFFFF;
+            --border-color: #ECEFF1;
+            
+            --text-main: #37474F;
+            --text-secondary: #78909C;
+            
+            --danger-color: #EF5350;
+            --success-color: #66BB6A;
+            --warning-color: #FFA726;
+            
+            /* Shadows */
+            --shadow-sm: 0 2px 4px rgba(0,0,0,0.02);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.05);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+            --shadow-hover: 0 6px 16px rgba(0,137,123,0.15);
+
             --font-family: 'Poppins', sans-serif;
+            --radius-md: 12px;
+            --radius-lg: 20px;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--font-family); -webkit-tap-highlight-color: transparent; }
+
+        body { 
+            height: 100vh; /* Fallback */
+            height: 100dvh; /* Dynamic Viewport Height fix for mobile browsers */
+            width: 100vw;
+            background-color: var(--bg-body); 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            color: var(--text-main);
+            overflow: hidden; 
+        }
 
         /* Animations */
-        @keyframes slide-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes toast-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes slide-up { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scale-in { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         
-        .order-item-enter { animation: slide-in 0.3s ease-out forwards; }
-        .modal.is-opening { animation: fade-in 0.2s ease-out forwards; }
-
-        html, body { height: 100vh; overflow: hidden; background-color: var(--background-light); display: flex; justify-content: center; align-items: center; }
+        .order-item-enter { animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 
         .container {
-            width: 100%; height: 100%; max-width: 1000px; background: var(--background-white);
-            border-radius: 16px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08); display: flex;
-            flex-direction: column; overflow: hidden; margin: 15px; max-height: 95vh;
+            width: 100%; height: 100%; max-width: 1100px; 
+            background: var(--bg-panel);
+            border-radius: var(--radius-lg); 
+            box-shadow: var(--shadow-lg); 
+            display: flex;
+            flex-direction: column; 
+            overflow: hidden; 
+            margin: 15px; 
+            max-height: 95vh;
+            border: 1px solid white;
         }
 
-        .app-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-bottom: 1px solid var(--border-color); background: #fcfdff; flex-shrink: 0; }
+        /* HEADER */
+        .app-header { 
+            display: flex; align-items: center; justify-content: space-between; 
+            padding: 15px 25px; 
+            background: #ffffff; 
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0; 
+            z-index: 10;
+        }
+
         .header-left { display: flex; align-items: center; gap: 15px; }
-        .logo { display: flex; align-items: center; gap: 10px; font-weight: 600; color: var(--primary-color); font-size: 18px; }
-        .logo i { font-size: 24px; }
+        .logo { 
+            display: flex; align-items: center; gap: 10px; 
+            font-weight: 700; color: var(--primary-color); font-size: 20px; 
+            letter-spacing: -0.5px;
+        }
+        .logo i { font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,137,123,0.3)); }
 
-        .controls { display: flex; align-items: center; gap: 8px; }
-        .input-group { display: flex; align-items: center; gap: 5px; }
-        .input-group label { font-size: 13px; color: var(--text-light); font-weight: 500; }
+        .controls { 
+            display: flex; align-items: center; gap: 12px; 
+            background: var(--bg-body); padding: 5px 10px; border-radius: var(--radius-md);
+        }
+        .input-group { display: flex; align-items: center; gap: 8px; }
+        .input-group label { font-size: 12px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; }
 
-        .input-field { width: 60px; padding: 8px; border: 1px solid var(--border-color); border-radius: 8px; font-size: 14px; text-align: center; font-weight: 600; transition: all 0.2s; }
-        .input-field:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0, 121, 107, 0.1); }
-        .input-field.error { border-color: var(--danger-color); }
+        .input-field { 
+            width: 70px; padding: 8px 10px; 
+            border: 2px solid transparent; 
+            background: #fff;
+            border-radius: 8px; 
+            font-size: 16px; text-align: center; font-weight: 700; color: var(--text-main);
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s ease; 
+        }
+        .input-field:focus { outline: none; border-color: var(--primary-color); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .input-field::placeholder { color: #CFD8DC; font-weight: 400; }
+        .input-field.error { border-color: var(--danger-color); animation: shake 0.3s; }
 
-        .total-display { background: var(--secondary-color); color: white; padding: 8px 16px; border-radius: 8px; font-size: 16px; font-weight: 700; min-width: 120px; text-align: right; cursor: pointer; transition: all 0.2s; }
-        .total-display:hover { background-color: #2C3E50; transform: scale(1.02); }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 
+        /* TOTAL DISPLAY */
+        .total-display { 
+            background: var(--secondary-color); 
+            color: white; 
+            padding: 8px 20px; 
+            border-radius: 12px; 
+            min-width: 160px; 
+            text-align: right; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: flex-end; 
+            justify-content: center; 
+            box-shadow: 0 4px 10px rgba(38, 50, 56, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .total-display:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(38, 50, 56, 0.3); }
+        .total-display::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent); transform: translateX(-100%); transition: 0.5s; }
+        .total-display:hover::after { transform: translateX(100%); }
+
+        .total-amount { font-size: 22px; font-weight: 700; line-height: 1; letter-spacing: -0.5px; }
+        
+        .price-label {
+            font-size: 10px; font-weight: 800; text-transform: uppercase; margin-top: 4px;
+            letter-spacing: 1px; opacity: 0.9;
+        }
+        .price-label.minorista { color: #FFCCBC; }
+        .price-label.base { color: #BBDEFB; }
+        .price-label.lista { color: #C8E6C9; }
+
+        /* LAYOUT */
         .app-content { display: flex; flex-grow: 1; overflow: hidden; }
 
-        .panel { flex: 1; padding: 20px; display: flex; flex-direction: column; overflow: hidden; }
-        .services-panel { border-right: 1px solid var(--border-color); }
+        .panel { flex: 1; padding: 25px; display: flex; flex-direction: column; overflow: hidden; }
+        .services-panel { border-right: 1px solid var(--border-color); background: #FAFAFA; max-width: 55%; flex-basis: 55%; }
 
-        .panel-header { font-size: 16px; font-weight: 600; color: var(--text-dark); margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-        .panel-header-actions { display: flex; gap: 8px; }
+        .panel-header { 
+            font-size: 15px; font-weight: 700; color: var(--text-main); 
+            margin-bottom: 20px; padding-bottom: 10px; 
+            border-bottom: 2px dashed var(--border-color); 
+            display: flex; align-items: center; justify-content: space-between; gap: 8px; 
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .panel-header i { margin-right: 8px; color: var(--primary-color); }
+        .panel-header-actions { display: flex; gap: 10px; }
 
-        .services-grid { flex-grow: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 8px; padding: 5px; }
+        /* SERVICES GRID */
+        .services-grid { flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding-right: 5px; }
+        
+        .category-title { 
+            font-size: 11px; font-weight: 700; color: var(--text-secondary); 
+            text-transform: uppercase; margin-bottom: 10px; letter-spacing: 1px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .category-title::after { content: ''; flex: 1; height: 1px; background: var(--border-color); }
 
-        .service-btn { border: 1px solid var(--border-color); padding: 8px 5px; font-size: 11px; font-weight: 500; border-radius: 8px; cursor: pointer; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: var(--background-white); }
-        .service-btn:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgba(0,0,0,0.07); border-color: var(--primary-color); }
-        .service-btn i { font-size: 18px; }
-        .service-price { font-size: 10px; font-weight: 600; color: var(--text-light); }
-        
-        /* Button colors updated */
-        .color-btn { color: #C0392B; } .color2-btn { color: #2980B9; } .byn-btn { color: #2C3E50; }
-        .byn2-btn { color: #7F8C8D; } .foto-btn { color: #F39C12; } .sticker-btn { color: #27AE60; }
-        .anillado-btn { color: #8E44AD; }
-        .full-btn { color: #D35400; } 
-        .full2-btn { color: #8E44AD; }
-        /* NUEVO: Colores para Papel Grueso (Marrón/Bronce) */
-        .grueso-btn { color: #795548; } 
-        .grueso2-btn { color: #5D4037; }
-        
-        .action-btn { padding: 10px; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; transition: all 0.2s; }
-        .action-btn:hover { opacity: 0.9; }
-        .reset-btn { background: var(--danger-color); margin-top: 15px; }
-        
-        .icon-btn { background: transparent; border: 1px solid var(--border-color); color: var(--text-light); width: 32px; height: 32px; border-radius: 50%; font-size: 14px; }
-        .icon-btn:hover { background: #E8F5E9; color: var(--primary-color); }
-        
-        .order-panel { display: flex; flex-direction: column; }
-        .order-items { flex-grow: 1; overflow-y: auto; }
-        
-        .empty-order { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text-light); text-align: center; padding: 15px; font-size: 14px; }
-        .empty-order i { font-size: 36px; margin-bottom: 10px; opacity: 0.4; }
+        .service-category { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
 
-        .order-item { display: flex; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f0f2f5; font-size: 14px; }
-        .order-item.is-removing { transition: opacity 0.3s, transform 0.3s; opacity: 0; transform: translateX(-20px); }
+        .service-btn { 
+            background: #fff;
+            border: 1px solid var(--border-color); 
+            border-radius: 12px; 
+            padding: 12px 5px; 
+            cursor: pointer; 
+            text-align: center; 
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; 
+            position: relative;
+            box-shadow: var(--shadow-sm);
+        }
+        .service-btn:hover { 
+            transform: translateY(-4px); 
+            box-shadow: var(--shadow-hover); 
+            border-color: var(--primary-color); 
+        }
+        .service-btn:active { transform: translateY(-1px); }
+
+        .service-btn i { font-size: 24px; margin-bottom: 4px; transition: color 0.2s; }
+        .service-btn span { font-size: 12px; font-weight: 600; color: var(--text-main); line-height: 1.2; }
+        .service-price { font-size: 10px; font-weight: 600; color: var(--text-secondary); background: var(--bg-body); padding: 2px 6px; border-radius: 4px; margin-top: 2px; }
         
-        .item-icon { font-size: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 8px; margin-right: 12px; }
-        .item-details { flex-grow: 1; }
-        .item-name { font-weight: 600; color: var(--text-dark); }
-        .item-meta { font-size: 12px; color: var(--text-light); }
-        .item-price { font-weight: 600; margin: 0 10px; }
+        /* Specific Colors for Icons */
+        .byn-btn i { color: #455A64; } .color-btn i { color: #E53935; } 
+        .full-btn i { color: #FB8C00; } .foto-btn i { color: #8E24AA; }
+        .grueso-btn i { color: #5D4037; } .sticker-btn i { color: #43A047; }
+        .anillado-btn i { color: #1E88E5; } .custom-btn i { color: #78909C; }
         
-        .delete-btn { background: transparent; border: none; color: var(--text-light); cursor: pointer; font-size: 14px; padding: 5px; border-radius: 50%; transition: all 0.2s; }
-        .delete-btn:hover { background: #ffecec; color: var(--danger-color); }
+        .custom-btn { border-style: dashed; background: transparent; }
+        .custom-btn:hover { background: #fff; }
+
+        /* BUTTONS */
+        .icon-btn { 
+            background: #fff; border: 1px solid var(--border-color); color: var(--text-secondary); 
+            width: 36px; height: 36px; border-radius: 10px; font-size: 14px; 
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; cursor: pointer; box-shadow: var(--shadow-sm);
+        }
+        .icon-btn:hover { background: var(--primary-light); color: var(--primary-color); border-color: var(--primary-light); transform: rotate(5deg); }
+
+        .action-btn { 
+            padding: 12px; border: none; border-radius: 12px; 
+            font-size: 13px; font-weight: 600; cursor: pointer; color: white; 
+            display: flex; align-items: center; justify-content: center; gap: 8px; 
+            flex-shrink: 0; transition: all 0.2s; 
+            box-shadow: var(--shadow-md);
+        }
+        .action-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .reset-btn { background: var(--danger-color); margin-top: 15px; color: white; opacity: 0.9; }
+        .reset-btn:hover { opacity: 1; box-shadow: 0 4px 12px rgba(239, 83, 80, 0.4); }
+
+        /* ORDER PANEL */
+        .order-panel { background: #fff; }
         
-        .order-summary { padding-top: 15px; margin-top: 15px; border-top: 2px dashed var(--border-color); font-size: 14px; display: flex; flex-direction: column; gap: 8px; }
-        .summary-row { display: flex; justify-content: space-between; }
-        .summary-row span:first-child { color: var(--text-light); }
-        .summary-row span:last-child { font-weight: 600; }
+        .order-items { flex-grow: 1; overflow-y: auto; padding-right: 5px; display: flex; flex-direction: column; gap: 10px; }
+        
+        .empty-order { 
+            height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            color: var(--text-secondary); text-align: center; padding: 20px; 
+            background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="%23ECEFF1" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" xmlns="http://www.w3.org/2000/svg"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>') no-repeat center center;
+            background-size: 150px;
+        }
+        .empty-order h3 { margin-top: 120px; font-weight: 600; color: var(--text-main); }
+        .empty-order p { font-size: 13px; margin-top: 5px; }
+
+        .order-item { 
+            display: flex; align-items: center; padding: 8px; /* Reduced padding for mobile */
+            background: #fff; border: 1px solid var(--border-color); border-radius: 12px;
+            transition: all 0.2s; position: relative; overflow: hidden;
+        }
+        .order-item:hover { border-color: var(--primary-color); box-shadow: var(--shadow-md); }
+        .order-item.is-removing { transform: translateX(100%); opacity: 0; }
+        
+        .item-icon { 
+            font-size: 16px; width: 32px; height: 32px; /* Smaller icon */
+            display: flex; align-items: center; justify-content: center; 
+            border-radius: 8px; margin-right: 10px; 
+            background: var(--bg-body);
+        }
+        .item-details { flex-grow: 1; min-width: 0; } /* min-width 0 prevents flex overflow */
+        .item-name { font-weight: 600; font-size: 12px; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .item-meta { font-size: 10px; color: var(--text-secondary); margin-top: 1px; }
+        .item-price { font-weight: 700; font-size: 13px; color: var(--primary-color); margin: 0 8px; white-space: nowrap; }
+        
+        .delete-btn { 
+            background: transparent; border: none; color: #CFD8DC; 
+            cursor: pointer; width: 28px; height: 28px; border-radius: 8px; 
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.2s; 
+        }
+        .delete-btn:hover { background: #FFEBEE; color: var(--danger-color); }
+
+        .order-summary { 
+            padding: 15px; margin-top: 10px; 
+            background: var(--bg-body); border-radius: 12px;
+            display: flex; flex-direction: column; gap: 5px; 
+        }
+        .summary-row { display: flex; justify-content: space-between; font-size: 12px; }
+        .summary-row span:first-child { color: var(--text-secondary); font-weight: 500; }
+        .summary-row span:last-child { font-weight: 700; color: var(--text-main); }
         .summary-row.discount { color: var(--danger-color); }
-        .summary-row.total { font-size: 16px; color: var(--text-dark); margin-top: 5px; }
+        .summary-row.total { font-size: 16px; margin-top: 5px; padding-top: 5px; border-top: 1px solid rgba(0,0,0,0.05); color: var(--primary-color); }
 
-        /* Modal Styles */
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        /* MODALS */
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(38, 50, 56, 0.6); backdrop-filter: blur(2px); display: none; justify-content: center; align-items: center; z-index: 1000; }
         .modal.is-visible { display: flex; }
-        .modal-content { background: white; padding: 25px; border-radius: 12px; width: 90%; max-width: 600px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); position: relative; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .modal-title { font-size: 18px; font-weight: 600; }
-        .modal-close-btn { background: transparent; border: none; font-size: 24px; cursor: pointer; color: #aaa; }
-        .modal-body { max-height: 60vh; overflow-y: auto; }
-        .saved-quote-list li { display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid var(--border-color); }
-        .saved-quote-list li:last-child { border-bottom: none; }
-        .quote-actions button { margin-left: 8px; }
-        .comparison-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        .comparison-col h4 { margin-bottom: 10px; }
-        .comparison-col ul { list-style: none; padding-left: 0; font-size: 13px; }
-        .prompt-input { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 8px; margin-top: 10px; }
-        .prompt-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; width: 90%; max-width: 500px; box-shadow: 0 20px 60px rgba(0,0,0,0.2); position: relative; animation: scale-in 0.2s ease-out; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .modal-title { font-size: 20px; font-weight: 700; color: var(--text-main); }
+        .modal-close-btn { background: transparent; border: none; font-size: 24px; cursor: pointer; color: var(--text-secondary); transition: 0.2s; }
+        .modal-close-btn:hover { color: var(--danger-color); transform: rotate(90deg); }
+        .prompt-input { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 10px; margin-top: 8px; font-size: 15px; transition: 0.2s; }
+        .prompt-input:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px var(--primary-light); }
+        .prompt-buttons { display: flex; justify-content: flex-end; gap: 12px; margin-top: 25px; }
 
-        /* Toast Notification */
-        .toast-notification { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background-color: var(--secondary-color); color: white; padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); z-index: 2000; animation: toast-in 0.3s ease-out; }
+        .toast-notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background-color: var(--secondary-color); color: white; padding: 14px 24px; border-radius: 50px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 2000; animation: slide-up 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); font-weight: 500; font-size: 14px; }
 
-        @media (max-width: 600px) {
-            .container { margin: 0; border-radius: 0; height: 100vh; max-height: 100vh; }
-            .app-header { flex-wrap: wrap; gap: 10px; }
-            .controls { order: 1; width: 100%; justify-content: space-between; }
-            .total-display { order: 2; flex-grow: 1; }
-            .header-left { order: 3; }
+        /* MOBILE OPTIMIZATION */
+        @media (max-width: 768px) {
+            .container { 
+                margin: 0; border-radius: 0; height: 100dvh; max-height: none; border: none; box-shadow: none; 
+            }
+            .app-header { 
+                padding: 10px; gap: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+                height: 60px; /* Fixed small header */
+            }
+            .header-left { display: none; } /* Hide logo on mobile */
             
-            /* Changed mobile layout to be side-by-side */
-            .app-content {
-                flex-direction: row; /* Ensure side-by-side layout */
-                flex: 1;
-                min-height: 0;
+            .controls { flex: 1; padding: 0; background: transparent; }
+            .input-group label { display: none; } 
+            .input-field { width: 100%; font-size: 16px; height: 40px; } 
+            .input-group { flex: 1; }
+
+            .total-display { 
+                min-width: auto; padding: 5px 10px; 
+                flex-direction: column; align-items: flex-end;
+            }
+            .total-amount { font-size: 16px; }
+            .price-label { font-size: 8px; margin-top: 0; }
+
+            .app-content { 
+                flex-direction: row; /* Keep side-by-side */
+                height: calc(100dvh - 60px); /* Use dvh for viewport accuracy */
             }
             
-            .panel {
-                flex: 1;
-                min-height: 0;
-                padding: 10px; /* Reduce padding on mobile */
+            .panel { padding: 10px; overflow-y: auto; } /* Allow internal scroll */
+            
+            /* Left Panel (Buttons) - Compact */
+            .services-panel { 
+                flex: 0 0 110px; /* Fixed narrow width for buttons */
+                border-right: 1px solid var(--border-color); 
+                padding: 10px 5px;
+                padding-bottom: 80px; /* EXTRA PADDING PARA QUE NO SE TAPE EL BOTÓN LIMPIAR */
+                max-width: none;
             }
-
-            .services-panel {
-                border-bottom: none; /* Remove bottom border */
-                border-right: 1px solid var(--border-color); /* Ensure right border exists */
+            .services-grid { gap: 15px; }
+            .category-title { font-size: 9px; margin-bottom: 5px; justify-content: center; }
+            .category-title i { display: none; }
+            .service-category { display: flex; flex-direction: column; gap: 8px; } /* Column of buttons */
+            .service-btn { 
+                padding: 8px 2px; 
+                min-height: 50px; 
+                border-radius: 8px;
             }
-            .services-grid { grid-template-columns: 1fr; } /* Force single column for buttons */
-            .comparison-container { grid-template-columns: 1fr; }
+            .service-btn i { font-size: 20px; margin-bottom: 2px; }
+            .service-btn span { font-size: 10px; line-height: 1; }
+            .service-price { display: none; } /* Hide price tags on mobile to save space */
+            
+            /* Right Panel (Order) */
+            .order-panel { flex: 1; background: #fff; padding-bottom: 80px; /* Extra padding here too */ }
+            .panel-header { font-size: 12px; margin-bottom: 10px; padding-bottom: 5px; }
+            .order-summary { padding: 10px; margin-top: 5px; }
+            
+            .reset-btn { margin-top: 15px; font-size: 10px; padding: 8px; }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <!-- HEADER -->
         <header class="app-header">
             <div class="header-left">
                 <div class="logo"><i class="fas fa-print"></i><span>ImpresionesVCP</span></div>
-                <button class="action-btn icon-btn" onclick="showHistoryModal()" title="Historial de presupuestos"><i class="fa-solid fa-clock-rotate-left"></i></button>
+                <button class="icon-btn" onclick="showHistoryModal()" title="Historial"><i class="fa-solid fa-clock-rotate-left"></i></button>
             </div>
             <div class="controls">
-                <div class="input-group"><label for="num-pages">Págs:</label><input class="input-field" type="number" id="num-pages" min="1" placeholder="0" autofocus></div>
-                <div class="input-group"><label for="num-copias">x</label><input class="input-field" type="number" id="num-copias" min="1" value="1" placeholder="1"></div>
+                <div class="input-group"><label>Págs</label><input class="input-field" type="number" id="num-pages" min="1" placeholder="Págs" autofocus></div>
+                <div class="input-group"><label>Copias</label><input class="input-field" type="number" id="num-copias" min="1" value="1" placeholder="1"></div>
             </div>
-            <div id="total-display" class="total-display" onclick="shareTotal()" title="Compartir total">$<span id="final-total">0</span></div>
+            <div id="total-display" class="total-display" onclick="shareTotal()" title="Compartir Detalle">
+                <div class="total-amount">$<span id="final-total">0</span></div>
+                <div id="price-label" class="price-label"></div>
+            </div>
         </header>
 
+        <!-- CONTENT -->
         <main class="app-content">
+            <!-- Left Panel: Services -->
             <div class="panel services-panel">
-                <div class="panel-header"><div><i class="fas fa-print"></i> <span>Servicios de Impresión</span></div></div>
                 <div class="services-grid">
-                    <button class="service-btn byn-btn" onclick="addService('byn', 'BYN Simple Faz', 90)"><i class="fas fa-file-alt"></i><span>BYN Simple</span><div class="service-price">$90/pág</div></button>
-                    <button class="service-btn byn2-btn" onclick="addService('byn2', 'BYN Doble Faz', 60)"><i class="fas fa-file-invoice"></i><span>BYN Doble</span><div class="service-price">$60/pág</div></button>
-                    <button class="service-btn color-btn" onclick="addService('color', 'Color Simple Faz', 120)"><i class="fas fa-print"></i><span>Color Simple</span><div class="service-price">$120/pág</div></button>
-                    <button class="service-btn color2-btn" onclick="addService('color2', 'Color Doble Faz', 80)"><i class="fas fa-copy"></i><span>Color Doble</span><div class="service-price">$80/pág</div></button>
-                    <button class="service-btn full-btn" onclick="addService('full', 'Full Simple Faz', 200)"><i class="fas fa-palette"></i><span>Full Simple</span><div class="service-price">$200/pág</div></button>
-                    <button class="service-btn full2-btn" onclick="addService('full2', 'Full Doble Faz', 150)"><i class="fas fa-brush"></i><span>Full Doble</span><div class="service-price">$150/pág</div></button>
-                    <button class="service-btn grueso-btn" onclick="addService('grueso', 'Grueso Simple Faz', 1800)"><i class="fas fa-layer-group"></i><span>Grueso Simple</span><div class="service-price">$1.800/pág</div></button>
-                    <button class="service-btn grueso2-btn" onclick="addService('grueso2', 'Grueso Doble Faz', 1250)"><i class="fas fa-swatchbook"></i><span>Grueso Doble</span><div class="service-price">$1.250/pág</div></button>
-                    <button class="service-btn foto-btn" onclick="addService('foto', 'Fotos', 1200)"><i class="fas fa-camera"></i><span>Fotos</span><div class="service-price">$1.200/pág</div></button>
-                    <button class="service-btn sticker-btn" onclick="addService('sticker', 'Stickers', 1800)"><i class="fas fa-tag"></i><span>Stickers</span><div class="service-price">$1.800/pág</div></button>
-                    <button class="service-btn anillado-btn" onclick="addAnillado()"><i class="fas fa-book"></i><span>Anillado</span><div class="service-price">$1.800/unid</div></button>
+                    
+                    <!-- B&N Group -->
+                    <div>
+                        <div class="category-title">B&N</div>
+                        <div class="service-category">
+                            <button class="service-btn byn-btn" onclick="addService('byn', 'BYN Simple', 90)"><i class="fas fa-file-alt"></i><span>Simple</span><div class="service-price">$90</div></button>
+                            <button class="service-btn byn2-btn" onclick="addService('byn2', 'BYN Doble', 60)"><i class="fas fa-file-invoice"></i><span>Doble</span><div class="service-price">$60</div></button>
+                        </div>
+                    </div>
+
+                    <!-- Color Group -->
+                    <div>
+                        <div class="category-title">Color</div>
+                        <div class="service-category">
+                            <button class="service-btn color-btn" onclick="addService('color', 'Color Simp', 120)"><i class="fas fa-print"></i><span>Simple</span><div class="service-price">$120</div></button>
+                            <button class="service-btn color2-btn" onclick="addService('color2', 'Color Doble', 80)"><i class="fas fa-copy"></i><span>Doble</span><div class="service-price">$80</div></button>
+                            <button class="service-btn full-btn" onclick="addService('full', 'Full Simp', 200)"><i class="fas fa-image"></i><span>Full</span><div class="service-price">$200</div></button>
+                            <button class="service-btn full2-btn" onclick="addService('full2', 'Full Doble', 150)"><i class="fas fa-images"></i><span>Full 2</span><div class="service-price">$150</div></button>
+                        </div>
+                    </div>
+
+                    <!-- Special Group -->
+                    <div>
+                        <div class="category-title">Especial</div>
+                        <div class="service-category">
+                            <button class="service-btn grueso-btn" onclick="addService('grueso', 'Grueso', 1800)"><i class="fas fa-layer-group"></i><span>Grueso</span><div class="service-price">$1.800</div></button>
+                            <button class="service-btn grueso2-btn" onclick="addService('grueso2', 'Grueso 2', 1250)"><i class="fas fa-swatchbook"></i><span>Grueso 2</span><div class="service-price">$1.250</div></button>
+                            <button class="service-btn foto-btn" onclick="addService('foto', 'Fotos', 1200)"><i class="fas fa-camera"></i><span>Fotos</span><div class="service-price">$1.200</div></button>
+                            <button class="service-btn foto2-btn" onclick="addService('foto2', 'Fotos 2', 900)"><i class="fas fa-images"></i><span>Fotos 2</span><div class="service-price">$900</div></button>
+                            <button class="service-btn sticker-btn" onclick="addService('sticker', 'Stickers', 1800)"><i class="fas fa-tag"></i><span>Sticker</span><div class="service-price">$1.800</div></button>
+                            <button class="service-btn anillado-btn" onclick="addAnillado()"><i class="fas fa-book-open"></i><span>Anillado</span><div class="service-price">$1.800</div></button>
+                            <button class="service-btn custom-btn" onclick="showCustomItemModal()"><i class="fas fa-plus"></i><span>Otro</span><div class="service-price">---</div></button>
+                        </div>
+                    </div>
+
                 </div>
-                <button class="action-btn reset-btn" onclick="resetOrder()"><i class="fas fa-trash-alt"></i> Reiniciar Pedido</button>
+                <button class="action-btn reset-btn" onclick="resetOrderWithConfirm()">Limpiar</button>
             </div>
 
+            <!-- Right Panel: Order Details -->
             <div class="panel order-panel">
                 <div class="panel-header">
-                    <div><i class="fas fa-clipboard-list"></i> <span>Detalle del Pedido</span></div>
+                    <div><i class="fas fa-receipt"></i> <span>Resumen</span></div>
                     <div class="panel-header-actions">
-                        <button class="action-btn icon-btn" onclick="showAdvancedComparisonModal()" title="Comparativa Avanzada"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
-                        <button class="action-btn icon-btn" onclick="promptForDiscount()" title="Aplicar descuento"><i class="fas fa-percent"></i></button>
-                        <button class="action-btn icon-btn" onclick="promptToSaveQuote()" title="Guardar presupuesto"><i class="fa-solid fa-floppy-disk"></i></button>
+                        <button class="icon-btn" onclick="showAdvancedComparisonModal()" title="Comparar"><i class="fa-solid fa-wand-magic-sparkles"></i></button>
+                        <button class="icon-btn" onclick="promptForDiscount()" title="Descuento"><i class="fas fa-percent"></i></button>
+                        <button class="icon-btn" onclick="promptToSaveQuote()" title="Guardar"><i class="fa-solid fa-floppy-disk"></i></button>
                     </div>
                 </div>
+                
                 <div class="order-items" id="order-items">
-                    <div class="empty-order" id="empty-order"><i class="fas fa-shopping-cart"></i><h3>Tu pedido está vacío</h3><p>Agrega servicios para empezar</p></div>
+                    <div class="empty-order" id="empty-order"><h3>Vacío</h3><p>Agrega ítems</p></div>
                 </div>
                 <div class="order-summary" id="order-summary" style="display: none;"></div>
             </div>
         </main>
     </div>
 
-    <div id="history-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3 class="modal-title">Historial de Presupuestos</h3><button class="modal-close-btn" onclick="closeModal('history-modal')">&times;</button></div><div class="modal-body"><ul class="saved-quote-list" id="saved-quote-list"></ul></div></div></div>
-    <div id="comparison-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3 class="modal-title">Comparativa Avanzada</h3><button class="modal-close-btn" onclick="closeModal('comparison-modal')">&times;</button></div><div class="modal-body" id="comparison-body"></div><button class="action-btn" style="background: var(--primary-color); margin-top: 20px;" onclick="shareComparison()"><i class="fas fa-share-alt"></i> Compartir Comparativa</button></div></div>
+    <!-- Modals -->
+    <div id="history-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3 class="modal-title">Historial</h3><button class="modal-close-btn" onclick="closeModal('history-modal')">&times;</button></div><div class="modal-body"><ul class="saved-quote-list" id="saved-quote-list"></ul></div></div></div>
+    <div id="comparison-modal" class="modal"><div class="modal-content"><div class="modal-header"><h3 class="modal-title">Comparativa</h3><button class="modal-close-btn" onclick="closeModal('comparison-modal')">&times;</button></div><div class="modal-body" id="comparison-body"></div><button class="action-btn" style="background: var(--primary-color); margin-top: 20px; width: 100%;" onclick="shareComparison()"><i class="fas fa-share-alt"></i> Compartir</button></div></div>
     <div id="prompt-modal" class="modal"><div class="modal-content" id="prompt-modal-content"></div></div>
+    
+    <!-- Custom Item Modal -->
+    <div id="custom-item-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Ítem Personalizado</h3>
+                <button class="modal-close-btn" onclick="closeModal('custom-item-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Concepto</label>
+                <input type="text" id="custom-name" class="prompt-input" placeholder="Ej: Diseño, Plastificado..." style="margin-bottom:15px;">
+                <label style="display:block; margin-bottom:5px; font-weight:600;">Precio Total</label>
+                <input type="number" id="custom-price" class="prompt-input" placeholder="0">
+            </div>
+            <div class="prompt-buttons">
+                <button class="action-btn" style="background: #ECEFF1; color: #333;" onclick="closeModal('custom-item-modal')">Cancelar</button>
+                <button class="action-btn" style="background: var(--primary-color);" onclick="addCustomItem()">Agregar</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast-container"></div>
 
     <script>
@@ -225,12 +464,17 @@
         let discountPercent = 0;
         let orderItems = [];
 
+        const WHOLESALE_PRICES = {
+            'byn': 90, 'byn2': 60,
+            'color': 120, 'color2': 80
+        };
+
         const ALL_SERVICES = {
             'byn': { name: 'BYN Simple Faz', price: 90 }, 'byn2': { name: 'BYN Doble Faz', price: 60 },
             'color': { name: 'Color Simple Faz', price: 120 }, 'color2': { name: 'Color Doble Faz', price: 80 },
             'full': { name: 'Full Simple Faz', price: 200 }, 'full2': { name: 'Full Doble Faz', price: 150 },
             'grueso': { name: 'Grueso Simple Faz', price: 1800 }, 'grueso2': { name: 'Grueso Doble Faz', price: 1250 },
-            'foto': { name: 'Fotos', price: 1200 }, 'sticker': { name: 'Stickers', price: 1800 },
+            'foto': { name: 'Fotos', price: 1200 }, 'foto2': { name: 'Fotos Doble', price: 900 }, 'sticker': { name: 'Stickers', price: 1800 },
             'anillado': { name: 'Anillado', price: 1800 }
         };
 
@@ -240,16 +484,34 @@
         const numPagesInput = document.getElementById('num-pages');
         const numCopiasInput = document.getElementById('num-copias');
         const totalDisplayEl = document.getElementById('total-display');
+        const priceLabelEl = document.getElementById('price-label');
 
-        document.addEventListener('DOMContentLoaded', () => numPagesInput.focus());
+        document.addEventListener('DOMContentLoaded', () => {
+            // Removed automatic session loading to start clean
+            numPagesInput.focus();
+        });
 
         function showInputError(el) { el.classList.add('error'); setTimeout(() => el.classList.remove('error'), 1500); el.focus(); }
 
-        function addService(type, name, price) {
+        function addService(type, name, basePrice) {
             const numPages = parseInt(numPagesInput.value) || 0;
             const numCopias = parseInt(numCopiasInput.value) || 1;
+            
             if (numPages < 1) { showInputError(numPagesInput); return; }
-            const item = { id: Date.now(), type, name, pages: numPages, copies: numCopias, price: numPages * price * numCopias, icon: getIconForService(type), color: getColorForService(type) };
+
+            const item = { 
+                id: Date.now(), 
+                type, 
+                name: name, 
+                pages: numPages, 
+                copies: numCopias, 
+                price: 0, 
+                icon: getIconForService(type), 
+                color: getColorForService(type) 
+            };
+
+            item.price = item.pages * item.copies * basePrice; 
+
             addToOrder(item);
         }
 
@@ -260,23 +522,108 @@
             addToOrder(item);
         }
 
-        function getIconForService(type) { return { 'color': 'fas fa-print', 'color2': 'fas fa-copy', 'byn': 'fas fa-file-alt', 'byn2': 'fas fa-file-invoice', 'full': 'fas fa-palette', 'full2': 'fas fa-brush', 'grueso': 'fas fa-layer-group', 'grueso2': 'fas fa-swatchbook', 'foto': 'fas fa-camera', 'sticker': 'fas fa-tag', 'anillado': 'fas fa-book' }[type] || 'fas fa-question'; }
+        // --- Custom Item Logic ---
+        function showCustomItemModal() {
+            document.getElementById('custom-name').value = '';
+            document.getElementById('custom-price').value = '';
+            openModal('custom-item-modal');
+            setTimeout(() => document.getElementById('custom-name').focus(), 100);
+        }
+
+        function addCustomItem() {
+            const name = document.getElementById('custom-name').value.trim();
+            const price = parseFloat(document.getElementById('custom-price').value);
+
+            if (!name || isNaN(price)) {
+                showToast("Por favor ingresa nombre y precio válido", "error");
+                return;
+            }
+
+            const item = {
+                id: Date.now(),
+                type: 'custom',
+                name: name,
+                pages: 1, 
+                copies: 1, 
+                price: price,
+                icon: "fas fa-star",
+                color: "#555"
+            };
+
+            addToOrder(item);
+            closeModal('custom-item-modal');
+        }
+
+        function getIconForService(type) { return { 'color': 'fas fa-print', 'color2': 'fas fa-copy', 'byn': 'fas fa-file-alt', 'byn2': 'fas fa-file-invoice', 'full': 'fas fa-palette', 'full2': 'fas fa-brush', 'grueso': 'fas fa-layer-group', 'grueso2': 'fas fa-swatchbook', 'foto': 'fas fa-camera', 'foto2': 'fas fa-images', 'sticker': 'fas fa-tag', 'anillado': 'fas fa-book' }[type] || 'fas fa-question'; }
         
-        function getColorForService(type) { return { 'color': '#C0392B', 'color2': '#2980B9', 'byn': '#2C3E50', 'byn2': '#7F8C8D', 'full': '#D35400', 'full2': '#8E44AD', 'grueso': '#795548', 'grueso2': '#5D4037', 'foto': '#F39C12', 'sticker': '#27AE60', 'anillado': '#8E44AD' }[type] || '#7f8c8d'; }
+        function getColorForService(type) { return { 'color': '#C0392B', 'color2': '#2980B9', 'byn': '#2C3E50', 'byn2': '#7F8C8D', 'full': '#D35400', 'full2': '#8E44AD', 'grueso': '#795548', 'grueso2': '#5D4037', 'foto': '#F39C12', 'foto2': '#D35400', 'sticker': '#27AE60', 'anillado': '#8E44AD' }[type] || '#7f8c8d'; }
 
         function addToOrder(item) {
             orderItems.push(item);
+            recalculateAllPrices(); 
             renderOrder();
             updateTotals();
-            numPagesInput.value = "";
-            numCopiasInput.value = "1";
-            numPagesInput.focus();
+            saveSession(); 
+            
+            if (item.type !== 'custom') {
+                numPagesInput.value = "";
+                numCopiasInput.value = "1";
+                numPagesInput.focus();
+            }
+        }
+
+        function removeItem(itemId) {
+            const itemEl = document.getElementById(`item-${itemId}`);
+            if (itemEl) {
+                itemEl.classList.add('is-removing');
+                setTimeout(() => {
+                    orderItems = orderItems.filter(i => i.id !== itemId);
+                    recalculateAllPrices(); 
+                    renderOrder();
+                    updateTotals();
+                    saveSession(); 
+                }, 300);
+            }
         }
         
+        function recalculateAllPrices() {
+            let standardItems = orderItems.filter(item => ['byn', 'byn2', 'color', 'color2'].includes(item.type));
+            
+            if (standardItems.length === 0) return;
+
+            let totalRetailValue = 0;
+            let totalWholesaleValue = 0;
+
+            standardItems.forEach(item => {
+                const qty = item.pages * item.copies;
+                const wholesalePrice = WHOLESALE_PRICES[item.type];
+                
+                totalRetailValue += qty * 200; 
+                totalWholesaleValue += qty * wholesalePrice; 
+            });
+
+            let targetTotal = 0;
+
+            if (totalRetailValue < 1500) {
+                targetTotal = totalRetailValue;
+            } else {
+                targetTotal = Math.max(1500, totalWholesaleValue);
+            }
+
+            if (totalRetailValue > 0) {
+                standardItems.forEach(item => {
+                    const itemRetailValue = (item.pages * item.copies) * 200;
+                    const ratio = itemRetailValue / totalRetailValue;
+                    item.price = targetTotal * ratio;
+                });
+            }
+        }
+
         function applyDiscount(newDiscountValue) {
             if (!isNaN(newDiscountValue) && newDiscountValue >= 0 && newDiscountValue <= 100) {
                 discountPercent = newDiscountValue;
                 updateTotals();
+                saveSession();
                 showToast(`Descuento del ${newDiscountValue}% aplicado.`);
             } else {
                 showToast("Error: Por favor, ingresa un número válido.", 'error');
@@ -289,6 +636,22 @@
             finalTotal = subtotal - discountAmount;
             finalTotalEl.textContent = finalTotal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
             
+            if (subtotal > 0) {
+                if (subtotal < 1500) {
+                    priceLabelEl.textContent = "PRECIO MINORISTA";
+                    priceLabelEl.className = "price-label minorista";
+                } else if (subtotal === 1500) {
+                    priceLabelEl.textContent = "PRECIO BASE";
+                    priceLabelEl.className = "price-label base";
+                } else {
+                    priceLabelEl.textContent = "PRECIO DE LISTA";
+                    priceLabelEl.className = "price-label lista";
+                }
+            } else {
+                priceLabelEl.className = "price-label"; 
+                priceLabelEl.textContent = "";
+            }
+
             orderSummaryEl.style.display = orderItems.length > 0 ? 'block' : 'none';
             if (orderItems.length > 0) {
                 let summaryHTML = `<div class="summary-row"><span>Subtotal</span><span>$${subtotal.toLocaleString()}</span></div>`;
@@ -303,40 +666,57 @@
         function renderOrder() {
             orderContainer.innerHTML = '';
             if (orderItems.length === 0) {
-                orderContainer.innerHTML = `<div class="empty-order" id="empty-order"><i class="fas fa-shopping-cart"></i><h3>Tu pedido está vacío</h3><p>Agrega servicios para empezar</p></div>`;
+                orderContainer.innerHTML = `<div class="empty-order" id="empty-order"><h3>Vacío</h3><p>Agrega ítems</p></div>`;
                 return;
             }
             orderItems.forEach(item => {
                 const itemEl = document.createElement('div');
                 itemEl.className = 'order-item order-item-enter';
                 itemEl.id = `item-${item.id}`;
-                let meta = (item.type !== "anillado") ? `${item.pages} pág × ${item.copies} copia${item.copies > 1 ? 's' : ''}` : `${item.pages} unidad${item.pages > 1 ? 'es' : ''}`;
-                itemEl.innerHTML = `<div class="item-icon" style="background: ${item.color}20; color: ${item.color};"><i class="${item.icon}"></i></div><div class="item-details"><div class="item-name">${item.name}</div><div class="item-meta">${meta}</div></div><div class="item-price">$${item.price.toLocaleString()}</div><button class="delete-btn" onclick="removeItem(${item.id})" title="Eliminar ítem"><i class="fas fa-trash"></i></button>`;
+                
+                let displayPrice = item.price.toLocaleString(undefined, { maximumFractionDigits: 0 });
+                let meta = "";
+                
+                if (item.type === 'custom') {
+                    meta = "Personalizado";
+                } else {
+                    meta = (item.type !== "anillado") ? `${item.pages} pág × ${item.copies} copia${item.copies > 1 ? 's' : ''}` : `${item.pages} unidad${item.pages > 1 ? 'es' : ''}`;
+                }
+                
+                itemEl.innerHTML = `<div class="item-icon" style="background: ${item.color}15; color: ${item.color};"><i class="${item.icon}"></i></div><div class="item-details"><div class="item-name">${item.name}</div><div class="item-meta">${meta}</div></div><div class="item-price">$${displayPrice}</div><button class="delete-btn" onclick="removeItem(${item.id})" title="Eliminar ítem"><i class="fas fa-trash"></i></button>`;
                 orderContainer.appendChild(itemEl);
             });
         }
 
-        function removeItem(itemId) {
-            const itemEl = document.getElementById(`item-${itemId}`);
-            if (itemEl) {
-                itemEl.classList.add('is-removing');
-                setTimeout(() => {
-                    orderItems = orderItems.filter(i => i.id !== itemId);
-                    renderOrder();
-                    updateTotals();
-                }, 300);
-            }
+        // --- Session Persistence ---
+        function saveSession() {
+            const sessionData = {
+                items: orderItems,
+                discount: discountPercent
+            };
+            localStorage.setItem('vcp_current_session', JSON.stringify(sessionData));
         }
 
-        function resetOrder() {
+        function resetOrderWithConfirm() {
             if (orderItems.length === 0) return;
-            orderItems = [];
-            discountPercent = 0;
-            renderOrder();
-            updateTotals();
-            numPagesInput.value = "";
-            numCopiasInput.value = "1";
-            numPagesInput.focus();
+            
+            showPromptModal({
+                title: '¿Reiniciar Pedido?',
+                label: 'Se borrarán todos los ítems actuales.',
+                inputType: 'none',
+                onConfirm: () => {
+                    orderItems = [];
+                    discountPercent = 0;
+                    recalculateAllPrices();
+                    renderOrder();
+                    updateTotals();
+                    saveSession(); 
+                    numPagesInput.value = "";
+                    numCopiasInput.value = "1";
+                    numPagesInput.focus();
+                    showToast("Pedido reiniciado");
+                }
+            });
         }
 
         async function shareText(text, title = 'Presupuesto ImpresionesVCP') {
@@ -352,7 +732,6 @@
                     }
                 }
             } else {
-                // Fallback for desktop or browsers without mobile share
                 const encodedText = encodeURIComponent(text);
                 const url = `https://web.whatsapp.com/send/?text=${encodedText}`;
                 window.open(url, '_blank');
@@ -361,11 +740,24 @@
 
         function shareTotal() {
             if(orderItems.length === 0) return;
-            const textToSend = `El total es: $${finalTotal.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-            shareText(textToSend, 'Total del Presupuesto');
+            
+            let header = "*PRESUPUESTO IMPRESIONES*\n";
+            
+            let text = `${header}----------------------\n`;
+            orderItems.forEach(item => {
+                let detail = item.type === 'custom' ? item.name : `${item.name} (${item.pages}x${item.copies})`;
+                let price = item.price.toLocaleString(undefined, { maximumFractionDigits: 0 });
+                text += `• ${detail}: $${price}\n`;
+            });
+            text += "----------------------\n";
+            if (discountPercent > 0) {
+                text += `Descuento: ${discountPercent}%\n`;
+            }
+            text += `*TOTAL: $${finalTotalEl.textContent}*`;
+
+            shareText(text, 'Presupuesto Detallado');
         }
 
-        // --- LocalStorage and History ---
         function getSavedQuotes() { return JSON.parse(localStorage.getItem('savedQuotesVCP') || '[]'); }
 
         function saveQuote(title) {
@@ -396,8 +788,10 @@
             if (quoteToLoad) {
                 orderItems = quoteToLoad.items;
                 discountPercent = quoteToLoad.discount;
+                recalculateAllPrices(); 
                 renderOrder();
                 updateTotals();
+                saveSession();
                 closeModal('history-modal');
                 showToast(`Presupuesto "${quoteToLoad.title}" cargado.`);
             }
@@ -417,7 +811,6 @@
             });
         }
 
-        // --- Advanced Comparison ---
         function showAdvancedComparisonModal() {
             if (orderItems.length === 0) { showToast("Agrega ítems para comparar.", 'error'); return; }
             const comparisonBody = document.getElementById('comparison-body');
@@ -442,7 +835,9 @@
             const targetItems = orderItems.map(item => {
                 const newInfo = ALL_SERVICES[selectedType];
                 if (item.type === 'anillado' || item.type === 'foto' || item.type === 'sticker') return item;
-                return { ...item, type: selectedType, name: newInfo.name, price: item.pages * item.copies * newInfo.price };
+                
+                const listPrice = ALL_SERVICES[selectedType].price || 0;
+                return { ...item, type: selectedType, name: newInfo.name, price: item.pages * item.copies * listPrice };
             });
             
             const targetSubtotal = targetItems.reduce((sum, i) => sum + i.price, 0);
@@ -469,7 +864,8 @@
             const targetItems = orderItems.map(item => {
                  if (item.type === 'anillado' || item.type === 'foto' || item.type === 'sticker') return item;
                  const newInfo = ALL_SERVICES[selectedType];
-                 return { ...item, type: selectedType, name: newInfo.name, price: item.pages * item.copies * newInfo.price };
+                 const listPrice = ALL_SERVICES[selectedType].price || 0;
+                 return { ...item, type: selectedType, name: newInfo.name, price: item.pages * item.copies * listPrice };
             });
             const targetSubtotal = targetItems.reduce((sum, i) => sum + i.price, 0);
             const targetTotal = targetSubtotal * (1 - (discountPercent / 100));
@@ -479,7 +875,6 @@
             shareText(textToSend, 'Comparativa de Presupuesto');
         }
 
-        // --- Modal & Prompt ---
         function openModal(modalId) { document.getElementById(modalId).classList.add('is-visible', 'is-opening'); setTimeout(() => document.getElementById(modalId).classList.remove('is-opening'), 200); }
         function closeModal(modalId) { document.getElementById(modalId).classList.remove('is-visible'); }
         
@@ -503,7 +898,6 @@
             showPromptModal({ title: 'Guardar Presupuesto', label: 'Ingresa un nombre para el presupuesto:', defaultValue: defaultName, onConfirm: (value) => saveQuote(value) });
         }
 
-        // --- Toast Notification ---
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container') || document.body;
             const toast = document.createElement('div');
