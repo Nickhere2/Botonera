@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Finanzas - Empresa</title>
+    <title>Gestor de Finanzas - Empresa (Robust)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -16,15 +16,14 @@
 
     <style>
         :root {
-            --color-ingreso: #10b981; /* emerald-500 */
-            --color-egreso: #ef4444; /* red-500 */
-            --color-bg-dark: #0f172a; /* slate-900 */
-            --color-text-dark: #f8fafc; /* slate-50 */
-            --color-bg-light: #f8fafc; /* slate-50 */
-            --color-text-light: #0f172a; /* slate-900 */
+            --color-ingreso: #10b981; 
+            --color-egreso: #ef4444; 
+            --color-bg-dark: #0f172a; 
+            --color-text-dark: #f8fafc;
+            --color-bg-light: #f8fafc; 
+            --color-text-light: #0f172a;
         }
         
-        /* Tema Oscuro (default) */
         html.dark body {
             background-color: var(--color-bg-dark);
             color: var(--color-text-dark);
@@ -32,9 +31,8 @@
             background-attachment: fixed;
         }
 
-        /* Paneles con efecto Glassmorphism */
         .glass-panel {
-            background-color: rgba(30, 41, 59, 0.7); /* slate-800 con opacidad */
+            background-color: rgba(30, 41, 59, 0.7);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
         }
@@ -52,32 +50,6 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
         }
 
-        /* Animaciones */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in {
-            animation: fadeIn 0.4s ease-out forwards;
-        }
-
-        /* Scrollbar personalizado */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(156, 163, 175, 0.5);
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(156, 163, 175, 0.8);
-        }
-        
-        /* Inputs limpios */
         .clean-input {
             background: transparent;
             border: 1px solid rgba(156, 163, 175, 0.3);
@@ -88,132 +60,115 @@
         }
         .clean-input:focus {
             outline: none;
-            border-color: #06b6d4; /* cyan-500 */
+            border-color: #06b6d4; 
             box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
         }
-        html:not(.dark) .clean-input {
-            background: rgba(255,255,255,0.6);
-            border-color: #d1d5db;
-        }
         
-        /* Quick Actions dentro del modal */
+        .quick-actions-container {
+            display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: none; 
+        }
         .modal-quick-actions {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-            margin-bottom: 1rem;
+            display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;
         }
         .chip-btn {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            border: 1px solid rgba(148, 163, 184, 0.2);
-            background: rgba(30, 41, 59, 0.5);
-            color: #94a3b8;
-            transition: all 0.2s;
-            cursor: pointer;
+            font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 9999px;
+            border: 1px solid rgba(148, 163, 184, 0.2); background: rgba(30, 41, 59, 0.5);
+            color: #94a3b8; cursor: pointer;
         }
-        .chip-btn:hover {
-            background: rgba(30, 41, 59, 0.8);
-            color: #f1f5f9;
-            border-color: rgba(148, 163, 184, 0.4);
-        }
-        .chip-btn.active {
-            background: rgba(6, 182, 212, 0.2);
-            color: #22d3ee;
-            border-color: #06b6d4;
-        }
+        .chip-btn:hover { background: rgba(30, 41, 59, 0.8); color: #f1f5f9; border-color: rgba(148, 163, 184, 0.4); }
+        .chip-btn.active { background: rgba(6, 182, 212, 0.2); color: #22d3ee; border-color: #06b6d4; }
+        
+        /* Asegurar visibilidad de iconos por defecto si JS falla */
+        html.dark #theme-icon-light { display: block; }
+        html.dark #theme-icon-dark { display: none; }
+        html:not(.dark) #theme-icon-light { display: none; }
+        html:not(.dark) #theme-icon-dark { display: block; }
     </style>
 </head>
 <body class="min-h-screen transition-colors duration-300 font-sans selection:bg-cyan-500 selection:text-white">
 
-    <!-- Navbar simplificado -->
-    <nav class="glass-panel sticky top-0 z-40 w-full border-b mb-6">
+    <!-- Navbar -->
+    <nav class="glass-panel sticky top-0 z-[100] w-full border-b mb-6">
         <div class="container mx-auto px-4 py-3 flex justify-between items-center">
             <div class="flex items-center gap-2">
                 <div class="bg-gradient-to-tr from-cyan-400 to-blue-500 p-2 rounded-lg">
-                    <svg class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                    <svg class="w-5 h-5 text-white pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                 </div>
                 <h1 class="text-xl font-bold tracking-tight">Gestor<span class="text-cyan-500">Empresa</span></h1>
             </div>
 
             <div class="flex items-center gap-3">
                 <!-- Sync Indicator -->
-                <div id="gist-sync-status" class="flex items-center cursor-help" title="Estado de Sincronización">
-                    <!-- Icono Desconectado (Default) -->
-                    <span id="gist-sync-none" class="text-slate-500"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></span>
-                    
-                    <span id="gist-sync-spinner" class="hidden animate-spin mr-2"><svg class="h-4 w-4 text-cyan-400" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg></span>
-                    <span id="gist-sync-ok" class="hidden text-green-500"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg></span>
-                    <span id="gist-sync-error" class="hidden text-red-500 cursor-pointer" title="Error de Sincronización"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
+                <div id="gist-sync-status" class="flex items-center text-xs font-medium cursor-help" title="Estado de Sincronización">
+                    <span id="gist-sync-none" class="text-slate-500 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-slate-500"></span> Local
+                    </span>
+                    <span id="gist-sync-spinner" class="hidden animate-spin text-cyan-400 mr-2">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    </span>
+                    <span id="gist-sync-ok" class="hidden text-green-500 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-green-500"></span> Cloud
+                    </span>
+                    <span id="gist-sync-error" class="hidden text-red-500 flex items-center gap-1 cursor-pointer">
+                        <span class="w-2 h-2 rounded-full bg-red-500"></span> Error
+                    </span>
                 </div>
                 
-                <button id="btn-toggle-dark" class="p-2 rounded-full hover:bg-white/10 transition-colors z-50 relative">
-                    <svg id="theme-icon-light" class="h-5 w-5 hidden text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 12a5 5 0 100-10 5 5 0 000 10z" /></svg>
-                    <svg id="theme-icon-dark" class="h-5 w-5 hidden text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
+                <!-- Botones -->
+                <button id="btn-toggle-dark" class="p-2 rounded-full hover:bg-white/10 transition-colors relative z-50 cursor-pointer">
+                    <!-- Icono Sol (Visible en Dark por CSS) -->
+                    <svg id="theme-icon-light" class="h-5 w-5 text-yellow-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 12a5 5 0 100-10 5 5 0 000 10z" /></svg>
+                    <!-- Icono Luna (Visible en Light por CSS) -->
+                    <svg id="theme-icon-dark" class="h-5 w-5 text-slate-300 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                 </button>
-                <button id="btn-settings" class="p-2 rounded-full hover:bg-white/10 transition-colors text-slate-400 hover:text-cyan-400 z-50 relative">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                <button id="btn-settings" class="p-2 rounded-full hover:bg-white/10 transition-colors text-slate-400 hover:text-cyan-400 relative z-50 cursor-pointer">
+                    <svg class="h-5 w-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                 </button>
             </div>
         </div>
     </nav>
 
+    <!-- Contenido Principal -->
     <div class="container mx-auto px-4 pb-24 max-w-6xl">
         
-        <!-- GRID PRINCIPAL -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-
-            <!-- COLUMNA IZQUIERDA: RESUMEN RAPIDO Y HOY -->
+            <!-- COLUMNA IZQUIERDA -->
             <div class="space-y-6">
-                <!-- Tarjeta de Balance Actual -->
+                <!-- Balance -->
                 <div class="glass-panel p-6 rounded-2xl relative overflow-hidden">
-                    <div class="absolute top-0 right-0 p-4 opacity-10">
-                        <svg class="w-32 h-32 text-cyan-400" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.15-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.78-1.77-2.54-1.77-1.46 0-2.09.81-2.09 1.58 0 .56.38 1.33 2.66 1.91 2.21.56 4.15 1.56 4.15 3.5 0 1.81-1.27 2.95-2.87 3.53z"/></svg>
-                    </div>
                     <h2 class="text-sm font-medium text-slate-400 uppercase tracking-wider mb-1">Balance Actual</h2>
                     <p id="main-balance" class="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">$ 0.00</p>
-                    
                     <div class="mt-4 flex gap-4 text-sm">
                         <div class="flex items-center gap-1 text-emerald-500">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" /></svg>
-                            <span id="main-income">$ 0.00</span>
+                            <span>Ing:</span> <span id="main-income">$ 0.00</span>
                         </div>
                         <div class="flex items-center gap-1 text-red-500">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6" /></svg>
-                            <span id="main-expense">$ 0.00</span>
+                            <span>Egr:</span> <span id="main-expense">$ 0.00</span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Movimientos de Hoy -->
+                <!-- Hoy -->
                 <div class="glass-panel p-5 rounded-2xl">
                     <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-cyan-500"></span>
-                        Hoy
+                        <span class="w-2 h-2 rounded-full bg-cyan-500"></span> Hoy
                     </h3>
                     <div id="today-list" class="space-y-3 max-h-60 overflow-y-auto">
-                        <!-- Items inyectados -->
                         <div class="text-center py-4 text-slate-500 text-sm italic">Sin movimientos hoy</div>
                     </div>
                 </div>
             </div>
 
-            <!-- COLUMNA DERECHA: ESTADISTICAS Y FILTROS (Ancha) -->
+            <!-- COLUMNA DERECHA -->
             <div class="lg:col-span-2 space-y-6">
-                
-                <!-- SECCIÓN DE ANÁLISIS (Filtros + Resumen Visual) -->
                 <div class="glass-panel rounded-2xl p-6">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                         <h3 class="text-xl font-bold flex items-center gap-2">
-                            Análisis y Registros
+                            Registros
                             <button id="btn-show-report" class="ml-2 px-3 py-1 bg-slate-700/50 hover:bg-slate-700 text-sm text-cyan-400 rounded-lg transition-colors border border-cyan-500/20 flex items-center gap-1">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                                Comparativa Anual
+                                📊 Comparativa Anual
                             </button>
                         </h3>
-                        
-                        <!-- Filtros Compactos -->
                         <div class="flex flex-wrap gap-2 w-full md:w-auto">
                             <input type="month" id="filter-month" class="clean-input !w-auto text-sm">
                             <select id="filter-type" class="clean-input !w-auto text-sm">
@@ -225,44 +180,36 @@
                         </div>
                     </div>
 
-                    <!-- TOTALES DEL FILTRO -->
+                    <!-- Totales Filtro -->
                     <div class="grid grid-cols-3 gap-4 mb-6">
                         <div class="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-xl text-center">
-                            <p class="text-xs text-emerald-500 uppercase font-bold tracking-wider">Ingresos Filtro</p>
+                            <p class="text-xs text-emerald-500 uppercase font-bold">Ingresos</p>
                             <p id="filter-income" class="text-xl font-bold text-emerald-400">$0</p>
                         </div>
                         <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-center">
-                            <p class="text-xs text-red-500 uppercase font-bold tracking-wider">Egresos Filtro</p>
+                            <p class="text-xs text-red-500 uppercase font-bold">Egresos</p>
                             <p id="filter-expense" class="text-xl font-bold text-red-400">$0</p>
                         </div>
                         <div class="bg-blue-500/10 border border-blue-500/20 p-4 rounded-xl text-center">
-                            <p class="text-xs text-blue-500 uppercase font-bold tracking-wider">Balance Filtro</p>
+                            <p class="text-xs text-blue-500 uppercase font-bold">Balance</p>
                             <p id="filter-balance" class="text-xl font-bold text-blue-400">$0</p>
                         </div>
                     </div>
 
-                    <!-- GRÁFICOS (Tabbed visualmente) -->
+                    <!-- Gráficos -->
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                        <!-- Gráfico 1: Evolución -->
                         <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50">
-                            <h4 class="text-xs text-slate-400 uppercase mb-2 text-center">Evolución Mensual</h4>
-                            <div class="h-48">
-                                <canvas id="history-chart"></canvas>
-                            </div>
+                            <h4 class="text-xs text-slate-400 uppercase mb-2 text-center">Evolución</h4>
+                            <div class="h-48"><canvas id="history-chart"></canvas></div>
                         </div>
-                        <!-- Gráfico 2: Distribución (Nuevo) -->
                         <div class="bg-slate-900/50 rounded-xl p-4 border border-slate-700/50 relative">
-                            <h4 class="text-xs text-slate-400 uppercase mb-2 text-center">Distribución de Gastos</h4>
-                            <div class="h-48 flex justify-center">
-                                <canvas id="category-chart"></canvas>
-                            </div>
-                            <div id="no-data-chart" class="absolute inset-0 flex items-center justify-center bg-slate-900/80 hidden">
-                                <span class="text-xs text-slate-500">Sin datos para mostrar</span>
-                            </div>
+                            <h4 class="text-xs text-slate-400 uppercase mb-2 text-center">Distribución</h4>
+                            <div class="h-48 flex justify-center"><canvas id="category-chart"></canvas></div>
+                            <div id="no-data-chart" class="absolute inset-0 flex items-center justify-center bg-slate-900/80 hidden"><span class="text-xs text-slate-500">Sin datos</span></div>
                         </div>
                     </div>
 
-                    <!-- TABLA MEJORADA -->
+                    <!-- Tabla -->
                     <div class="overflow-hidden rounded-xl border border-slate-700/50">
                         <div class="overflow-x-auto">
                             <table class="w-full text-left text-sm">
@@ -272,57 +219,45 @@
                                         <th class="p-4">Categoría</th>
                                         <th class="p-4">Nota</th>
                                         <th class="p-4 text-right">Monto</th>
-                                        <th class="p-4 text-center">Acción</th>
+                                        <th class="p-4 text-center"></th>
                                     </tr>
                                 </thead>
-                                <tbody id="history-table-body" class="divide-y divide-slate-700/50">
-                                    <!-- Filas dinámicas -->
-                                </tbody>
+                                <tbody id="history-table-body" class="divide-y divide-slate-700/50"></tbody>
                             </table>
-                            <div id="no-history-movements" class="p-8 text-center text-slate-500 hidden">
-                                No se encontraron movimientos con estos filtros.
-                            </div>
+                            <div id="no-history-movements" class="p-8 text-center text-slate-500 hidden">Sin movimientos.</div>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
-
     </div>
 
-    <!-- Botón Flotante Grande -->
-    <button id="btn-add-movement" class="fixed bottom-8 right-8 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-full p-4 shadow-lg shadow-cyan-500/30 transition-all transform hover:scale-110 z-30 group">
-        <svg class="h-8 w-8 group-hover:rotate-90 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
+    <!-- Botón Agregar -->
+    <button id="btn-add-movement" class="fixed bottom-8 right-8 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-full p-4 shadow-lg z-50 transform hover:scale-110 transition-transform">
+        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
     </button>
 
-    <!-- === MODALES === -->
-
-    <!-- Modal Agregar/Editar -->
-    <div id="movement-modal" class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300">
-        <form id="movement-form" class="glass-panel w-full max-w-md p-6 rounded-2xl shadow-2xl transform scale-95 transition-transform duration-300">
+    <!-- Modal Movimiento -->
+    <div id="movement-modal" class="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm hidden">
+        <form id="movement-form" class="glass-panel w-full max-w-md p-6 rounded-2xl shadow-2xl relative">
             <h3 id="modal-title" class="text-2xl font-bold mb-6 text-center">Nuevo Movimiento</h3>
             <input type="hidden" id="movement-id">
 
-            <!-- Toggle Tipo -->
-            <!-- CORRECCIÓN: Z-Index añadido al texto para que no sea tapado por el fondo -->
+            <!-- Toggle -->
             <div class="bg-slate-800/50 p-1 rounded-xl flex mb-6 relative">
                 <input type="hidden" id="movement-type-visual" value="ingreso">
-                <div id="type-ingreso" class="flex-1 py-2 text-center rounded-lg cursor-pointer font-medium text-slate-400 transition-all hover:text-white relative z-10" data-type="ingreso">Ingreso</div>
-                <div id="type-egreso" class="flex-1 py-2 text-center rounded-lg cursor-pointer font-medium text-slate-400 transition-all hover:text-white relative z-10" data-type="egreso">Egreso</div>
-                <!-- Fondo activo dinámico -->
+                <div id="type-ingreso" class="flex-1 py-2 text-center rounded-lg cursor-pointer font-medium text-white relative z-10">Ingreso</div>
+                <div id="type-egreso" class="flex-1 py-2 text-center rounded-lg cursor-pointer font-medium text-slate-400 relative z-10">Egreso</div>
                 <div id="type-bg" class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-emerald-500 rounded-lg shadow transition-all duration-300 pointer-events-none z-0"></div>
             </div>
 
             <div class="space-y-4">
                 <div class="relative">
                     <span class="absolute left-4 top-1/2 -translate-y-1/2 text-2xl font-light text-slate-400">$</span>
-                    <input type="number" id="movement-amount" placeholder="0.00" step="0.01" min="0" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-4 pl-10 pr-4 text-3xl font-bold text-center focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all" required>
+                    <input type="number" id="movement-amount" placeholder="0.00" step="0.01" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-4 pl-10 pr-4 text-3xl font-bold text-center focus:outline-none focus:border-cyan-500 transition-colors" required>
                 </div>
 
-                <!-- Chips de Acceso Rápido DENTRO DEL MODAL -->
+                <!-- Chips Rápidos -->
                 <div class="modal-quick-actions justify-center">
                     <button type="button" class="chip-btn" data-type="ingreso" data-cat="Impresiones">📄 Impresión</button>
                     <button type="button" class="chip-btn" data-type="ingreso" data-cat="Varios">💰 Varios Ing</button>
@@ -332,936 +267,456 @@
                 </div>
 
                 <div class="flex gap-2 items-center">
-                    <span class="text-xs text-slate-500 uppercase w-16">Categoría</span>
                     <select id="movement-category" class="clean-input flex-1 bg-slate-800/50 text-sm" required></select>
-                    <button type="button" id="btn-add-category" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded-lg text-white transition-colors text-xs">+</button>
+                    <button type="button" id="btn-add-category" class="px-2 py-1 bg-slate-700 rounded text-xs">+</button>
                 </div>
 
-                <input type="text" id="movement-note" placeholder="Nota (opcional)" class="clean-input bg-slate-800/50 text-sm">
+                <input type="text" id="movement-note" placeholder="Nota..." class="clean-input bg-slate-800/50 text-sm">
                 <input type="datetime-local" id="movement-date" class="clean-input bg-slate-800/50 text-sm">
             </div>
 
             <div class="mt-8 flex gap-3">
-                <button type="button" id="btn-modal-cancel" class="flex-1 py-3 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium transition-colors">Cancelar</button>
-                <button type="submit" id="btn-modal-save" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold shadow-lg shadow-cyan-500/20 transition-all transform active:scale-95">Guardar</button>
+                <button type="button" id="btn-modal-cancel" class="flex-1 py-3 rounded-xl bg-slate-700 hover:bg-slate-600">Cancelar</button>
+                <button type="submit" class="flex-1 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold">Guardar</button>
             </div>
         </form>
     </div>
 
-    <!-- Modal Reporte Anual -->
-    <div id="report-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm hidden">
-        <div class="glass-panel w-full max-w-4xl p-6 rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-2xl font-bold">Comparativa Anual</h3>
-                <button id="btn-report-close" class="p-2 hover:bg-slate-700 rounded-lg text-slate-400 hover:text-white"><svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>
-            </div>
-            
-            <div class="flex items-center justify-center gap-6 mb-6">
-                <button id="btn-prev-year" class="p-2 bg-slate-800 rounded-lg hover:bg-slate-700 border border-slate-700"><svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg></button>
-                <span id="report-year-display" class="text-2xl font-bold text-cyan-400">2024</span>
-                <button id="btn-next-year" class="p-2 bg-slate-800 rounded-lg hover:bg-slate-700 border border-slate-700"><svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg></button>
-            </div>
-
-            <!-- Gráfico de Reporte -->
-             <div class="mb-6 h-64 bg-slate-900/50 rounded-xl p-4 border border-slate-700/50">
-                <canvas id="report-chart"></canvas>
-            </div>
-
-            <!-- Tabla de Reporte -->
-            <div class="overflow-x-auto rounded-xl border border-slate-700/50">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-800/50 text-slate-400 uppercase text-xs">
-                        <tr>
-                            <th class="p-4">Mes</th>
-                            <th class="p-4 text-right text-emerald-500">Ingresos</th>
-                            <th class="p-4 text-right text-red-500">Egresos</th>
-                            <th class="p-4 text-right text-blue-400">Balance</th>
-                            <th class="p-4 text-right text-slate-400">Margen %</th>
-                        </tr>
-                    </thead>
-                    <tbody id="report-table-body" class="divide-y divide-slate-700/50 text-slate-300">
-                        <!-- Filas Generadas -->
-                    </tbody>
-                    <tfoot class="bg-slate-800/80 font-bold border-t border-slate-600 text-base">
-                        <tr id="report-footer">
-                            <!-- Total Generado -->
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-    </div>
-
     <!-- Modal Configuración -->
-    <div id="settings-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm hidden">
-        <div class="glass-panel w-full max-w-md p-6 rounded-2xl shadow-2xl">
-            <h3 class="text-xl font-bold mb-4">Sincronización Cloud (Gist)</h3>
-            <p class="text-sm text-slate-400 mb-4">Guarda tus datos en GitHub Gist para no perderlos.</p>
+    <div id="settings-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/90 backdrop-blur-sm hidden">
+        <div class="glass-panel w-full max-w-md p-6 rounded-2xl">
+            <h3 class="text-xl font-bold mb-4">Configuración Cloud</h3>
+            <p class="text-xs text-gray-400 mb-4">Ingresa tus credenciales de GitHub Gist para sincronizar.</p>
             <form id="settings-form" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-medium text-slate-500 mb-1 uppercase">Token (PAT)</label>
-                    <input type="password" id="gist-pat" class="clean-input" placeholder="ghp_...">
-                </div>
-                <div>
-                    <label class="block text-xs font-medium text-slate-500 mb-1 uppercase">Gist ID</label>
-                    <input type="text" id="gist-id" class="clean-input" placeholder="ID del Gist">
-                </div>
+                <div><label class="text-xs uppercase">Token (PAT)</label><input type="password" id="gist-pat" class="clean-input" placeholder="ghp_..."></div>
+                <div><label class="text-xs uppercase">Gist ID</label><input type="text" id="gist-id" class="clean-input" placeholder="ID..."></div>
                 <div class="mt-6 flex gap-3">
-                    <button type="button" id="btn-settings-cancel" class="flex-1 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm">Cerrar</button>
-                    <button type="submit" class="flex-1 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-500 text-white text-sm font-bold">Guardar y Sincronizar</button>
+                    <button type="button" id="btn-settings-cancel" class="flex-1 py-2 rounded-lg bg-slate-700">Cerrar</button>
+                    <button type="submit" class="flex-1 py-2 rounded-lg bg-cyan-600 text-white font-bold">Guardar</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed top-5 right-5 glass-panel px-4 py-3 rounded-xl shadow-lg z-[60] opacity-0 transition-opacity duration-300 flex items-center gap-3 border-l-4">
-        <p id="toast-message" class="font-medium text-sm">Notificación</p>
-    </div>
-
-    <!-- Confirm Modal -->
-    <div id="confirm-modal" class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 hidden">
-        <div class="bg-slate-800 p-6 rounded-xl max-w-sm w-full border border-slate-700">
-            <h3 class="text-lg font-bold mb-2">¿Estás seguro?</h3>
-            <p class="text-slate-400 text-sm mb-6">Esta acción no se puede deshacer.</p>
-            <div class="flex gap-3 justify-end">
-                <button id="btn-confirm-cancel" class="px-4 py-2 rounded-lg text-slate-300 hover:bg-slate-700">Cancelar</button>
-                <button id="btn-confirm-ok" class="px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-500">Eliminar</button>
+    <!-- Reporte Modal -->
+    <div id="report-modal" class="fixed inset-0 z-[90] flex items-center justify-center p-4 bg-slate-900/95 backdrop-blur-sm hidden">
+        <div class="glass-panel w-full max-w-4xl p-6 rounded-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between mb-4">
+                <h3 class="text-2xl font-bold">Reporte Anual</h3>
+                <button id="btn-report-close" class="text-slate-400 hover:text-white">✕</button>
             </div>
+            <div class="flex justify-center gap-4 mb-4 items-center">
+                <button id="btn-prev-year" class="p-2 bg-slate-800 rounded">←</button>
+                <span id="report-year-display" class="text-xl font-bold text-cyan-400">2026</span>
+                <button id="btn-next-year" class="p-2 bg-slate-800 rounded">→</button>
+            </div>
+            <div class="h-64 mb-4"><canvas id="report-chart"></canvas></div>
+            <table class="w-full text-sm"><tbody id="report-table-body"></tbody><tfoot id="report-footer" class="font-bold border-t border-slate-600"></tfoot></table>
         </div>
     </div>
 
-    <!-- Templates -->
-    <template id="movement-card-template">
-        <div class="bg-slate-800/40 hover:bg-slate-800/80 p-3 rounded-xl transition-colors flex items-center gap-3 group movement-card cursor-pointer border border-transparent hover:border-slate-700">
-            <div class="w-10 h-10 rounded-full flex items-center justify-center bg-slate-700 text-white movement-icon-container">
-                <!-- Icono -->
-            </div>
-            <div class="flex-grow min-w-0">
-                <div class="flex justify-between items-baseline">
-                    <p class="font-medium truncate movement-category text-sm">Cat</p>
-                    <p class="font-bold movement-amount text-sm">$0</p>
-                </div>
-                <p class="text-xs text-slate-500 truncate movement-note">Nota...</p>
-            </div>
-        </div>
-    </template>
+    <!-- Toast -->
+    <div id="toast" class="fixed top-5 right-5 glass-panel px-4 py-3 rounded-xl shadow-lg z-[150] opacity-0 transition-opacity duration-300 border-l-4 border-cyan-500">
+        <p id="toast-message">Notificación</p>
+    </div>
 
-    <!-- SCRIPTS -->
     <script>
-        // --- Configuración e Utilidades ---
-        dayjs.extend(dayjs_plugin_customParseFormat);
-        dayjs.extend(dayjs_plugin_isoWeek);
-        dayjs.extend(dayjs_plugin_isToday);
+        // INIT SAFEGUARD
+        try {
+            dayjs.extend(dayjs_plugin_customParseFormat);
+            dayjs.extend(dayjs_plugin_isoWeek);
+            dayjs.extend(dayjs_plugin_isToday);
+        } catch(e) { console.error("Librerías externas fallaron. Funcionalidad limitada.", e); }
 
-        const $ = (selector) => document.querySelector(selector);
-        const formatCurrency = (amount) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(amount);
+        const $ = (s) => document.querySelector(s);
+        const formatCurrency = (n) => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' }).format(n);
 
-        // --- Estado Global CON LAS CATEGORÍAS ORIGINALES ---
         const appState = {
             movements: [],
             categories: {
                 ingreso: ["Impresiones", "Varios", "Importado"],
                 egreso: ["Resmas A4", "Insumos", "Servicios", "Varios", "Importado"]
             },
-            gistConfig: { pat: null, gistId: null, filename: null },
+            gistConfig: { pat: null, gistId: null },
             ui: { chartHistory: null, chartCategory: null, chartReport: null, editingId: null, reportYear: new Date().getFullYear() }
         };
-        
-        // --- Palabras clave adaptadas a tu Negocio ---
+
         const categoryKeywords = {
-            'resmas a4': ['resma', 'papel', 'hojas', 'boreal', 'autor', 'a4', 'oficio'],
-            'insumos': ['tinta', 'toner', 'cartucho', 'anillado', 'espirales', 'tapas', 'plastico'],
-            'servicios': ['luz', 'internet', 'gas', 'telefono', 'cable', 'alquiler'],
-            'impresiones': ['copia', 'bajada', 'impresion', 'color', 'texto', 'doble faz'],
-            'varios': ['flete', 'envio', 'limpieza']
+            'resmas a4': ['resma', 'papel', 'hojas'], 'insumos': ['tinta', 'toner', 'anillado'],
+            'servicios': ['luz', 'gas', 'internet'], 'impresiones': ['copia', 'impresion']
         };
 
-        // --- Variables DOM ---
-        let balanceMain, incomeMain, expenseMain, 
-            filterIncome, filterExpense, filterBalance,
-            todayList, historyTableBody, 
-            movementModal, settingsModal, confirmModal, reportModal, toast;
-
-        // --- Inicialización ---
         document.addEventListener('DOMContentLoaded', async () => {
-            // Referencias DOM
-            balanceMain = $('#main-balance');
-            incomeMain = $('#main-income');
-            expenseMain = $('#main-expense');
-            filterIncome = $('#filter-income');
-            filterExpense = $('#filter-expense');
-            filterBalance = $('#filter-balance');
-            todayList = $('#today-list');
-            historyTableBody = $('#history-table-body');
-            movementModal = $('#movement-modal');
-            settingsModal = $('#settings-modal');
-            reportModal = $('#report-modal'); 
-            confirmModal = $('#confirm-modal');
-            toast = $('#toast');
-
+            // ACTIVAR LISTENERS PRIMERO PARA QUE LOS BOTONES RESPONDAN SIEMPRE
             setupEventListeners();
-            setupTheme();
             
-            loadGistConfig();
-            loadStateFromLocal(); 
+            // Carga segura de datos
+            try {
+                loadGistConfig();
+                loadStateFromLocal();
+            } catch (e) { console.error("Error cargando datos locales:", e); }
+            
+            // Verificar estado Gist visualmente
+            updateGistStatusUI();
 
-            // Verificar si usa Gist en la carga inicial
-            if (appState.gistConfig.pat) {
-                await handlePullFromGist(); 
-            } else {
-                // Si no hay Gist, mostramos el icono de desconectado
-                $('#gist-sync-none').classList.remove('hidden');
-            }
+            // Setear fecha filtro
+            const fm = $('#filter-month');
+            if(fm) fm.value = dayjs().format('YYYY-MM');
             
-            // Setear filtro de mes al actual por defecto
-            $('#filter-month').value = dayjs().format('YYYY-MM');
-            
+            // Render inicial
             renderAll();
+
+            // Intentar sync si hay config
+            if (appState.gistConfig.pat) {
+                await handlePullFromGist();
+            }
         });
 
-        // --- Lógica Principal de Renderizado ---
-        function renderAll() {
-            // 1. Ordenar datos
-            appState.movements.sort((a, b) => new Date(b.date) - new Date(a.date));
+        function updateGistStatusUI() {
+            if (appState.gistConfig.pat && appState.gistConfig.gistId) {
+                $('#gist-sync-none').classList.add('hidden');
+                $('#gist-sync-ok').classList.remove('hidden');
+            } else {
+                $('#gist-sync-none').classList.remove('hidden');
+                $('#gist-sync-ok').classList.add('hidden');
+            }
+        }
 
-            // 2. Calcular Globales (Mes Actual)
-            const currentMonthStr = dayjs().format('YYYY-MM');
-            const currentMonthMovements = appState.movements.filter(m => m.date.startsWith(currentMonthStr));
-            calculateAndRenderTotals(currentMonthMovements, balanceMain, incomeMain, expenseMain);
+        function setupEventListeners() {
+            const bind = (id, event, fn) => { const el = $(id); if(el) el.addEventListener(event, fn); };
 
-            // 3. Renderizar Lista "Hoy"
-            renderTodayList();
+            bind('#btn-add-movement', 'click', () => openModal(null));
+            bind('#btn-modal-cancel', 'click', closeModal);
+            bind('#type-ingreso', 'click', () => updateTypeVisual('ingreso'));
+            bind('#type-egreso', 'click', () => updateTypeVisual('egreso'));
+            
+            // CONFIGURACIÓN (Desbloqueado)
+            bind('#btn-settings', 'click', () => $('#settings-modal').classList.remove('hidden'));
+            bind('#btn-settings-cancel', 'click', () => $('#settings-modal').classList.add('hidden'));
+            
+            // TEMA (Desbloqueado)
+            bind('#btn-toggle-dark', 'click', () => {
+                document.documentElement.classList.toggle('dark');
+                renderAll(); 
+            });
 
-            // 4. Filtrado
-            const filters = {
-                month: $('#filter-month').value,
-                type: $('#filter-type').value,
-                search: $('#filter-search').value.toLowerCase()
+            bind('#settings-form', 'submit', async (e) => {
+                e.preventDefault();
+                appState.gistConfig.pat = $('#gist-pat').value || appState.gistConfig.pat;
+                appState.gistConfig.gistId = $('#gist-id').value;
+                localStorage.setItem('finanzasGistConfig', JSON.stringify(appState.gistConfig));
+                $('#settings-modal').classList.add('hidden');
+                updateGistStatusUI();
+                await handlePullFromGist();
+            });
+
+            bind('#movement-form', 'submit', handleSaveMovement);
+            
+            bind('#filter-month', 'change', renderAll);
+            bind('#filter-type', 'change', renderAll);
+            bind('#filter-search', 'input', renderAll);
+
+            bind('#btn-show-report', 'click', openReportModal);
+            bind('#btn-report-close', 'click', () => $('#report-modal').classList.add('hidden'));
+            bind('#btn-prev-year', 'click', () => { appState.ui.reportYear--; renderReport(appState.ui.reportYear); });
+            bind('#btn-next-year', 'click', () => { appState.ui.reportYear++; renderReport(appState.ui.reportYear); });
+
+            document.querySelectorAll('.chip-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    updateTypeVisual(btn.dataset.type);
+                    setTimeout(() => $('#movement-category').value = btn.dataset.cat, 50);
+                    document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                };
+            });
+        }
+
+        async function handleSaveMovement(e) {
+            e.preventDefault();
+            const type = $('#movement-type-visual').value;
+            const amount = parseFloat($('#movement-amount').value);
+            const category = $('#movement-category').value;
+            const date = $('#movement-date').value;
+
+            if (!amount) return showToast('Monto requerido', 'error');
+
+            const newMov = {
+                id: appState.ui.editingId || 'mov_' + Date.now() + Math.random().toString(36).substr(2,5),
+                type, amount, category, 
+                note: $('#movement-note').value,
+                date: dayjs(date).toISOString(),
+                updatedAt: new Date().toISOString()
             };
 
-            const filteredMovements = appState.movements.filter(m => {
-                const dateMatch = !filters.month || m.date.startsWith(filters.month);
-                const typeMatch = !filters.type || m.type === filters.type;
-                const textMatch = !filters.search || 
-                                  m.category.toLowerCase().includes(filters.search) || 
-                                  (m.note && m.note.toLowerCase().includes(filters.search));
-                return dateMatch && typeMatch && textMatch;
-            });
-
-            // 5. Renderizar Totales del Filtro
-            calculateAndRenderTotals(filteredMovements, filterBalance, filterIncome, filterExpense);
-
-            // 6. Renderizar Tabla Historial
-            renderHistoryTable(filteredMovements);
-
-            // 7. Renderizar Gráficos
-            renderHistoryChart(appState.movements, filters.month); 
-            renderCategoryChart(filteredMovements);
-        }
-
-        function calculateAndRenderTotals(movements, elBalance, elIncome, elExpense) {
-            let inc = 0, exp = 0;
-            movements.forEach(m => {
-                if (m.type === 'ingreso') inc += m.amount;
-                else exp += m.amount;
-            });
-            elIncome.innerText = formatCurrency(inc);
-            elExpense.innerText = formatCurrency(exp);
-            elBalance.innerText = formatCurrency(inc - exp);
-        }
-
-        function renderTodayList() {
-            todayList.innerHTML = '';
-            const todays = appState.movements.filter(m => dayjs(m.date).isToday());
-
-            if (todays.length === 0) {
-                todayList.innerHTML = '<div class="text-center py-4 text-slate-500 text-xs italic">Sin movimientos hoy</div>';
-                return;
+            if (appState.gistConfig.pat) {
+                try {
+                    const cloudData = await fetchGistData();
+                    if(cloudData) mergeData(cloudData);
+                } catch(err) { console.log('Offline save'); }
             }
 
-            const template = $('#movement-card-template');
-            todays.forEach(m => {
-                const clone = template.content.cloneNode(true);
-                const card = clone.querySelector('.movement-card');
-                const iconContainer = clone.querySelector('.movement-icon-container');
-                const amountEl = clone.querySelector('.movement-amount');
-                
-                clone.querySelector('.movement-category').innerText = m.category;
-                clone.querySelector('.movement-note').innerText = m.note || '';
-                amountEl.innerText = formatCurrency(m.amount);
-                
-                if (m.type === 'ingreso') {
-                    amountEl.classList.add('text-emerald-400');
-                    iconContainer.innerHTML = '<svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12" /></svg>';
-                    iconContainer.classList.add('bg-emerald-500/20');
-                } else {
-                    amountEl.classList.add('text-red-400');
-                    iconContainer.innerHTML = '<svg class="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6" /></svg>';
-                    iconContainer.classList.add('bg-red-500/20');
-                }
-                
-                card.onclick = () => openModal(m);
-                todayList.appendChild(clone);
-            });
-        }
-
-        function renderHistoryTable(movements) {
-            historyTableBody.innerHTML = '';
-            if (movements.length === 0) {
-                $('#no-history-movements').classList.remove('hidden');
-                return;
+            if (appState.ui.editingId) {
+                const idx = appState.movements.findIndex(m => m.id === appState.ui.editingId);
+                if (idx !== -1) appState.movements[idx] = newMov;
+            } else {
+                appState.movements.push(newMov);
             }
-            $('#no-history-movements').classList.add('hidden');
 
-            movements.forEach(m => {
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-slate-700/30 transition-colors group';
+            saveState();
+            renderAll();
+            closeModal();
+            showToast('Guardado', 'success');
+            await syncGist();
+        }
+
+        function renderAll() {
+            try {
+                // Sort
+                appState.movements.sort((a,b) => new Date(b.date) - new Date(a.date));
                 
-                const isInc = m.type === 'ingreso';
-                const colorClass = isInc ? 'text-emerald-400' : 'text-red-400';
-                const sign = isInc ? '+' : '-';
-                const badgeColor = isInc ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : 'bg-red-500/10 text-red-500 border-red-500/20';
+                // Global (Month)
+                const currMonth = dayjs().format('YYYY-MM');
+                const monthMovs = appState.movements.filter(m => m.date.startsWith(currMonth));
+                const ing = monthMovs.filter(m => m.type === 'ingreso').reduce((a,b)=>a+b.amount,0);
+                const egr = monthMovs.filter(m => m.type === 'egreso').reduce((a,b)=>a+b.amount,0);
+                $('#main-balance').innerText = formatCurrency(ing - egr);
+                $('#main-income').innerText = formatCurrency(ing);
+                $('#main-expense').innerText = formatCurrency(egr);
 
-                row.innerHTML = `
-                    <td class="p-4 whitespace-nowrap text-slate-400">${dayjs(m.date).format('DD/MM/YY HH:mm')}</td>
-                    <td class="p-4">
-                        <span class="px-2 py-1 rounded text-xs font-medium border ${badgeColor}">${m.category}</span>
-                    </td>
-                    <td class="p-4 text-slate-300 max-w-[150px] truncate" title="${m.note || ''}">${m.note || '-'}</td>
-                    <td class="p-4 text-right font-bold ${colorClass}">${sign} ${formatCurrency(m.amount)}</td>
-                    <td class="p-4 text-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button class="p-1 hover:text-cyan-400" onclick="openModalById('${m.id}')">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                        </button>
-                    </td>
-                `;
-                historyTableBody.appendChild(row);
-            });
+                // Filtered
+                const fMonth = $('#filter-month') ? $('#filter-month').value : currMonth;
+                const fType = $('#filter-type') ? $('#filter-type').value : '';
+                const fText = $('#filter-search') ? $('#filter-search').value.toLowerCase() : '';
+                
+                const filtered = appState.movements.filter(m => {
+                    return (!fMonth || m.date.startsWith(fMonth)) &&
+                        (!fType || m.type === fType) &&
+                        (!fText || m.category.toLowerCase().includes(fText) || (m.note||'').toLowerCase().includes(fText));
+                });
+
+                // Filtered Totals
+                const fIng = filtered.filter(m => m.type === 'ingreso').reduce((a,b)=>a+b.amount,0);
+                const fEgr = filtered.filter(m => m.type === 'egreso').reduce((a,b)=>a+b.amount,0);
+                $('#filter-income').innerText = formatCurrency(fIng);
+                $('#filter-expense').innerText = formatCurrency(fEgr);
+                $('#filter-balance').innerText = formatCurrency(fIng - fEgr);
+
+                // Charts & Table
+                renderCharts(appState.movements, fMonth, filtered);
+                renderTable(filtered);
+            } catch(e) { console.error("Render error", e); }
         }
 
-        function openModalById(id) {
-            const m = appState.movements.find(x => x.id === id);
-            if(m) openModal(m);
+        function renderTable(filtered) {
+            const tbody = $('#history-table-body');
+            tbody.innerHTML = '';
+            if(filtered.length === 0) $('#no-history-movements').classList.remove('hidden');
+            else {
+                $('#no-history-movements').classList.add('hidden');
+                filtered.forEach(m => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-slate-800/50 cursor-pointer';
+                    const color = m.type === 'ingreso' ? 'text-emerald-400' : 'text-red-400';
+                    tr.innerHTML = `
+                        <td class="p-4 text-slate-400">${dayjs(m.date).format('DD/MM HH:mm')}</td>
+                        <td class="p-4">${m.category}</td>
+                        <td class="p-4 text-slate-500 text-xs">${m.note||''}</td>
+                        <td class="p-4 text-right font-bold ${color}">${formatCurrency(m.amount)}</td>
+                        <td class="p-4 text-center text-cyan-500">✎</td>
+                    `;
+                    tr.onclick = () => openModal(m);
+                    tbody.appendChild(tr);
+                });
+            }
         }
 
-        // --- Gráficos (Chart.js) ---
-        function renderHistoryChart(allMovements, filterMonthStr) {
-            const ctx = $('#history-chart').getContext('2d');
+        function renderCharts(all, fMonth, filtered) {
+            if(typeof Chart === 'undefined') return;
+            const ctx1 = $('#history-chart').getContext('2d');
+            if(appState.ui.chartHistory) appState.ui.chartHistory.destroy();
             
-            const isMonthView = !!filterMonthStr;
-            let labels = [], dataInc = [], dataExp = [];
-
-            if (isMonthView) {
-                // Vista Diaria
-                const daysInMonth = dayjs(filterMonthStr).daysInMonth();
-                for(let i=1; i<=daysInMonth; i++) {
-                    const d = dayjs(filterMonthStr).date(i);
-                    labels.push(i); 
-                    
-                    let inc = 0, exp = 0;
-                    allMovements.filter(m => m.date.startsWith(d.format('YYYY-MM-DD'))).forEach(m => {
-                        if(m.type === 'ingreso') inc += m.amount; else exp += m.amount;
-                    });
-                    dataInc.push(inc);
-                    dataExp.push(exp);
+            let labels = [], dIng = [], dEgr = [];
+            
+            if(fMonth) {
+                const days = dayjs(fMonth).daysInMonth();
+                for(let i=1; i<=days; i++) {
+                    labels.push(i);
+                    const day = dayjs(fMonth).date(i).format('YYYY-MM-DD');
+                    dIng.push(all.filter(m => m.date.startsWith(day) && m.type==='ingreso').reduce((a,b)=>a+b.amount,0));
+                    dEgr.push(all.filter(m => m.date.startsWith(day) && m.type==='egreso').reduce((a,b)=>a+b.amount,0));
                 }
             } else {
-                // Vista Mensual
                 for(let i=5; i>=0; i--) {
-                    const d = dayjs().subtract(i, 'month');
-                    const key = d.format('YYYY-MM');
-                    labels.push(d.format('MMM'));
-                    
-                    let inc = 0, exp = 0;
-                    allMovements.filter(m => m.date.startsWith(key)).forEach(m => {
-                         if(m.type === 'ingreso') inc += m.amount; else exp += m.amount;
-                    });
-                    dataInc.push(inc);
-                    dataExp.push(exp);
+                    const m = dayjs().subtract(i, 'month');
+                    labels.push(m.format('MMM'));
+                    const key = m.format('YYYY-MM');
+                    dIng.push(all.filter(x => x.date.startsWith(key) && x.type==='ingreso').reduce((a,b)=>a+b.amount,0));
+                    dEgr.push(all.filter(x => x.date.startsWith(key) && x.type==='egreso').reduce((a,b)=>a+b.amount,0));
                 }
             }
 
-            if (appState.ui.chartHistory) appState.ui.chartHistory.destroy();
-
-            appState.ui.chartHistory = new Chart(ctx, {
+            appState.ui.chartHistory = new Chart(ctx1, {
                 type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        { label: 'Ing', data: dataInc, backgroundColor: '#10b981', borderRadius: 4 },
-                        { label: 'Gas', data: dataExp, backgroundColor: '#ef4444', borderRadius: 4 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
-                        y: { 
-                            grid: { color: '#334155' }, 
-                            ticks: { color: '#94a3b8', callback: (val) => val >= 1000 ? val/1000 + 'k' : val } 
-                        }
-                    },
-                    plugins: { legend: { display: false } }
-                }
+                data: { labels, datasets: [{label:'Ing',data:dIng,backgroundColor:'#10b981'}, {label:'Egr',data:dEgr,backgroundColor:'#ef4444'}] },
+                options: { responsive:true, maintainAspectRatio:false, scales:{x:{grid:{display:false}}, y:{grid:{color:'#334155'}}}, plugins:{legend:{display:false}} }
             });
-        }
 
-        function renderCategoryChart(filteredMovements) {
-            const ctx = $('#category-chart').getContext('2d');
-            const noData = $('#no-data-chart');
-            
-            // Gráfico de Gastos (Egresos) para el negocio
-            const expenses = filteredMovements.filter(m => m.type === 'egreso');
-            
-            if (expenses.length === 0) {
-                noData.classList.remove('hidden');
-                if (appState.ui.chartCategory) appState.ui.chartCategory.destroy();
-                return;
+            const ctx2 = $('#category-chart').getContext('2d');
+            if(appState.ui.chartCategory) appState.ui.chartCategory.destroy();
+            const exps = filtered.filter(m => m.type === 'egreso');
+            if(exps.length === 0) {
+                $('#no-data-chart').classList.remove('hidden');
+            } else {
+                $('#no-data-chart').classList.add('hidden');
+                const cats = {}; exps.forEach(m => cats[m.category] = (cats[m.category]||0)+m.amount);
+                appState.ui.chartCategory = new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: { labels: Object.keys(cats), datasets: [{data: Object.values(cats), backgroundColor: ['#ef4444','#f97316','#f59e0b','#eab308','#84cc16','#06b6d4'], borderWidth:0}] },
+                    options: { responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{legend:{position:'right', labels:{boxWidth:10, color:'#94a3b8'}}} }
+                });
             }
-            noData.classList.add('hidden');
+        }
 
-            const cats = {};
-            expenses.forEach(m => {
-                cats[m.category] = (cats[m.category] || 0) + m.amount;
+        function renderReport(year) {
+            $('#report-year-display').innerText = year;
+            const months = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+            const tbody = $('#report-table-body'); tbody.innerHTML = '';
+            let tI=0, tE=0;
+            let dI=[], dE=[];
+
+            months.forEach((mName, i) => {
+                const key = `${year}-${String(i+1).padStart(2,'0')}`;
+                const mIng = appState.movements.filter(m => m.date.startsWith(key) && m.type==='ingreso').reduce((a,b)=>a+b.amount,0);
+                const mEgr = appState.movements.filter(m => m.date.startsWith(key) && m.type==='egreso').reduce((a,b)=>a+b.amount,0);
+                tI+=mIng; tE+=mEgr;
+                dI.push(mIng); dE.push(mEgr);
+                
+                const bal = mIng - mEgr;
+                tbody.innerHTML += `<tr>
+                    <td class="p-3">${mName}</td>
+                    <td class="p-3 text-right text-emerald-500">${formatCurrency(mIng)}</td>
+                    <td class="p-3 text-right text-red-500">${formatCurrency(mEgr)}</td>
+                    <td class="p-3 text-right ${bal>=0?'text-blue-400':'text-red-400'}">${formatCurrency(bal)}</td>
+                </tr>`;
             });
+            $('#report-footer').innerHTML = `<td class="p-3">TOTAL</td><td class="p-3 text-right text-emerald-400">${formatCurrency(tI)}</td><td class="p-3 text-right text-red-400">${formatCurrency(tE)}</td><td class="p-3 text-right">${formatCurrency(tI-tE)}</td>`;
 
-            const labels = Object.keys(cats);
-            const data = Object.values(cats);
-
-            const colors = ['#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#06b6d4', '#3b82f6', '#6366f1', '#a855f7', '#d946ef', '#f43f5e'];
-
-            if (appState.ui.chartCategory) appState.ui.chartCategory.destroy();
-
-            appState.ui.chartCategory = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: data,
-                        backgroundColor: colors,
-                        borderWidth: 0,
-                        hoverOffset: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'right', labels: { boxWidth: 10, color: '#94a3b8', font: {size: 10} } }
-                    },
-                    cutout: '70%'
-                }
+            const ctx = $('#report-chart').getContext('2d');
+            if(appState.ui.chartReport) appState.ui.chartReport.destroy();
+            appState.ui.chartReport = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: months, datasets:[{label:'I',data:dI,backgroundColor:'#10b981'}, {label:'E',data:dE,backgroundColor:'#ef4444'}] },
+                options: { responsive:true, maintainAspectRatio:false, scales:{x:{grid:{display:false}}, y:{grid:{color:'#334155'}}} }
             });
         }
 
-        // --- Modales y Formularios ---
-        function openModal(movement = null) {
-            const form = $('#movement-form');
-            form.reset();
+        function openReportModal() { $('#report-modal').classList.remove('hidden'); renderReport(appState.ui.reportYear); }
+
+        function openModal(movement) {
+            $('#movement-form').reset();
             appState.ui.editingId = null;
-            
-            // 2. CONFIGURACIÓN POR DEFECTO SOLICITADA
-            if (movement) {
+            if(movement) {
                 appState.ui.editingId = movement.id;
-                $('#modal-title').innerText = 'Editar Movimiento';
+                $('#modal-title').innerText = 'Editar';
                 $('#movement-amount').value = movement.amount;
                 $('#movement-note').value = movement.note || '';
                 $('#movement-date').value = dayjs(movement.date).format('YYYY-MM-DDTHH:mm');
-                
-                updateTypeSelectorVisual(movement.type);
+                updateTypeVisual(movement.type);
+                updateCategorySelect(movement.type);
                 $('#movement-category').value = movement.category;
             } else {
-                $('#modal-title').innerText = 'Nuevo Movimiento';
+                $('#modal-title').innerText = 'Nuevo';
                 $('#movement-date').value = dayjs().format('YYYY-MM-DDTHH:mm');
-                
-                // DEFAULT: INGRESO - IMPRESIONES
-                updateTypeSelectorVisual('ingreso');
-                // Esperar pequeño tick para que se llene el select y luego setear valor
-                setTimeout(() => $('#movement-category').value = 'Impresiones', 10);
+                updateTypeVisual('ingreso');
+                updateCategorySelect('ingreso');
+                // Default cat
+                setTimeout(()=>$('#movement-category').value = 'Impresiones',10);
             }
-
-            movementModal.classList.remove('hidden', 'pointer-events-none');
-            setTimeout(() => movementModal.classList.remove('opacity-0'), 10);
-            setTimeout(() => $('#movement-amount').focus(), 100);
+            $('#movement-modal').classList.remove('hidden');
         }
+        function closeModal() { $('#movement-modal').classList.add('hidden'); }
 
-        function closeModal() {
-            movementModal.classList.add('opacity-0');
-            setTimeout(() => movementModal.classList.add('hidden', 'pointer-events-none'), 300);
-        }
-
-        function updateTypeSelectorVisual(type) {
-            const visualInput = $('#movement-type-visual');
+        function updateTypeVisual(type) {
+            $('#movement-type-visual').value = type;
             const bg = $('#type-bg');
-            const tIngreso = $('#type-ingreso');
-            const tEgreso = $('#type-egreso');
-
-            visualInput.value = type;
-            
-            if (type === 'ingreso') {
-                bg.style.transform = 'translateX(0)';
-                bg.className = 'absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-emerald-500 rounded-lg shadow transition-all duration-300 pointer-events-none z-0';
-                
-                // Update Text Colors
-                tIngreso.classList.add('text-white'); tIngreso.classList.remove('text-slate-400');
-                tEgreso.classList.remove('text-white'); tEgreso.classList.add('text-slate-400');
+            const ti = $('#type-ingreso'); const te = $('#type-egreso');
+            if(type === 'ingreso') {
+                bg.style.transform = 'translateX(0)'; bg.classList.replace('bg-red-500','bg-emerald-500');
+                ti.classList.replace('text-slate-400','text-white'); te.classList.replace('text-white','text-slate-400');
             } else {
-                bg.style.transform = 'translateX(100%) translateX(8px)';
-                bg.className = 'absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] bg-red-500 rounded-lg shadow transition-all duration-300 pointer-events-none z-0';
-                
-                // Update Text Colors
-                tEgreso.classList.add('text-white'); tEgreso.classList.remove('text-slate-400');
-                tIngreso.classList.remove('text-white'); tIngreso.classList.add('text-slate-400');
+                bg.style.transform = 'translateX(100%) translateX(8px)'; bg.classList.replace('bg-emerald-500','bg-red-500');
+                te.classList.replace('text-slate-400','text-white'); ti.classList.replace('text-white','text-slate-400');
             }
             updateCategorySelect(type);
         }
 
         function updateCategorySelect(type) {
-            const sel = $('#movement-category');
-            sel.innerHTML = '';
-            
-            // Recuperar categorías y filtrar "Importado" para que no aparezca en el select
-            const cats = (appState.categories[type] || []).filter(c => c !== 'Importado');
-            
-            cats.forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat; opt.innerText = cat;
-                sel.appendChild(opt);
+            const s = $('#movement-category'); s.innerHTML = '';
+            appState.categories[type].forEach(c => {
+                if(c !== 'Importado') { const o = document.createElement('option'); o.value=c; o.innerText=c; s.appendChild(o); }
             });
         }
 
-        // --- FUNCIONES NUEVAS: Reporte Anual ---
-        function openReportModal() {
-            reportModal.classList.remove('hidden');
-            renderReport(appState.ui.reportYear);
-        }
-
-        function closeReportModal() {
-            reportModal.classList.add('hidden');
-        }
-
-        function changeReportYear(delta) {
-            appState.ui.reportYear += delta;
-            renderReport(appState.ui.reportYear);
-        }
-
-        function renderReport(year) {
-            $('#report-year-display').innerText = year;
-            const tbody = $('#report-table-body');
-            const footer = $('#report-footer');
-            tbody.innerHTML = '';
-            
-            const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            let totalIng = 0, totalEgr = 0;
-            let chartDataIng = [], chartDataEgr = [];
-
-            months.forEach((monthName, index) => {
-                // Formato de mes YYYY-MM para filtrar
-                const monthKey = `${year}-${String(index + 1).padStart(2, '0')}`;
-                
-                let mIng = 0, mEgr = 0;
-                
-                appState.movements.forEach(m => {
-                    if (m.date.startsWith(monthKey)) {
-                        if (m.type === 'ingreso') mIng += m.amount;
-                        else mEgr += m.amount;
-                    }
-                });
-
-                totalIng += mIng;
-                totalEgr += mEgr;
-                
-                chartDataIng.push(mIng);
-                chartDataEgr.push(mEgr);
-
-                const balance = mIng - mEgr;
-                const margin = mIng > 0 ? ((balance / mIng) * 100).toFixed(1) + '%' : '-';
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="p-4 font-medium">${monthName}</td>
-                    <td class="p-4 text-right text-emerald-500">${formatCurrency(mIng)}</td>
-                    <td class="p-4 text-right text-red-500">${formatCurrency(mEgr)}</td>
-                    <td class="p-4 text-right font-bold ${balance >= 0 ? 'text-blue-400' : 'text-red-400'}">${formatCurrency(balance)}</td>
-                    <td class="p-4 text-right text-slate-400">${margin}</td>
-                `;
-                tbody.appendChild(row);
-            });
-
-            // Footer Totales
-            const totalBal = totalIng - totalEgr;
-            const totalMargin = totalIng > 0 ? ((totalBal / totalIng) * 100).toFixed(1) + '%' : '-';
-            
-            footer.innerHTML = `
-                <td class="p-4">TOTAL ${year}</td>
-                <td class="p-4 text-right text-emerald-400">${formatCurrency(totalIng)}</td>
-                <td class="p-4 text-right text-red-400">${formatCurrency(totalEgr)}</td>
-                <td class="p-4 text-right ${totalBal >= 0 ? 'text-blue-400' : 'text-red-400'}">${formatCurrency(totalBal)}</td>
-                <td class="p-4 text-right text-slate-300">${totalMargin}</td>
-            `;
-
-            // Renderizar Gráfico del Reporte
-            const ctx = $('#report-chart').getContext('2d');
-            if (appState.ui.chartReport) appState.ui.chartReport.destroy();
-
-            appState.ui.chartReport = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: months.map(m => m.substring(0, 3)),
-                    datasets: [
-                        { label: 'Ingresos', data: chartDataIng, backgroundColor: '#10b981', borderRadius: 4 },
-                        { label: 'Egresos', data: chartDataEgr, backgroundColor: '#ef4444', borderRadius: 4 }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { 
-                            grid: { color: '#334155' },
-                            ticks: { color: '#94a3b8' }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#94a3b8' }
-                        }
-                    }
-                }
-            });
-        }
-
-
-        // --- Manejo de Eventos ---
-        function setupEventListeners() {
-            // Filtros
-            $('#filter-month').addEventListener('change', renderAll);
-            $('#filter-type').addEventListener('change', renderAll);
-            $('#filter-search').addEventListener('input', renderAll);
-
-            // Modal
-            $('#btn-add-movement').addEventListener('click', () => openModal(null));
-            $('#btn-modal-cancel').addEventListener('click', closeModal);
-            
-            // Toggle Tipo en Modal
-            $('#type-ingreso').onclick = () => updateTypeSelectorVisual('ingreso');
-            $('#type-egreso').onclick = () => updateTypeSelectorVisual('egreso');
-
-            // REPORTE ANUAL
-            $('#btn-show-report').onclick = openReportModal;
-            $('#btn-report-close').onclick = closeReportModal;
-            $('#btn-prev-year').onclick = () => changeReportYear(-1);
-            $('#btn-next-year').onclick = () => changeReportYear(1);
-
-            // Settings y Dark Mode (USANDO ADDEVENTLISTENER PARA EVITAR CONFLICTOS)
-            const btnSettings = $('#btn-settings');
-            if(btnSettings) {
-                btnSettings.addEventListener('click', () => {
-                    $('#settings-modal').classList.remove('hidden');
-                });
-            }
-
-            const btnSettingsCancel = $('#btn-settings-cancel');
-            if(btnSettingsCancel) {
-                btnSettingsCancel.addEventListener('click', () => {
-                    $('#settings-modal').classList.add('hidden');
-                });
-            }
-
-            const btnToggleDark = $('#btn-toggle-dark');
-            if(btnToggleDark) {
-                btnToggleDark.addEventListener('click', () => {
-                    document.documentElement.classList.toggle('dark');
-                    localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-                    setupTheme(); 
-                    renderAll(); 
-                });
-            }
-
-            // CHIPS INTERNOS DEL MODAL
-            document.querySelectorAll('.chip-btn').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    e.stopPropagation(); // Evitar submits accidentales
-                    
-                    const type = btn.dataset.type;
-                    const cat = btn.dataset.cat;
-                    
-                    // 1. Setear Tipo Visualmente
-                    updateTypeSelectorVisual(type);
-                    
-                    // 2. Setear Categoría (esperar que se renderice el select)
-                    setTimeout(() => {
-                         $('#movement-category').value = cat;
-                    }, 10);
-                    
-                    // Visual feedback
-                    document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                });
-            });
-
-            // Auto-Categorización al escribir nota
-            $('#movement-note').addEventListener('input', (e) => {
-                const text = e.target.value.toLowerCase();
-                let foundCat = null;
-                
-                for (const [cat, keywords] of Object.entries(categoryKeywords)) {
-                    if (keywords.some(k => text.includes(k))) {
-                        // Buscar la categoría real (mayúsculas/minúsculas)
-                        // 'resmas a4' -> 'Resmas A4'
-                        const currentType = $('#movement-type-visual').value;
-                        const validCats = appState.categories[currentType];
-                        
-                        // Encontrar la categoría que coincida (case insensitive)
-                        if(validCats) {
-                            foundCat = validCats.find(c => c.toLowerCase() === cat);
-                        }
-                        break;
-                    }
-                }
-
-                if (foundCat) {
-                     $('#movement-category').value = foundCat;
-                     // Efecto visual
-                     $('#movement-category').classList.add('bg-cyan-500/20');
-                     setTimeout(() => $('#movement-category').classList.remove('bg-cyan-500/20'), 500);
-                }
-            });
-
-            // Guardar con LÓGICA DE FUSIÓN (Merge) para evitar pisar datos
-            $('#movement-form').onsubmit = async (e) => {
-                e.preventDefault();
-                showSync('loading'); // Feedback inmediato
-
-                const type = $('#movement-type-visual').value;
-                const amount = parseFloat($('#movement-amount').value);
-                const category = $('#movement-category').value;
-                const note = $('#movement-note').value;
-                const date = $('#movement-date').value;
-
-                if (!amount || amount <= 0) {
-                     showSync('error');
-                     return showToast('Monto inválido', 'error');
-                }
-
-                const newMovement = {
-                    id: appState.ui.editingId || 'mov_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-                    type, amount, category, note, 
-                    date: dayjs(date).toISOString(),
-                    updatedAt: new Date().toISOString() // Timestamp para conflictos
-                };
-
-                // PASO CLAVE: Antes de guardar localmente, intentar traer lo último de la nube si es posible
-                if (appState.gistConfig.pat) {
-                    try {
-                        // 1. PULL (Traer nube)
-                        const cloudData = await fetchGistData(); // Función auxiliar que solo trae datos
-                        if (cloudData) {
-                            // 2. MERGE (Fusionar nube + local actual)
-                            mergeData(cloudData);
-                        }
-                    } catch (err) {
-                        console.warn("No se pudo sincronizar antes de guardar (offline?)", err);
-                    }
-                }
-
-                // 3. ACTUALIZAR LOCALMENTE (Con la lista ya mergeada)
-                if (appState.ui.editingId) {
-                    const idx = appState.movements.findIndex(m => m.id === appState.ui.editingId);
-                    if (idx !== -1) appState.movements[idx] = newMovement;
-                } else {
-                    appState.movements.push(newMovement);
-                }
-
-                saveState(); // Guardar en LocalStorage
-                renderAll();
-                closeModal();
-                showToast(appState.ui.editingId ? 'Actualizado' : 'Guardado', 'success');
-
-                // 4. PUSH (Subir la lista final fusionada)
-                await syncGist(); 
-            };
-
-            // Agregar Categoría
-            $('#btn-add-category').onclick = () => {
-                const type = $('#movement-type-visual').value;
-                const newCat = prompt('Nombre de la nueva categoría:');
-                if (newCat && newCat.trim()) {
-                    if (Array.isArray(appState.categories[type])) {
-                        appState.categories[type].push(newCat.trim());
-                        saveState();
-                        updateCategorySelect(type);
-                        $('#movement-category').value = newCat.trim();
-                    } else {
-                        showToast('Error en la estructura de categorías', 'error');
-                    }
-                }
-            };
-            
-            $('#settings-form').onsubmit = (e) => {
-                e.preventDefault();
-                appState.gistConfig.pat = $('#gist-pat').value || appState.gistConfig.pat;
-                appState.gistConfig.gistId = $('#gist-id').value;
-                saveGistConfig();
-                $('#settings-modal').classList.add('hidden');
-                handlePullFromGist();
-            }
-        }
-
-        // --- Utilidades de Persistencia y MERGE ---
-        
-        // Función para fusionar datos de nube con locales
         function mergeData(cloudData) {
-            const localMap = new Map(appState.movements.map(m => [m.id, m]));
-            const cloudMap = new Map((cloudData.movements || []).map(m => [m.id, m]));
-            
-            // Unir todos los IDs únicos
-            const allIds = new Set([...localMap.keys(), ...cloudMap.keys()]);
-            
-            const mergedMovements = [];
-            
-            allIds.forEach(id => {
-                const local = localMap.get(id);
-                const cloud = cloudMap.get(id);
-                
-                if (local && cloud) {
-                    mergedMovements.push(cloud); 
-                } else if (local) {
-                    mergedMovements.push(local); // Solo existe local (nuevo sin subir)
-                } else if (cloud) {
-                    mergedMovements.push(cloud); // Solo existe nube (nuevo de otro dispositivo)
-                }
-            });
-            
-            appState.movements = mergedMovements;
-            
-            // Merge Categorías (Unión simple y ROBUSTA)
-            if (cloudData.categories) {
-                const localIng = Array.isArray(appState.categories.ingreso) ? appState.categories.ingreso : [];
-                const cloudIng = Array.isArray(cloudData.categories.ingreso) ? cloudData.categories.ingreso : [];
-                appState.categories.ingreso = [...new Set([...localIng, ...cloudIng])];
-
-                const localEgr = Array.isArray(appState.categories.egreso) ? appState.categories.egreso : [];
-                const cloudEgr = Array.isArray(cloudData.categories.egreso) ? cloudData.categories.egreso : [];
-                appState.categories.egreso = [...new Set([...localEgr, ...cloudEgr])];
+            const local = new Map(appState.movements.map(m=>[m.id,m]));
+            (cloudData.movements||[]).forEach(m => local.set(m.id, m));
+            appState.movements = Array.from(local.values());
+            if(cloudData.categories) {
+                appState.categories.ingreso = [...new Set([...appState.categories.ingreso, ...cloudData.categories.ingreso])];
+                appState.categories.egreso = [...new Set([...appState.categories.egreso, ...cloudData.categories.egreso])];
             }
         }
 
-        function saveState() {
-            localStorage.setItem('finanzasData', JSON.stringify({
-                movements: appState.movements,
-                categories: appState.categories
-            }));
-        }
-
-        function loadStateFromLocal() {
-            const data = localStorage.getItem('finanzasData');
-            if (data) {
-                const parsed = JSON.parse(data);
-                appState.movements = Array.isArray(parsed.movements) ? parsed.movements : [];
-                
-                // Carga robusta de categorías para evitar errores
-                if (parsed.categories) {
-                    appState.categories.ingreso = Array.isArray(parsed.categories.ingreso) ? parsed.categories.ingreso : appState.categories.ingreso;
-                    appState.categories.egreso = Array.isArray(parsed.categories.egreso) ? parsed.categories.egreso : appState.categories.egreso;
-                }
-                
-                // Asegurar que "Importado" existe para compatibilidad
-                if(!appState.categories.ingreso.includes("Importado")) appState.categories.ingreso.push("Importado");
-                if(!appState.categories.egreso.includes("Importado")) appState.categories.egreso.push("Importado");
-            }
-        }
-        
-        function saveGistConfig() {
-            localStorage.setItem('finanzasGistConfig', JSON.stringify(appState.gistConfig));
-        }
-        
-        function loadGistConfig() {
-            const conf = localStorage.getItem('finanzasGistConfig');
-            if(conf) {
-                appState.gistConfig = JSON.parse(conf);
-                $('#gist-id').value = appState.gistConfig.gistId || '';
-            }
-        }
-
-        // Función auxiliar solo para obtener datos sin escribir estado
         async function fetchGistData() {
-             if(!appState.gistConfig.pat || !appState.gistConfig.gistId) return null;
-             const res = await fetch(`https://api.github.com/gists/${appState.gistConfig.gistId}`, {
-                headers: { 'Authorization': `token ${appState.gistConfig.pat}` }
-             });
-             if(!res.ok) return null;
-             const data = await res.json();
-             const filename = Object.keys(data.files)[0];
-             appState.gistConfig.filename = filename; // Actualizar filename por si acaso
-             return JSON.parse(data.files[filename].content);
+            if(!appState.gistConfig.pat) return null;
+            const res = await fetch(`https://api.github.com/gists/${appState.gistConfig.gistId}`, {headers:{Authorization:`token ${appState.gistConfig.pat}`}});
+            if(!res.ok) return null;
+            const json = await res.json();
+            const f = Object.keys(json.files)[0];
+            return JSON.parse(json.files[f].content);
         }
 
         async function syncGist() {
-            if(!appState.gistConfig.pat || !appState.gistConfig.gistId) return;
-            showSync('loading');
+            if(!appState.gistConfig.pat) return;
+            $('#gist-sync-spinner').classList.remove('hidden');
+            $('#gist-sync-ok').classList.add('hidden');
             try {
-                const filename = appState.gistConfig.filename || 'finanzas.json';
-                // Enviar TODO el estado actual (que ya fue mergeado en handleSave)
-                const res = await fetch(`https://api.github.com/gists/${appState.gistConfig.gistId}`, {
-                    method: 'PATCH',
-                    headers: { 'Authorization': `token ${appState.gistConfig.pat}`, 'Accept': 'application/vnd.github.v3+json' },
-                    body: JSON.stringify({ files: { [filename]: { content: JSON.stringify({ movements: appState.movements, categories: appState.categories }) } } })
+                const f = appState.gistConfig.filename || 'finanzas.json';
+                await fetch(`https://api.github.com/gists/${appState.gistConfig.gistId}`, {
+                    method:'PATCH',
+                    headers:{Authorization:`token ${appState.gistConfig.pat}`},
+                    body:JSON.stringify({files:{[f]:{content:JSON.stringify({movements:appState.movements, categories:appState.categories})}}})
                 });
-                if(!res.ok) throw new Error('Error sync');
-                showSync('ok');
-            } catch(e) {
-                console.error(e);
-                showSync('error');
-            }
+                $('#gist-sync-ok').classList.remove('hidden');
+            } catch(e) { $('#gist-sync-error').classList.remove('hidden'); }
+            $('#gist-sync-spinner').classList.add('hidden');
         }
 
         async function handlePullFromGist() {
-            if(!appState.gistConfig.pat || !appState.gistConfig.gistId) return;
-            showSync('loading');
+            $('#gist-sync-spinner').classList.remove('hidden');
             try {
-                const cloudData = await fetchGistData();
-                if(cloudData) {
-                    mergeData(cloudData); // Usar la nueva función MERGE en lugar de reemplazo directo
-                    saveState();
-                    renderAll();
-                    showSync('ok');
-                }
-            } catch(e) {
-                showSync('error');
-            }
-        }
-
-        function showSync(status) {
+                const data = await fetchGistData();
+                if(data) { mergeData(data); saveState(); renderAll(); $('#gist-sync-ok').classList.remove('hidden'); }
+            } catch(e) { $('#gist-sync-error').classList.remove('hidden'); }
             $('#gist-sync-spinner').classList.add('hidden');
-            $('#gist-sync-ok').classList.add('hidden');
-            $('#gist-sync-error').classList.add('hidden');
-            $('#gist-sync-none').classList.add('hidden'); // Ocultar icono desconectado si pasa algo
-
-            if(status === 'loading') $('#gist-sync-spinner').classList.remove('hidden');
-            if(status === 'ok') $('#gist-sync-ok').classList.remove('hidden');
-            if(status === 'error') $('#gist-sync-error').classList.remove('hidden');
         }
 
-        function showToast(msg, type) {
-            const el = $('#toast');
-            $('#toast-message').innerText = msg;
-            el.className = `fixed top-5 right-5 glass-panel px-4 py-3 rounded-xl shadow-lg z-[60] transition-opacity duration-300 flex items-center gap-3 border-l-4 ${type === 'error' ? 'border-red-500 text-red-400' : 'border-emerald-500 text-emerald-400'}`;
-            el.classList.remove('opacity-0');
-            setTimeout(() => el.classList.add('opacity-0'), 3000);
+        function saveState() { localStorage.setItem('finanzasData', JSON.stringify({movements:appState.movements, categories:appState.categories})); }
+        function loadStateFromLocal() {
+            try {
+                const d = localStorage.getItem('finanzasData');
+                if(d) { const p = JSON.parse(d); appState.movements = p.movements||[]; appState.categories = p.categories||appState.categories; }
+            } catch(e) { console.error("Error lectura local", e); appState.movements=[]; }
         }
-
-        function setupTheme() {
-             const isDark = document.documentElement.classList.contains('dark');
-             $('#theme-icon-light').classList.toggle('hidden', !isDark);
-             $('#theme-icon-dark').classList.toggle('hidden', isDark);
+        function loadGistConfig() {
+            try {
+                const c = localStorage.getItem('finanzasGistConfig');
+                if(c) { appState.gistConfig = JSON.parse(c); $('#gist-id').value = appState.gistConfig.gistId||''; $('#gist-pat').value = appState.gistConfig.pat||''; }
+            } catch(e) { console.error("Error config", e); }
         }
-
+        function showToast(m, t) { const el=$('#toast'); el.innerText=m; el.classList.remove('opacity-0'); setTimeout(()=>el.classList.add('opacity-0'),2000); }
     </script>
-    
-    <!-- Módulo de Protección de Datos Finanzas -->
     <script src="finanzas-protection.js"></script>
 </body>
 </html>
