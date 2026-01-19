@@ -329,21 +329,27 @@
 
         const appState = {
             movements: [],
+            // CATEGORÍAS POR DEFECTO ACTUALIZADAS
             categories: {
-                ingreso: ["Impresiones", "Varios", "Importado"],
-                egreso: ["Resmas A4", "Insumos", "Servicios", "Varios", "Importado"]
+                ingreso: ["Impresiones", "Varios"],
+                egreso: ["Opalina 180", "Papel Foto", "Autoadhesivo", "Tapas", "Espirales", "Insumos", "Servicios", "Varios"]
             },
             gistConfig: { pat: null, gistId: null },
             ui: { chartHistory: null, chartCategory: null, chartReport: null, editingId: null, reportYear: new Date().getFullYear() }
         };
 
         const categoryKeywords = {
-            'resmas a4': ['resma', 'papel', 'hojas'], 'insumos': ['tinta', 'toner', 'anillado'],
-            'servicios': ['luz', 'gas', 'internet'], 'impresiones': ['copia', 'impresion']
+            'opalina 180': ['opalina', 'tarjetas', '180', 'grueso'],
+            'papel foto': ['foto', 'fotografico', 'brillante', 'glossy'],
+            'autoadhesivo': ['sticker', 'pegatina', 'adhesivo', 'etiqueta'],
+            'tapas': ['tapa', 'contratapa', 'pp', 'transparente'],
+            'espirales': ['espiral', 'anillado', 'rulo'],
+            'impresiones': ['copia', 'bajada', 'impresion', 'color', 'texto'],
+            'insumos': ['tinta', 'toner'],
+            'servicios': ['luz', 'internet', 'gas']
         };
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // ACTIVAR LISTENERS PRIMERO
             setupEventListeners();
             
             try {
@@ -438,7 +444,7 @@
                     if (Array.isArray(appState.categories[type])) {
                         appState.categories[type].push(newCat.trim());
                         saveState();
-                        updateTypeVisual(type); // Actualiza select y chips
+                        updateTypeVisual(type); 
                         $('#movement-category').value = newCat.trim();
                     }
                 }
@@ -449,22 +455,18 @@
             const container = $('#modal-quick-chips');
             container.innerHTML = '';
 
-            // 1. Obtener conteo de categorías usadas
             const counts = {};
             appState.movements
                 .filter(m => m.type === type)
                 .forEach(m => counts[m.category] = (counts[m.category] || 0) + 1);
 
-            // 2. Ordenar por frecuencia
             let topCats = Object.keys(counts).sort((a,b) => counts[b] - counts[a]).slice(0, 5);
 
-            // 3. Fallback a defaults si está vacío
             if (topCats.length === 0) {
-                // Usar las primeras 5 categorías por defecto del array
-                topCats = (appState.categories[type] || []).slice(0, 5);
+                // Mostrar siempre los 6 primeros por defecto si no hay historial
+                topCats = (appState.categories[type] || []).slice(0, 6);
             }
 
-            // 4. Renderizar
             topCats.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
@@ -472,10 +474,8 @@
                 btn.innerText = cat;
                 btn.onclick = (e) => {
                     e.preventDefault(); e.stopPropagation();
-                    // Select visually
                     container.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    // Set select value
                     $('#movement-category').value = cat;
                 };
                 container.appendChild(btn);
@@ -711,7 +711,7 @@
         function updateCategorySelect(type) {
             const s = $('#movement-category'); s.innerHTML = '';
             appState.categories[type].forEach(c => {
-                if(c !== 'Importado') { const o = document.createElement('option'); o.value=c; o.innerText=c; s.appendChild(o); }
+                const o = document.createElement('option'); o.value=c; o.innerText=c; s.appendChild(o);
             });
         }
 
@@ -763,7 +763,18 @@
         function loadStateFromLocal() {
             try {
                 const d = localStorage.getItem('finanzasData');
-                if(d) { const p = JSON.parse(d); appState.movements = p.movements||[]; appState.categories = p.categories||appState.categories; }
+                if(d) { 
+                    const p = JSON.parse(d); 
+                    appState.movements = p.movements||[]; 
+                    // AUTO-CORRECCIÓN: INYECTAR LAS NUEVAS CATEGORÍAS SI FALTAN
+                    appState.categories = p.categories||appState.categories; 
+                    
+                    const requiredIngreso = ["Impresiones", "Varios"];
+                    const requiredEgreso = ["Opalina 180", "Papel Foto", "Autoadhesivo", "Tapas", "Espirales", "Insumos", "Servicios", "Varios"];
+                    
+                    appState.categories.ingreso = [...new Set([...appState.categories.ingreso, ...requiredIngreso])];
+                    appState.categories.egreso = [...new Set([...appState.categories.egreso, ...requiredEgreso])];
+                }
             } catch(e) { console.error("Error lectura local", e); appState.movements=[]; }
         }
         function loadGistConfig() {
