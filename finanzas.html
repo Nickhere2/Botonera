@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestor de Finanzas - Empresa (Robust)</title>
+    <title>Gestor de Finanzas - Empresa</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -68,17 +68,17 @@
             display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: none; 
         }
         .modal-quick-actions {
-            display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem;
+            display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; justify-content: center;
         }
         .chip-btn {
             font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 9999px;
             border: 1px solid rgba(148, 163, 184, 0.2); background: rgba(30, 41, 59, 0.5);
-            color: #94a3b8; cursor: pointer;
+            color: #94a3b8; cursor: pointer; transition: all 0.2s;
         }
         .chip-btn:hover { background: rgba(30, 41, 59, 0.8); color: #f1f5f9; border-color: rgba(148, 163, 184, 0.4); }
         .chip-btn.active { background: rgba(6, 182, 212, 0.2); color: #22d3ee; border-color: #06b6d4; }
         
-        /* Asegurar visibilidad de iconos por defecto si JS falla */
+        /* Asegurar visibilidad de iconos por defecto */
         html.dark #theme-icon-light { display: block; }
         html.dark #theme-icon-dark { display: none; }
         html:not(.dark) #theme-icon-light { display: none; }
@@ -114,7 +114,7 @@
                     </span>
                 </div>
                 
-                <!-- Botones -->
+                <!-- Botones: Añadido z-50 y cursor-pointer explícito -->
                 <button id="btn-toggle-dark" class="p-2 rounded-full hover:bg-white/10 transition-colors relative z-50 cursor-pointer">
                     <!-- Icono Sol (Visible en Dark por CSS) -->
                     <svg id="theme-icon-light" class="h-5 w-5 text-yellow-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 12a5 5 0 100-10 5 5 0 000 10z" /></svg>
@@ -257,13 +257,9 @@
                     <input type="number" id="movement-amount" placeholder="0.00" step="0.01" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-4 pl-10 pr-4 text-3xl font-bold text-center focus:outline-none focus:border-cyan-500 transition-colors" required>
                 </div>
 
-                <!-- Chips Rápidos -->
-                <div class="modal-quick-actions justify-center">
-                    <button type="button" class="chip-btn" data-type="ingreso" data-cat="Impresiones">📄 Impresión</button>
-                    <button type="button" class="chip-btn" data-type="ingreso" data-cat="Varios">💰 Varios Ing</button>
-                    <button type="button" class="chip-btn" data-type="egreso" data-cat="Resmas A4">📦 Resmas</button>
-                    <button type="button" class="chip-btn" data-type="egreso" data-cat="Insumos">🖨️ Insumos</button>
-                    <button type="button" class="chip-btn" data-type="egreso" data-cat="Servicios">💡 Servicios</button>
+                <!-- Chips Rápidos Dinámicos -->
+                <div id="modal-quick-chips" class="modal-quick-actions justify-center">
+                    <!-- Se llenarán con JS -->
                 </div>
 
                 <div class="flex gap-2 items-center">
@@ -316,7 +312,7 @@
     </div>
 
     <!-- Toast -->
-    <div id="toast" class="fixed top-5 right-5 glass-panel px-4 py-3 rounded-xl shadow-lg z-[150] opacity-0 transition-opacity duration-300 border-l-4 border-cyan-500">
+    <div id="toast" class="fixed top-5 right-5 glass-panel px-4 py-3 rounded-xl shadow-lg z-[150] opacity-0 transition-opacity duration-300 border-l-4 border-cyan-500 pointer-events-none">
         <p id="toast-message">Notificación</p>
     </div>
 
@@ -347,26 +343,21 @@
         };
 
         document.addEventListener('DOMContentLoaded', async () => {
-            // ACTIVAR LISTENERS PRIMERO PARA QUE LOS BOTONES RESPONDAN SIEMPRE
+            // ACTIVAR LISTENERS PRIMERO
             setupEventListeners();
             
-            // Carga segura de datos
             try {
                 loadGistConfig();
                 loadStateFromLocal();
             } catch (e) { console.error("Error cargando datos locales:", e); }
             
-            // Verificar estado Gist visualmente
             updateGistStatusUI();
 
-            // Setear fecha filtro
             const fm = $('#filter-month');
             if(fm) fm.value = dayjs().format('YYYY-MM');
             
-            // Render inicial
             renderAll();
 
-            // Intentar sync si hay config
             if (appState.gistConfig.pat) {
                 await handlePullFromGist();
             }
@@ -421,14 +412,73 @@
             bind('#btn-prev-year', 'click', () => { appState.ui.reportYear--; renderReport(appState.ui.reportYear); });
             bind('#btn-next-year', 'click', () => { appState.ui.reportYear++; renderReport(appState.ui.reportYear); });
 
-            document.querySelectorAll('.chip-btn').forEach(btn => {
+            // Auto-Categorización al escribir nota
+            bind('#movement-note', 'input', (e) => {
+                const text = e.target.value.toLowerCase();
+                let foundCat = null;
+                for (const [cat, keywords] of Object.entries(categoryKeywords)) {
+                    if (keywords.some(k => text.includes(k))) {
+                        const currentType = $('#movement-type-visual').value;
+                        const validCats = appState.categories[currentType];
+                        if(validCats) foundCat = validCats.find(c => c.toLowerCase() === cat);
+                        break;
+                    }
+                }
+                if (foundCat) {
+                     $('#movement-category').value = foundCat;
+                     $('#movement-category').classList.add('bg-cyan-500/20');
+                     setTimeout(() => $('#movement-category').classList.remove('bg-cyan-500/20'), 500);
+                }
+            });
+
+            bind('#btn-add-category', 'click', () => {
+                const type = $('#movement-type-visual').value;
+                const newCat = prompt('Nombre de la nueva categoría:');
+                if (newCat && newCat.trim()) {
+                    if (Array.isArray(appState.categories[type])) {
+                        appState.categories[type].push(newCat.trim());
+                        saveState();
+                        updateTypeVisual(type); // Actualiza select y chips
+                        $('#movement-category').value = newCat.trim();
+                    }
+                }
+            });
+        }
+
+        function renderQuickChips(type) {
+            const container = $('#modal-quick-chips');
+            container.innerHTML = '';
+
+            // 1. Obtener conteo de categorías usadas
+            const counts = {};
+            appState.movements
+                .filter(m => m.type === type)
+                .forEach(m => counts[m.category] = (counts[m.category] || 0) + 1);
+
+            // 2. Ordenar por frecuencia
+            let topCats = Object.keys(counts).sort((a,b) => counts[b] - counts[a]).slice(0, 5);
+
+            // 3. Fallback a defaults si está vacío
+            if (topCats.length === 0) {
+                // Usar las primeras 5 categorías por defecto del array
+                topCats = (appState.categories[type] || []).slice(0, 5);
+            }
+
+            // 4. Renderizar
+            topCats.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'chip-btn';
+                btn.innerText = cat;
                 btn.onclick = (e) => {
                     e.preventDefault(); e.stopPropagation();
-                    updateTypeVisual(btn.dataset.type);
-                    setTimeout(() => $('#movement-category').value = btn.dataset.cat, 50);
-                    document.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
+                    // Select visually
+                    container.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
+                    // Set select value
+                    $('#movement-category').value = cat;
                 };
+                container.appendChild(btn);
             });
         }
 
@@ -623,17 +673,21 @@
                 $('#movement-note').value = movement.note || '';
                 $('#movement-date').value = dayjs(movement.date).format('YYYY-MM-DDTHH:mm');
                 updateTypeVisual(movement.type);
-                updateCategorySelect(movement.type);
                 $('#movement-category').value = movement.category;
             } else {
                 $('#modal-title').innerText = 'Nuevo';
                 $('#movement-date').value = dayjs().format('YYYY-MM-DDTHH:mm');
                 updateTypeVisual('ingreso');
-                updateCategorySelect('ingreso');
                 // Default cat
                 setTimeout(()=>$('#movement-category').value = 'Impresiones',10);
             }
             $('#movement-modal').classList.remove('hidden');
+            
+            // FOCUS AUTOMÁTICO
+            setTimeout(() => {
+                const amt = $('#movement-amount');
+                if(amt) amt.focus();
+            }, 150);
         }
         function closeModal() { $('#movement-modal').classList.add('hidden'); }
 
@@ -648,7 +702,10 @@
                 bg.style.transform = 'translateX(100%) translateX(8px)'; bg.classList.replace('bg-emerald-500','bg-red-500');
                 te.classList.replace('text-slate-400','text-white'); ti.classList.replace('text-white','text-slate-400');
             }
+            // Update Select
             updateCategorySelect(type);
+            // Update Chips
+            renderQuickChips(type);
         }
 
         function updateCategorySelect(type) {
@@ -712,7 +769,9 @@
         function loadGistConfig() {
             try {
                 const c = localStorage.getItem('finanzasGistConfig');
+                const k = localStorage.getItem('finanzasGeminiKey');
                 if(c) { appState.gistConfig = JSON.parse(c); $('#gist-id').value = appState.gistConfig.gistId||''; $('#gist-pat').value = appState.gistConfig.pat||''; }
+                if(k) { appState.geminiKey = k; $('#gemini-key').value = k; }
             } catch(e) { console.error("Error config", e); }
         }
         function showToast(m, t) { const el=$('#toast'); el.innerText=m; el.classList.remove('opacity-0'); setTimeout(()=>el.classList.add('opacity-0'),2000); }
