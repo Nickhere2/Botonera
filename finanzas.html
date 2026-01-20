@@ -13,6 +13,8 @@
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/customParseFormat.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/isoWeek.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dayjs@1.11.10/plugin/isToday.js"></script>
+    <!-- SheetJS para Excel Real -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 
     <style>
         :root {
@@ -148,13 +150,14 @@
                     </div>
                 </div>
 
-                <!-- Hoy -->
+                <!-- Hoy (Resumen) -->
                 <div class="glass-panel p-5 rounded-2xl">
                     <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                        <span class="w-2 h-2 rounded-full bg-cyan-500"></span> Hoy
+                        <span class="w-2 h-2 rounded-full bg-cyan-500"></span> Resumen Hoy
                     </h3>
-                    <div id="today-list" class="space-y-3 max-h-60 overflow-y-auto">
-                        <div class="text-center py-4 text-slate-500 text-sm italic">Sin movimientos hoy</div>
+                    <div class="space-y-4" id="today-summary">
+                        <!-- Se llena con JS -->
+                        <div class="text-center py-4 text-slate-500 text-sm italic">Cargando...</div>
                     </div>
                 </div>
             </div>
@@ -423,7 +426,7 @@
             bind('#btn-prev-year', 'click', () => { appState.ui.reportYear--; renderReport(appState.ui.reportYear); });
             bind('#btn-next-year', 'click', () => { appState.ui.reportYear++; renderReport(appState.ui.reportYear); });
             
-            bind('#btn-export-excel', 'click', downloadCSV);
+            bind('#btn-export-excel', 'click', downloadExcel);
 
             // Auto-Categorización al escribir nota
             bind('#movement-note', 'input', (e) => {
@@ -556,42 +559,35 @@
                 // Charts & Table
                 renderCharts(appState.movements, fMonth, filtered);
                 renderTable(filtered);
-                renderTodayList(); // Fix: Render Today list here
+                renderTodaySummary(); // Fix: Render Today Summary correctly
             } catch(e) { console.error("Render error", e); }
         }
 
-        // --- FIX HOY: Comparación robusta ---
-        function renderTodayList() {
-            const today = dayjs().format('YYYY-MM-DD');
-            // Filtrar movimientos donde la fecha comience con el string de hoy
-            const todays = appState.movements.filter(m => m.date.startsWith(today));
-            const container = $('#today-list');
+        // --- FIX HOY: Summary Card ---
+        function renderTodaySummary() {
+            const container = $('#today-summary');
+            // Usar isSame('day') para comparación precisa de fecha local
+            const todays = appState.movements.filter(m => dayjs(m.date).isSame(dayjs(), 'day'));
             
-            container.innerHTML = '';
-            
-            if (todays.length === 0) {
-                container.innerHTML = '<div class="text-center py-4 text-slate-500 text-sm italic">Sin movimientos hoy</div>';
-                return;
-            }
-            
-            todays.forEach(m => {
-                const div = document.createElement('div');
-                div.className = 'flex justify-between items-center p-2 bg-slate-800/50 rounded-lg cursor-pointer hover:bg-slate-800 transition-colors mb-2';
-                const color = m.type === 'ingreso' ? 'text-emerald-400' : 'text-red-400';
-                const icon = appState.categoryIcons[m.category] || '🔹';
-                div.innerHTML = `
-                    <div class="flex items-center gap-2">
-                        <span class="text-lg">${icon}</span>
-                        <div>
-                            <p class="text-xs font-bold text-slate-200">${m.category}</p>
-                            <p class="text-[10px] text-slate-400">${m.note || dayjs(m.date).format('HH:mm')}</p>
-                        </div>
-                    </div>
-                    <span class="text-xs font-bold ${color}">${formatCurrency(m.amount)}</span>
-                `;
-                div.onclick = () => openModal(m);
-                container.appendChild(div);
-            });
+            const tIng = todays.filter(m => m.type==='ingreso').reduce((a,b)=>a+b.amount,0);
+            const tEgr = todays.filter(m => m.type==='egreso').reduce((a,b)=>a+b.amount,0);
+            const tBal = tIng - tEgr;
+
+            container.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">Ingresos</span>
+                    <span class="text-emerald-400 font-bold">${formatCurrency(tIng)}</span>
+                </div>
+                <div class="flex justify-between items-center">
+                    <span class="text-slate-400">Egresos</span>
+                    <span class="text-red-400 font-bold">${formatCurrency(tEgr)}</span>
+                </div>
+                <div class="h-px bg-slate-700 my-2"></div>
+                <div class="flex justify-between items-center">
+                    <span class="text-white font-medium">Balance</span>
+                    <span class="text-blue-400 font-bold text-xl">${formatCurrency(tBal)}</span>
+                </div>
+            `;
         }
 
         function renderTable(filtered) {
@@ -762,29 +758,24 @@
             }
         }
 
-        // --- Exportar a Excel (CSV) ---
-        function downloadCSV() {
-            const rows = [["Fecha", "Tipo", "Categoria", "Nota", "Monto"]];
-            const sorted = [...appState.movements].sort((a,b) => new Date(b.date) - new Date(a.date));
-            
-            sorted.forEach(m => {
-                rows.push([
-                    dayjs(m.date).format("YYYY-MM-DD HH:mm"),
-                    m.type,
-                    m.category,
-                    `"${(m.note || '').replace(/"/g, '""')}"`,
-                    m.amount
-                ]);
-            });
-            
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + rows.map(e => e.join(",")).join("\n");
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `finanzas_export_${dayjs().format("YYYYMMDD")}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        // --- Exportar a Excel (.xlsx) ---
+        function downloadExcel() {
+            if (typeof XLSX === 'undefined') {
+                showToast("Librería Excel no cargada", "error");
+                return;
+            }
+            const data = appState.movements.map(m => ({
+                Fecha: dayjs(m.date).format("YYYY-MM-DD HH:mm"),
+                Tipo: m.type,
+                Categoria: m.category,
+                Nota: m.note || '',
+                Monto: m.amount
+            }));
+
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Movimientos");
+            XLSX.writeFile(wb, `Finanzas_${dayjs().format("YYYYMMDD")}.xlsx`);
         }
 
         async function fetchGistData() {
@@ -828,7 +819,7 @@
                 if(d) { 
                     const p = JSON.parse(d); 
                     appState.movements = p.movements||[]; 
-                    // AUTO-CORRECCIÓN: FORZAR CATEGORÍAS CORRECTAS (Sobrescribir si es necesario)
+                    // AUTO-CORRECCIÓN: FORZAR CATEGORÍAS CORRECTAS
                     const cleanIngreso = p.categories && p.categories.ingreso ? p.categories.ingreso.filter(c => c !== "Importado") : [];
                     const cleanEgreso = p.categories && p.categories.egreso ? p.categories.egreso.filter(c => c !== "Importado") : [];
 
@@ -836,7 +827,6 @@
                     const fixedIngreso = ["Impresiones", "Varios"];
                     const fixedEgreso = ["Opalina 180", "Papel Foto", "Autoadhesivo", "Tapas", "Espirales", "Insumos", "Servicios", "Varios"];
                     
-                    // Combinar: Primero las fijas, luego las históricas que no estén repetidas
                     appState.categories.ingreso = [...new Set([...fixedIngreso, ...cleanIngreso])];
                     appState.categories.egreso = [...new Set([...fixedEgreso, ...cleanEgreso])];
                 }
