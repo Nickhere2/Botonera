@@ -64,18 +64,15 @@
             box-shadow: 0 0 0 2px rgba(6, 182, 212, 0.2);
         }
         
-        .quick-actions-container {
-            display: flex; gap: 0.75rem; overflow-x: auto; padding-bottom: 0.5rem; scrollbar-width: none; 
-        }
         .modal-quick-actions {
             display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1rem; justify-content: center;
         }
         .chip-btn {
-            font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 9999px;
+            font-size: 0.75rem; padding: 0.35rem 0.85rem; border-radius: 9999px;
             border: 1px solid rgba(148, 163, 184, 0.2); background: rgba(30, 41, 59, 0.5);
-            color: #94a3b8; cursor: pointer; transition: all 0.2s;
+            color: #e2e8f0; cursor: pointer; transition: all 0.2s; font-weight: 500;
         }
-        .chip-btn:hover { background: rgba(30, 41, 59, 0.8); color: #f1f5f9; border-color: rgba(148, 163, 184, 0.4); }
+        .chip-btn:hover { background: rgba(30, 41, 59, 0.9); border-color: rgba(148, 163, 184, 0.6); }
         .chip-btn.active { background: rgba(6, 182, 212, 0.2); color: #22d3ee; border-color: #06b6d4; }
         
         /* Asegurar visibilidad de iconos por defecto */
@@ -113,12 +110,15 @@
                         <span class="w-2 h-2 rounded-full bg-red-500"></span> Error
                     </span>
                 </div>
+
+                <!-- Botón Excel -->
+                <button id="btn-export-excel" class="p-2 rounded-full hover:bg-white/10 transition-colors text-green-400 hover:text-green-300 relative z-50 cursor-pointer" title="Descargar Excel">
+                     <svg class="w-5 h-5 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                </button>
                 
-                <!-- Botones: Añadido z-50 y cursor-pointer explícito -->
+                <!-- Botones Tema y Config -->
                 <button id="btn-toggle-dark" class="p-2 rounded-full hover:bg-white/10 transition-colors relative z-50 cursor-pointer">
-                    <!-- Icono Sol (Visible en Dark por CSS) -->
                     <svg id="theme-icon-light" class="h-5 w-5 text-yellow-500 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M12 12a5 5 0 100-10 5 5 0 000 10z" /></svg>
-                    <!-- Icono Luna (Visible en Light por CSS) -->
                     <svg id="theme-icon-dark" class="h-5 w-5 text-slate-300 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
                 </button>
                 <button id="btn-settings" class="p-2 rounded-full hover:bg-white/10 transition-colors text-slate-400 hover:text-cyan-400 relative z-50 cursor-pointer">
@@ -257,7 +257,7 @@
                     <input type="number" id="movement-amount" placeholder="0.00" step="0.01" class="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-4 pl-10 pr-4 text-3xl font-bold text-center focus:outline-none focus:border-cyan-500 transition-colors" required>
                 </div>
 
-                <!-- Chips Rápidos Dinámicos -->
+                <!-- Chips Rápidos Dinámicos (Categorías específicas) -->
                 <div id="modal-quick-chips" class="modal-quick-actions justify-center">
                     <!-- Se llenarán con JS -->
                 </div>
@@ -329,10 +329,15 @@
 
         const appState = {
             movements: [],
-            // CATEGORÍAS POR DEFECTO ACTUALIZADAS
+            // CATEGORÍAS FIJAS DE TU NEGOCIO
             categories: {
                 ingreso: ["Impresiones", "Varios"],
                 egreso: ["Opalina 180", "Papel Foto", "Autoadhesivo", "Tapas", "Espirales", "Insumos", "Servicios", "Varios"]
+            },
+            // MAPA DE ICONOS EXACTOS PEDIDOS
+            categoryIcons: {
+                "Opalina 180": "📄", "Papel Foto": "🖼️", "Autoadhesivo": "🏷️", "Tapas": "📒", "Espirales": "🌀",
+                "Insumos": "🖨️", "Servicios": "💡", "Varios": "📦", "Impresiones": "📄"
             },
             gistConfig: { pat: null, gistId: null },
             ui: { chartHistory: null, chartCategory: null, chartReport: null, editingId: null, reportYear: new Date().getFullYear() }
@@ -417,6 +422,8 @@
             bind('#btn-report-close', 'click', () => $('#report-modal').classList.add('hidden'));
             bind('#btn-prev-year', 'click', () => { appState.ui.reportYear--; renderReport(appState.ui.reportYear); });
             bind('#btn-next-year', 'click', () => { appState.ui.reportYear++; renderReport(appState.ui.reportYear); });
+            
+            bind('#btn-export-excel', 'click', downloadCSV);
 
             // Auto-Categorización al escribir nota
             bind('#movement-note', 'input', (e) => {
@@ -451,27 +458,21 @@
             });
         }
 
+        // --- Render Chips con Iconos Exactos ---
         function renderQuickChips(type) {
             const container = $('#modal-quick-chips');
             container.innerHTML = '';
 
-            const counts = {};
-            appState.movements
-                .filter(m => m.type === type)
-                .forEach(m => counts[m.category] = (counts[m.category] || 0) + 1);
+            // Prioridad a la lista fija del usuario
+            let chipsToShow = [...(appState.categories[type] || [])];
 
-            let topCats = Object.keys(counts).sort((a,b) => counts[b] - counts[a]).slice(0, 5);
-
-            if (topCats.length === 0) {
-                // Mostrar siempre los 6 primeros por defecto si no hay historial
-                topCats = (appState.categories[type] || []).slice(0, 6);
-            }
-
-            topCats.forEach(cat => {
+            chipsToShow.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = 'chip-btn';
-                btn.innerText = cat;
+                const icon = appState.categoryIcons[cat] || '';
+                btn.innerText = icon ? `${icon} ${cat}` : cat;
+                
                 btn.onclick = (e) => {
                     e.preventDefault(); e.stopPropagation();
                     container.querySelectorAll('.chip-btn').forEach(b => b.classList.remove('active'));
@@ -555,7 +556,42 @@
                 // Charts & Table
                 renderCharts(appState.movements, fMonth, filtered);
                 renderTable(filtered);
+                renderTodayList(); // Fix: Render Today list here
             } catch(e) { console.error("Render error", e); }
+        }
+
+        // --- FIX HOY: Comparación robusta ---
+        function renderTodayList() {
+            const today = dayjs().format('YYYY-MM-DD');
+            // Filtrar movimientos donde la fecha comience con el string de hoy
+            const todays = appState.movements.filter(m => m.date.startsWith(today));
+            const container = $('#today-list');
+            
+            container.innerHTML = '';
+            
+            if (todays.length === 0) {
+                container.innerHTML = '<div class="text-center py-4 text-slate-500 text-sm italic">Sin movimientos hoy</div>';
+                return;
+            }
+            
+            todays.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-2 bg-slate-800/50 rounded-lg cursor-pointer hover:bg-slate-800 transition-colors mb-2';
+                const color = m.type === 'ingreso' ? 'text-emerald-400' : 'text-red-400';
+                const icon = appState.categoryIcons[m.category] || '🔹';
+                div.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="text-lg">${icon}</span>
+                        <div>
+                            <p class="text-xs font-bold text-slate-200">${m.category}</p>
+                            <p class="text-[10px] text-slate-400">${m.note || dayjs(m.date).format('HH:mm')}</p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-bold ${color}">${formatCurrency(m.amount)}</span>
+                `;
+                div.onclick = () => openModal(m);
+                container.appendChild(div);
+            });
         }
 
         function renderTable(filtered) {
@@ -568,9 +604,10 @@
                     const tr = document.createElement('tr');
                     tr.className = 'hover:bg-slate-800/50 cursor-pointer';
                     const color = m.type === 'ingreso' ? 'text-emerald-400' : 'text-red-400';
+                    const icon = appState.categoryIcons[m.category] || '';
                     tr.innerHTML = `
                         <td class="p-4 text-slate-400">${dayjs(m.date).format('DD/MM HH:mm')}</td>
-                        <td class="p-4">${m.category}</td>
+                        <td class="p-4">${icon} ${m.category}</td>
                         <td class="p-4 text-slate-500 text-xs">${m.note||''}</td>
                         <td class="p-4 text-right font-bold ${color}">${formatCurrency(m.amount)}</td>
                         <td class="p-4 text-center text-cyan-500">✎</td>
@@ -725,6 +762,31 @@
             }
         }
 
+        // --- Exportar a Excel (CSV) ---
+        function downloadCSV() {
+            const rows = [["Fecha", "Tipo", "Categoria", "Nota", "Monto"]];
+            const sorted = [...appState.movements].sort((a,b) => new Date(b.date) - new Date(a.date));
+            
+            sorted.forEach(m => {
+                rows.push([
+                    dayjs(m.date).format("YYYY-MM-DD HH:mm"),
+                    m.type,
+                    m.category,
+                    `"${(m.note || '').replace(/"/g, '""')}"`,
+                    m.amount
+                ]);
+            });
+            
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF" + rows.map(e => e.join(",")).join("\n");
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `finanzas_export_${dayjs().format("YYYYMMDD")}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         async function fetchGistData() {
             if(!appState.gistConfig.pat) return null;
             const res = await fetch(`https://api.github.com/gists/${appState.gistConfig.gistId}`, {headers:{Authorization:`token ${appState.gistConfig.pat}`}});
@@ -766,14 +828,17 @@
                 if(d) { 
                     const p = JSON.parse(d); 
                     appState.movements = p.movements||[]; 
-                    // AUTO-CORRECCIÓN: INYECTAR LAS NUEVAS CATEGORÍAS SI FALTAN
-                    appState.categories = p.categories||appState.categories; 
+                    // AUTO-CORRECCIÓN: FORZAR CATEGORÍAS CORRECTAS (Sobrescribir si es necesario)
+                    const cleanIngreso = p.categories && p.categories.ingreso ? p.categories.ingreso.filter(c => c !== "Importado") : [];
+                    const cleanEgreso = p.categories && p.categories.egreso ? p.categories.egreso.filter(c => c !== "Importado") : [];
+
+                    // Categorías prioritarias fijas
+                    const fixedIngreso = ["Impresiones", "Varios"];
+                    const fixedEgreso = ["Opalina 180", "Papel Foto", "Autoadhesivo", "Tapas", "Espirales", "Insumos", "Servicios", "Varios"];
                     
-                    const requiredIngreso = ["Impresiones", "Varios"];
-                    const requiredEgreso = ["Opalina 180", "Papel Foto", "Autoadhesivo", "Tapas", "Espirales", "Insumos", "Servicios", "Varios"];
-                    
-                    appState.categories.ingreso = [...new Set([...appState.categories.ingreso, ...requiredIngreso])];
-                    appState.categories.egreso = [...new Set([...appState.categories.egreso, ...requiredEgreso])];
+                    // Combinar: Primero las fijas, luego las históricas que no estén repetidas
+                    appState.categories.ingreso = [...new Set([...fixedIngreso, ...cleanIngreso])];
+                    appState.categories.egreso = [...new Set([...fixedEgreso, ...cleanEgreso])];
                 }
             } catch(e) { console.error("Error lectura local", e); appState.movements=[]; }
         }
