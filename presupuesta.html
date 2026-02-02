@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VCP Terminal</title>
+    <title>VCP Terminal - Precios 2026</title>
     
     <!-- Fuentes -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=DM+Sans:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
@@ -63,7 +63,7 @@
         .nav-item.active { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary-light); }
 
         /* --- ÁREA PRINCIPAL --- */
-        .content-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; padding: 25px; gap: 25px; overflow-y: auto; max-width: 1000px; margin: 0 auto; width: 100%; }
+        .content-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; padding: 25px; gap: 20px; overflow-y: auto; max-width: 1000px; margin: 0 auto; width: 100%; }
 
         /* --- INPUTS --- */
         .input-row { display: flex; gap: 15px; }
@@ -78,31 +78,39 @@
             background: transparent; border: none; font-family: var(--font); color: var(--text-main);
             font-size: 24px; font-weight: 700; width: 100%; outline: none;
         }
-        /* Decoración */
         .input-card::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: var(--primary); opacity: 0; transition: 0.2s; }
         .input-card:focus-within::after { opacity: 1; }
 
+        /* --- BARRA DE ESTADO --- */
+        .status-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 15px; background: var(--input-bg); border-radius: 12px;
+            border: 1px solid var(--border); margin-bottom: 10px; min-height: 46px;
+        }
+        .status-label { font-size: 11px; color: var(--text-gray); font-weight: 600; text-transform: uppercase; }
+        .status-badge { 
+            padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 11px; text-transform: uppercase; color: #000;
+            opacity: 0; transition: opacity 0.3s;
+        }
+        .status-badge.visible { opacity: 1; }
+        
         /* --- GRID SERVICIOS --- */
         .grid-section-title { font-size: 13px; color: var(--text-gray); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; padding-left: 10px; border-left: 3px solid var(--primary); line-height: 1; }
         .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; padding-bottom: 120px; }
         
-        /* --- BOTONES DE SERVICIO (HOVER STYLE) --- */
+        /* --- BOTONES DE SERVICIO --- */
         .svc-card {
             background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius);
             height: 130px; position: relative; overflow: hidden;
             display: flex; flex-direction: column; 
             cursor: default; transition: border-color 0.2s;
         }
-        
-        /* Vista por defecto */
         .svc-default-view {
             position: absolute; width: 100%; height: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
             transition: transform 0.3s; z-index: 1;
         }
         .svc-card:hover .svc-default-view { transform: translateY(-5px) scale(0.9); opacity: 0.3; filter: blur(2px); }
-        
-        /* Overlay Opciones */
         .svc-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             background: var(--overlay-bg); backdrop-filter: blur(2px);
@@ -110,7 +118,6 @@
             opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 10;
         }
         .svc-card:hover .svc-overlay { opacity: 1; pointer-events: auto; }
-        
         .svc-opt-btn {
             flex: 1; border: none; background: transparent; width: 100%;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -119,16 +126,12 @@
         }
         .svc-opt-btn:last-child { border-bottom: none; }
         .svc-opt-btn:hover { background: var(--primary); color: #000; }
-        
         .opt-label { font-size: 11px; font-weight: 700; text-transform: uppercase; }
         .opt-price { font-size: 14px; font-weight: 800; }
-
         .svc-icon { font-size: 32px; transition: transform 0.3s; }
         .svc-name { font-size: 13px; font-weight: 600; text-align: center; color: var(--text-main); line-height: 1.1; padding: 0 5px; }
 
-        /* Single Action (Cards sin opciones) */
         .svc-card.single-action { cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
-        /* Fix para que no se borre el contenido en single action al hover */
         .svc-card.single-action .svc-default-view { position: relative; width: auto; height: auto; opacity: 1 !important; filter: none !important; transform: none !important; }
         .svc-card.single-action:hover { border-color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.2); transform: translateY(-2px); }
         .svc-card.single-action .svc-price { font-size: 11px; font-weight: 700; color: var(--text-gray); background: var(--input-bg); padding: 4px 8px; border-radius: 8px; }
@@ -159,12 +162,11 @@
         }
         .fab-btn:hover { transform: scale(1.1); box-shadow: 0 0 25px var(--primary-light); }
         .fab-btn:active { transform: scale(0.9); }
-        
         .fab-content { font-size: 13px; font-weight: 800; font-family: var(--font); display: flex; flex-direction: column; align-items: center; line-height: 1; }
         
         /* --- TICKET DESLIZABLE (DRAWER) --- */
         .ticket-drawer {
-            position: fixed; bottom: 110px; right: 30px; width: 340px;
+            position: fixed; bottom: 110px; right: 30px; width: 360px;
             background: var(--bg-panel); border: 1px solid var(--border); border-radius: 20px;
             padding: 20px; box-shadow: var(--shadow-float); z-index: 90;
             display: flex; flex-direction: column; gap: 15px;
@@ -175,16 +177,8 @@
 
         .ticket-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 15px; }
         .ticket-title { font-weight: 800; text-transform: uppercase; font-size: 12px; color: var(--text-gray); letter-spacing: 1px; }
-        
-        /* Botón Cerrar Ticket Mejorado */
-        .close-ticket { 
-            background: transparent; border: none; color: var(--text-gray); 
-            cursor: pointer; font-size: 20px; padding: 5px; 
-            display: flex; align-items: center; justify-content: center;
-            border-radius: 50%; transition: background 0.2s;
-            position: relative; z-index: 10;
-        }
-        .close-ticket:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+        .close-ticket { background: transparent; border: none; color: var(--text-gray); cursor: pointer; font-size: 18px; }
+        .close-ticket:hover { color: #ef4444; }
 
         .ticket-body { max-height: 300px; overflow-y: auto; padding-right: 5px; }
         .total-amount { font-size: 28px; font-weight: 800; color: var(--primary); line-height: 1; }
@@ -217,20 +211,35 @@
         
         .modal-box {
             background: var(--bg-panel); border: 1px solid var(--border);
-            padding: 25px; border-radius: 20px; width: 300px; text-align: center;
+            padding: 25px; border-radius: 20px; width: 320px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.9); transition: all 0.2s;
+            max-height: 85vh; overflow-y: auto;
         }
         .modal-overlay.active .modal-box { transform: scale(1); }
         
-        .modal-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 10px; }
+        .modal-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 15px; }
         .modal-desc { font-size: 13px; color: var(--text-gray); margin-bottom: 20px; }
         
-        .modal-actions { display: flex; gap: 10px; justify-content: center; }
+        .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
         .btn-modal {
             flex: 1; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; font-size: 13px;
         }
         .btn-cancel { background: var(--input-bg); color: var(--text-main); }
         .btn-confirm { background: #ef4444; color: white; }
+
+        /* TABLA MODAL */
+        .price-list-table {
+            width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px;
+            color: #fff; font-size: 13px; border-radius: 8px; overflow: hidden;
+        }
+        .price-list-table th { background: var(--input-bg); padding: 10px 8px; text-align: left; font-weight: 700; color: var(--primary); font-size: 12px; text-transform: uppercase; }
+        .price-list-table td { padding: 8px; border-bottom: 1px solid var(--border); }
+        .price-list-table tr:last-child td { border-bottom: none; }
+        .section-header-row td { background: rgba(255,255,255,0.05); font-weight: 800; color: var(--text-gray); text-transform: uppercase; padding-top: 15px; padding-bottom: 5px; font-size: 11px; letter-spacing: 1px; }
+        
+        .price-explanation {
+            font-size: 11px; color: #a3a3a3; background: #222; padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--primary); line-height: 1.4;
+        }
 
         /* --- MOBILE MEDIA QUERY --- */
         @media (max-width: 768px) {
@@ -260,6 +269,7 @@
             <div class="nav-item active" onclick="switchTab('impresiones', this)"><i class="ph ph-printer"></i> <span>Impresiones</span></div>
             <div class="nav-item" onclick="switchTab('diseno', this)"><i class="ph ph-pen-nib"></i> <span>Diseño</span></div>
             <div class="nav-item" onclick="switchTab('especiales', this)"><i class="ph ph-star"></i> <span>Especiales</span></div>
+            <div class="nav-item" onclick="openPriceModal()" style="color: #60a5fa;"><i class="ph ph-list-dashes"></i> <span>Lista Precios</span></div>
             <div class="nav-item" onclick="resetCart()" style="margin-top: auto; color: #ef4444;"><i class="ph ph-trash"></i> <span>Limpiar</span></div>
         </nav>
 
@@ -275,6 +285,13 @@
                     <input type="number" class="input-field" value="" placeholder="1" id="inp-copies">
                 </div>
             </div>
+
+            <!-- STATUS BANNER -->
+            <div id="status-banner" class="status-bar" style="display:none;">
+                <span class="status-label">Modo Actual:</span>
+                <span id="current-mode-badge" class="status-badge tag-retail">MINORISTA</span>
+            </div>
+
             <div id="dynamic-area"></div>
         </div>
 
@@ -282,13 +299,11 @@
         <div class="ticket-drawer" id="ticket-drawer">
             <div class="ticket-header">
                 <div class="ticket-title">Resumen</div>
-                <div id="price-status"></div> <!-- Etiqueta Minorista/Mayorista -->
+                <div id="price-status"></div>
                 <button class="close-ticket" type="button" onclick="closeTicket()"><i class="ph ph-x"></i></button>
             </div>
             
-            <div class="ticket-body" id="ticket-items">
-                <!-- Items se inyectan aquí -->
-            </div>
+            <div class="ticket-body" id="ticket-items"></div>
 
             <div style="border-top: 1px solid var(--border); padding-top: 10px; margin-top: 5px;">
                 <div class="ticket-row">
@@ -308,14 +323,66 @@
 
     </div>
 
-    <!-- MODAL CONFIRMACIÓN (REEMPLAZO ALERT) -->
+    <!-- MODAL CONFIRMACIÓN -->
     <div id="confirm-modal" class="modal-overlay">
         <div class="modal-box">
             <div class="modal-title">¿Reiniciar Todo?</div>
             <div class="modal-desc">Se borrarán todos los ítems cargados.</div>
             <div class="modal-actions">
-                <button class="btn-modal btn-cancel" onclick="closeModal()">Cancelar</button>
+                <button class="btn-modal btn-cancel" onclick="closeModal('confirm-modal')">Cancelar</button>
                 <button class="btn-modal btn-confirm" onclick="confirmReset()">Sí, Borrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL LISTA DE PRECIOS COMPLETA -->
+    <div id="price-modal" class="modal-overlay">
+        <div class="modal-box" style="width: 400px; text-align: left;">
+            <div class="modal-title">Lista General de Precios</div>
+            
+            <div class="price-explanation">
+                <strong>Regla del Mínimo (Por Trabajo):</strong><br>
+                Cada hoja cuesta <strong>$200</strong>.<br>
+                Si el TOTAL del trabajo (incluyendo otros servicios) supera los <strong>$1.500</strong> (B&N) o <strong>$2.000</strong> (Color), se desbloquean los precios mayoristas.
+            </div>
+
+            <!-- TABLA DE CANTIDADES IMPRESIONES (1-10) -->
+            <table class="price-list-table">
+                <thead><tr><th colspan="3" style="text-align:center; background: #222; border-bottom:1px solid #333;">REFERENCIA CANTIDADES</th></tr>
+                <tr><th>Cant.</th><th>Color ($200)</th><th>B&N ($200)</th></tr></thead>
+                <tbody id="full-retail-list">
+                    <!-- Se llena con JS -->
+                </tbody>
+            </table>
+
+            <!-- LISTA OTROS SERVICIOS -->
+            <table class="price-list-table">
+                <thead><tr><th colspan="2" style="background:var(--primary); color:#000;">PRECIOS MAYORISTAS (+10 / +$1500)</th></tr></thead>
+                <tbody>
+                    <tr><td>B&N Simple</td><td style="text-align:right;">$90</td></tr>
+                    <tr><td>B&N Doble</td><td style="text-align:right;">$60</td></tr>
+                    <tr><td>Color Simple</td><td style="text-align:right;">$120</td></tr>
+                    <tr><td>Color Doble</td><td style="text-align:right;">$80</td></tr>
+                    
+                    <tr class="section-header-row"><td colspan="2">Pisos Mínimos</td></tr>
+                    <tr><td>Trabajo B&N</td><td style="text-align:right;">$1.500</td></tr>
+                    <tr><td>Trabajo Color</td><td style="text-align:right;">$2.000</td></tr>
+
+                    <tr class="section-header-row"><td colspan="2">Especiales</td></tr>
+                    <tr><td>Anillado</td><td style="text-align:right;">$1.800</td></tr>
+                    <tr><td>Sticker</td><td style="text-align:right;">$1.800</td></tr>
+                    <tr><td>Papel Foto</td><td style="text-align:right;">$1.200</td></tr>
+                    
+                    <tr class="section-header-row"><td colspan="2">Diseño</td></tr>
+                    <tr><td>Ajuste Básico</td><td style="text-align:right;">$1.200</td></tr>
+                    <tr><td>Armado Letras</td><td style="text-align:right;">$300</td></tr>
+                    <tr><td>Armado A4</td><td style="text-align:right;">$3.000</td></tr>
+                    <tr><td>Diseño 0</td><td style="text-align:right;">$4.000</td></tr>
+                </tbody>
+            </table>
+
+            <div class="modal-actions">
+                <button class="btn-modal btn-cancel" onclick="closeModal('price-modal')">Cerrar</button>
             </div>
         </div>
     </div>
@@ -324,9 +391,10 @@
         // --- CONFIGURACIÓN & ESTADO ---
         let cart = [];
         let ticketTimeout;
-        const RETAIL_PRICE_BASE = 200; // Precio Base Minorista por hoja
+        const RETAIL_PRICE_PER_PAGE = 200; 
+        const THRESHOLD_BN = 1500;
+        const THRESHOLD_COLOR = 2000;
         
-        // --- PRECIOS MAYORISTAS ---
         const WHOLESALE_PRICES = {
             'byn': 90, 'byn2': 60,
             'color': 120, 'color2': 80
@@ -349,14 +417,8 @@
         ];
 
         const servicesEsp = [
-            { 
-                name: 'Grueso', icon: 'ph-stack', color: '#A78BFA',
-                options: [ { label: 'Simple', price: 1800 }, { label: 'Doble', price: 1250 } ]
-            },
-            { 
-                name: 'Papel Foto', icon: 'ph-camera', color: '#C084FC',
-                options: [ { label: 'Simple', price: 1200 }, { label: 'Doble', price: 900 } ]
-            },
+            { name: 'Grueso', icon: 'ph-stack', color: '#A78BFA', options: [ { label: 'Simple', price: 1800 }, { label: 'Doble', price: 1250 } ] },
+            { name: 'Papel Foto', icon: 'ph-camera', color: '#C084FC', options: [ { label: 'Simple', price: 1200 }, { label: 'Doble', price: 900 } ] },
             { name: 'Sticker', icon: 'ph-sticker', color: '#4ADE80', price: 1800 },
             { name: 'Anillado', icon: 'ph-notebook', color: '#60A5FA', price: 1800 }
         ];
@@ -371,16 +433,34 @@
         // --- INIT ---
         document.addEventListener("DOMContentLoaded", () => {
             renderImpresiones();
+            generateRetailTableHTML(); // Generar tabla para el modal
             document.getElementById('inp-qty').focus();
         });
 
-        // --- CORE LOGIC: PRECIOS ---
+        // Generar tabla 1-10 para el modal con lógica de Techo VISUAL
+        function generateRetailTableHTML() {
+            let html = '';
+            for (let q = 1; q <= 10; q++) {
+                let priceCol = q * 200;
+                let priceBN = q * 200;
+                
+                // Si la suma supera 1500 (B&N) o 2000 (Color), mostramos el techo
+                if (priceBN > 1500) priceBN = 1500;
+                if (priceCol > 2000) priceCol = 2000;
+
+                // Estilo especial para los "saltos"
+                let style = '';
+                if (priceBN === 1500 || priceCol === 2000) style = 'style="color:var(--tag-whls); font-weight:700;"'; 
+
+                html += `<tr ${style}><td>${q}</td><td>$${priceCol}</td><td>$${priceBN}</td></tr>`;
+            }
+            document.getElementById('full-retail-list').innerHTML = html;
+        }
+
+        // --- CARRITO ---
         function addToCart(name, priceOrCode, type) {
-            const qtyInput = document.getElementById('inp-qty');
-            const copiesInput = document.getElementById('inp-copies');
-            
-            const qty = parseInt(qtyInput.value) || 1;
-            const copies = parseInt(copiesInput.value) || 1;
+            const qty = parseInt(document.getElementById('inp-qty').value) || 1;
+            const copies = parseInt(document.getElementById('inp-copies').value) || 1;
             
             let item = {
                 id: Date.now(),
@@ -388,7 +468,7 @@
                 qty: qty,
                 copies: copies,
                 type: type,
-                finalPrice: 0 // Se calcula luego
+                finalPrice: 0
             };
 
             if (type === 'design') {
@@ -413,16 +493,14 @@
             cart.push(item);
             recalculateCart();
             
-            // RESET FLOW
-            qtyInput.value = "";
-            copiesInput.value = "";
-            qtyInput.focus();
+            document.getElementById('inp-qty').value = "";
+            document.getElementById('inp-copies').value = "";
+            document.getElementById('inp-qty').focus();
 
-            // Flash Ticket
             const drawer = document.getElementById('ticket-drawer');
             drawer.classList.add('visible');
             if(ticketTimeout) clearTimeout(ticketTimeout);
-            ticketTimeout = setTimeout(() => { drawer.classList.remove('visible'); }, 1500);
+            ticketTimeout = setTimeout(() => { drawer.classList.remove('visible'); }, 2000);
         }
 
         function addManualItem() {
@@ -444,50 +522,93 @@
             document.getElementById('inp-qty').focus();
         }
 
+        // --- LÓGICA DE PRECIOS MIXTA TOTAL ---
         function recalculateCart() {
             let totalRetailValue = 0;
             let totalWholesaleValue = 0;
-            let wholesaleItems = [];
+            let wholesaleItems = []; // Solo impresiones B&N/Color clasificables
+            let otherItemsValue = 0; // El valor de lo demás (diseño, anillado, etc)
 
+            // 1. Calcular valores Base
             cart.forEach(item => {
                 if (item.isWholesale) {
                     const units = item.qty * item.copies;
-                    totalRetailValue += units * RETAIL_PRICE_BASE;
+                    // Valor Minorista Base (Lineal $200)
+                    totalRetailValue += units * RETAIL_PRICE_PER_PAGE;
+                    // Valor Mayorista Real
                     totalWholesaleValue += units * WHOLESALE_PRICES[item.wholesaleCode];
                     wholesaleItems.push(item);
                 } else {
+                    // Items fijos se suman para el cálculo del ticket total
                     let units = (item.type === 'design' || item.type === 'manual') ? 1 : (item.qty * item.copies);
-                    if (item.type === 'design') units = item.qty; // Fix for design logic
-                    if (item.type === 'manual') item.finalPrice = item.basePrice; // Manual is fixed
-                    else item.finalPrice = item.basePrice * units; 
+                    if (item.type === 'design') units = item.qty;
+                    
+                    let itemVal = (item.type === 'manual') ? item.basePrice : (item.basePrice * units);
+                    item.finalPrice = itemVal; // Estos no cambian
+                    otherItemsValue += itemVal;
                 }
             });
 
-            // Target Calc
-            let printTargetTotal = 0;
-            let priceLabelHtml = "";
+            // 2. Calcular Ticket Total TEÓRICO (Todo Retail)
+            const theoreticalTotalRetail = totalRetailValue + otherItemsValue;
 
+            // 3. Determinar Umbral según si hay color o solo B&N en los items mayoristas
+            // Si hay items color, el umbral es 2000. Si solo B&N (o nada), 1500.
+            let hasColor = false;
+            wholesaleItems.forEach(i => { if(i.wholesaleCode.startsWith('col')) hasColor = true; });
+            const DYNAMIC_THRESHOLD = hasColor ? THRESHOLD_COLOR : THRESHOLD_BN;
+
+            const statusBanner = document.getElementById('status-banner');
+            const statusBadge = document.getElementById('current-mode-badge');
+
+            // 4. Decisión
             if (wholesaleItems.length > 0) {
-                if (totalRetailValue < 1500) {
-                    printTargetTotal = totalRetailValue;
-                    priceLabelHtml = '<span class="price-tag tag-retail">MINORISTA</span>';
-                } else {
-                    printTargetTotal = Math.max(1500, totalWholesaleValue);
-                    if (printTargetTotal === 1500) {
-                        priceLabelHtml = '<span class="price-tag tag-base">BASE</span>';
-                    } else {
-                        priceLabelHtml = '<span class="price-tag tag-whls">MAYORISTA</span>';
-                    }
-                }
+                statusBanner.style.display = 'flex';
 
-                wholesaleItems.forEach(item => {
-                    const itemRetailVal = (item.qty * item.copies) * RETAIL_PRICE_BASE;
-                    const ratio = itemRetailVal / totalRetailValue;
-                    item.finalPrice = printTargetTotal * ratio;
-                });
+                // Si el TOTAL DEL TRABAJO (Impresiones Retail + Otros) supera el umbral...
+                if (theoreticalTotalRetail >= DYNAMIC_THRESHOLD) {
+                    // ... Activamos precios mayoristas/base para las impresiones
+                    statusBadge.textContent = "MAYORISTA";
+                    statusBadge.className = "status-badge visible tag-whls";
+
+                    // Calculamos el costo de impresiones usando Mayorista Real
+                    let printCost = totalWholesaleValue;
+                    
+                    // Pero ese costo de impresiones + otros NO PUEDE SER MENOR AL PISO DEL TRABAJO
+                    // Floor = DYNAMIC_THRESHOLD.
+                    // Total = Prints + Others.
+                    // Prints + Others >= Floor.
+                    // Prints >= Floor - Others.
+                    
+                    let printsFloor = DYNAMIC_THRESHOLD - otherItemsValue;
+                    if (printsFloor < 0) printsFloor = 0; // Ya cubierto por otros servicios
+
+                    // El costo final del grupo de impresiones es el Mayor entre (MayoristaReal) y (Lo que falta para el piso)
+                    let finalPrintsTotal = Math.max(totalWholesaleValue, printsFloor);
+
+                    // Distribuir ese total entre las impresiones
+                    wholesaleItems.forEach(item => {
+                        const itemWholesaleVal = (item.qty * item.copies) * WHOLESALE_PRICES[item.wholesaleCode];
+                        const ratio = totalWholesaleValue > 0 ? (itemWholesaleVal / totalWholesaleValue) : 0;
+                        item.finalPrice = finalPrintsTotal * ratio;
+                    });
+
+                } else {
+                    // ... Si no llega, se cobra minorista puro ($200 c/u)
+                    statusBadge.textContent = "MINORISTA";
+                    statusBadge.className = "status-badge visible tag-retail";
+                    
+                    wholesaleItems.forEach(item => {
+                        const units = item.qty * item.copies;
+                        // Doble faz en minorista es simple x 2 ($400)
+                        const multiplier = (item.wholesaleCode.endsWith('2')) ? 2 : 1;
+                        item.finalPrice = units * multiplier * RETAIL_PRICE_PER_PAGE;
+                    });
+                }
+            } else {
+                statusBanner.style.display = 'none';
             }
 
-            document.getElementById('price-status').innerHTML = priceLabelHtml;
             renderTicket();
         }
 
@@ -531,18 +652,17 @@
             recalculateCart();
         }
 
-        // --- RESET LOGIC (MODAL) ---
-        function resetCart() {
-            document.getElementById('confirm-modal').classList.add('active');
-        }
-        function closeModal() {
-            document.getElementById('confirm-modal').classList.remove('active');
-        }
+        // --- MODALES ---
+        function resetCart() { document.getElementById('confirm-modal').classList.add('active'); }
+        function openPriceModal() { document.getElementById('price-modal').classList.add('active'); }
+        
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+        
         function confirmReset() {
             cart = [];
             recalculateCart();
             closeTicket();
-            closeModal();
+            closeModal('confirm-modal');
             document.getElementById('inp-qty').focus();
         }
 
@@ -555,10 +675,8 @@
                 if(ticketTimeout) clearTimeout(ticketTimeout);
             }
         }
-        
         function closeTicket() { 
-            const drawer = document.getElementById('ticket-drawer');
-            drawer.classList.remove('visible'); 
+            document.getElementById('ticket-drawer').classList.remove('visible'); 
             if(ticketTimeout) clearTimeout(ticketTimeout);
             setTimeout(() => { document.getElementById('inp-qty').focus(); }, 50);
         }
@@ -574,15 +692,12 @@
                                 <div class="svc-name">${s.name}</div>
                             </div>
                             <div class="svc-overlay">
-                                ${s.options.map(opt => {
-                                    let displayPrice = typeof opt.price === 'number' ? '$'+opt.price : (WHOLESALE_PRICES[opt.code] ? 'Var.' : '');
-                                    let valParam = typeof opt.price === 'number' ? opt.price : `'${opt.code}'`;
-                                    
-                                    return `<button class="svc-opt-btn" onclick="addToCart('${s.name} ${opt.label}', ${valParam}, 'print')">
+                                ${s.options.map(opt => `
+                                    <button class="svc-opt-btn" onclick="addToCart('${s.name} ${opt.label}', ${opt.price || `'${opt.code}'`}, 'print')">
                                         <span class="opt-label">${opt.label}</span>
-                                        <span class="opt-price">${displayPrice}</span>
-                                    </button>`;
-                                }).join('')}
+                                        <span class="opt-price">${opt.price ? '$'+opt.price : 'Var.'}</span>
+                                    </button>
+                                `).join('')}
                             </div>
                         </div>
                     `).join('')}
@@ -681,7 +796,7 @@
             if(tab === 'especiales') renderEspeciales();
             if(tab === 'diseno') renderDiseno();
             
-            document.getElementById('inp-qty').focus(); // Focus when switching tabs
+            document.getElementById('inp-qty').focus(); 
         }
 
         function shareWhatsApp() {
@@ -697,14 +812,11 @@
             window.open(url, '_blank');
         }
 
-        // --- KEYBOARD SUPPORT ---
         document.addEventListener('keydown', (e) => {
             if(e.key === 'Enter') {
                 const active = document.activeElement;
                 if(active.id === 'inp-qty') document.getElementById('inp-copies').focus();
-                else if(active.id === 'inp-copies') {
-                    active.blur(); 
-                }
+                else if(active.id === 'inp-copies') active.blur(); 
             }
         });
 
