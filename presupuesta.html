@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>VCP Terminal - Precios 2026</title>
     
-    <!-- Fuentes --> 
+    <!-- Fuentes -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=DM+Sans:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
     
     <!-- Iconos: Phosphor -->
@@ -53,10 +53,12 @@
             display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 1px;
         }
 
+        .nav-spacer { flex: 1; }
+
         .nav-item {
             cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 14px 16px;
             color: var(--text-gray); font-weight: 600; font-size: 14px; border-radius: 12px;
-            transition: all 0.2s;
+            transition: all 0.2s; flex-shrink: 0;
         }
         .nav-item i { font-size: 22px; }
         .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
@@ -241,21 +243,34 @@
             font-size: 11px; color: #a3a3a3; background: #222; padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--primary); line-height: 1.4;
         }
 
-        /* --- MOBILE MEDIA QUERY --- */
+        /* --- MOBILE MEDIA QUERY (CORREGIDO PARA BARRA INFERIOR) --- */
         @media (max-width: 768px) {
-            .app-shell { flex-direction: column; }
+            .app-shell { flex-direction: column; padding-bottom: 90px; /* Espacio para el nav bottom */ }
+            
             .nav-container {
-                width: 100%; height: 75px; order: 2; flex-direction: row; 
-                justify-content: space-around; align-items: center; padding: 0 10px;
-                border-right: none; border-top: 1px solid var(--border); box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+                position: fixed; bottom: 0; left: 0; width: 100%; height: auto;
+                flex-direction: row; justify-content: flex-start; padding: 8px 10px;
+                border-right: none; border-top: 1px solid var(--border); 
+                box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+                overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch;
+                z-index: 100; gap: 8px; border-radius: 0;
             }
+            
+            .nav-spacer { display: none; }
             .nav-logo { display: none; }
-            .nav-item { flex-direction: column; gap: 4px; padding: 8px; font-size: 10px; background: transparent !important; color: var(--text-gray) !important; box-shadow: none !important; }
-            .nav-item i { font-size: 24px; margin-bottom: 2px; }
-            .nav-item.active { color: var(--primary) !important; }
-            .content-wrapper { padding: 15px; padding-bottom: 0; }
-            .fab-container { bottom: 90px; right: 20px; }
-            .ticket-drawer { right: 15px; left: 15px; width: auto; bottom: 165px; }
+            
+            .nav-item { 
+                flex-direction: column; gap: 4px; padding: 10px; 
+                font-size: 10px; background: transparent; 
+                color: var(--text-gray); flex-shrink: 0;
+            }
+            .nav-item i { font-size: 22px; margin-bottom: 0; }
+            .nav-item.active { background: var(--input-bg); color: var(--primary); box-shadow: none; border: 1px solid var(--border); }
+            
+            .content-wrapper { padding: 15px; }
+            
+            .fab-container { bottom: 100px; right: 20px; } /* Sube por encima del Nav */
+            .ticket-drawer { right: 15px; left: 15px; width: auto; bottom: 175px; }
         }
     </style>
 </head>
@@ -270,7 +285,10 @@
             <div class="nav-item" onclick="switchTab('diseno', this)"><i class="ph ph-pen-nib"></i> <span>Diseño</span></div>
             <div class="nav-item" onclick="switchTab('especiales', this)"><i class="ph ph-star"></i> <span>Especiales</span></div>
             <div class="nav-item" onclick="openPriceModal()" style="color: #60a5fa;"><i class="ph ph-list-dashes"></i> <span>Lista Precios</span></div>
-            <div class="nav-item" onclick="resetCart()" style="margin-top: auto; color: #ef4444;"><i class="ph ph-trash"></i> <span>Limpiar</span></div>
+            
+            <div class="nav-spacer"></div>
+            
+            <div class="nav-item" onclick="resetCart()" style="color: #ef4444;"><i class="ph ph-trash"></i> <span>Limpiar</span></div>
         </nav>
 
         <!-- CONTENIDO -->
@@ -343,12 +361,12 @@
             <div class="price-explanation">
                 <strong>Regla del Mínimo (Por Trabajo):</strong><br>
                 Cada hoja cuesta <strong>$200</strong>.<br>
-                Si el TOTAL del trabajo (incluyendo otros servicios) supera los <strong>$1.500</strong> (B&N) o <strong>$2.000</strong> (Color), se desbloquean los precios mayoristas.
+                Si el TOTAL supera <strong>$1.500</strong> (B&N) o <strong>$2.000</strong> (Color), se aplica precio mayorista/base.
             </div>
 
             <!-- TABLA DE CANTIDADES IMPRESIONES (1-10) -->
             <table class="price-list-table">
-                <thead><tr><th colspan="3" style="text-align:center; background: #222; border-bottom:1px solid #333;">REFERENCIA CANTIDADES</th></tr>
+                <thead><tr><th colspan="3" style="text-align:center; background: #222; border-bottom:1px solid #333;">TABLA DE REFERENCIA</th></tr>
                 <tr><th>Cant.</th><th>Color ($200)</th><th>B&N ($200)</th></tr></thead>
                 <tbody id="full-retail-list">
                     <!-- Se llena con JS -->
@@ -357,7 +375,7 @@
 
             <!-- LISTA OTROS SERVICIOS -->
             <table class="price-list-table">
-                <thead><tr><th colspan="2" style="background:var(--primary); color:#000;">PRECIOS MAYORISTAS (+10 / +$1500)</th></tr></thead>
+                <thead><tr><th colspan="2" style="background:var(--primary); color:#000;">PRECIOS MAYORISTAS (+10)</th></tr></thead>
                 <tbody>
                     <tr><td>B&N Simple</td><td style="text-align:right;">$90</td></tr>
                     <tr><td>B&N Doble</td><td style="text-align:right;">$60</td></tr>
@@ -395,10 +413,25 @@
         const THRESHOLD_BN = 1500;
         const THRESHOLD_COLOR = 2000;
         
+        // --- PRECIOS MAYORISTAS ---
         const WHOLESALE_PRICES = {
             'byn': 90, 'byn2': 60,
             'color': 120, 'color2': 80
         };
+
+        // --- DATOS TABLA IMAGEN (Visual) ---
+        const RETAIL_TABLE_DATA = [
+            { q: 1, col: 200, byn: 200 },
+            { q: 2, col: 400, byn: 400 },
+            { q: 3, col: 600, byn: 600 },
+            { q: 4, col: 800, byn: 800 },
+            { q: 5, col: 1000, byn: 1000 },
+            { q: 6, col: 1200, byn: 1100 }, 
+            { q: 7, col: 1400, byn: 1200 },
+            { q: 8, col: 1600, byn: 1300 },
+            { q: 9, col: 1800, byn: 1400 },
+            { q: 10, col: 2000, byn: 1500 }
+        ];
 
         // --- DATOS SERVICIOS ---
         const servicesImp = [
@@ -433,27 +466,18 @@
         // --- INIT ---
         document.addEventListener("DOMContentLoaded", () => {
             renderImpresiones();
-            generateRetailTableHTML(); // Generar tabla para el modal
+            generateRetailTableHTML(); 
             document.getElementById('inp-qty').focus();
         });
 
-        // Generar tabla 1-10 para el modal con lógica de Techo VISUAL
+        // Generar tabla 1-10 en el modal usando los datos de la imagen
         function generateRetailTableHTML() {
             let html = '';
-            for (let q = 1; q <= 10; q++) {
-                let priceCol = q * 200;
-                let priceBN = q * 200;
-                
-                // Si la suma supera 1500 (B&N) o 2000 (Color), mostramos el techo
-                if (priceBN > 1500) priceBN = 1500;
-                if (priceCol > 2000) priceCol = 2000;
-
-                // Estilo especial para los "saltos"
-                let style = '';
-                if (priceBN === 1500 || priceCol === 2000) style = 'style="color:var(--tag-whls); font-weight:700;"'; 
-
-                html += `<tr ${style}><td>${q}</td><td>$${priceCol}</td><td>$${priceBN}</td></tr>`;
-            }
+            RETAIL_TABLE_DATA.forEach(row => {
+                let style = row.q === 10 ? 'style="color:var(--tag-whls); font-weight:700; border-top:1px solid var(--primary);"' : '';
+                let label = row.q === 10 ? '10+ (Mayorista)' : row.q;
+                html += `<tr ${style}><td>${label}</td><td>$${row.col}</td><td>$${row.byn}</td></tr>`;
+            });
             document.getElementById('full-retail-list').innerHTML = html;
         }
 
@@ -522,85 +546,82 @@
             document.getElementById('inp-qty').focus();
         }
 
-        // --- LÓGICA DE PRECIOS MIXTA TOTAL ---
+        // --- LÓGICA DE PRECIOS MATEMÁTICA CORREGIDA ---
         function recalculateCart() {
             let totalRetailValue = 0;
             let totalWholesaleValue = 0;
-            let wholesaleItems = []; // Solo impresiones B&N/Color clasificables
-            let otherItemsValue = 0; // El valor de lo demás (diseño, anillado, etc)
+            let wholesaleItems = []; 
+            let otherItemsValue = 0; 
 
-            // 1. Calcular valores Base
+            let hasColor = false;
+
+            // 1. Acumular valores reales y mayoristas
             cart.forEach(item => {
                 if (item.isWholesale) {
                     const units = item.qty * item.copies;
+                    
+                    if (item.wholesaleCode.startsWith('col')) hasColor = true;
+
                     // Valor Minorista Base (Lineal $200)
                     totalRetailValue += units * RETAIL_PRICE_PER_PAGE;
                     // Valor Mayorista Real
                     totalWholesaleValue += units * WHOLESALE_PRICES[item.wholesaleCode];
+                    
                     wholesaleItems.push(item);
                 } else {
-                    // Items fijos se suman para el cálculo del ticket total
                     let units = (item.type === 'design' || item.type === 'manual') ? 1 : (item.qty * item.copies);
                     if (item.type === 'design') units = item.qty;
                     
                     let itemVal = (item.type === 'manual') ? item.basePrice : (item.basePrice * units);
-                    item.finalPrice = itemVal; // Estos no cambian
+                    item.finalPrice = itemVal; 
                     otherItemsValue += itemVal;
                 }
             });
 
-            // 2. Calcular Ticket Total TEÓRICO (Todo Retail)
+            // 2. Determinar el Umbral del Piso
             const theoreticalTotalRetail = totalRetailValue + otherItemsValue;
-
-            // 3. Determinar Umbral según si hay color o solo B&N en los items mayoristas
-            // Si hay items color, el umbral es 2000. Si solo B&N (o nada), 1500.
-            let hasColor = false;
-            wholesaleItems.forEach(i => { if(i.wholesaleCode.startsWith('col')) hasColor = true; });
             const DYNAMIC_THRESHOLD = hasColor ? THRESHOLD_COLOR : THRESHOLD_BN;
 
             const statusBanner = document.getElementById('status-banner');
             const statusBadge = document.getElementById('current-mode-badge');
 
-            // 4. Decisión
+            // 3. Evaluar y Asignar
             if (wholesaleItems.length > 0) {
                 statusBanner.style.display = 'flex';
 
-                // Si el TOTAL DEL TRABAJO (Impresiones Retail + Otros) supera el umbral...
                 if (theoreticalTotalRetail >= DYNAMIC_THRESHOLD) {
-                    // ... Activamos precios mayoristas/base para las impresiones
-                    statusBadge.textContent = "MAYORISTA";
-                    statusBadge.className = "status-badge visible tag-whls";
-
-                    // Calculamos el costo de impresiones usando Mayorista Real
-                    let printCost = totalWholesaleValue;
-                    
-                    // Pero ese costo de impresiones + otros NO PUEDE SER MENOR AL PISO DEL TRABAJO
-                    // Floor = DYNAMIC_THRESHOLD.
-                    // Total = Prints + Others.
-                    // Prints + Others >= Floor.
-                    // Prints >= Floor - Others.
-                    
+                    // MODO MAYORISTA (Superó el techo)
+                    // Verificamos cuál es la porción que le toca pagar a las impresiones para alcanzar el techo
                     let printsFloor = DYNAMIC_THRESHOLD - otherItemsValue;
-                    if (printsFloor < 0) printsFloor = 0; // Ya cubierto por otros servicios
+                    if (printsFloor < 0) printsFloor = 0; 
 
-                    // El costo final del grupo de impresiones es el Mayor entre (MayoristaReal) y (Lo que falta para el piso)
-                    let finalPrintsTotal = Math.max(totalWholesaleValue, printsFloor);
-
-                    // Distribuir ese total entre las impresiones
-                    wholesaleItems.forEach(item => {
-                        const itemWholesaleVal = (item.qty * item.copies) * WHOLESALE_PRICES[item.wholesaleCode];
-                        const ratio = totalWholesaleValue > 0 ? (itemWholesaleVal / totalWholesaleValue) : 0;
-                        item.finalPrice = finalPrintsTotal * ratio;
-                    });
+                    if (totalWholesaleValue >= printsFloor) {
+                        // El valor mayorista real ya es más alto que el piso. Se cobra exacto sin prorrateo.
+                        statusBadge.textContent = "MAYORISTA";
+                        statusBadge.className = "status-badge visible tag-whls";
+                        
+                        wholesaleItems.forEach(item => {
+                            item.finalPrice = (item.qty * item.copies) * WHOLESALE_PRICES[item.wholesaleCode];
+                        });
+                    } else {
+                        // El valor mayorista no llega al piso, entonces se cobra el piso (distribuido)
+                        statusBadge.textContent = "BASE";
+                        statusBadge.className = "status-badge visible tag-base";
+                        
+                        wholesaleItems.forEach(item => {
+                            const itemWholesaleVal = (item.qty * item.copies) * WHOLESALE_PRICES[item.wholesaleCode];
+                            const ratio = totalWholesaleValue > 0 ? (itemWholesaleVal / totalWholesaleValue) : 0;
+                            item.finalPrice = printsFloor * ratio;
+                        });
+                    }
 
                 } else {
-                    // ... Si no llega, se cobra minorista puro ($200 c/u)
+                    // MODO MINORISTA (No superó el techo)
                     statusBadge.textContent = "MINORISTA";
                     statusBadge.className = "status-badge visible tag-retail";
                     
                     wholesaleItems.forEach(item => {
                         const units = item.qty * item.copies;
-                        // Doble faz en minorista es simple x 2 ($400)
                         const multiplier = (item.wholesaleCode.endsWith('2')) ? 2 : 1;
                         item.finalPrice = units * multiplier * RETAIL_PRICE_PER_PAGE;
                     });
@@ -823,4 +844,3 @@
     </script>
 </body>
 </html>
-
