@@ -46,21 +46,16 @@
         }
         #toastNotification.show { transform: translateY(0); }
 
-        /* Estilo para cuando no hay API Key */
-        #apiMissingWarning {
-            display: none;
+        .api-input-focus:focus {
+            ring: 2px;
+            ring-color: #3b82f6;
+            outline: none;
         }
     </style>
 </head>
 <body class="p-4">
     <div class="container mx-auto">
         <h1 class="text-4xl font-bold mb-6 text-gray-800 text-center font-patrick">Asistente de Hojas para Colorear</h1>
-
-        <!-- Aviso de falta de API Key -->
-        <div id="apiMissingWarning" class="max-w-md mx-auto mb-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded shadow-sm">
-            <p class="font-bold">¡Atención!</p>
-            <p>No se detectó una Clave API. Asegúrate de haberla ingresado en la <a href="/Botonera/#/" class="underline font-bold">Botonera principal</a> antes de usar la IA.</p>
-        </div>
 
         <!-- Notificación -->
         <div id="toastNotification" class="bg-green-600 text-white py-3 px-6 rounded-lg shadow-lg">
@@ -70,30 +65,53 @@
         <!-- Modal de Confirmación de Pedido -->
         <div id="jobModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
             <div class="bg-white p-6 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-                <h2 class="text-2xl font-bold mb-4">Confirmar Pedidos Extraídos</h2>
+                <h2 class="text-2xl font-bold mb-4">Confirmar Pedidos</h2>
+                <p class="text-sm text-gray-500 mb-4">Revisa los datos o añade nuevos manualmente.</p>
                 <div id="jobList" class="flex-1 overflow-y-auto space-y-3 mb-4"></div>
                 <div class="flex justify-between items-center pt-4 border-t">
-                    <button id="addManualJob" class="text-blue-600 font-bold">+ Agregar Fila</button>
+                    <button id="addManualJob" class="text-blue-600 font-bold hover:underline">+ Agregar Pedido Manual</button>
                     <div class="space-x-3">
-                        <button id="closeJobModal" class="px-6 py-2 bg-gray-200 rounded-lg">Cancelar</button>
-                        <button id="startBatch" class="px-6 py-2 bg-green-600 text-white font-bold rounded-lg">Iniciar Lote</button>
+                        <button id="closeJobModal" class="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
+                        <button id="startBatch" class="px-6 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">Iniciar Programa</button>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Vista Inicial -->
-        <div id="initialView" class="max-w-2xl mx-auto bg-white p-12 rounded-2xl shadow-sm text-center">
-            <div class="mb-6 inline-block p-4 bg-blue-50 rounded-full">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
+        <div id="initialView" class="max-w-2xl mx-auto space-y-6">
+            <div class="bg-white p-8 rounded-2xl shadow-sm text-center space-y-6">
+                <div class="inline-block p-4 bg-blue-50 rounded-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                    </svg>
+                </div>
+                <h2 class="text-2xl font-bold">¿Cómo quieres empezar?</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button id="pasteOrderBtn" class="bg-blue-600 text-white p-6 rounded-xl font-bold hover:bg-blue-700 transition flex flex-col items-center gap-2">
+                        <span class="text-2xl">📋</span>
+                        <span id="pasteBtnText">Pegar Pedido (Usa IA)</span>
+                        <span class="text-xs font-normal opacity-80 text-center">Analiza texto copiado automáticamente</span>
+                    </button>
+                    
+                    <button id="manualStartBtn" class="bg-white border-2 border-gray-200 p-6 rounded-xl font-bold hover:border-blue-400 transition flex flex-col items-center gap-2">
+                        <span class="text-2xl">✍️</span>
+                        <span>Entrada Manual</span>
+                        <span class="text-xs font-normal text-gray-400 text-center">Escribe los nombres y temas tú mismo</span>
+                    </button>
+                </div>
             </div>
-            <h2 class="text-2xl font-bold mb-2">Comienza pegando tu lista</h2>
-            <p class="text-gray-500 mb-8">Copia el texto del pedido y nosotros extraeremos los datos automáticamente con IA.</p>
-            <button id="pasteOrderBtn" class="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-700 transition w-full flex items-center justify-center gap-2">
-                <span id="pasteBtnText">Pegar Pedido desde el Portapapeles</span>
-            </button>
+
+            <!-- Configuración de API Key Directa -->
+            <div class="bg-gray-100 p-6 rounded-2xl border border-dashed border-gray-300">
+                <h3 class="text-sm font-bold text-gray-600 mb-3 uppercase tracking-wider">Configuración de IA (Opcional)</h3>
+                <div class="flex gap-2">
+                    <input type="password" id="manualApiKey" placeholder="Ingresa tu Gemini API Key aquí..." class="flex-1 p-3 border rounded-xl text-sm api-input-focus">
+                    <button id="saveApiBtn" class="bg-gray-800 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-black transition">Guardar</button>
+                </div>
+                <p class="text-xs text-gray-500 mt-2">La IA es necesaria para extraer datos automáticamente y generar imágenes nuevas. Si no tienes una, puedes cargar imágenes manualmente.</p>
+            </div>
         </div>
 
         <!-- Vista Principal App -->
@@ -103,7 +121,7 @@
                 <div class="border-b pb-4">
                     <span id="currentStep" class="text-blue-600 text-xs font-bold uppercase tracking-wider">Hoja 1</span>
                     <h3 id="currentClient" class="text-xl font-bold">Cliente</h3>
-                    <p id="currentTheme" class="text-gray-600 italic">Tema: Cargando...</p>
+                    <p id="currentTheme" class="text-gray-600 italic">Tema: Manual</p>
                 </div>
 
                 <div class="space-y-4">
@@ -118,10 +136,10 @@
                 </div>
 
                 <div class="pt-6 border-t space-y-3">
-                    <button id="confirmSheetBtn" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition disabled:opacity-50">
+                    <button id="confirmSheetBtn" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition">
                         Añadir Hoja al PDF
                     </button>
-                    <button id="skipSheetBtn" class="w-full text-gray-500 text-sm hover:underline">Saltar esta hoja</button>
+                    <button id="skipSheetBtn" class="w-full text-gray-400 text-sm hover:underline">Saltar esta hoja</button>
                 </div>
             </div>
 
@@ -148,6 +166,7 @@
                     <input type="range" id="rangeScale" min="10" max="250" value="100" class="w-full">
                 </div>
                 <button id="btnErase" class="w-full py-2 bg-yellow-100 text-yellow-800 rounded-lg text-sm font-bold">🧹 Borrador</button>
+                <button id="btnResetIA" class="w-full mt-4 text-[10px] text-gray-400 hover:text-red-500">Volver al Inicio / Cambiar Clave</button>
             </div>
 
             <!-- Panel Derecho: Exportar -->
@@ -161,16 +180,23 @@
     </div>
 
     <script>
-        // --- GESTIÓN DE API KEY DESDE BOTONERA ---
-        // GitHub Pages comparte localStorage entre /colorear.html y /index.html
-        // Intentamos obtener la clave usando varios nombres comunes que podrías haber usado
-        const apiKey = localStorage.getItem('gemini_api_key') || 
-                       localStorage.getItem('geminiApiKey') || 
-                       localStorage.getItem('apiKey') || "";
+        // --- GESTIÓN DE API KEY ---
+        let apiKey = localStorage.getItem('gemini_api_key') || 
+                     localStorage.getItem('geminiApiKey') || 
+                     localStorage.getItem('apiKey') || "";
 
-        if (!apiKey) {
-            document.getElementById('apiMissingWarning').style.display = 'block';
-        }
+        if (apiKey) document.getElementById('manualApiKey').value = apiKey;
+
+        document.getElementById('saveApiBtn').onclick = () => {
+            const val = document.getElementById('manualApiKey').value.trim();
+            if (val) {
+                apiKey = val;
+                localStorage.setItem('gemini_api_key', val);
+                showToast("Clave API guardada");
+            } else {
+                alert("Ingresa una clave válida");
+            }
+        };
 
         // --- Variables de Estado ---
         let jobQueue = [];
@@ -183,7 +209,6 @@
         let textPos = { x: 240, y: 640 };
         let isEraseMode = false;
         let isDragging = false;
-        let isDraggingText = false;
         let startDrag = { x: 0, y: 0 };
 
         const canvas = document.getElementById('previewCanvas');
@@ -193,22 +218,15 @@
 
         // --- Funciones IA ---
         async function callGemini(payload, endpoint = "generateContent", model = "gemini-2.5-flash-preview-09-2025") {
-            if (!apiKey) throw new Error("Falta la Clave API. Configúrala en la Botonera.");
+            if (!apiKey) throw new Error("API Key no configurada.");
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${endpoint}?key=${apiKey}`;
-            
-            for (let i = 0; i < 5; i++) {
-                try {
-                    const resp = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-                    if (resp.ok) return await resp.json();
-                    if (resp.status !== 429) break;
-                    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
-                } catch (e) { console.error(e); }
-            }
-            throw new Error("Error de conexión con la IA.");
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if (!resp.ok) throw new Error("Error en la respuesta de la IA.");
+            return await resp.json();
         }
 
         async function parseOrderWithIA(text) {
@@ -223,49 +241,64 @@
         async function generateColoringIA(theme) {
             const prompt = `Coloring page for children, high quality line art, black and white, bold clean outlines, white background, no shading, subject: ${theme}`;
             const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
-            
             const resp = await fetch(url, {
                 method: 'POST',
                 body: JSON.stringify({ instances: [{ prompt: prompt }], parameters: { sampleCount: 1 } })
             });
             const data = await resp.json();
-            if (!data.predictions) throw new Error("No se pudo generar la imagen. Revisa tu clave.");
+            if (!data.predictions) throw new Error("Fallo al generar imagen.");
             return `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
         }
 
-        // --- Lógica Principal ---
-        async function handlePaste() {
-            try {
-                const text = await navigator.clipboard.readText();
-                if (!text) return alert("Portapapeles vacío.");
-                
-                document.getElementById('pasteBtnText').textContent = "Analizando con IA...";
-                const extracted = await parseOrderWithIA(text);
-                showJobModal(extracted);
-            } catch (e) {
-                alert("Error: " + e.message);
-            } finally {
-                document.getElementById('pasteBtnText').textContent = "Pegar Pedido desde el Portapapeles";
-            }
+        // --- Lógica del Modal de Pedidos ---
+        function addManualRow(name = "", age = "", theme = "", qty = 1) {
+            const list = document.getElementById('jobList');
+            const div = document.createElement('div');
+            div.className = "flex gap-2 p-2 border rounded bg-gray-50 items-center text-sm";
+            div.innerHTML = `
+                <input type="text" value="${name}" class="flex-1 p-1 border rounded" placeholder="Nombre">
+                <input type="text" value="${age}" class="w-12 p-1 border rounded" placeholder="Edad">
+                <input type="text" value="${theme}" class="flex-1 p-1 border rounded" placeholder="Tema">
+                <input type="number" value="${qty}" class="w-12 p-1 border rounded" min="1">
+                <button class="text-red-400 font-bold px-1 hover:text-red-600">✕</button>
+            `;
+            div.querySelector('button').onclick = () => div.remove();
+            list.appendChild(div);
         }
 
-        function showJobModal(jobs) {
+        function showJobModal(jobs = []) {
             const list = document.getElementById('jobList');
             list.innerHTML = '';
-            jobs.forEach((j, i) => {
-                const div = document.createElement('div');
-                div.className = "flex gap-2 p-2 border rounded bg-gray-50 items-center";
-                div.innerHTML = `
-                    <input type="text" value="${j.name}" class="flex-1 p-1 border rounded">
-                    <input type="text" value="${j.age}" class="w-12 p-1 border rounded">
-                    <input type="text" value="${j.theme}" class="flex-1 p-1 border rounded">
-                    <input type="number" value="${j.qty}" class="w-12 p-1 border rounded">
-                `;
-                list.appendChild(div);
-            });
+            if (jobs.length > 0) {
+                jobs.forEach(j => addManualRow(j.name, j.age, j.theme, j.qty));
+            } else {
+                // Si está vacío, añadir 3 filas vacías para comodidad
+                for(let i=0; i<3; i++) addManualRow();
+            }
             document.getElementById('jobModal').classList.remove('hidden');
             document.getElementById('jobModal').classList.add('flex');
         }
+
+        document.getElementById('addManualJob').onclick = () => addManualRow();
+        document.getElementById('closeJobModal').onclick = () => document.getElementById('jobModal').classList.add('hidden');
+
+        document.getElementById('pasteOrderBtn').onclick = async () => {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (!text) return alert("Portapapeles vacío");
+                document.getElementById('pasteBtnText').textContent = "Procesando...";
+                const extracted = await parseOrderWithIA(text);
+                showJobModal(extracted);
+            } catch (e) {
+                console.warn("IA no disponible o error al parsear. Abriendo manual.");
+                showToast("IA no disponible. Ingresa los datos manualmente.", "info");
+                showJobModal();
+            } finally {
+                document.getElementById('pasteBtnText').textContent = "Pegar Pedido (Usa IA)";
+            }
+        };
+
+        document.getElementById('manualStartBtn').onclick = () => showJobModal();
 
         document.getElementById('startBatch').onclick = () => {
             const rows = document.querySelectorAll('#jobList > div');
@@ -277,25 +310,27 @@
                     jobQueue.push({ name: ins[0].value, age: ins[1].value, theme: ins[2].value });
                 }
             });
+            if (jobQueue.length === 0) return alert("Añade al menos un pedido.");
             document.getElementById('jobModal').classList.add('hidden');
             document.getElementById('initialView').classList.add('hidden');
             document.getElementById('mainApp').classList.remove('hidden');
             loadJob(0);
         };
 
+        // --- Lógica del Programa ---
         function loadJob(index) {
             currentJobIndex = index;
             const j = jobQueue[index];
             document.getElementById('currentStep').textContent = `Hoja ${index + 1} de ${jobQueue.length}`;
-            document.getElementById('currentClient').textContent = j.name;
-            document.getElementById('currentTheme').textContent = `Tema: ${j.theme}`;
-            document.getElementById('inputName').value = j.name.toUpperCase();
-            document.getElementById('inputAge').value = j.age;
-            resetState();
+            document.getElementById('currentClient').textContent = j.name || "Sin nombre";
+            document.getElementById('currentTheme').textContent = `Tema: ${j.theme || "Libre"}`;
+            document.getElementById('inputName').value = (j.name || "").toUpperCase();
+            document.getElementById('inputAge').value = j.age || "";
+            resetCanvas();
             render();
         }
 
-        function resetState() {
+        function resetCanvas() {
             mainImage = null;
             imageScale = 1.0;
             imagePos = { x: 240, y: 320 };
@@ -325,14 +360,14 @@
             ctx.fillText(txt, textPos.x, textPos.y);
         }
 
-        // --- Eventos ---
-        document.getElementById('pasteOrderBtn').onclick = handlePaste;
+        // --- Botones de Acción ---
         document.getElementById('btnGenIA').onclick = async () => {
+            if (!apiKey) return alert("Configura una Clave API abajo para usar esta función.");
             const btn = document.getElementById('btnGenIA');
             try {
                 btn.disabled = true;
                 btn.textContent = "⌛ Generando...";
-                const data = await generateColoringIA(jobQueue[currentJobIndex].theme);
+                const data = await generateColoringIA(jobQueue[currentJobIndex].theme || "dibujo infantil");
                 const img = new Image();
                 img.onload = () => {
                     editCanvas.width = img.width;
@@ -343,16 +378,43 @@
                     render();
                 };
                 img.src = data;
-            } catch (e) { alert(e.message); }
+            } catch (e) { alert("Error IA: Revisa tu clave o conexión."); }
             finally { btn.disabled = false; btn.textContent = "✨ Generar con IA"; }
+        };
+
+        document.getElementById('btnPasteImg').onclick = async () => {
+            try {
+                const items = await navigator.clipboard.read();
+                for (const item of items) {
+                    if (item.types.some(t => t.startsWith('image/'))) {
+                        const blob = await item.getType(item.types.find(t => t.startsWith('image/')));
+                        const img = new Image();
+                        img.onload = () => {
+                            editCanvas.width = img.width; editCanvas.height = img.height;
+                            editCtx.drawImage(img, 0, 0); mainImage = img;
+                            document.getElementById('canvasOverlay').classList.add('hidden');
+                            render();
+                        };
+                        img.src = URL.createObjectURL(blob);
+                        return;
+                    }
+                }
+                alert("No hay imagen en el portapapeles.");
+            } catch (e) { alert("Usa Ctrl+V sobre la página o pega una imagen directamente."); }
+        };
+
+        document.getElementById('btnSearchGoogle').onclick = () => {
+            const theme = jobQueue[currentJobIndex].theme || "";
+            window.open(`https://www.google.com/search?q=${theme}+coloring+page&tbm=isch`, "_blank");
         };
 
         document.getElementById('confirmSheetBtn').onclick = () => {
             finishedSheets.push({ blob: canvas.toDataURL('image/jpeg', 0.8) });
+            showToast("Hoja guardada");
             if (currentJobIndex < jobQueue.length - 1) loadJob(currentJobIndex + 1);
             else {
                 document.getElementById('btnExportPDF').disabled = false;
-                alert("¡Lote terminado!");
+                alert("¡Lote completado!");
             }
             document.getElementById('btnExportPDF').textContent = `Descargar PDF (${finishedSheets.length})`;
         };
@@ -364,10 +426,10 @@
                 if (i > 0) pdf.addPage([480, 680]);
                 pdf.addImage(s.blob, 'JPEG', 0, 0, 480, 680);
             });
-            pdf.save("dibujos_colorear.pdf");
+            pdf.save("pedido_colorear.pdf");
         };
 
-        // Arrastrar elementos
+        // --- Interacción Canvas ---
         canvas.onmousedown = (e) => {
             const rect = canvas.getBoundingClientRect();
             const x = (e.clientX - rect.left) * (canvas.width/rect.width);
@@ -383,10 +445,19 @@
             render();
         };
         window.onmouseup = () => isDragging = false;
+        
         document.getElementById('rangeScale').oninput = (e) => { imageScale = e.target.value/100; render(); };
         document.getElementById('inputName').oninput = render;
         document.getElementById('inputAge').oninput = render;
+        document.getElementById('btnResetIA').onclick = () => location.reload();
 
+        function showToast(msg, type = "success") {
+            const t = document.getElementById('toastNotification');
+            t.textContent = msg;
+            t.className = `py-3 px-6 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-600' : 'bg-blue-600'} text-white`;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2500);
+        }
     </script>
 </body>
 </html>
