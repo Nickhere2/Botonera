@@ -9,12 +9,18 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
-        .font-patrick { font-family: 'Patrick Hand', cursive; }
-        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .font-cabin-sketch {
+            font-family: 'Patrick Hand', cursive;
+        }
+
         .main-container {
             display: grid;
-            grid-template-columns: 350px 1fr 250px 200px;
+            /* Izquierda | Canvas | Herramientas+Edición | Exportar */
+            grid-template-columns: 350px auto 250px 200px;
             gap: 1.5rem;
             max-width: 1600px;
             margin: auto;
@@ -22,442 +28,1258 @@
             align-items: start;
         }
 
-        @media (max-width: 1280px) {
-            .main-container { grid-template-columns: 1fr; }
-            #canvasPanel { order: -1; }
+        #mainAppView { display: none; }
+
+        @font-face {
+          font-family: 'Patrick Hand';
+          src: url('https://fonts.gstatic.com/s/patrickhand/v20/LDI1apSQOAYtSuYWp8ZhfYe8.woff2') format('woff2');
+          font-weight: 400;
         }
 
-        #previewCanvas {
-            background-color: white;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            cursor: default;
-            touch-action: none;
-            max-width: 100%;
-            height: auto;
+        /* Estilos para Pestañas */
+        .tab-button {
+            transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+        }
+        .tab-button.active {
+            border-color: #3b82f6; /* border-blue-500 */
+            color: #3b82f6; /* text-blue-500 */
+            background-color: #eff6ff; /* bg-blue-50 */
+        }
+        .tab-content {
+            display: none; /* Oculto por defecto */
+        }
+        .tab-content.active {
+            display: block; /* Visible si está activo */
         }
 
+        /* Estilo para modos de edición */
+        .erase-mode { cursor: crosshair !important; }
+        .crop-mode { cursor: crosshair !important; }
+
+        /* Estilo para Notificación Toast */
         #toastNotification {
             position: fixed;
-            bottom: 20px;
+            top: 20px;
             right: 20px;
-            transform: translateY(200%);
+            transform: translateX(200%);
             transition: transform 0.3s ease-in-out;
             z-index: 100;
         }
-        #toastNotification.show { transform: translateY(0); }
-
-        .api-input-focus:focus {
-            ring: 2px;
-            ring-color: #3b82f6;
-            outline: none;
+        #toastNotification.show {
+            transform: translateX(0);
         }
+
+        /* Estilos para el Modal de Confirmación */
+        #jobQueueModal {
+            display: none; /* Oculto por defecto */
+        }
+        .job-queue-row {
+            display: grid;
+            grid-template-columns: 1fr 60px 1fr 60px 40px; /* Nombre | Edad | Tema | Cant | Eliminar */
+            gap: 0.5rem;
+            align-items: center;
+            padding-bottom: 0.5rem;
+            margin-bottom: 0.5rem;
+            border-bottom: 1px solid #e5e7eb; /* border-gray-200 */
+        }
+        .job-queue-row input {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db; /* border-gray-300 */
+            border-radius: 0.375rem; /* rounded-md */
+        }
+        .job-queue-row input[type="number"] {
+            text-align: center;
+        }
+        .job-queue-row button {
+            background-color: #ef4444; /* bg-red-500 */
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            justify-self: center; /* Centrar botón */
+        }
+        .job-queue-row button:hover {
+            background-color: #dc2626; /* bg-red-600 */
+        }
+        .job-queue-header {
+            display: grid;
+            grid-template-columns: 1fr 60px 1fr 60px 40px; /* Nombre | Edad | Tema | Cant | Eliminar */
+            gap: 0.5rem;
+            font-weight: bold;
+            color: #4b5563; /* text-gray-600 */
+            font-size: 0.75rem; /* text-xs */
+            text-transform: uppercase;
+            padding-bottom: 0.5rem;
+        }
+        #originalClipboardText {
+             background-color: #f9fafb; /* bg-gray-50 */
+             border: 1px dashed #d1d5db; /* border-gray-300 */
+             padding: 0.75rem; /* p-3 */
+             margin-bottom: 1rem; /* mb-4 */
+             font-family: monospace;
+             font-size: 0.875rem; /* text-sm */
+             white-space: pre-wrap; /* Conservar saltos de línea */
+             max-height: 100px;
+             overflow-y: auto;
+        }
+
+        /* Estilo para Inputs Readonly */
+        input[readonly] {
+            background-color: #f3f4f6; /* bg-gray-100 */
+            border-color: #f3f4f6; /* border-gray-100 */
+            color: #374151; /* text-gray-700 */
+            cursor: default;
+        }
+
+        /* Estilos para Imágenes Recientes */
+        #recentImagesContainer {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr)); /* Más pequeño */
+            gap: 0.5rem;
+        }
+        .recent-image {
+            width: 60px; /* Más pequeño */
+            height: 60px; /* Más pequeño */
+            object-fit: contain;
+            border: 2px solid #d1d5db;
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: border-color 0.2s;
+            background-color: #ffffff;
+        }
+        .recent-image:hover {
+            border-color: #3b82f6; /* border-blue-500 */
+        }
+         /* Ancho fijo para paneles laterales */
+        #toolsPanel {
+            width: 250px; /* Ancho para herramientas */
+        }
+        #exportPanel {
+            width: 200px; /* Ancho para exportación */
+        }
+        /* Ajuste para que el canvas tome el espacio restante */
+        #canvasPanel {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Centrar canvas si hay espacio extra */
+        }
+        /* Margen inferior para el canvas */
+        #previewCanvas {
+             margin-bottom: 1rem; /* mb-4 */
+             user-select: none;
+             -webkit-user-select: none; /* Safari */
+             -moz-user-select: none; /* Firefox */
+             -ms-user-select: none; /* IE10+ */
+             width: 480px;
+             height: 680px;
+             touch-action: none; /* Evitar scroll/zoom en móvil al tocar */
+        }
+        
+        /* --- NUEVO: Estilo para Arrastrar y Soltar (Drag and Drop) --- */
+        #canvasPanel.drag-over {
+            border: 4px dashed #3b82f6; /* border-blue-500 */
+            background-color: #eff6ff; /* bg-blue-50 */
+            opacity: 0.9;
+        }
+        #canvasPanel.drag-over #previewCanvas,
+        #canvasPanel.drag-over #actionCenter {
+            opacity: 0.7;
+            pointer-events: none; /* Evitar que los botones interfieran */
+        }
+
+
     </style>
 </head>
-<body class="p-4">
-    <div class="container mx-auto">
-        <h1 class="text-4xl font-bold mb-6 text-gray-800 text-center font-patrick">Asistente de Hojas para Colorear</h1>
+<body class="p-4 lg:p-8">
+    <div class="container mx-auto max-w-7xl">
 
-        <!-- Notificación -->
-        <div id="toastNotification" class="bg-green-600 text-white py-3 px-6 rounded-lg shadow-lg">
-            ¡Acción completada!
-        </div>
-
-        <!-- Modal de Confirmación de Pedido -->
-        <div id="jobModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
-            <div class="bg-white p-6 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col">
-                <h2 class="text-2xl font-bold mb-4">Confirmar Pedidos</h2>
-                <p class="text-sm text-gray-500 mb-4">Revisa los datos o añade nuevos manualmente.</p>
-                <div id="jobList" class="flex-1 overflow-y-auto space-y-3 mb-4"></div>
-                <div class="flex justify-between items-center pt-4 border-t">
-                    <button id="addManualJob" class="text-blue-600 font-bold hover:underline">+ Agregar Pedido Manual</button>
-                    <div class="space-x-3">
-                        <button id="closeJobModal" class="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">Cancelar</button>
-                        <button id="startBatch" class="px-6 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition">Iniciar Programa</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Vista Inicial -->
-        <div id="initialView" class="max-w-2xl mx-auto space-y-6">
-            <div class="bg-white p-8 rounded-2xl shadow-sm text-center space-y-6">
-                <div class="inline-block p-4 bg-blue-50 rounded-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                    </svg>
-                </div>
-                <h2 class="text-2xl font-bold">¿Cómo quieres empezar?</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <button id="pasteOrderBtn" class="bg-blue-600 text-white p-6 rounded-xl font-bold hover:bg-blue-700 transition flex flex-col items-center gap-2">
-                        <span class="text-2xl">📋</span>
-                        <span id="pasteBtnText">Pegar Pedido (Usa IA)</span>
-                        <span class="text-xs font-normal opacity-80 text-center">Analiza texto copiado automáticamente</span>
-                    </button>
-                    
-                    <button id="manualStartBtn" class="bg-white border-2 border-gray-200 p-6 rounded-xl font-bold hover:border-blue-400 transition flex flex-col items-center gap-2">
-                        <span class="text-2xl">✍️</span>
-                        <span>Entrada Manual</span>
-                        <span class="text-xs font-normal text-gray-400 text-center">Escribe los nombres y temas tú mismo</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Configuración de API Key Directa -->
-            <div class="bg-gray-100 p-6 rounded-2xl border border-dashed border-gray-300">
-                <h3 class="text-sm font-bold text-gray-600 mb-3 uppercase tracking-wider">Configuración de IA (Opcional)</h3>
-                <div class="flex gap-2">
-                    <input type="password" id="manualApiKey" placeholder="Ingresa tu Gemini API Key aquí..." class="flex-1 p-3 border rounded-xl text-sm api-input-focus">
-                    <button id="saveApiBtn" class="bg-gray-800 text-white px-6 py-2 rounded-xl text-sm font-bold hover:bg-black transition">Guardar</button>
-                </div>
-                <p class="text-xs text-gray-500 mt-2">La IA es necesaria para extraer datos automáticamente y generar imágenes nuevas. Si no tienes una, puedes cargar imágenes manualmente.</p>
-            </div>
-        </div>
-
-        <!-- Vista Principal App -->
-        <div id="mainApp" class="main-container hidden">
-            <!-- Panel Izquierdo -->
-            <div class="bg-white p-6 rounded-xl shadow-sm space-y-6">
-                <div class="border-b pb-4">
-                    <span id="currentStep" class="text-blue-600 text-xs font-bold uppercase tracking-wider">Hoja 1</span>
-                    <h3 id="currentClient" class="text-xl font-bold">Cliente</h3>
-                    <p id="currentTheme" class="text-gray-600 italic">Tema: Manual</p>
-                </div>
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Nombre en Hoja</label>
-                        <input type="text" id="inputName" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Edad en Hoja</label>
-                        <input type="text" id="inputAge" class="w-full mt-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500">
-                    </div>
-                </div>
-
-                <div class="pt-6 border-t space-y-3">
-                    <button id="confirmSheetBtn" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold hover:bg-green-700 transition">
-                        Añadir Hoja al PDF
-                    </button>
-                    <button id="skipSheetBtn" class="w-full text-gray-400 text-sm hover:underline">Saltar esta hoja</button>
-                </div>
-            </div>
-
-            <!-- Panel Central -->
-            <div id="canvasPanel" class="flex flex-col items-center bg-gray-200 p-4 rounded-xl relative">
-                <canvas id="previewCanvas" width="480" height="680"></canvas>
-                <div id="canvasOverlay" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 rounded-xl z-10">
-                    <div class="text-center p-8 max-w-xs space-y-4">
-                        <button id="btnGenIA" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold flex items-center justify-center gap-2">
-                            <span>✨ Generar con IA</span>
-                        </button>
-                        <button id="btnPasteImg" class="w-full bg-gray-800 text-white py-3 rounded-lg font-bold">📋 Pegar Imagen</button>
-                        <button id="btnSearchGoogle" class="w-full bg-white border border-gray-300 py-2 rounded-lg text-sm">🔍 Buscar en Google</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Panel Derecho: Herramientas -->
-            <div class="bg-white p-6 rounded-xl shadow-sm space-y-4">
-                <h4 class="font-bold border-b pb-2">Herramientas</h4>
-                <button id="btnUndo" class="w-full py-2 bg-gray-100 rounded-lg text-sm disabled:opacity-50">↩️ Deshacer</button>
-                <div class="space-y-1">
-                    <label class="text-xs font-bold text-gray-500">Escala</label>
-                    <input type="range" id="rangeScale" min="10" max="250" value="100" class="w-full">
-                </div>
-                <button id="btnErase" class="w-full py-2 bg-yellow-100 text-yellow-800 rounded-lg text-sm font-bold">🧹 Borrador</button>
-                <button id="btnResetIA" class="w-full mt-4 text-[10px] text-gray-400 hover:text-red-500">Volver al Inicio / Cambiar Clave</button>
-            </div>
-
-            <!-- Panel Derecho: Exportar -->
-            <div class="bg-white p-6 rounded-xl shadow-sm space-y-4">
-                <h4 class="font-bold border-b pb-2">Exportar</h4>
-                <button id="btnExportPDF" disabled class="w-full bg-red-600 text-white py-4 rounded-xl font-bold disabled:opacity-50">
-                    Descargar PDF (0)
+        <!-- API Key Modal -->
+        <div id="apiKeyModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50">
+             <div class="bg-white p-6 rounded-lg shadow-xl max-w-sm w-full">
+                <h2 class="text-xl font-bold mb-4 text-center">Clave API de Gemini</h2>
+                <p class="text-gray-600 mb-4 text-sm">Por favor, ingresa tu clave API para usar el modelo de generación de imágenes.</p>
+                <input type="password" id="apiKeyInput" class="w-full p-2 border border-gray-300 rounded mb-4" placeholder="Ingresa tu clave API aquí">
+                <button id="saveApiKeyButton" class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition duration-300">
+                    Guardar y Continuar
                 </button>
+                <p class="text-xs text-gray-500 mt-3 text-center">La clave se guarda en tu navegador.</p>
+             </div>
+        </div>
+
+        <!-- Modal de Confirmación de Lote -->
+        <div id="jobQueueModal" class="fixed inset-0 bg-gray-800 bg-opacity-75 flex items-center justify-center z-50 p-4">
+            <div class="bg-white p-6 rounded-lg shadow-xl max-w-3xl w-full max-h-[90vh] flex flex-col">
+                <h2 class="text-2xl font-bold mb-4 text-center">Confirmar Pedidos</h2>
+                <p class="text-gray-600 mb-4 text-sm">Hemos procesado tu pedido. Por favor, revisa la lista, edita lo que necesites y elimina las filas incorrectas antes de comenzar.</p>
+
+                <div class="mb-4">
+                    <p class="text-xs font-medium text-gray-500 mb-1">Texto Original Pegado:</p>
+                    <pre id="originalClipboardText" class="text-gray-700"></pre>
+                </div>
+
+                <div class="job-queue-header">
+                    <span>Nombre</span>
+                    <span>Edad</span>
+                    <span>Tema</span>
+                    <span>Cant.</span>
+                    <span></span>
+                </div>
+
+                <div id="jobQueueList" class="flex-1 overflow-y-auto pr-2">
+                    <!-- Las filas se insertarán aquí dinámicamente -->
+                </div>
+
+                <div class="mt-4 text-right">
+                    <button id="addJobRowButton" class="bg-blue-500 text-white py-1 px-3 rounded-lg text-sm hover:bg-blue-600 transition duration-300">
+                        [+] Agregar Fila
+                    </button>
+                </div>
+
+                <div class="mt-6 flex justify-between">
+                     <button id="cancelJobQueueButton" class="bg-gray-500 text-white py-2 px-6 rounded-lg hover:bg-gray-600 transition duration-300">
+                         Cancelar
+                    </button>
+                    <button id="confirmJobQueueButton" class="bg-green-600 text-white py-2 px-6 rounded-lg font-bold hover:bg-green-700 transition duration-300">
+                        Confirmar e Iniciar Lote
+                    </button>
+                </div>
             </div>
         </div>
+
+        <!-- Elemento Toast Notification -->
+        <div id="toastNotification" class="bg-green-600 text-white py-3 px-5 rounded-lg shadow-md">
+            ✔️ ¡Hoja añadida al PDF!
+        </div>
+
+        <h1 class="text-3xl font-bold mb-6 text-gray-800 text-center font-cabin-sketch">Asistente de Hojas para Colorear</h1>
+
+        <!-- VISTA INICIAL -->
+        <div id="initialView" class="text-center p-10 bg-white rounded-lg shadow-md">
+             <h2 class="text-2xl font-bold mb-4 text-gray-700">Bienvenido</h2>
+             <p class="text-gray-600 mb-6">Copia tu lista de pedidos en el portapapeles y luego presiona el botón para comenzar.</p>
+            <!-- BOTÓN MODIFICADO: Añadido <span> y disabled:opacity-75 -->
+            <button id="ingresarPedidoButton" class="w-full max-w-xs mx-auto bg-green-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-700 transition duration-300 flex items-center justify-center gap-2 disabled:opacity-75">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                  <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                </svg>
+                <span>Ingresar Pedido (Pegar)</span>
+            </button>
+        </div>
+
+        <!-- VISTA PRINCIPAL DE LA APP (Oculta al inicio) -->
+        <div id="mainAppView" class="main-container">
+
+            <!-- Panel de Controles Izquierdo -->
+            <div id="controlsPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col">
+                <!-- Contenedor de Pestañas -->
+                <div class="flex border-b mb-4">
+                    <button id="tabButtonLote" class="tab-button flex-1 py-2 px-4 text-sm font-medium text-center text-gray-600 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500 active">Lote</button>
+                    <button id="tabButtonImagen" class="tab-button flex-1 py-2 px-4 text-sm font-medium text-center text-gray-600 border-b-2 border-transparent hover:text-blue-500 hover:border-blue-500">Imagen</button>
+                </div>
+
+                <!-- Contenido de Pestañas -->
+                <div class="flex-1">
+                    <!-- Pestaña 1: Lote -->
+                    <div id="tabContentLote" class="tab-content active flex flex-col gap-6 h-full">
+                        <div class="border-b pb-4">
+                            <h2 class="text-sm font-bold text-blue-600 uppercase" id="jobStatusLabel">Procesando Pedido...</h2>
+                            <p class="text-lg text-gray-700" id="jobStatusName">Delfina (5 años)</p>
+                            <p class="text-md font-bold text-gray-900" id="themeStatusLabel">Tema: micky</p>
+                        </div>
+                        <div id="inputsGroup" class="flex flex-col gap-3">
+                            <div>
+                                <label for="nameInput" class="block text-sm font-medium text-gray-700 mb-1">Nombre:</label>
+                                <input type="text" id="nameInput" class="w-full p-2 border border-gray-300 rounded text-lg">
+                            </div>
+                            <div>
+                                <label for="ageInput" class="block text-sm font-medium text-gray-700 mb-1">Edad:</label>
+                                <input type="text" id="ageInput" class="w-full p-2 border border-gray-300 rounded text-lg">
+                            </div>
+                        </div>
+                        <div class="border-t pt-6 mt-auto flex flex-col gap-3">
+                            <button id="confirmButton" class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-bold hover:bg-green-700 transition duration-300 disabled:opacity-50" disabled>
+                                ✔️ Confirmar y Añadir Hoja
+                            </button>
+                            <button id="skipButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
+                                ⏭️ Saltar Hoja
+                            </button>
+                            <button id="discardButton" class="w-full bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 transition duration-300">
+                                ❌ Terminar Lote
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Pestaña 2: Imagen (MODIFICADA) -->
+                    <div id="tabContentImagen" class="tab-content flex flex-col gap-3 h-full">
+                         <h3 class="text-md font-bold text-gray-800">Cargar Imagen</h3>
+                         <p class="text-sm text-gray-600">
+                             Todas las acciones (Generar, Pegar, Buscar) ahora se encuentran en el centro del lienzo cuando está vacío para un acceso más rápido.
+                         </p>
+                         <p class="text-sm text-gray-600 mt-4">
+                             También puedes arrastrar y soltar un archivo de imagen desde tu escritorio directamente sobre el lienzo.
+                         </p>
+                         <!-- Botones duplicados eliminados -->
+                    </div>
+                     <!-- Pestaña Edición eliminada -->
+                </div>
+            </div>
+
+            <!-- Panel del Canvas (Centro) -->
+            <div id="canvasPanel" class="relative"> <!-- AÑADIDO 'relative' -->
+                <canvas id="previewCanvas" width="480" height="680" class="bg-white shadow-md"></canvas>
+                
+                <!-- Centro de Acciones sobre el Canvas -->
+                <div id="actionCenter" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-4 w-64">
+                    <p class="text-gray-500 text-center">Carga una imagen para empezar</p>
+                    <button id="actionCenterGenerate" class="w-full bg-blue-600 text-white py-3 px-5 rounded-lg font-bold hover:bg-blue-700 transition duration-300 flex items-center justify-center gap-2">
+                        <svg class="animate-spin h-5 w-5 text-white hidden" id="actionCenterSpinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        <span>✨ Generar (IA)</span>
+                    </button>
+                    <button id="actionCenterPaste" class="w-full bg-gray-700 text-white py-3 px-5 rounded-lg font-bold hover:bg-gray-800 transition duration-300 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                           <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                           <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                        </svg>
+                        <span>📋 Pegar Imagen</span>
+                    </button>
+                    <button id="actionCenterSearch" class="w-full bg-gray-700 text-white py-3 px-5 rounded-lg font-bold hover:bg-gray-800 transition duration-300">
+                        🔍 Buscar en Google
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel de Herramientas (Derecha 1) -->
+            <div id="toolsPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
+                 <h3 class="text-md font-bold text-gray-800 border-b pb-2">Herramientas y Edición</h3>
+
+                 <!-- Controles de Edición -->
+                 <div id="imageEditGroup" class="flex flex-col gap-4">
+                     <button id="undoButton" class="w-full bg-gray-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-gray-600 transition duration-300 disabled:opacity-50" disabled>
+                         ↩️ Deshacer
+                     </button>
+                     <button id="saveToStockButton" class="w-full bg-teal-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-teal-600 transition duration-300 disabled:opacity-50" disabled>
+                         💾 Guardar en Stock Local
+                     </button>
+                     <div class="border-t pt-4">
+                         <label for="scaleSlider" class="block text-sm font-medium text-gray-700 mb-1">Escala: <span id="scaleValue">100</span>%</label>
+                         <input type="range" id="scaleSlider" min="10" max="300" value="100" class="w-full">
+                     </div>
+                     <div class="flex items-center">
+                         <input type="checkbox" id="filterToggle" class="h-4 w-4 text-blue-600 border-gray-300 rounded">
+                         <label for="filterToggle" class="ml-2 block text-sm text-gray-900">Aplicar Filtro "Falsos Blancos"</label>
+                     </div>
+                 </div>
+
+                 <!-- Herramienta de Borrador -->
+                 <div class="border-t pt-4 flex flex-col gap-3">
+                   <button id="eraseButton" class="w-full bg-yellow-500 text-black py-2 px-4 rounded-lg font-medium hover:bg-yellow-600 transition duration-300">
+                       Activar Borrador
+                   </button>
+                   <div>
+                       <label for="brushSizeSlider" class="block text-sm font-medium text-gray-700 mb-1">Tamaño Borrador: <span id="brushSizeValue">20</span>px</label>
+                       <input type="range" id="brushSizeSlider" min="2" max="100" value="20" class="w-full">
+                   </div>
+                 </div>
+
+                 <!-- Herramienta de Recortar -->
+                 <div class="border-t pt-4 flex flex-col gap-3">
+                   <button id="cropButton" class="w-full bg-indigo-500 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-600 transition duration-300">
+                       Activar Modo Recortar
+                   </button>
+                   <button id="applyCropButton" class="w-full bg-indigo-700 text-white py-2 px-4 rounded-lg font-medium hover:bg-indigo-800 transition duration-300 hidden">
+                       Aplicar Recorte
+                   </button>
+                 </div>
+
+                 <!-- Imágenes Recientes movido aquí -->
+                 <div id="recentImagesSection" class="border-t pt-4 hidden">
+                      <h3 class="text-md font-bold text-gray-800 mb-2">Imágenes Recientes</h3>
+                      <div id="recentImagesContainer">
+                          <!-- Miniaturas se insertarán aquí -->
+                      </div>
+                 </div>
+
+                 <div id="noImageToolsMessage" class="text-center text-gray-500 mt-auto pt-4"> <!-- mt-auto para empujar abajo -->
+                     Carga una imagen para usar las herramientas.
+                 </div>
+            </div>
+
+            <!-- Panel de Exportación (Derecha 2) -->
+            <div id="exportPanel" class="bg-white p-6 rounded-lg shadow-md flex flex-col gap-4">
+                 <h3 class="text-md font-bold text-gray-800 border-b pb-2">Exportar</h3>
+                 <button id="exportPdfButton" class="w-full bg-red-600 text-white py-3 px-5 rounded-lg font-bold hover:bg-red-700 transition duration-300 disabled:opacity-50" disabled>
+                     Exportar PDF (0 Hojas)
+                 </button>
+                 <button id="exportZipButton" class="w-full bg-blue-600 text-white py-3 px-5 rounded-lg font-bold hover:bg-blue-700 transition duration-300 disabled:opacity-50" disabled>
+                     Exportar Imágenes (.zip)
+                 </button>
+            </div>
+
+        </div>
+
     </div>
 
-    <script>
-        // --- GESTIÓN DE API KEY ---
-        let apiKey = localStorage.getItem('gemini_api_key') || 
-                     localStorage.getItem('geminiApiKey') || 
-                     localStorage.getItem('apiKey') || "";
-
-        if (apiKey) document.getElementById('manualApiKey').value = apiKey;
-
-        document.getElementById('saveApiBtn').onclick = () => {
-            const val = document.getElementById('manualApiKey').value.trim();
-            if (val) {
-                apiKey = val;
-                localStorage.setItem('gemini_api_key', val);
-                showToast("Clave API guardada");
-            } else {
-                alert("Ingresa una clave válida");
-            }
-        };
-
-        // --- Variables de Estado ---
-        let jobQueue = [];
-        let currentJobIndex = 0;
-        let finishedSheets = [];
-        let undoStack = [];
-        let mainImage = null;
-        let imagePos = { x: 240, y: 340 };
-        let imageScale = 1.0;
-        let textPos = { x: 240, y: 640 };
-        let isEraseMode = false;
-        let isDragging = false;
-        let startDrag = { x: 0, y: 0 };
-
-        const canvas = document.getElementById('previewCanvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        const editCanvas = document.createElement('canvas');
-        const editCtx = editCanvas.getContext('2d', { willReadFrequently: true });
-
-        // --- Funciones IA ---
-        async function callGemini(payload, endpoint = "generateContent", model = "gemini-2.5-flash-preview-09-2025") {
-            if (!apiKey) throw new Error("API Key no configurada.");
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:${endpoint}?key=${apiKey}`;
-            const resp = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
+        <script>
+        // Corregido: Envolver todo en DOMContentLoaded para asegurar que el HTML esté listo.
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Variables de Estado de la App ---
+            let apiKey = localStorage.getItem('geminiApiKey');
+            let jobQueue = []; let pdfSheets = []; let imagesForZip = []; let recentImages = [];
+            let originalClipboardContent = ""; let currentJobIndex = -1;
+            let pieImage = null; let currentUserImage = null;
+            let editCanvas = document.createElement('canvas'); let editCtx = editCanvas.getContext('2d', { willReadFrequently: true });
+            let undoStack = [];
+            let imageScale = 1.0; let imagePos = { x: 240, y: 340 }; let useFilter = false; let isImageLoaded = false;
+            let textPos = { x: 240, y: 660 }; // Posición inicial del texto
+            let isDragging = false; let dragStart = { x: 0, y: 0 };
+            let isDraggingText = false; // Nuevo estado para arrastrar texto
+            let isEraseMode = false; let isPainting = false; let brushSize = 20;
+            let isCropMode = false; let isCropping = false; let cropRect = { startX: 0, startY: 0, endX: 0, endY: 0 }; let visualCropRect = null;
+     
+            // --- Selectores del DOM ---
+            const apiKeyModal = document.getElementById('apiKeyModal'); const apiKeyInput = document.getElementById('apiKeyInput'); const saveApiKeyButton = document.getElementById('saveApiKeyButton');
+            const jobQueueModal = document.getElementById('jobQueueModal'); const jobQueueList = document.getElementById('jobQueueList'); const confirmJobQueueButton = document.getElementById('confirmJobQueueButton'); const cancelJobQueueButton = document.getElementById('cancelJobQueueButton'); const originalClipboardText = document.getElementById('originalClipboardText'); const addJobRowButton = document.getElementById('addJobRowButton');
+            const initialView = document.getElementById('initialView'); const ingresarPedidoButton = document.getElementById('ingresarPedidoButton'); const mainAppView = document.getElementById('mainAppView');
+            const tabButtonLote = document.getElementById('tabButtonLote'); const tabButtonImagen = document.getElementById('tabButtonImagen');
+            const tabContentLote = document.getElementById('tabContentLote'); const tabContentImagen = document.getElementById('tabContentImagen');
+            const tabs = [ { btn: tabButtonLote, content: tabContentLote }, { btn: tabButtonImagen, content: tabContentImagen } ]; // Solo 2 pestañas
+            const jobStatusLabel = document.getElementById('jobStatusLabel'); const jobStatusName = document.getElementById('jobStatusName'); const themeStatusLabel = document.getElementById('themeStatusLabel');
+            const nameInput = document.getElementById('nameInput'); const ageInput = document.getElementById('ageInput');
+            
+            // --- Selectores del DOM (LIMPIEZA) ---
+            // const generateButton = document.getElementById('generateButton'); // Ya no existe
+            // const generateSpinner = document.getElementById('generateSpinner'); // Ya no existe
+            // const searchButton = document.getElementById('searchButton'); // Ya no existe
+            
+            // --- Selectores del Centro de Acciones ---
+            const actionCenter = document.getElementById('actionCenter');
+            const actionCenterGenerate = document.getElementById('actionCenterGenerate');
+            const actionCenterPaste = document.getElementById('actionCenterPaste');
+            const actionCenterSearch = document.getElementById('actionCenterSearch');
+            const actionCenterSpinner = document.getElementById('actionCenterSpinner');
+            
+            const recentImagesSection = document.getElementById('recentImagesSection'); const recentImagesContainer = document.getElementById('recentImagesContainer');
+            const imageEditGroup = document.getElementById('imageEditGroup');
+            //const noImageEditMessage = document.getElementById('noImageEditMessage'); // No se usa
+            const scaleSlider = document.getElementById('scaleSlider'); const scaleValue = document.getElementById('scaleValue'); const filterToggle = document.getElementById('filterToggle');
+            const eraseButton = document.getElementById('eraseButton'); const brushSizeSlider = document.getElementById('brushSizeSlider'); const brushSizeValue = document.getElementById('brushSizeValue');
+            const cropButton = document.getElementById('cropButton'); const applyCropButton = document.getElementById('applyCropButton'); const undoButton = document.getElementById('undoButton'); const saveToStockButton = document.getElementById('saveToStockButton');
+            const confirmButton = document.getElementById('confirmButton'); const skipButton = document.getElementById('skipButton'); const discardButton = document.getElementById('discardButton');
+            const previewCanvas = document.getElementById('previewCanvas'); const ctx = previewCanvas.getContext('2d');
+            const toastNotification = document.getElementById('toastNotification');
+            const exportPanel = document.getElementById('exportPanel'); const exportPdfButton = document.getElementById('exportPdfButton'); const exportZipButton = document.getElementById('exportZipButton');
+            const toolsPanel = document.getElementById('toolsPanel');
+            const noImageToolsMessage = document.getElementById('noImageToolsMessage');
+            
+            // --- NUEVO: Selector del Panel del Canvas ---
+            const canvasPanel = document.getElementById('canvasPanel');
+    
+            // --- Carga Inicial ---
+            if (!apiKey) { showApiKeyModal(); } else { hideApiKeyModal(); loadPieImage(); }
+    
+            // --- Handlers de API Key y Carga ---
+            saveApiKeyButton.addEventListener('click', () => { const key = apiKeyInput.value.trim(); if (key) { apiKey = key; localStorage.setItem('geminiApiKey', key); hideApiKeyModal(); loadPieImage(); console.log("API Key guardada."); } else { alert('Ingresa clave API.'); } });
+            function showApiKeyModal() { apiKeyModal.classList.add('flex'); apiKeyModal.classList.remove('hidden'); }
+            function hideApiKeyModal() { apiKeyModal.classList.add('hidden'); apiKeyModal.classList.remove('flex'); }
+            async function loadPieImage() { try { pieImage = new Image(); pieImage.src = 'pie.png'; await pieImage.decode(); console.log('pie.png cargado.'); redrawCanvas(); } catch (err) { console.error('Error pie.png:', err); /*alert('Error: No se pudo cargar pie.png.');*/ pieImage = null; } } // --- CAMBIO: No mostrar alert por pie.png ---
+    
+            // --- Lógica de Pestañas ---
+            tabs.forEach(tab => { tab.btn.addEventListener('click', () => { tabs.forEach(t => { t.btn.classList.remove('active'); t.content.classList.remove('active'); }); tab.btn.classList.add('active'); tab.content.classList.add('active'); }); });
+            function switchToTab(tabContentId) { tabs.forEach(t => { t.btn.classList.remove('active'); t.content.classList.remove('active'); if (t.content.id === tabContentId) { t.btn.classList.add('active'); t.content.classList.add('active'); } }); }
+    
+            // --- NUEVO: Lógica de Arrastrar y Soltar (Drag and Drop) ---
+            
+            // 1. Prevenir comportamientos por defecto
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                canvasPanel.addEventListener(eventName, preventDefaults, false);
+                document.body.addEventListener(eventName, preventDefaults, false); // Prevenir que el navegador abra la imagen
             });
-            if (!resp.ok) throw new Error("Error en la respuesta de la IA.");
-            return await resp.json();
-        }
-
-        async function parseOrderWithIA(text) {
-            const prompt = `Extrae pedidos de colorear de este texto. Devuelve un JSON con: [{"name": "Nombre", "age": "Número", "theme": "Tema", "qty": 3}]. Texto: ${text}`;
-            const result = await callGemini({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: { responseMimeType: "application/json" }
-            });
-            return JSON.parse(result.candidates[0].content.parts[0].text);
-        }
-
-        async function generateColoringIA(theme) {
-            const prompt = `Coloring page for children, high quality line art, black and white, bold clean outlines, white background, no shading, subject: ${theme}`;
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/imagen-4.0-generate-001:predict?key=${apiKey}`;
-            const resp = await fetch(url, {
-                method: 'POST',
-                body: JSON.stringify({ instances: [{ prompt: prompt }], parameters: { sampleCount: 1 } })
-            });
-            const data = await resp.json();
-            if (!data.predictions) throw new Error("Fallo al generar imagen.");
-            return `data:image/png;base64,${data.predictions[0].bytesBase64Encoded}`;
-        }
-
-        // --- Lógica del Modal de Pedidos ---
-        function addManualRow(name = "", age = "", theme = "", qty = 1) {
-            const list = document.getElementById('jobList');
-            const div = document.createElement('div');
-            div.className = "flex gap-2 p-2 border rounded bg-gray-50 items-center text-sm";
-            div.innerHTML = `
-                <input type="text" value="${name}" class="flex-1 p-1 border rounded" placeholder="Nombre">
-                <input type="text" value="${age}" class="w-12 p-1 border rounded" placeholder="Edad">
-                <input type="text" value="${theme}" class="flex-1 p-1 border rounded" placeholder="Tema">
-                <input type="number" value="${qty}" class="w-12 p-1 border rounded" min="1">
-                <button class="text-red-400 font-bold px-1 hover:text-red-600">✕</button>
-            `;
-            div.querySelector('button').onclick = () => div.remove();
-            list.appendChild(div);
-        }
-
-        function showJobModal(jobs = []) {
-            const list = document.getElementById('jobList');
-            list.innerHTML = '';
-            if (jobs.length > 0) {
-                jobs.forEach(j => addManualRow(j.name, j.age, j.theme, j.qty));
-            } else {
-                // Si está vacío, añadir 3 filas vacías para comodidad
-                for(let i=0; i<3; i++) addManualRow();
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
             }
-            document.getElementById('jobModal').classList.remove('hidden');
-            document.getElementById('jobModal').classList.add('flex');
-        }
 
-        document.getElementById('addManualJob').onclick = () => addManualRow();
-        document.getElementById('closeJobModal').onclick = () => document.getElementById('jobModal').classList.add('hidden');
+            // 2. Resaltar al arrastrar sobre el canvas
+            ['dragenter', 'dragover'].forEach(eventName => {
+                canvasPanel.addEventListener(eventName, () => {
+                    canvasPanel.classList.add('drag-over');
+                }, false);
+            });
 
-        document.getElementById('pasteOrderBtn').onclick = async () => {
-            try {
-                const text = await navigator.clipboard.readText();
-                if (!text) return alert("Portapapeles vacío");
-                document.getElementById('pasteBtnText').textContent = "Procesando...";
-                const extracted = await parseOrderWithIA(text);
-                showJobModal(extracted);
-            } catch (e) {
-                console.warn("IA no disponible o error al parsear. Abriendo manual.");
-                showToast("IA no disponible. Ingresa los datos manualmente.", "info");
-                showJobModal();
-            } finally {
-                document.getElementById('pasteBtnText').textContent = "Pegar Pedido (Usa IA)";
+            ['dragleave', 'drop'].forEach(eventName => {
+                canvasPanel.addEventListener(eventName, () => {
+                    canvasPanel.classList.remove('drag-over');
+                }, false);
+            });
+
+            // 3. Manejar el archivo soltado
+            canvasPanel.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                let dt = e.dataTransfer;
+                let files = dt.files;
+
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = (e_reader) => {
+                            loadImageOntoCanvas(e_reader.target.result);
+                        };
+                        reader.readAsDataURL(file);
+                    } else {
+                        alert("Por favor, suelta solo archivos de imagen.");
+                    }
+                } else {
+                    // No se encontraron archivos (probablemente arrastrado desde otra pestaña)
+                    alert("Arrastrar desde otra pestaña no es compatible. Por favor, arrastra un archivo de imagen desde tu escritorio.");
+                }
             }
-        };
-
-        document.getElementById('manualStartBtn').onclick = () => showJobModal();
-
-        document.getElementById('startBatch').onclick = () => {
-            const rows = document.querySelectorAll('#jobList > div');
-            jobQueue = [];
-            rows.forEach(row => {
-                const ins = row.querySelectorAll('input');
-                const qty = parseInt(ins[3].value) || 1;
-                for(let i=0; i<qty; i++) {
-                    jobQueue.push({ name: ins[0].value, age: ins[1].value, theme: ins[2].value });
+            
+            // --- FIN DE Lógica de Arrastrar y Soltar ---
+            
+            // --- Lógica Principal del Flujo (Wizard) ---
+            // --- MODIFICADO: Ahora usa IA para parsear y muestra modal vacío si falla ---
+            ingresarPedidoButton.addEventListener('click', async () => {
+                // 1. Mostrar estado de carga
+                ingresarPedidoButton.disabled = true;
+                // MODIFICACIÓN: Buscar el <span> dentro del botón
+                const buttonSpan = ingresarPedidoButton.querySelector('span');
+                if (buttonSpan) buttonSpan.textContent = 'Procesando...';
+    
+                try { 
+                    originalClipboardContent = await navigator.clipboard.readText(); 
+                    
+                    if (!originalClipboardContent) { 
+                        // 2. Si no hay contenido, mostrar modal vacío para entrada manual
+                        console.log("Portapapeles vacío, mostrando modal para entrada manual.");
+                        jobQueue = [];
+                    } else {
+                        // 3. Si hay contenido, intentar parsear con IA
+                        console.log("Intentando parsear con IA...");
+                        jobQueue = await parseRequestsWithAI(originalClipboardContent);
+                        if (jobQueue.length === 0) {
+                            console.log("IA no reconoció pedidos, mostrando modal para entrada manual.");
+                        } else {
+                            console.log("IA reconoció pedidos:", jobQueue);
+                        }
+                    }
+    
+                    // 4. Siempre mostramos el modal, pre-llenado (si IA funcionó) o vacío
+                    populateJobQueueModal(); 
+                    showJobQueueModal(); 
+    
+                } catch (err) { 
+                    console.error("Error clipboard o AI parse:", err); 
+                    alert("Error al leer el portapapeles o procesar el texto: " + err.message); 
+                    
+                    // 5. Si todo falla, mostrar modal vacío
+                    jobQueue = [];
+                    populateJobQueueModal(); 
+                    showJobQueueModal();
+                } finally {
+                    // 6. Restaurar botón
+                    ingresarPedidoButton.disabled = false;
+                    if (buttonSpan) buttonSpan.textContent = 'Ingresar Pedido (Pegar)';
                 }
             });
-            if (jobQueue.length === 0) return alert("Añade al menos un pedido.");
-            document.getElementById('jobModal').classList.add('hidden');
-            document.getElementById('initialView').classList.add('hidden');
-            document.getElementById('mainApp').classList.remove('hidden');
-            loadJob(0);
-        };
-
-        // --- Lógica del Programa ---
-        function loadJob(index) {
-            currentJobIndex = index;
-            const j = jobQueue[index];
-            document.getElementById('currentStep').textContent = `Hoja ${index + 1} de ${jobQueue.length}`;
-            document.getElementById('currentClient').textContent = j.name || "Sin nombre";
-            document.getElementById('currentTheme').textContent = `Tema: ${j.theme || "Libre"}`;
-            document.getElementById('inputName').value = (j.name || "").toUpperCase();
-            document.getElementById('inputAge').value = j.age || "";
-            resetCanvas();
-            render();
-        }
-
-        function resetCanvas() {
-            mainImage = null;
-            imageScale = 1.0;
-            imagePos = { x: 240, y: 320 };
-            document.getElementById('canvasOverlay').classList.remove('hidden');
-            undoStack = [];
-        }
-
-        function render() {
-            ctx.fillStyle = "white";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            if (mainImage) {
-                ctx.save();
-                ctx.translate(imagePos.x, imagePos.y);
-                ctx.scale(imageScale, imageScale);
-                ctx.drawImage(editCanvas, -editCanvas.width/2, -editCanvas.height/2);
-                ctx.restore();
+    
+    
+            // --- Funciones de Modal de Lote ---
+            function showJobQueueModal() { jobQueueModal.style.display = 'flex'; }
+            function hideJobQueueModal() { jobQueueModal.style.display = 'none'; }
+            function populateJobQueueModal() { 
+                jobQueueList.innerHTML = ''; 
+                // Mostrar el texto original pegado, incluso si está vacío o no se reconoció
+                originalClipboardText.textContent = originalClipboardContent || "(Portapapeles vacío o no se pudo leer)"; 
+                jobQueue.forEach((job, index) => { addRowToJobQueueList(job, index); }); 
             }
-            const name = document.getElementById('inputName').value;
-            const age = document.getElementById('inputAge').value;
-            const txt = age ? `${name} - ${age} AÑOS` : name;
-            ctx.font = "bold 28px 'Patrick Hand'";
-            ctx.textAlign = "center";
-            ctx.strokeStyle = "black";
-            ctx.lineWidth = 4;
-            ctx.strokeText(txt, textPos.x, textPos.y);
-            ctx.fillStyle = "white";
-            ctx.fillText(txt, textPos.x, textPos.y);
-        }
-
-        // --- Botones de Acción ---
-        document.getElementById('btnGenIA').onclick = async () => {
-            if (!apiKey) return alert("Configura una Clave API abajo para usar esta función.");
-            const btn = document.getElementById('btnGenIA');
-            try {
-                btn.disabled = true;
-                btn.textContent = "⌛ Generando...";
-                const data = await generateColoringIA(jobQueue[currentJobIndex].theme || "dibujo infantil");
-                const img = new Image();
-                img.onload = () => {
-                    editCanvas.width = img.width;
-                    editCanvas.height = img.height;
-                    editCtx.drawImage(img, 0, 0);
-                    mainImage = img;
-                    document.getElementById('canvasOverlay').classList.add('hidden');
-                    render();
+            function addRowToJobQueueList(job, index) { const row = document.createElement('div'); row.className = 'job-queue-row'; row.dataset.index = index; const currentJob = job || { name: "", age: "", theme: "", quantity: 3 }; row.innerHTML = ` <input type="text" data-field="name" value="${escapeHTML(currentJob.name)}" class="job-input-name"> <input type="text" data-field="age" value="${escapeHTML(currentJob.age)}" class="job-input-age"> <input type="text" data-field="theme" value="${escapeHTML(currentJob.theme)}" class="job-input-theme"> <input type="number" data-field="quantity" value="${currentJob.quantity || 3}" min="1" class="job-input-quantity w-16"> <button class="deleteJobButton" data-index="${index}">&times;</button> `; jobQueueList.appendChild(row); row.querySelector('.deleteJobButton').addEventListener('click', handleDeleteJobRow); }
+            function handleDeleteJobRow(e) { const rowElement = e.currentTarget.closest('.job-queue-row'); if (rowElement) { rowElement.remove(); } }
+            addJobRowButton.addEventListener('click', () => { const nextIndex = jobQueueList.children.length; addRowToJobQueueList(null, nextIndex); });
+            cancelJobQueueButton.addEventListener('click', () => { hideJobQueueModal(); });
+            confirmJobQueueButton.addEventListener('click', () => {
+                // Esta lógica está BIEN. Lee los valores FINALES del modal,
+                // después de que el usuario los haya confirmado o editado.
+                const finalJobQueue = [];
+                const rows = jobQueueList.querySelectorAll('.job-queue-row');
+                rows.forEach((row, rowIndex) => { 
+                    const name = row.querySelector('.job-input-name').value;
+                    const age = row.querySelector('.job-input-age').value;
+                    const theme = row.querySelector('.job-input-theme').value;
+                    const quantity = parseInt(row.querySelector('.job-input-quantity').value) || 1;
+    
+                    // Solo añadir si hay un tema
+                    if (theme && name) {
+                        for (let i = 0; i < quantity; i++) {
+                            finalJobQueue.push({
+                                name: name,
+                                age: age,
+                                theme: theme,
+                                originalIndex: rows.length > 1 ? `${rowIndex + 1}-${i + 1}` : `${i+1}`,
+                                done: false
+                            });
+                        }
+                    }
+                });
+    
+                jobQueue = finalJobQueue;
+    
+                if (jobQueue.length === 0) {
+                    alert("No hay trabajos en la cola.");
+                    hideJobQueueModal(); return;
+                }
+                pdfSheets = []; imagesForZip = []; recentImages = [];
+                updateRecentImagesUI(); updateExportButtonsCount();
+                currentJobIndex = 0;
+                initialView.style.display = 'none';
+                mainAppView.style.display = 'grid';
+                hideJobQueueModal();
+                loadCurrentJob();
+                switchToTab('tabContentLote');
+            });
+            function escapeHTML(str) { return str ? String(str).replace(/"/g, '&quot;') : ''; }
+            
+            // --- NUEVA FUNCIÓN: Parsear con IA (Gemini) ---
+            async function parseRequestsWithAI(text) {
+                if (!apiKey) {
+                    showApiKeyModal();
+                    throw new Error("API Key no configurada.");
+                }
+                
+                // Usamos la misma apiKey global que el usuario proveyó
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+    
+                const systemPrompt = "Eres un asistente que extrae pedidos de una lista para una app de hojas de colorear. El usuario te pasará un texto, a veces desordenado. Extrae el nombre de la persona (name), la edad (age) (SOLO EL NÚMERO, ej: '6'), el tema del dibujo (theme) y la cantidad (quantity). 'años' significa 'years old'. Si no se especifica cantidad, usa 3. Responde SÓLO con el array JSON. Si el texto es incomprensible o no parece un pedido, responde con un array JSON vacío [].";
+                
+                const schema = {
+                    type: "ARRAY",
+                    items: {
+                        type: "OBJECT",
+                        properties: {
+                            "name": { "type": "STRING", "description": "Nombre del niño" },
+                            "age": { "type": "STRING", "description": "Edad del niño, ej: '6' (solo el número)" },
+                            "theme": { "type": "STRING", "description": "Tema del dibujo, ej: 'Capibara'" },
+                            "quantity": { "type": "NUMBER", "description": "Cantidad, default 3 si no se especifica" }
+                        },
+                        required: ["name", "age", "theme", "quantity"]
+                    }
                 };
-                img.src = data;
-            } catch (e) { alert("Error IA: Revisa tu clave o conexión."); }
-            finally { btn.disabled = false; btn.textContent = "✨ Generar con IA"; }
-        };
-
-        document.getElementById('btnPasteImg').onclick = async () => {
-            try {
-                const items = await navigator.clipboard.read();
-                for (const item of items) {
-                    if (item.types.some(t => t.startsWith('image/'))) {
-                        const blob = await item.getType(item.types.find(t => t.startsWith('image/')));
-                        const img = new Image();
-                        img.onload = () => {
-                            editCanvas.width = img.width; editCanvas.height = img.height;
-                            editCtx.drawImage(img, 0, 0); mainImage = img;
-                            document.getElementById('canvasOverlay').classList.add('hidden');
-                            render();
-                        };
-                        img.src = URL.createObjectURL(blob);
+    
+                const payload = {
+                    contents: [{ parts: [{ text: text }] }],
+                    systemInstruction: {
+                        parts: [{ text: systemPrompt }]
+                    },
+                    generationConfig: {
+                        responseMimeType: "application/json",
+                        responseSchema: schema
+                    }
+                };
+    
+                try {
+                    // Implementar reintentos simples
+                    let response;
+                    for (let attempt = 0; attempt < 3; attempt++) {
+                         response = await fetch(apiUrl, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        if (response.ok) break; // Éxito
+                        if (response.status === 429 && attempt < 2) { // Rate limit
+                            await new Promise(res => setTimeout(res, 1000 * (attempt + 1)));
+                        } else if (!response.ok) {
+                            throw new Error(`Status ${response.status}`);
+                        }
+                    }
+    
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error("Error API (parseRequestsWithAI):", errorText);
+                        throw new Error(`Error de la API de texto: ${response.statusText}`);
+                    }
+    
+                    const result = await response.json();
+                    
+                    if (result.candidates && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts[0].text) {
+                        const jsonText = result.candidates[0].content.parts[0].text;
+                        const parsedJson = JSON.parse(jsonText);
+                        // Devolver el JSON parseado. La cantidad será manejada/confirmada en el modal.
+                        return parsedJson.map(job => ({
+                            name: job.name || "",
+                            age: job.age || "",
+                            theme: job.theme || "",
+                            quantity: parseInt(job.quantity) || 3
+                        }));
+                    } else {
+                        console.warn("Respuesta JSON inesperada de IA:", result);
+                        return []; // Array vacío si no se pudo parsear
+                    }
+                } catch (error) {
+                    console.error("Error en fetch de parseRequestsWithAI:", error);
+                    // No mostrar alert, solo devolver array vacío para que el usuario llene manually
+                    return []; 
+                }
+            }
+    
+            // --- FUNCIÓN ANTIGUA (parseRequests) ELIMINADA ---
+            // function parseRequests(text) { ... }
+     
+            function loadCurrentJob() { 
+                if (currentJobIndex < 0 || currentJobIndex >= jobQueue.length) { 
+                    alert("¡Lote completado!"); 
+                    resetApp(); 
+                    return; 
+                } 
+                const job = jobQueue[currentJobIndex]; 
+                jobStatusLabel.textContent = `Procesando Hoja ${currentJobIndex + 1} de ${jobQueue.length}`; 
+                jobStatusName.textContent = `${job.name} (${job.age} años)`; 
+                themeStatusLabel.textContent = `Tema: ${job.theme}`; 
+                nameInput.value = job.name; 
+                ageInput.value = job.age; 
+                // generateButton.dataset.theme = job.theme; // ELIMINADO
+                // searchButton.dataset.theme = job.theme; // ELIMINADO
+                
+                // --- NUEVO: Actualizar botones del Action Center ---
+                actionCenterGenerate.dataset.theme = job.theme;
+                actionCenterSearch.dataset.theme = job.theme;
+                // --- FIN NUEVO ---
+                
+                resetImageState(); 
+                redrawCanvas(); 
+            }
+            function resetImageState() { 
+                currentUserImage = null; isImageLoaded = false; 
+                scaleSlider.value = 100; imageScale = 1.0; imagePos = { x: 240, y: 340 }; 
+                filterToggle.checked = false; useFilter = false; 
+                if (isEraseMode) toggleEraseMode(true); 
+                if (isCropMode) toggleCropMode(true); 
+                undoStack = []; 
+                
+                // Resetear posición del texto
+                let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } 
+                textPos = { x: 240, y: 680 - pieH - 20 };
+    
+                updateControlsVisibility(); 
+            }
+            function advanceJob() { jobQueue[currentJobIndex].done = true; currentJobIndex++; loadCurrentJob(); switchToTab('tabContentLote'); }
+            function resetApp() {
+                if (pdfSheets.length === 0) {
+                     jobQueue = []; currentJobIndex = -1; recentImages = [];
+                     updateRecentImagesUI(); initialView.style.display = 'block'; mainAppView.style.display = 'none';
+                 } else {
+                     jobStatusLabel.textContent = `Lote Completado (${pdfSheets.length} hojas)`; jobStatusName.textContent = "Listo para Exportar"; themeStatusLabel.textContent = "";
+                     resetImageState(); redrawCanvas(); switchToTab('tabContentLote');
+                     confirmButton.disabled = true;
+                     skipButton.disabled = true;
+                     discardButton.disabled = true;
+                 }
+            }
+    
+            // --- Handlers de Acciones de Imagen ---
+            
+            // 1. Botones de la Pestaña "Imagen" (ELIMINADOS)
+            // generateButton.addEventListener('click', handleGenerateImage);
+            // searchButton.addEventListener('click', handleSearchImage);
+    
+            // 2. Botones del "Centro de Acciones"
+            actionCenterGenerate.addEventListener('click', handleGenerateImage);
+            actionCenterSearch.addEventListener('click', handleSearchImage);
+            actionCenterPaste.addEventListener('click', handlePasteImage);
+            
+            // --- Lógica Refactorizada ---
+            
+            async function handleGenerateImage(e) {
+                const theme = e.currentTarget.dataset.theme;
+                if (!theme) {
+                    alert("No hay un tema seleccionado. Asegúrate de estar en un lote.");
+                    return;
+                }
+                const prompt = `coloring page, clean line art, black and white, no background, simple, for kids, ${theme}`;
+                setLoading(true); // Usar la nueva función de loading
+                try {
+                    const imageUrl = await generateImage(prompt);
+                    loadImageOntoCanvas(imageUrl);
+                } catch (error) {
+                    alert(`Error IA: ${error.message}`);
+                }
+                setLoading(false);
+            }
+    
+            function handleSearchImage(e) {
+                const theme = e.currentTarget.dataset.theme;
+                if (!theme) {
+                    alert("No hay un tema seleccionado. Asegúrate de estar en un lote.");
+                    return;
+                }
+                const query = `${theme} para colorear`;
+                const url = `https://www.google.com/search?q=${encodeURIComponent(query)}&tbm=isch&tbs=itp:lineart`;
+                window.open(url, '_blank');
+                switchToTab('tabContentImagen'); // Mantener esto, es útil
+            }
+    
+            async function handlePasteImage() {
+                 try {
+                     if (!navigator.clipboard || !navigator.clipboard.read) { alert("Navegador no soporta pegar."); return; }
+                     const items = await navigator.clipboard.read(); let foundImage = false;
+                     for (const item of items) { const imageType = item.types.find(type => type.startsWith('image/')); if (imageType) { const blob = await item.getType(imageType); const imageUrl = URL.createObjectURL(blob); loadImageOntoCanvas(imageUrl); foundImage = true; break; } }
+                     if (!foundImage) alert("No se encontró imagen compatible.");
+                 } catch (err) { console.error("Error al pegar:", err); if (err.name === 'NotAllowedError') { alert("Permiso denegado para portapapeles."); } else if (err.name === 'NotFoundError') { alert("No se encontró contenido compatible."); } else if (err.message.toLowerCase().includes('permission')) { alert("Permiso denegado."); } else { alert(`Error al pegar: ${err.name} - ${err.message}.`); } }
+            }
+            
+            function loadImageOntoCanvas(imageUrl) { currentUserImage = new Image(); currentUserImage.crossOrigin = "anonymous"; currentUserImage.onload = () => { isImageLoaded = true; editCanvas.width = currentUserImage.width; editCanvas.height = currentUserImage.height; editCtx.clearRect(0, 0, editCanvas.width, editCanvas.height); editCtx.drawImage(currentUserImage, 0, 0); undoStack = []; saveStateForUndo(); let pieH = 0; if (pieImage && pieImage.width > 0) { pieH = pieImage.height * (480*0.95/pieImage.width) + 10; } const availH = 680 - pieH - 40; const sW = 440 / editCanvas.width; const sH = availH / editCanvas.height; const bestS = Math.min(sW, sH, 1.5); imageScale = bestS; scaleSlider.value = bestS * 100; scaleValue.textContent = Math.round(bestS * 100); imagePos = { x: 240, y: 15 + (availH / 2) }; updateControlsVisibility(); redrawCanvas(); }; currentUserImage.onerror = () => { alert("Error al cargar."); isImageLoaded = false; updateControlsVisibility(); }; currentUserImage.src = imageUrl; }
+            
+            function setLoading(isLoading) { 
+                // const span = generateButton.querySelector('span'); // ELIMINADO
+                // generateButton.disabled = isLoading; // ELIMINADO
+                // generateSpinner.classList.toggle('hidden', !isLoading); // ELIMINADO
+                // if (span) span.textContent = isLoading ? "Generando..." : "Generar (IA)"; // ELIMINADO
+                
+                // Nuevo: Sincronizar el spinner del Action Center
+                const actionSpan = actionCenterGenerate.querySelector('span');
+                actionCenterGenerate.disabled = isLoading;
+                actionCenterSpinner.classList.toggle('hidden', !isLoading);
+                if(actionSpan) actionSpan.textContent = isLoading ? "Generando..." : "✨ Generar (IA)";
+            }
+    
+            // --- Handlers de Imágenes Recientes ---
+            function updateRecentImagesUI() { recentImagesContainer.innerHTML = ''; if (recentImages.length > 0) { recentImagesSection.classList.remove('hidden'); const uniqueThemes = new Map(); for (let i = recentImages.length - 1; i >= 0; i--) { const img = recentImages[i]; if (!uniqueThemes.has(img.theme)) { uniqueThemes.set(img.theme, img.dataUrl); } } Array.from(uniqueThemes.entries()).forEach(([theme, dataUrl]) => { const imgEl = document.createElement('img'); imgEl.src = dataUrl; imgEl.title = `Reusar ${theme}`; imgEl.className = 'recent-image'; imgEl.addEventListener('click', () => { loadImageOntoCanvas(dataUrl); showToast(`Imagen de "${theme}" reutilizada.`); }); recentImagesContainer.appendChild(imgEl); }); } else { recentImagesSection.classList.add('hidden'); } }
+    
+            // --- Handlers de Stock Local ---
+            saveToStockButton.addEventListener('click', () => { alert("Stock Local no implementado. Usa Exportar ZIP."); });
+    
+            // --- Handlers de Edición de Imagen ---
+            scaleSlider.addEventListener('input', (e) => { imageScale = parseInt(e.target.value)/100; scaleValue.textContent = e.target.value; redrawCanvas(); });
+            filterToggle.addEventListener('change', (e) => { useFilter = e.target.checked; redrawCanvas(); });
+            function saveStateForUndo() { if (!isImageLoaded) return; const tCan = document.createElement('canvas'); tCan.width = editCanvas.width; tCan.height = editCanvas.height; tCan.getContext('2d').drawImage(editCanvas, 0, 0); undoStack.push(tCan); if (undoStack.length > 10) { undoStack.shift(); } updateControlsVisibility(); }
+            undoButton.addEventListener('click', () => { if (undoStack.length > 1) { undoStack.pop(); const last = undoStack[undoStack.length - 1]; editCanvas.width = last.width; editCanvas.height = last.height; editCtx.drawImage(last, 0, 0); redrawCanvas(); } else if (undoStack.length === 1) { const orig = undoStack[0]; editCanvas.width = orig.width; editCanvas.height = orig.height; editCtx.drawImage(orig, 0, 0); redrawCanvas(); } updateControlsVisibility(); });
+            brushSizeSlider.addEventListener('input', (e) => { brushSize = parseInt(e.target.value); brushSizeValue.textContent = `${brushSize}px`; });
+            eraseButton.addEventListener('click', () => toggleEraseMode(false));
+            function toggleEraseMode(forceOff = false) { if (forceOff) isEraseMode = true; isEraseMode = !isEraseMode; if (isEraseMode) { if (isCropMode) toggleCropMode(true); eraseButton.textContent = 'Desactivar Borrador'; eraseButton.classList.add('bg-red-500', 'text-white'); eraseButton.classList.remove('bg-yellow-500', 'text-black'); previewCanvas.classList.add('erase-mode'); } else { eraseButton.textContent = 'Activar Borrador'; eraseButton.classList.remove('bg-red-500', 'text-white'); eraseButton.classList.add('bg-yellow-500', 'text-black'); previewCanvas.classList.remove('erase-mode'); isPainting = false; } }
+            function paintOnCanvas(cX, cY) { editCtx.fillStyle = 'white'; editCtx.beginPath(); editCtx.arc(cX, cY, brushSize / imageScale, 0, Math.PI * 2); editCtx.fill(); redrawCanvas(); }
+    
+            // --- Función getCanvasCoordinates corregida ---
+            function getCanvasCoordinates(e) {
+                const rect = previewCanvas.getBoundingClientRect();
+                const scaleX = previewCanvas.width / rect.width;
+                const scaleY = previewCanvas.height / rect.height;
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+                const canvasX = (clientX - rect.left);
+                const canvasY = (clientY - rect.top);
+                const x = Math.max(0, canvasX * scaleX);
+                const y = Math.max(0, canvasY * scaleY);
+                return {x, y};
+            }
+    
+            cropButton.addEventListener('click', () => toggleCropMode(false));
+            applyCropButton.addEventListener('click', () => { if (!visualCropRect) return; saveStateForUndo(); const nR={x1:Math.min(visualCropRect.startX,visualCropRect.endX),y1:Math.min(visualCropRect.startY,visualCropRect.endY),x2:Math.max(visualCropRect.startX,visualCropRect.endX),y2:Math.max(visualCropRect.startY,visualCropRect.endY)}; const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale; const iX1=imagePos.x-iW/2; const iY1=imagePos.y-iH/2; const cX1=Math.max(nR.x1,iX1); const cY1=Math.max(nR.y1,iY1); const cX2=Math.min(nR.x2,iX1+iW); const cY2=Math.min(nR.y2,iY1+iH); if(cX2<=cX1||cY2<=cY1){toggleCropMode(true);return;} const sX=(cX1-iX1)/imageScale; const sY=(cY1-iY1)/imageScale; const sW=(cX2-cX1)/imageScale; const sH=(cY2-cY1)/imageScale; const tCan=document.createElement('canvas'); tCan.width=sW; tCan.height=sH; tCan.getContext('2d').drawImage(editCanvas,sX,sY,sW,sH,0,0,sW,sH); editCanvas.width=sW; editCanvas.height=sH; editCtx.drawImage(tCan,0,0); toggleCropMode(true); loadImageOntoCanvas(editCanvas.toDataURL()); });
+            function toggleCropMode(forceOff = false) { if (forceOff) isCropMode = true; isCropMode = !isEraseMode; if (isCropMode) { if (isEraseMode) toggleEraseMode(true); cropButton.textContent = 'Cancelar Recorte'; cropButton.classList.add('bg-red-500', 'text-white'); cropButton.classList.remove('bg-indigo-500'); previewCanvas.classList.add('crop-mode'); } else { cropButton.textContent = 'Activar Modo Recortar'; cropButton.classList.remove('bg-red-500', 'text-white'); cropButton.classList.add('bg-indigo-500'); previewCanvas.classList.remove('crop-mode'); isCropping = false; visualCropRect = null; applyCropButton.classList.add('hidden'); redrawCanvas(); } }
+            function drawCropRect() { if (!visualCropRect) return; ctx.save(); ctx.strokeStyle = 'rgba(255,0,0,0.7)'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]); const w=visualCropRect.endX-visualCropRect.startX; const h=visualCropRect.endY-visualCropRect.startY; ctx.strokeRect(visualCropRect.startX,visualCropRect.startY,w,h); ctx.restore(); }
+    
+            // --- Handlers de Arrastrar Imagen (Drag) ---
+            previewCanvas.addEventListener('mousedown', (e) => {
+                e.preventDefault();
+                const {x, y} = getCanvasCoordinates(e); // Usar la función corregida
+    
+                if (!isImageLoaded) {
+                     // Permitir arrastrar texto incluso si no hay imagen
+                     const {tBox} = getTextBoundingBox();
+                     if (x > tBox.x1 && x < tBox.x2 && y > tBox.y1 && y < tBox.y2) {
+                        isDraggingText = true;
+                        dragStart.x = x - textPos.x;
+                        dragStart.y = y - textPos.y;
+                        previewCanvas.style.cursor = 'move';
                         return;
+                     }
+                     return; // Salir si no hay imagen y no se hizo clic en el texto
+                }
+    
+                // 1. Revisar si se hizo clic en el texto PRIMERO
+                const {tBox} = getTextBoundingBox();
+                if (x > tBox.x1 && x < tBox.x2 && y > tBox.y1 && y < tBox.y2) {
+                    isDraggingText = true;
+                    dragStart.x = x - textPos.x;
+                    dragStart.y = y - textPos.y;
+                    previewCanvas.style.cursor = 'move';
+                    return; // Importante: no activar otros modos si se arrastra el texto
+                }
+    
+                // 2. Revisar modos de edición (Borrador, Recorte)
+                if (isEraseMode) {
+                     if(!isPainting) saveStateForUndo();
+                     isPainting = true;
+                     const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
+                     const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
+                     paintOnCanvas(iX,iY);
+                     return;
+                }
+                if (isCropMode) { isCropping = true; visualCropRect = {startX:x,startY:y,endX:x,endY:y}; applyCropButton.classList.add('hidden'); redrawCanvas(); return; }
+                
+                // 3. Si no es nada de lo anterior, revisar si se arrastra la imagen
+                const iW=editCanvas.width*imageScale; const iH=editCanvas.height*imageScale;
+                if(x>imagePos.x-iW/2&&x<imagePos.x+iW/2&&y>imagePos.y-iH/2&&y<imagePos.y+iH/2) { isDragging=true; dragStart.x=x-imagePos.x; dragStart.y=y-imagePos.y; previewCanvas.style.cursor='grabbing'; }
+            });
+    
+            previewCanvas.addEventListener('mousemove', (e) => {
+                e.preventDefault();
+                const {x,y}=getCanvasCoordinates(e); // Usar la función corregida
+                
+                // 1. Mover texto
+                if (isDraggingText) {
+                    textPos.x = x - dragStart.x;
+                    textPos.y = y - dragStart.y;
+                    redrawCanvas();
+                    return;
+                }
+    
+                // 2. Mover borrador
+                if (isEraseMode&&isPainting) {
+                    const iX=(x-imagePos.x)/imageScale + editCanvas.width/2;
+                    const iY=(y-imagePos.y)/imageScale + editCanvas.height/2;
+                    paintOnCanvas(iX,iY);
+                    return;
+                }
+                // 3. Mover recorte
+                if (isCropMode&&isCropping) { visualCropRect.endX=x; visualCropRect.endY=y; redrawCanvas(); return; }
+                
+                // 4. Mover imagen
+                if (!isDragging) return; 
+                imagePos.x=x-dragStart.x; 
+                imagePos.y=y-dragStart.y; 
+                redrawCanvas();
+            });
+    
+            previewCanvas.addEventListener('mouseup', (e) => {
+                e.preventDefault();
+                
+                // 1. Soltar texto
+                if (isDraggingText) isDraggingText = false;
+                
+                // 2. Soltar borrador
+                if (isEraseMode&&isPainting) isPainting=false;
+    
+                // 3. Soltar recorte
+                if (isCropMode&&isCropping) { isCropping=false; if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) applyCropButton.classList.remove('hidden'); else { applyCropButton.classList.add('hidden'); visualCropRect=null; redrawCanvas(); } }
+                
+                // 4. Soltar imagen
+                isDragging=false; 
+                
+                // Resetear cursor
+                let c='default'; 
+                if (isEraseMode) c='crosshair'; 
+                if (isCropMode) c='crosshair'; 
+                previewCanvas.style.cursor=c;
+            });
+    
+            previewCanvas.addEventListener('mouseleave', (e) => {
+                 e.preventDefault();
+                 // 1. Soltar texto
+                 if (isDraggingText) {
+                    isDraggingText = false;
+                    previewCanvas.style.cursor='default';
+                 }
+                 // 2. Soltar imagen
+                 if (isDragging) { isDragging=false; previewCanvas.style.cursor='default'; }
+                 // 3. Soltar borrador
+                 if (isPainting) { isPainting = false; }
+                 // 4. Soltar recorte
+                 if (isCropping) {
+                     isCropping=false;
+                     if (visualCropRect&&(Math.abs(visualCropRect.endX-visualCropRect.startX)>5||Math.abs(visualCropRect.endY-visualCropRect.startY)>5)) {
+                         applyCropButton.classList.remove('hidden');
+                         const {x, y} = getCanvasCoordinates(e);
+                         visualCropRect.endX = Math.max(0, Math.min(previewCanvas.width, x));
+                         visualCropRect.endY = Math.max(0, Math.min(previewCanvas.height, y));
+                         redrawCanvas();
+                     } else {
+                         visualCropRect = null; // Invalidar rect
+                         applyCropButton.classList.add('hidden');
+                         redrawCanvas(); // Limpiar visualmente
+                     }
+                 }
+            });
+             // Listeners para eventos táctiles (corregidos)
+             previewCanvas.addEventListener('touchstart', (e) => {
+                 if (e.touches.length === 1) {
+                      e.preventDefault(); // Evitar scroll/zoom
+                     previewCanvas.dispatchEvent(new MouseEvent('mousedown', { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }));
+                 }
+             }, { passive: false });
+             previewCanvas.addEventListener('touchmove', (e) => {
+                 if (e.touches.length === 1) {
+                     e.preventDefault(); // Evitar scroll/zoom
+                     previewCanvas.dispatchEvent(new MouseEvent('mousemove', { clientX: e.touches[0].clientX, clientY: e.touches[0].clientY }));
+                 }
+             }, { passive: false });
+             previewCanvas.addEventListener('touchend', (e) => {
+                 // Siempre llamar mouseup, incluso si no hay toques (para terminar acciones)
+                 previewCanvas.dispatchEvent(new MouseEvent('mouseup', {}));
+             });
+             previewCanvas.addEventListener('touchcancel', (e) => {
+                 previewCanvas.dispatchEvent(new MouseEvent('mouseleave', {}));
+                 previewCanvas.dispatchEvent(new MouseEvent('mouseup', {}));
+             });
+    
+    
+            // --- Handlers de Acciones de Lote ---
+            confirmButton.addEventListener('click', () => { if (!isImageLoaded) { alert("Carga una imagen."); return; } const fCan=document.createElement('canvas'); fCan.width=480; fCan.height=680; redrawCanvas(fCan.getContext('2d')); pdfSheets.push(fCan); const job=jobQueue[currentJobIndex]; const theme=job.theme; const sTh=theme.replace(/[^a-z0-9_.-]/gi,'_'); const sN=job.name.replace(/[^a-z0-9_.-]/gi,'_'); const fn=`${sN}_-_${sTh}_${job.originalIndex || currentJobIndex + 1}.png`; const iDU=editCanvas.toDataURL('image/png'); imagesForZip.push({name:fn,dataUrl:iDU}); const tDU=editCanvas.toDataURL('image/png',0.5); recentImages.unshift({theme:theme,dataUrl:tDU}); if (recentImages.length>5) recentImages.pop(); updateRecentImagesUI(); updateExportButtonsCount(); showToast(`✔️ Hoja de ${job.name} (${theme}) añadida!`); advanceJob(); });
+            skipButton.addEventListener('click', () => { 
+                if(confirm("¿Saltar hoja?")) advanceJob(); 
+            });
+            discardButton.addEventListener('click', () => { 
+                if(confirm("¿Terminar lote?")) resetApp(); 
+            });
+            function updateControlsVisibility() {
+                 const showTools = isImageLoaded;
+                 // --- CAMBIO: Eliminar referencia a noImageEditMessage ---
+                 // if(noImageEditMessage) noImageEditMessage.style.display = 'none'; // Ya no se usa
+                 if (noImageToolsMessage) noImageToolsMessage.style.display = showTools ? 'none' : 'block';
+                 else console.error("Elemento 'noImageToolsMessage' no encontrado en updateControlsVisibility."); // Debug extra
+    
+                 // --- CAMBIO: Añadir chequeos para cada botón ---
+                 if (confirmButton) confirmButton.disabled = !showTools;
+                 else console.error("Elemento 'confirmButton' no encontrado.");
+    
+                 if (undoButton) undoButton.disabled = undoStack.length <= 1;
+                 else console.error("Elemento 'undoButton' no encontrado.");
+    
+                 if (saveToStockButton) saveToStockButton.disabled = !showTools;
+                 else console.error("Elemento 'saveToStockButton' no encontrado.");
+    
+                 if (scaleSlider) scaleSlider.disabled = !showTools;
+                 else console.error("Elemento 'scaleSlider' no encontrado.");
+    
+                 if (filterToggle) filterToggle.disabled = !showTools;
+                 else console.error("Elemento 'filterToggle' no encontrado.");
+    
+                 if (eraseButton) eraseButton.disabled = !showTools;
+                 else console.error("Elemento 'eraseButton' no encontrado.");
+    
+                 if (brushSizeSlider) brushSizeSlider.disabled = !showTools;
+                 else console.error("Elemento 'brushSizeSlider' no encontrado.");
+    
+                 if (cropButton) cropButton.disabled = !showTools;
+                 else console.error("Elemento 'cropButton' no encontrado.");
+    
+                 // Apply crop se maneja en mouseup/mouseleave
+            }
+            function updateExportButtonsCount() { const c=pdfSheets.length; if(c>0){exportPdfButton.disabled=false;exportPdfButton.textContent=`Exportar PDF (${c} Hojas)`;}else{exportPdfButton.disabled=true;exportPdfButton.textContent=`Exportar PDF (0 Hojas)`;} if(c>0){exportZipButton.disabled=false;exportZipButton.textContent=`Exportar Imágenes (${c}.zip)`;}else{exportZipButton.disabled=true;exportZipButton.textContent=`Exportar Imágenes (.zip)`;} }
+            
+            let toastTimer=null; 
+            function showToast(m, type = 'success'){
+                if(toastTimer) clearTimeout(toastTimer);
+                
+                toastNotification.textContent = m;
+                
+                // Reset classes
+                toastNotification.classList.remove('bg-green-600', 'bg-red-600', 'bg-blue-600');
+                
+                // Apply new class based on type
+                if (type === 'error') {
+                    toastNotification.classList.add('bg-red-600');
+                } else if (type === 'info') {
+                    toastNotification.classList.add('bg-blue-600');
+                } else {
+                    toastNotification.classList.add('bg-green-600');
+                }
+                
+                toastNotification.classList.add('show');
+                toastTimer=setTimeout(()=>{
+                    toastNotification.classList.remove('show');
+                }, 3000);
+            }
+    
+            // --- Lógica de Dibujado en Canvas ---
+            // Función auxiliar para calcular la caja del texto
+            function getTextBoundingBox() {
+                const name=nameInput.value.toUpperCase();
+                const ageVal = ageInput.value;
+                // Lógica para añadir 'AÑOS' solo si no está ya
+                let ageT = "";
+                if (ageVal) {
+                    if (String(ageVal).toUpperCase().includes('AÑO')) {
+                         ageT = ageVal.toUpperCase();
+                    } else {
+                         ageT = `${ageVal} AÑOS`;
                     }
                 }
-                alert("No hay imagen en el portapapeles.");
-            } catch (e) { alert("Usa Ctrl+V sobre la página o pega una imagen directamente."); }
-        };
-
-        document.getElementById('btnSearchGoogle').onclick = () => {
-            const theme = jobQueue[currentJobIndex].theme || "";
-            window.open(`https://www.google.com/search?q=${theme}+coloring+page&tbm=isch`, "_blank");
-        };
-
-        document.getElementById('confirmSheetBtn').onclick = () => {
-            finishedSheets.push({ blob: canvas.toDataURL('image/jpeg', 0.8) });
-            showToast("Hoja guardada");
-            if (currentJobIndex < jobQueue.length - 1) loadJob(currentJobIndex + 1);
-            else {
-                document.getElementById('btnExportPDF').disabled = false;
-                alert("¡Lote completado!");
+                
+                const fullT=ageT?`${name} - ${ageT}`:name;
+                const fs=28;
+                const ff='"Patrick Hand", cursive';
+                ctx.font = `bold ${fs}px ${ff}`; // Asegurarse que el contexto tenga la fuente correcta
+                
+                const textMetrics = ctx.measureText(fullT);
+                const textWidth = textMetrics.width;
+                const textHeight = 28; // Tamaño de fuente aproximado
+                
+                // Ajustar la caja de colisión para que sea un poco más grande y centrada
+                const tBox = { 
+                    x1: textPos.x - textWidth / 2 - 10, // 10px padding
+                    y1: textPos.y - textHeight - 5,      // 5px padding top
+                    x2: textPos.x + textWidth / 2 + 10, // 10px padding
+                    y2: textPos.y + textHeight / 2 + 5       // 5px padding bottom
+                };
+                
+                return { fullT, fs, ff, tBox };
             }
-            document.getElementById('btnExportPDF').textContent = `Descargar PDF (${finishedSheets.length})`;
-        };
-
-        document.getElementById('btnExportPDF').onclick = () => {
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ unit: 'px', format: [480, 680] });
-            finishedSheets.forEach((s, i) => {
-                if (i > 0) pdf.addPage([480, 680]);
-                pdf.addImage(s.blob, 'JPEG', 0, 0, 480, 680);
+    
+            function redrawCanvas(targetCtx=ctx){
+                // Obtener el action center
+                const actionCenterDiv = document.getElementById('actionCenter');
+                
+                targetCtx.fillStyle='white';
+                targetCtx.fillRect(0,0,480,680);
+                
+                // 1. Dibujar Imagen
+                if(isImageLoaded&&currentUserImage){
+                    targetCtx.save();
+                    if(useFilter) targetCtx.filter='contrast(130%) brightness(105%)';
+                    targetCtx.translate(imagePos.x,imagePos.y);
+                    targetCtx.scale(imageScale,imageScale);
+                    targetCtx.drawImage(editCanvas,-editCanvas.width/2,-editCanvas.height/2);
+                    targetCtx.restore();
+                    if (actionCenterDiv) actionCenterDiv.classList.add('hidden'); // Ocultar div si hay imagen
+                } else {
+                    // NO dibujar texto en canvas, mostrar el div
+                    if (actionCenterDiv) actionCenterDiv.classList.remove('hidden'); // Mostrar div si no hay imagen
+                }
+                
+                // 2. Dibujar Pie de página
+                let pieH=0;
+                if(pieImage&&pieImage.complete){
+                    const pTW=480*0.95;const pS=pTW/pieImage.width;
+                    const pTH=pieImage.height*pS;const pX=(480-pTW)/2;
+                    const pY=680-pTH-10;
+                    targetCtx.drawImage(pieImage,pX,pY,pTW,pTH);
+                    pieH=pTH+10;
+                }
+    
+                // 3. Dibujar Texto (Nombre/Edad)
+                const { fullT, fs, ff } = getTextBoundingBox(); // Obtener texto y fuente
+                
+                targetCtx.font = `bold ${fs}px ${ff}`;
+                targetCtx.textAlign='center';
+                targetCtx.lineWidth=4;
+                targetCtx.strokeStyle='black';
+                targetCtx.fillStyle='white';
+                
+                // Usar textPos para X e Y
+                if(fullT){
+                    targetCtx.strokeText(fullT, textPos.x, textPos.y);
+                    targetCtx.fillText(fullT, textPos.x, textPos.y);
+                }
+    
+                // 4. Dibujar Recorte (si está activo)
+                if(targetCtx===ctx&&isCropMode&&visualCropRect){
+                    drawCropRect();
+                }
+            }
+     
+            // --- Lógica de API de Gemini ---
+            async function generateImage(prompt,attempt=1){if(!apiKey){showApiKeyModal();throw new Error("API Key no configurada.");}const apiUrl=`https://generativelanguage.googleapis.com/v1beta/models/imagen-3.0-generate-002:predict?key=${apiKey}`;const payload={instances:[{prompt:prompt}],parameters:{"sampleCount":1}};console.log(`Generating image for prompt: "${prompt}" (Attempt ${attempt})`);try{const response=await fetch(apiUrl,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});if(!response.ok){if(response.status===429&&attempt<5){const delay=Math.pow(2,attempt)*1000+Math.random()*1000;console.warn(`Rate limited (429). Retrying in ${Math.round(delay/1000)}s...`);await new Promise(resolve=>setTimeout(resolve,delay));return generateImage(prompt,attempt+1);}const errorText=await response.text();console.error(`API Error (${response.status}): ${errorText}`);throw new Error(`Error API (${response.status}): ${response.statusText}`);}const result=await response.json();if(result.predictions&&result.predictions.length>0&&result.predictions[0].bytesBase64Encoded){const base64Data=result.predictions[0].bytesBase64Encoded;return`data:image/png;base64,${base64Data}`;}else{console.error("Respuesta API inesperada:",result);throw new Error("Respuesta API inesperada.");}}catch(error){if(attempt<5){const delay=Math.pow(2,attempt)*1000+Math.random()*1000;console.warn(`Fetch error: ${error.message}. Retrying in ${Math.round(delay/1000)}s...`);await new Promise(resolve=>setTimeout(resolve,delay));return generateImage(prompt,attempt+1);}else{console.error("Error final:",error);throw error;}}}
+    
+            // --- Exportación de PDF (MODIFICADO) ---
+            exportPdfButton.addEventListener('click', async()=>{
+                if(pdfSheets.length===0){
+                    alert("No hay hojas.");
+                    return;
+                }
+                exportPdfButton.disabled=true;
+                exportPdfButton.textContent='Generando PDF...';
+                
+                const{jsPDF}=window.jspdf;
+                // 1. Crear PDF en tamaño A4 (unidad en milímetros)
+                const pdf=new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+                
+                try{
+                    // Obtener dimensiones de la página A4
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                
+                    for(let i=0;i<pdfSheets.length;i++){
+                        const canvas=pdfSheets[i];
+                        if(i>0) {
+                            // 2. Añadir nueva página en formato A4
+                            pdf.addPage('a4', 'portrait');
+                        }
+                        
+                        // 3. Usar PNG para alta calidad (ideal para arte lineal)
+                        const imgData=canvas.toDataURL('image/png');
+                        
+                        // 4. Añadir imagen escalada al tamaño de la página A4
+                        // Se usa 'FAST' para compresión PNG y evitar archivos gigantes
+                        pdf.addImage(imgData,'PNG',0,0,pageWidth,pageHeight, undefined, 'FAST');
+                        
+                        await new Promise(resolve=>setTimeout(resolve,10)); // Pequeña pausa
+                    }
+                    pdf.save('hojas_para_colorear_lote.pdf');
+                }catch(error){
+                    console.error("Error PDF:",error);
+                    alert('Error PDF: '+error.message);
+                }finally{
+                    exportPdfButton.disabled=false;
+                    updateExportButtonsCount();
+                }
             });
-            pdf.save("pedido_colorear.pdf");
-        };
-
-        // --- Interacción Canvas ---
-        canvas.onmousedown = (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) * (canvas.width/rect.width);
-            const y = (e.clientY - rect.top) * (canvas.height/rect.height);
-            isDragging = true;
-            startDrag = { x: x - imagePos.x, y: y - imagePos.y };
-        };
-        window.onmousemove = (e) => {
-            if (!isDragging) return;
-            const rect = canvas.getBoundingClientRect();
-            imagePos.x = (e.clientX - rect.left) * (canvas.width/rect.width) - startDrag.x;
-            imagePos.y = (e.clientY - rect.top) * (canvas.height/rect.height) - startDrag.y;
-            render();
-        };
-        window.onmouseup = () => isDragging = false;
+    
+    
+            // --- Exportación de ZIP ---
+            exportZipButton.addEventListener('click', async()=>{
+                if(imagesForZip.length===0){
+                    alert("No hay imágenes.");
+                    return;
+                }
+                exportZipButton.disabled=true;
+                exportZipButton.textContent='Comprimiendo...';
+                try{
+                    const zip=new JSZip();
+                    for(const img of imagesForZip){
+                        const base64Data=img.dataUrl.split(',')[1];
+                        zip.file(img.name,base64Data,{base64:true});
+                    }
+                    const content=await zip.generateAsync({type:"blob"});
+                    triggerDownload(content,'imagenes_editadas.zip');
+                }catch(error){
+                    console.error("Error ZIP:",error);
+                    alert('Error ZIP: '+error.message);
+                }finally{
+                    exportPdfButton.disabled=false;
+                    updateExportButtonsCount();
+                }
+            });
+            function triggerDownload(blob,filename){
+                const a=document.createElement('a');
+                const url=URL.createObjectURL(blob);
+                a.href=url;
+                a.download=filename;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(()=>{
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                },0);
+            }
+    
+            // --- Listeners de Inputs ---
+            nameInput.addEventListener('input', () => redrawCanvas());
+            ageInput.addEventListener('input', () => redrawCanvas());
         
-        document.getElementById('rangeScale').oninput = (e) => { imageScale = e.target.value/100; render(); };
-        document.getElementById('inputName').oninput = render;
-        document.getElementById('inputAge').oninput = render;
-        document.getElementById('btnResetIA').onclick = () => location.reload();
-
-        function showToast(msg, type = "success") {
-            const t = document.getElementById('toastNotification');
-            t.textContent = msg;
-            t.className = `py-3 px-6 rounded-lg shadow-lg ${type === 'success' ? 'bg-green-600' : 'bg-blue-600'} text-white`;
-            t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 2500);
-        }
-    </script>
-</body>
+        }); // Fin del DOMContentLoaded
+        </script>
+    
+    </body>
 </html>
