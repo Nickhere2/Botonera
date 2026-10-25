@@ -1927,6 +1927,20 @@ function openEditPanel(itemId = null, prefillData = null) {
     if (item) {
         document.getElementById('deleteItemButton').onclick = (e) => deleteItem(e, item.id);
     }
+
+    const typeSelector = modal.querySelector('.type-selector');
+    if (typeSelector) {
+        typeSelector.addEventListener('click', e => {
+            const button = e.target.closest('.type-btn');
+            if (button) {
+                const newType = button.dataset.type;
+                modal.querySelectorAll('.type-btn').forEach(b => b.classList.replace('btn-primary', 'btn-secondary'));
+                button.classList.replace('btn-secondary', 'btn-primary');
+                document.getElementById('newType').value = newType;
+                updateEditFormFields(newType, initialData);
+            }
+        });
+    }
     
     const pasteBtn = document.getElementById('paste-url-btn');
     if (pasteBtn) {
@@ -2528,7 +2542,7 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
     triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
 
     // FIX: Se cambió el modelo de 'gemini-2.5-flash-preview-05-20' a 'gemini-2.5-flash', el modelo estable para la API v1beta.
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const payload = {
         contents: [{ parts: [{ text: prompt }] }]
@@ -2749,23 +2763,31 @@ function addSelectedTasks() {
 // --- NEW IA FUNCTIONS for index.html ---
 function cleanGeminiJsonResponse(rawResponse) {
     if (!rawResponse || typeof rawResponse !== 'string') return null;
-    const match = rawResponse.match(/```json\n([\s\S]*?)\n```/);
+    const match = rawResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
     if (match && match[1]) {
-        return match[1];
+        return match[1].trim();
     }
-    // Attempt to handle cases where Gemini doesn't use markdown
     try {
         JSON.parse(rawResponse);
         return rawResponse;
     } catch(e) {
-        // Fallback for messy responses, might not always work
-        const startIndex = rawResponse.indexOf('{');
-        const endIndex = rawResponse.lastIndexOf('}');
-        if(startIndex > -1 && endIndex > -1) {
-            return rawResponse.substring(startIndex, endIndex + 1);
+        const firstBrace = rawResponse.indexOf('{');
+        const firstBracket = rawResponse.indexOf('[');
+        let start = -1, end = -1;
+
+        if (firstBracket !== -1 && (firstBrace === -1 || firstBracket < firstBrace)) {
+            start = firstBracket;
+            end = rawResponse.lastIndexOf(']');
+        } else if (firstBrace !== -1) {
+            start = firstBrace;
+            end = rawResponse.lastIndexOf('}');
+        }
+
+        if (start > -1 && end > -1 && end > start) {
+            return rawResponse.substring(start, end + 1);
         }
     }
-    return rawResponse;
+    return rawResponse.trim();
 }
 
 async function handleSmartScratchpad() {
