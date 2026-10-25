@@ -2541,8 +2541,10 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
     buttons.forEach(b => b.disabled = true);
     triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
 
-    // FIX: Se cambió el modelo de 'gemini-2.5-flash-preview-05-20' a 'gemini-2.5-flash', el modelo estable para la API v1beta.
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // Modelo predeterminado: gemini-2.5-flash (con auto-detección resiliente)
+    let modelName = localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
+
+    const getApiUrl = (model) => `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const payload = {
         contents: [{ parts: [{ text: prompt }] }]
@@ -2552,12 +2554,10 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
         payload.generationConfig = generationConfig;
     }
 
-    // Usar Google Search grounding si no se está pidiendo un JSON específico para el que no se requiera búsqueda (ej. categorización interna).
-    // Si responseMimeType es JSON, la IA NO puede usar la herramienta de Google Search.
+    // Google Search solo cuando no se requiere respuesta JSON estricta
     if (!generationConfig || (generationConfig.responseMimeType !== "application/json")) {
-            payload.tools = [{ "google_search": {} }];
+        payload.tools = [{ "googleSearch": {} }];
     }
-
 
     try {
         let response;
@@ -2566,23 +2566,47 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
         
         while (attempt < maxRetries) {
             try {
-                response = await fetch(API_URL, {
+                response = await fetch(getApiUrl(modelName), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if (response.ok) break; // Success, exit loop
+                if (response.ok) break;
+
+                // Si el modelo da 404 (no existe o fue actualizado por Google), autodescubrir modelo activo
+                if (response.status === 404 && attempt === 0) {
+                    console.warn(`Modelo ${modelName} no encontrado (404). Consultando modelos disponibles...`);
+                    try {
+                        const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+                        if (listResp.ok) {
+                            const listData = await listResp.json();
+                            const availableModel = listData.models?.find(m => 
+                                m.supportedGenerationMethods?.includes('generateContent') && 
+                                (m.name.includes('flash') || m.name.includes('gemini'))
+                            );
+                            if (availableModel) {
+                                modelName = availableModel.name.replace('models/', '');
+                                localStorage.setItem('gemini_model', modelName);
+                                console.log(`Nuevo modelo detectado y configurado: ${modelName}`);
+                                attempt++;
+                                continue; // Reintentar con el modelo descubierto
+                            }
+                        }
+                    } catch (listErr) {
+                        console.error("Error al listar modelos:", listErr);
+                    }
+                }
                 
-                // Handle 429 rate limit error with backoff
+                // Manejar error 429 de límite de peticiones con retroceso exponencial
                 if (response.status === 429 && attempt < maxRetries - 1) {
                     const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
                     await new Promise(resolve => setTimeout(resolve, delay));
                     attempt++;
-                    continue; // Retry
+                    continue;
                 }
 
-                // Handle other HTTP errors
+                // Otros errores HTTP
                 let errorMessage = `Error HTTP: ${response.status}`;
                 try {
                     const errorData = await response.json();
@@ -2592,11 +2616,11 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
                     } else if (response.status === 429) {
                         errorMessage = "Límite de peticiones a la API alcanzado. Inténtalo más tarde.";
                     }
-                } catch(e) { /* Couldn't parse JSON */ }
+                } catch(e) { /* Error parseando JSON */ }
                 throw new Error(errorMessage);
 
             } catch (fetchError) {
-                if (attempt === maxRetries - 1) throw fetchError; // Re-throw the last error
+                if (attempt === maxRetries - 1) throw fetchError;
                 const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
                 await new Promise(resolve => setTimeout(resolve, delay));
                 attempt++;
@@ -2607,15 +2631,12 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
             throw new Error('Máximo de reintentos alcanzado o error desconocido.');
         }
 
-
         const responseData = await response.json();
-        // Check for empty or malformed response from Gemini
         if (!responseData.candidates || !responseData.candidates[0].content || !responseData.candidates[0].content.parts) {
             console.warn("Respuesta inesperada de la API de Gemini:", responseData);
-            // Check for safety ratings blocking the response
             const finishReason = responseData.candidates?.[0]?.finishReason;
             if (finishReason === 'SAFETY') {
-                    throw new Error("La respuesta fue bloqueada por filtros de seguridad.");
+                throw new Error("La respuesta fue bloqueada por filtros de seguridad.");
             }
             throw new Error("La IA devolvió una respuesta vacía o con formato incorrecto.");
         }
