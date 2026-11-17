@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <script src="https://js.puter.com/v2/"></script>
     <style>
         :root {
             --background: #f4f4f5; --foreground: #18181b; --card-background: #ffffff;
@@ -721,21 +722,75 @@ function saveDirectApiKey() {
     }
 }
 
+// --- MOTOR DE IA OPEN SOURCE / GRATUITO ---
+async function callOpenSourceAI(prompt, isJson = false) {
+    if (window.puter && window.puter.ai && typeof window.puter.ai.chat === 'function') {
+        try {
+            console.log("Consultando IA Open Source vía Puter.js...");
+            const res = await window.puter.ai.chat(prompt, { model: 'deepseek-chat' });
+            if (typeof res === 'string' && res.trim()) return res;
+            if (res && res.message && res.message.content) return res.message.content;
+            if (res && res.text) return res.text;
+        } catch (puterErr) {
+            console.warn("Puter.js error o bloqueado, intentando Pollinations...", puterErr);
+        }
+    }
+
+    try {
+        console.log("Consultando IA Open Source vía Pollinations...");
+        const payload = {
+            messages: [{ role: 'user', content: prompt }],
+            model: 'openai',
+            jsonMode: isJson
+        };
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+        const response = await fetch('https://text.pollinations.ai/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+        if (response.ok) {
+            const text = await response.text();
+            if (text && text.trim()) return text;
+        }
+    } catch (pollErr) {
+        console.warn("Pollinations falló:", pollErr);
+    }
+
+    throw new Error("No se pudo obtener respuesta de la IA Open Source gratuita.");
+}
+
 async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], generationConfig = null) {
     const rawKey = localStorage.getItem('gemini_api_key') || localStorage.getItem('geminiApiKey');
-    if (!rawKey || !rawKey.trim()) {
-        showToast("Configura tu API Key de Gemini.", 'error');
-        return null;
-    }
-    const apiKey = rawKey.trim();
+    const isJson = !!(generationConfig && generationConfig.responseMimeType === "application/json");
+
     const originalButtonText = triggerButton ? triggerButton.innerHTML : '';
     const buttons = allButtonsToDisable.length > 0 ? allButtonsToDisable : (triggerButton ? [triggerButton] : []);
     buttons.forEach(b => b.disabled = true);
     if (triggerButton) triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
     
+    // Si NO hay clave configurada, usar directamente IA Libre / Open Source sin trabar
+    if (!rawKey || !rawKey.trim()) {
+        try {
+            const osResult = await callOpenSourceAI(prompt, isJson);
+            return osResult;
+        } catch (osErr) {
+            console.warn("IA Open Source falló sin clave:", osErr);
+            showToast("No se pudo conectar con el servicio de IA libre.", 'warning');
+            return null;
+        } finally {
+            buttons.forEach(b => b.disabled = false);
+            if (triggerButton) triggerButton.innerHTML = originalButtonText;
+        }
+    }
+
+    const apiKey = rawKey.trim();
     let modelName = localStorage.getItem('gemini_model');
-    if (!modelName || modelName.includes('2.5') || modelName === 'gemini-pro') {
-        modelName = 'gemini-3.8-flash';
+    if (!modelName || modelName.includes('2.5') || modelName.includes('3.8') || modelName === 'gemini-pro') {
+        modelName = 'gemini-2.0-flash';
         localStorage.setItem('gemini_model', modelName);
     }
     
@@ -775,7 +830,7 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
 
                 // Fallback automático si el modelo da 404 o fue descontinuado
                 if ((response.status === 404 || errorMessage.includes('no longer available') || errorMessage.includes('not found')) && attempt === 0) {
-                    modelName = (modelName && modelName.includes('3.8')) ? 'gemini-1.5-flash' : 'gemini-3.8-flash';
+                    modelName = (modelName && modelName.includes('2.0')) ? 'gemini-1.5-flash' : 'gemini-2.0-flash';
                     localStorage.setItem('gemini_model', modelName);
                     console.warn(`Modelo alternado a ${modelName}. Reintentando...`);
                     attempt++;
@@ -783,8 +838,7 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
                 }
 
                 if (response.status === 429 && attempt < maxRetries - 1) {
-                    const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
+                    await new Promise(resolve => setTimeout(resolve, 1500));
                     attempt++;
                     continue;
                 }
@@ -792,15 +846,14 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
                 throw new Error(errorMessage);
 
             } catch (fetchError) {
-                if (attempt === maxRetries - 1) throw fetchError;
-                const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-                await new Promise(resolve => setTimeout(resolve, delay));
+                if (attempt === maxRetries - 1 || fetchError.message.startsWith('Error HTTP:')) throw fetchError;
+                await new Promise(resolve => setTimeout(resolve, 1000));
                 attempt++;
             }
         }
 
         if (!response || !response.ok) {
-            throw new Error('Máximo de reintentos alcanzado o error de red.');
+            throw new Error('No se pudo conectar con Gemini.');
         }
 
         const responseData = await response.json();
@@ -808,10 +861,17 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
             throw new Error("La IA devolvió una respuesta vacía o con formato incorrecto.");
         }
         return responseData.candidates[0].content.parts[0].text;
-    } catch (error) {
-        console.error("Error llamando a la API de Gemini:", error);
-        showToast(`Error de IA: ${error.message}`, 'error');
-        return null;
+    } catch (geminiError) {
+        console.warn("Gemini falló en ia.html:", geminiError.message, "Activando IA Libre (Open Source)...");
+        try {
+            const fallbackResult = await callOpenSourceAI(prompt, isJson);
+            showToast("Gemini no respondió, usando IA Libre de respaldo", "info");
+            return fallbackResult;
+        } catch (fallbackError) {
+            console.error("Falló Gemini y también la IA Open Source:", fallbackError);
+            showToast(`Error de IA: ${geminiError.message}`, 'error');
+            return null;
+        }
     } finally {
         buttons.forEach(b => b.disabled = false);
         triggerButton.innerHTML = originalButtonText;
