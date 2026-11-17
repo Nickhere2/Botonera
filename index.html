@@ -2542,11 +2542,12 @@ function simpleMarkdownToHtml(text) {
 }
 
 async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], generationConfig = null) {
-    const apiKey = localStorage.getItem('gemini_api_key') || localStorage.getItem('geminiApiKey');
-    if (!apiKey) {
+    const rawKey = localStorage.getItem('gemini_api_key') || localStorage.getItem('geminiApiKey');
+    if (!rawKey || !rawKey.trim()) {
         showToast("Configura tu API Key de Gemini en los ajustes.", 'error');
         return null;
     }
+    const apiKey = rawKey.trim();
 
     const originalButtonText = triggerButton ? triggerButton.innerHTML : '';
     const buttons = allButtonsToDisable.length > 0 ? allButtonsToDisable : (triggerButton ? [triggerButton] : []);
@@ -2561,7 +2562,7 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
         localStorage.setItem('gemini_model', modelName);
     }
 
-    const getApiUrl = (model) => `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+    const getApiUrl = (model) => `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
 
     const payload = {
         contents: [{ parts: [{ text: prompt }] }]
@@ -2588,7 +2589,10 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
             try {
                 response = await fetch(getApiUrl(modelName), {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': apiKey
+                    },
                     body: JSON.stringify(payload),
                     signal: controller.signal
                 });

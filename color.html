@@ -524,8 +524,9 @@
         }
 
         async function parseRequestsWithAI(text) {
-            if (!apiKey) { showApiKeyModal(); throw new Error("API Key faltante"); }
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+            const cleanKey = apiKey ? apiKey.trim() : '';
+            if (!cleanKey) { showApiKeyModal(); throw new Error("API Key faltante"); }
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(cleanKey)}`;
             const prompt = "Extrae pedidos. Extrae 'name', 'age' (solo número), 'theme' y 'quantity' (default 1). Devuelve JSON ARRAY.";
             const payload = {
                 contents: [{ parts: [{ text: text }] }],
@@ -541,7 +542,14 @@
             };
 
             try {
-                const response = await fetchWithBackoff(url, { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+                const response = await fetchWithBackoff(url, { 
+                    method: 'POST', 
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-goog-api-key': cleanKey
+                    }, 
+                    body: JSON.stringify(payload) 
+                });
                 const result = await response.json();
                 if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
                     return JSON.parse(result.candidates[0].content.parts[0].text);

@@ -665,13 +665,14 @@
             
             // --- NUEVA FUNCIÓN: Parsear con IA (Gemini) ---
             async function parseRequestsWithAI(text) {
-                if (!apiKey) {
+                const cleanKey = apiKey ? apiKey.trim() : '';
+                if (!cleanKey) {
                     showApiKeyModal();
                     throw new Error("API Key no configurada.");
                 }
                 
                 // Usamos la misma apiKey global que el usuario proveyó
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${encodeURIComponent(cleanKey)}`;
     
                 const systemPrompt = "Eres un asistente que extrae pedidos de una lista para una app de hojas de colorear. El usuario te pasará un texto, a veces desordenado. Extrae el nombre de la persona (name), la edad (age) (SOLO EL NÚMERO, ej: '6'), el tema del dibujo (theme) y la cantidad (quantity). 'años' significa 'years old'. Si no se especifica cantidad, usa 3. Responde SÓLO con el array JSON. Si el texto es incomprensible o no parece un pedido, responde con un array JSON vacío [].";
                 
@@ -706,7 +707,10 @@
                     for (let attempt = 0; attempt < 3; attempt++) {
                          response = await fetch(apiUrl, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 
+                                'Content-Type': 'application/json',
+                                'x-goog-api-key': cleanKey
+                            },
                             body: JSON.stringify(payload)
                         });
                         if (response.ok) break; // Éxito
