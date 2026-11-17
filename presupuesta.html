@@ -3,844 +3,2990 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>VCP Terminal - Precios 2026</title>
+    <title>Impresiones VCP - Terminal de Precios & Remitos</title>
     
+    <!-- Favicon con el logo oficial -->
+    <link rel="icon" type="image/png" href="logo.png">
+
     <!-- Fuentes -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;800&family=DM+Sans:wght@400;500;700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Iconos: Phosphor -->
+    <!-- Iconos: Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
+    <!-- html2pdf.js para exportación directa a PDF infalible -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
     <style>
-        /* --- VARIABLES (TEMA TERMINAL) --- */
+        /* =========================================================
+           SISTEMA DE DISEÑO PRO (DARK & LIGHT MODE)
+           ========================================================= */
         :root {
-            --bg-app: #000000;
-            --bg-panel: #111111;
-            --primary: #a3e635;      /* Lima vibrante */
-            --primary-light: rgba(163, 230, 53, 0.15);
-            --text-main: #ffffff;
-            --text-gray: #737373;
-            --border: #333333;
-            --input-bg: #222222;
-            --overlay-bg: rgba(17, 17, 17, 0.95);
+            /* Tema Oscuro (Default) */
+            --bg-base: #0a0d14;
+            --bg-surface: #121722;
+            --bg-elevated: #182030;
+            --bg-elevated-hover: #1f2a3f;
+            --bg-input: #0b0f17;
             
-            --radius: 16px;
-            --font: 'Outfit', sans-serif;
-            --shadow-float: 0 10px 40px -10px rgba(0,0,0,0.8);
+            --primary: #a3e635;             /* Lima neón */
+            --primary-hover: #bef264;
+            --primary-glow: rgba(163, 230, 53, 0.2);
+            --primary-subtle: rgba(163, 230, 53, 0.1);
             
-            /* Etiquetas de Precio */
-            --tag-retail: #f87171; /* Rojo */
-            --tag-base: #60a5fa;   /* Azul */
-            --tag-whls: #4ade80;   /* Verde */
+            --accent-cyan: #38bdf8;
+            --accent-purple: #c084fc;
+            --accent-amber: #fbbf24;
+            --accent-rose: #f43f5e;
+            --accent-emerald: #10b981;
+
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+
+            --border-subtle: #1e293b;
+            --border-focus: #38bdf8;
+            --border-strong: rgba(255, 255, 255, 0.12);
+
+            --radius-xs: 6px;
+            --radius-sm: 10px;
+            --radius-md: 14px;
+            --radius-lg: 18px;
+            --radius-xl: 24px;
+
+            --font-display: 'Outfit', sans-serif;
+            --font-body: 'Plus Jakarta Sans', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+
+            --shadow-card: 0 4px 24px -2px rgba(0, 0, 0, 0.5);
+            --shadow-float: 0 20px 45px -10px rgba(0, 0, 0, 0.7);
+        }
+
+        /* Tema Claro */
+        body.light-theme {
+            --bg-base: #f1f5f9;
+            --bg-surface: #ffffff;
+            --bg-elevated: #f8fafc;
+            --bg-elevated-hover: #e2e8f0;
+            --bg-input: #ffffff;
+
+            --primary: #65a30d;
+            --primary-hover: #4d7c0f;
+            --primary-glow: rgba(101, 163, 13, 0.2);
+            --primary-subtle: rgba(101, 163, 13, 0.12);
+
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-dim: #94a3b8;
+
+            --border-subtle: #e2e8f0;
+            --border-focus: #0284c7;
+            --border-strong: rgba(0, 0, 0, 0.15);
+
+            --shadow-card: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+            --shadow-float: 0 20px 40px -10px rgba(0, 0, 0, 0.12);
         }
 
         /* Reset & Base */
-        * { box-sizing: border-box; margin: 0; padding: 0; transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1); -webkit-tap-highlight-color: transparent; }
-        body { font-family: var(--font); background: var(--bg-app); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* --- APP SHELL --- */
-        .app-shell { flex: 1; display: flex; overflow: hidden; position: relative; }
-        
-        /* --- NAVEGACIÓN --- */
-        .nav-container {
-            background: var(--bg-panel); flex-shrink: 0; z-index: 50;
-            border-right: 1px solid var(--border);
-            display: flex; flex-direction: column; width: 240px; padding: 20px; gap: 10px;
-        }
-        
-        .nav-logo {
-            font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 20px; padding: 0 10px;
-            display: flex; align-items: center; gap: 10px; text-transform: uppercase; letter-spacing: 1px;
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
         }
 
-        .nav-spacer { flex: 1; }
-
-        .nav-item {
-            cursor: pointer; display: flex; align-items: center; gap: 12px; padding: 14px 16px;
-            color: var(--text-gray); font-weight: 600; font-size: 14px; border-radius: 12px;
-            transition: all 0.2s; flex-shrink: 0;
-        }
-        .nav-item i { font-size: 22px; }
-        .nav-item:hover { background: rgba(255,255,255,0.05); color: var(--text-main); }
-        .nav-item.active { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary-light); }
-
-        /* --- ÁREA PRINCIPAL --- */
-        .content-wrapper { flex: 1; display: flex; flex-direction: column; position: relative; padding: 25px; gap: 20px; overflow-y: auto; max-width: 1000px; margin: 0 auto; width: 100%; }
-
-        /* --- INPUTS --- */
-        .input-row { display: flex; gap: 15px; }
-        .input-card {
-            flex: 1; background: var(--input-bg); border-radius: var(--radius); padding: 15px 20px;
-            border: 1px solid var(--border); display: flex; flex-direction: column;
-            position: relative; overflow: hidden;
-        }
-        .input-card:focus-within { border-color: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
-        .input-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-gray); letter-spacing: 1px; margin-bottom: 5px; }
-        .input-field {
-            background: transparent; border: none; font-family: var(--font); color: var(--text-main);
-            font-size: 24px; font-weight: 700; width: 100%; outline: none;
-        }
-        .input-card::after { content: ''; position: absolute; right: 0; top: 0; bottom: 0; width: 4px; background: var(--primary); opacity: 0; transition: 0.2s; }
-        .input-card:focus-within::after { opacity: 1; }
-
-        /* --- BARRA DE ESTADO --- */
-        .status-bar {
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 10px 15px; background: var(--input-bg); border-radius: 12px;
-            border: 1px solid var(--border); margin-bottom: 10px; min-height: 46px;
-        }
-        .status-label { font-size: 11px; color: var(--text-gray); font-weight: 600; text-transform: uppercase; }
-        .status-badge { 
-            padding: 4px 10px; border-radius: 6px; font-weight: 800; font-size: 11px; text-transform: uppercase; color: #000;
-            opacity: 0; transition: opacity 0.3s;
-        }
-        .status-badge.visible { opacity: 1; }
-        
-        /* --- GRID SERVICIOS --- */
-        .grid-section-title { font-size: 13px; color: var(--text-gray); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; padding-left: 10px; border-left: 3px solid var(--primary); line-height: 1; }
-        .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; padding-bottom: 120px; }
-        
-        /* --- BOTONES DE SERVICIO --- */
-        .svc-card {
-            background: var(--bg-panel); border: 1px solid var(--border); border-radius: var(--radius);
-            height: 130px; position: relative; overflow: hidden;
-            display: flex; flex-direction: column; 
-            cursor: default; transition: border-color 0.2s;
-        }
-        .svc-default-view {
-            position: absolute; width: 100%; height: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
-            transition: transform 0.3s; z-index: 1;
-        }
-        .svc-card:hover .svc-default-view { transform: translateY(-5px) scale(0.9); opacity: 0.3; filter: blur(2px); }
-        .svc-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: var(--overlay-bg); backdrop-filter: blur(2px);
-            display: flex; flex-direction: column;
-            opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 10;
-        }
-        .svc-card:hover .svc-overlay { opacity: 1; pointer-events: auto; }
-        .svc-opt-btn {
-            flex: 1; border: none; background: transparent; width: 100%;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            color: var(--text-main); cursor: pointer; transition: background 0.2s;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-        }
-        .svc-opt-btn:last-child { border-bottom: none; }
-        .svc-opt-btn:hover { background: var(--primary); color: #000; }
-        .opt-label { font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .opt-price { font-size: 14px; font-weight: 800; }
-        .svc-icon { font-size: 32px; transition: transform 0.3s; }
-        .svc-name { font-size: 13px; font-weight: 600; text-align: center; color: var(--text-main); line-height: 1.1; padding: 0 5px; }
-
-        .svc-card.single-action { cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; }
-        .svc-card.single-action .svc-default-view { position: relative; width: auto; height: auto; opacity: 1 !important; filter: none !important; transform: none !important; }
-        .svc-card.single-action:hover { border-color: var(--primary); box-shadow: 0 5px 15px rgba(0,0,0,0.2); transform: translateY(-2px); }
-        .svc-card.single-action .svc-price { font-size: 11px; font-weight: 700; color: var(--text-gray); background: var(--input-bg); padding: 4px 8px; border-radius: 8px; }
-
-        /* LISTA DISEÑO */
-        .design-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 120px; }
-        .design-item {
-            background: var(--bg-panel); border: 1px solid var(--border); padding: 15px; border-radius: var(--radius);
-            display: flex; align-items: center; gap: 15px; cursor: pointer;
-        }
-        .design-item:hover { border-color: var(--primary); background: var(--input-bg); }
-        .d-icon { font-size: 28px; width: 40px; display: flex; justify-content: center; }
-        .d-content { flex: 1; }
-        .d-title { font-weight: 700; font-size: 14px; color: var(--text-main); margin-bottom: 3px; }
-        .d-desc { font-size: 11px; color: var(--text-gray); }
-        .d-price { font-weight: 700; font-size: 13px; color: var(--primary); text-align: right; }
-
-        /* --- BOTÓN FLOTANTE INTELIGENTE --- */
-        .fab-container {
-            position: fixed; bottom: 30px; right: 30px; z-index: 80;
-            display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
-        }
-        .fab-btn {
-            width: 65px; height: 65px; border-radius: 50%; background: var(--primary); color: #000;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.4); cursor: pointer; border: none;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .fab-btn:hover { transform: scale(1.1); box-shadow: 0 0 25px var(--primary-light); }
-        .fab-btn:active { transform: scale(0.9); }
-        .fab-content { font-size: 13px; font-weight: 800; font-family: var(--font); display: flex; flex-direction: column; align-items: center; line-height: 1; }
-        
-        /* --- TICKET DESLIZABLE (DRAWER) --- */
-        .ticket-drawer {
-            position: fixed; bottom: 110px; right: 30px; width: 360px;
-            background: var(--bg-panel); border: 1px solid var(--border); border-radius: 20px;
-            padding: 20px; box-shadow: var(--shadow-float); z-index: 90;
-            display: flex; flex-direction: column; gap: 15px;
-            opacity: 0; visibility: hidden; transform: translateY(30px) scale(0.9);
-            transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-        .ticket-drawer.visible { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
-
-        .ticket-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border); padding-bottom: 15px; }
-        .ticket-title { font-weight: 800; text-transform: uppercase; font-size: 12px; color: var(--text-gray); letter-spacing: 1px; }
-        .close-ticket { background: transparent; border: none; color: var(--text-gray); cursor: pointer; font-size: 18px; }
-        .close-ticket:hover { color: #ef4444; }
-
-        .ticket-body { max-height: 300px; overflow-y: auto; padding-right: 5px; }
-        .total-amount { font-size: 28px; font-weight: 800; color: var(--primary); line-height: 1; }
-        
-        /* Etiquetas de Precio */
-        .price-tag { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 800; text-transform: uppercase; color: #000; margin-left: auto; }
-        .tag-retail { background: var(--tag-retail); }
-        .tag-base { background: var(--tag-base); }
-        .tag-whls { background: var(--tag-whls); }
-
-        .action-btn {
-            background: var(--primary); color: #000; border: none; padding: 14px; border-radius: 12px;
-            font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
-            transition: all 0.2s; margin-top: 10px; width: 100%;
-        }
-        .action-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
-
-        @keyframes flashItem { 0% { background-color: var(--primary); color: black; } 100% { background-color: transparent; color: inherit; } }
-        .new-item-flash { animation: flashItem 1s ease-out; border-radius: 4px; padding: 2px 5px; }
-
-        /* --- MODAL CONFIRMACIÓN --- */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8); z-index: 200;
-            display: flex; align-items: center; justify-content: center;
-            opacity: 0; visibility: hidden; transition: all 0.2s;
-            backdrop-filter: blur(5px);
-        }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
-        
-        .modal-box {
-            background: var(--bg-panel); border: 1px solid var(--border);
-            padding: 25px; border-radius: 20px; width: 320px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); transform: scale(0.9); transition: all 0.2s;
-            max-height: 85vh; overflow-y: auto;
-        }
-        .modal-overlay.active .modal-box { transform: scale(1); }
-        
-        .modal-title { font-size: 18px; font-weight: 800; color: var(--text-main); margin-bottom: 15px; }
-        .modal-desc { font-size: 13px; color: var(--text-gray); margin-bottom: 20px; }
-        
-        .modal-actions { display: flex; gap: 10px; justify-content: center; margin-top: 15px; }
-        .btn-modal {
-            flex: 1; padding: 12px; border-radius: 12px; font-weight: 700; cursor: pointer; border: none; font-size: 13px;
-        }
-        .btn-cancel { background: var(--input-bg); color: var(--text-main); }
-        .btn-confirm { background: #ef4444; color: white; }
-
-        /* TABLA MODAL */
-        .price-list-table {
-            width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 20px;
-            color: #fff; font-size: 13px; border-radius: 8px; overflow: hidden;
-        }
-        .price-list-table th { background: var(--input-bg); padding: 10px 8px; text-align: left; font-weight: 700; color: var(--primary); font-size: 12px; text-transform: uppercase; }
-        .price-list-table td { padding: 8px; border-bottom: 1px solid var(--border); }
-        .price-list-table tr:last-child td { border-bottom: none; }
-        .section-header-row td { background: rgba(255,255,255,0.05); font-weight: 800; color: var(--text-gray); text-transform: uppercase; padding-top: 15px; padding-bottom: 5px; font-size: 11px; letter-spacing: 1px; }
-        
-        .price-explanation {
-            font-size: 11px; color: #a3a3a3; background: #222; padding: 10px; border-radius: 8px; margin-bottom: 15px; border-left: 3px solid var(--primary); line-height: 1.4;
+        body {
+            font-family: var(--font-body);
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            transition: background-color 0.25s ease, color 0.25s ease;
         }
 
-        /* --- MOBILE MEDIA QUERY (CORREGIDO PARA BARRA INFERIOR) --- */
-        @media (max-width: 768px) {
-            .app-shell { flex-direction: column; padding-bottom: 90px; /* Espacio para el nav bottom */ }
-            
-            .nav-container {
-                position: fixed; bottom: 0; left: 0; width: 100%; height: auto;
-                flex-direction: row; justify-content: flex-start; padding: 8px 10px;
-                border-right: none; border-top: 1px solid var(--border); 
-                box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
-                overflow-x: auto; white-space: nowrap; -webkit-overflow-scrolling: touch;
-                z-index: 100; gap: 8px; border-radius: 0;
+        /* =========================================================
+           TOP NAVIGATION HEADER (CON LOGO OFICIAL)
+           ========================================================= */
+        .top-navbar {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 60;
+            backdrop-filter: blur(12px);
+        }
+
+        .brand-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-logo-img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 0 16px rgba(56, 189, 248, 0.35);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            flex-shrink: 0;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.15;
+        }
+
+        .brand-name {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 18px;
+            letter-spacing: -0.2px;
+            color: var(--text-main);
+        }
+
+        .brand-meta {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .brand-meta .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: var(--primary);
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-btn {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-display);
+            font-size: 13px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .header-btn:hover {
+            color: var(--text-main);
+            background: var(--bg-elevated-hover);
+            border-color: var(--border-strong);
+        }
+
+        .header-btn.primary {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        .header-btn.primary:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        /* =========================================================
+           LAYOUT PRINCIPAL: DUAL PANEL (CATALOG / LIVE CART)
+           ========================================================= */
+        .app-layout {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 390px;
+            max-width: 1480px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 24px;
+            gap: 24px;
+        }
+
+        .left-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 0;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            position: sticky;
+            top: 76px;
+            height: calc(100vh - 100px);
+        }
+
+        /* =========================================================
+           PANEL DE CONTROL RÁPIDO: PÁGINAS, COPIAS & MODO
+           ========================================================= */
+        .quick-control-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            padding: 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: var(--shadow-card);
+        }
+
+        .inputs-split-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .input-widget {
+            background: var(--bg-input);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 12px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .input-widget:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-subtle);
+        }
+
+        .widget-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .widget-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .widget-badge {
+            font-size: 10px;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--text-dim);
+            background: var(--bg-elevated);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .widget-field {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 28px;
+            font-weight: 800;
+            width: 100%;
+        }
+
+        /* Barra de Régimen de Precio */
+        .pricing-status-bar {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 8px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .pricing-tag {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: var(--radius-xs);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .pricing-tag.retail { background: rgba(244, 63, 94, 0.15); color: #fb7185; border: 1px solid rgba(244, 63, 94, 0.3); }
+        .pricing-tag.wholesale { background: var(--primary-subtle); color: var(--primary); border: 1px solid var(--primary-glow); }
+        .pricing-tag.floor { background: rgba(56, 189, 248, 0.15); color: var(--accent-cyan); border: 1px solid rgba(56, 189, 248, 0.3); }
+
+        .mode-toggles-group {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            background: var(--bg-base);
+            padding: 3px;
+            border-radius: var(--radius-xs);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .toggle-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            font-size: 11px;
+            font-weight: 700;
+            padding: 5px 9px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .toggle-btn.active {
+            background: var(--bg-surface);
+            color: var(--primary);
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+        }
+
+        /* =========================================================
+           TABS DE NAVEGACIÓN DE SERVICIOS
+           ========================================================= */
+        .category-nav {
+            display: flex;
+            gap: 10px;
+            border-bottom: 2px solid var(--border-subtle);
+            padding-bottom: 2px;
+        }
+
+        .cat-tab-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .cat-tab-btn:hover {
+            color: var(--text-main);
+            background: var(--bg-surface);
+        }
+
+        .cat-tab-btn.active {
+            color: var(--primary);
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-bottom: 2px solid var(--bg-surface);
+            margin-bottom: -2px;
+        }
+
+        /* =========================================================
+           CARDS DE SERVICIO REDISEÑADAS
+           ========================================================= */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 18px;
+        }
+
+        .service-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            box-shadow: var(--shadow-card);
+            transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+        }
+
+        .service-card:hover {
+            border-color: var(--border-strong);
+            transform: translateY(-2px);
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .card-icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 26px;
+            flex-shrink: 0;
+        }
+
+        .card-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .card-name {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 16px;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        .card-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Botones de acción Simple / Doble */
+        .card-buttons-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: auto;
+        }
+
+        .tap-action-btn {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 12px 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            color: var(--text-main);
+        }
+
+        .tap-action-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #000;
+            transform: scale(1.02);
+        }
+
+        .tap-action-btn:active {
+            transform: scale(0.97);
+        }
+
+        .tap-action-btn .btn-label {
+            font-size: 10px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.8;
+        }
+
+        .tap-action-btn .btn-price-display {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .tap-action-btn:hover .btn-label {
+            color: #000;
+            opacity: 1;
+        }
+
+        /* Card Simple (1 solo botón de ancho completo) */
+        .full-width-action-btn {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            color: var(--text-main);
+        }
+
+        .full-width-action-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #000;
+        }
+
+        .full-width-action-btn .action-price {
+            font-family: var(--font-mono);
+            font-weight: 800;
+            font-size: 15px;
+        }
+
+        /* Tarjetas de Diseño */
+        .design-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .design-row-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 16px 22px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-card);
+        }
+
+        .design-row-card:hover {
+            border-color: var(--primary);
+            background: var(--bg-elevated);
+            transform: translateX(4px);
+        }
+
+        .design-row-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .design-pill-price {
+            font-family: var(--font-mono);
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--primary);
+            background: var(--primary-subtle);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--primary-glow);
+        }
+
+        /* =========================================================
+           TICKET PANEL (RIGHT SIDEBAR EN VIVO)
+           ========================================================= */
+        .live-ticket-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            box-shadow: var(--shadow-float);
+            overflow: hidden;
+        }
+
+        .ticket-header-area {
+            padding: 18px 22px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-elevated);
+        }
+
+        .ticket-title-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ticket-heading {
+            font-family: var(--font-display);
+            font-size: 15px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-main);
+        }
+
+        .ticket-counter-tag {
+            background: var(--bg-input);
+            padding: 2px 8px;
+            border-radius: 9999px;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: var(--primary);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .ticket-scroll-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .empty-cart-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            color: var(--text-dim);
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .empty-cart-view i {
+            font-size: 44px;
+            opacity: 0.35;
+        }
+
+        /* Ítems del Ticket */
+        .cart-item-card {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            padding: 12px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: border-color 0.15s;
+        }
+
+        .cart-item-card:hover {
+            border-color: var(--border-strong);
+        }
+
+        .item-main-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .item-title-text {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.25;
+        }
+
+        .item-sub-tag {
+            font-size: 9px;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: inline-block;
+            margin-top: 3px;
+        }
+
+        .item-cost-text {
+            font-family: var(--font-mono);
+            font-size: 15px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .item-actions-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .stepper-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stepper-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-muted);
+            width: 26px;
+            height: 26px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .stepper-btn:hover {
+            color: var(--text-main);
+            border-color: var(--primary);
+        }
+
+        .trash-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-dim);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 15px;
+            transition: color 0.15s;
+        }
+
+        .trash-btn:hover {
+            color: var(--accent-rose);
+        }
+
+        /* Footer del Ticket */
+        .ticket-bottom-section {
+            padding: 18px 22px;
+            border-top: 1px solid var(--border-subtle);
+            background: var(--bg-elevated);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .ticket-progress-notice {
+            font-size: 11px;
+            padding: 8px 12px;
+            border-radius: var(--radius-xs);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            line-height: 1.3;
+        }
+
+        .ticket-progress-notice.floor {
+            background: rgba(56, 189, 248, 0.12);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+        }
+
+        .ticket-progress-notice.wholesale {
+            background: var(--primary-subtle);
+            color: var(--primary);
+            border: 1px solid var(--primary-glow);
+        }
+
+        .total-price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .total-label-text {
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+        }
+
+        .total-amount-display {
+            font-family: var(--font-mono);
+            font-size: 34px;
+            font-weight: 800;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .main-remito-button {
+            background: linear-gradient(135deg, var(--primary) 0%, #16a34a 100%);
+            color: #000;
+            border: none;
+            padding: 15px;
+            border-radius: var(--radius-md);
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 18px var(--primary-glow);
+            transition: all 0.2s ease;
+        }
+
+        .main-remito-button:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 24px var(--primary-glow);
+        }
+
+        .secondary-actions-bar {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .sub-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-main);
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            font-family: var(--font-display);
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .sub-btn:hover {
+            border-color: var(--border-strong);
+            background: var(--bg-elevated);
+        }
+
+        .sub-btn.wa:hover {
+            border-color: #25d366;
+            color: #25d366;
+        }
+
+        /* =========================================================
+           MODAL GENERAL & REMITO MODAL (PROFESIONAL)
+           ========================================================= */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-dialog {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-xl);
+            width: 100%;
+            max-width: 860px;
+            max-height: 92vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-float);
+            transform: scale(0.96);
+            transition: transform 0.2s ease;
+            overflow: hidden;
+        }
+
+        .modal-backdrop.active .modal-dialog {
+            transform: scale(1);
+        }
+
+        .dialog-header {
+            padding: 16px 22px;
+            border-bottom: 1px solid var(--border-subtle);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-elevated);
+        }
+
+        .dialog-title-box {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dialog-title {
+            font-family: var(--font-display);
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .close-dialog-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 22px;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: var(--radius-xs);
+            transition: color 0.15s;
+        }
+
+        .close-dialog-btn:hover {
+            color: var(--accent-rose);
+        }
+
+        .dialog-scroll-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* --- HOJA DE REMITO FORMAL (OPTIMIZADA PARA PDF & IMPRESIÓN) --- */
+        .remito-paper-sheet {
+            background: #ffffff;
+            color: #0f172a;
+            border-radius: var(--radius-sm);
+            padding: 28px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            font-family: var(--font-body);
+        }
+
+        .sheet-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            border-bottom: 2px solid #cbd5e1;
+            padding-bottom: 16px;
+        }
+
+        .sheet-brand-col {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .sheet-logo {
+            max-height: 64px;
+            max-width: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #0f172a;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+            flex-shrink: 0;
+        }
+
+        .sheet-company-titles h3 {
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 800;
+            color: #0f172a;
+            letter-spacing: -0.5px;
+        }
+
+        .sheet-company-titles p {
+            font-size: 11px;
+            color: #64748b;
+        }
+
+        .sheet-meta-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 6px;
+            text-align: right;
+        }
+
+        .sheet-number-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .sheet-number-badge span {
+            font-size: 12px;
+            font-weight: 700;
+            color: #475569;
+        }
+
+        .clean-paper-input {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            font-size: 14px;
+            color: #0f172a;
+            width: 140px;
+            text-align: right;
+        }
+
+        .clean-paper-date {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 12px;
+            color: #334155;
+            width: 170px;
+            text-align: right;
+        }
+
+        /* Formulario del Cliente */
+        .sheet-client-form {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 1fr;
+            gap: 14px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px 18px;
+        }
+
+        .paper-field-block {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .paper-field-block label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .paper-field-block input, .paper-field-block select {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 13px;
+            color: #0f172a;
+            background: #ffffff;
+            outline: none;
+        }
+
+        /* Tabla de Ítems del Remito */
+        .sheet-table-frame {
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        .sheet-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .sheet-table th {
+            background: #f1f5f9;
+            color: #334155;
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+            padding: 10px 12px;
+            border-bottom: 1px solid #cbd5e1;
+        }
+
+        .sheet-table td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #e2e8f0;
+            vertical-align: middle;
+        }
+
+        .sheet-row-inp {
+            width: 100%;
+            border: 1px solid transparent;
+            padding: 6px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #0f172a;
+            background: transparent;
+        }
+
+        .sheet-row-inp:focus, .sheet-row-inp:hover {
+            border-color: #cbd5e1;
+            background: #ffffff;
+        }
+
+        .sheet-row-inp.num {
+            font-family: var(--font-mono);
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .sheet-table-toolbar {
+            padding: 8px 14px;
+            background: #f8fafc;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-add-row {
+            background: #ffffff;
+            border: 1px dashed #94a3b8;
+            color: #0284c7;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-add-row:hover {
+            background: #f0f9ff;
+            border-color: #0284c7;
+        }
+
+        /* Totales del Remito */
+        .sheet-bottom-grid {
+            display: grid;
+            grid-template-columns: 1.4fr 1fr;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .sheet-notes-area {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sheet-notes-area label {
+            font-size: 11px;
+            font-weight: 700;
+            color: #475569;
+            text-transform: uppercase;
+        }
+
+        .sheet-notes-area textarea {
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 12px;
+            resize: vertical;
+            height: 90px;
+            color: #334155;
+            outline: none;
+        }
+
+        .sheet-summary-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 14px 18px;
+        }
+
+        .sheet-sum-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .sheet-sum-line.total-line {
+            border-top: 2px solid #cbd5e1;
+            padding-top: 8px;
+            margin-top: 4px;
+            font-size: 18px;
+            font-weight: 800;
+            color: #0f172a;
+        }
+
+        .sheet-sum-line.balance-line {
+            font-size: 16px;
+            font-weight: 800;
+            color: #0284c7;
+            background: #e0f2fe;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-top: 4px;
+        }
+
+        .sheet-calc-inp {
+            width: 100px;
+            border: 1px solid #cbd5e1;
+            border-radius: 4px;
+            padding: 4px 6px;
+            text-align: right;
+            font-family: var(--font-mono);
+            font-weight: 700;
+            color: #0f172a;
+            font-size: 13px;
+        }
+
+        /* Modal Footer Acciones */
+        .dialog-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border-subtle);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: var(--bg-elevated);
+        }
+
+        /* =========================================================
+           MOBILE OPTIMIZATIONS (TELÉFONOS & TABLETS)
+           ========================================================= */
+        .mobile-dock {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--border-subtle);
+            padding: 12px 18px;
+            z-index: 50;
+            box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .mobile-dock-info {
+            display: flex;
+            flex-direction: column;
+            cursor: pointer;
+        }
+
+        .mobile-dock-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .mobile-dock-sum {
+            font-family: var(--font-mono);
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary);
+        }
+
+        .mobile-dock-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .mobile-sheet-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 85;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .mobile-sheet-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Breakpoint Móvil / Tablet */
+        @media (max-width: 950px) {
+            .app-layout {
+                grid-template-columns: 1fr;
+                padding: 14px;
+                padding-bottom: 95px;
             }
-            
-            .nav-spacer { display: none; }
-            .nav-logo { display: none; }
-            
-            .nav-item { 
-                flex-direction: column; gap: 4px; padding: 10px; 
-                font-size: 10px; background: transparent; 
-                color: var(--text-gray); flex-shrink: 0;
+
+            .right-column {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                top: auto;
+                height: 85vh;
+                z-index: 90;
+                transform: translateY(105%);
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+                border-radius: 24px 24px 0 0;
+                box-shadow: 0 -10px 40px rgba(0,0,0,0.8);
             }
-            .nav-item i { font-size: 22px; margin-bottom: 0; }
-            .nav-item.active { background: var(--input-bg); color: var(--primary); box-shadow: none; border: 1px solid var(--border); }
-            
-            .content-wrapper { padding: 15px; }
-            
-            .fab-container { bottom: 100px; right: 20px; } /* Sube por encima del Nav */
-            .ticket-drawer { right: 15px; left: 15px; width: auto; bottom: 175px; }
+
+            .right-column.mobile-expanded {
+                transform: translateY(0);
+            }
+
+            .mobile-dock {
+                display: flex;
+            }
+
+            .top-navbar {
+                padding: 10px 16px;
+            }
+        }
+
+        /* Breakpoint Celulares Pequeños */
+        @media (max-width: 640px) {
+            .top-navbar {
+                padding: 8px 12px;
+            }
+
+            .brand-name {
+                font-size: 15px;
+            }
+
+            .brand-meta {
+                display: none;
+            }
+
+            .header-btn {
+                padding: 7px 10px;
+                font-size: 12px;
+            }
+
+            .header-btn span {
+                display: none;
+            }
+
+            .header-btn.primary span {
+                display: inline;
+            }
+
+            .quick-control-card {
+                padding: 14px 16px;
+                border-radius: var(--radius-lg);
+            }
+
+            .inputs-split-row {
+                gap: 10px;
+            }
+
+            .input-widget {
+                padding: 10px 12px;
+            }
+
+            .widget-field {
+                font-size: 22px;
+            }
+
+            .pricing-status-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+
+            .status-left {
+                justify-content: space-between;
+            }
+
+            .mode-toggles-group {
+                display: grid;
+                grid-template-columns: 1fr 1fr 1fr;
+                text-align: center;
+            }
+
+            .toggle-btn {
+                padding: 6px 4px;
+                font-size: 10px;
+            }
+
+            .category-nav {
+                overflow-x: auto;
+                white-space: nowrap;
+                -webkit-overflow-scrolling: touch;
+                scrollbar-width: none;
+                padding-bottom: 4px;
+            }
+
+            .category-nav::-webkit-scrollbar {
+                display: none;
+            }
+
+            .cat-tab-btn {
+                padding: 8px 14px;
+                font-size: 13px;
+                flex-shrink: 0;
+            }
+
+            .cards-grid {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .service-card {
+                padding: 14px;
+            }
+
+            /* Modal Remito en Celular */
+            .modal-backdrop {
+                padding: 6px;
+            }
+
+            .modal-dialog {
+                max-height: 96vh;
+                border-radius: var(--radius-lg);
+            }
+
+            .dialog-header {
+                padding: 12px 14px;
+            }
+
+            .dialog-scroll-body {
+                padding: 10px;
+            }
+
+            .remito-paper-sheet {
+                padding: 14px 10px;
+                gap: 14px;
+            }
+
+            .sheet-header {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+
+            .sheet-meta-col {
+                align-items: flex-start;
+                text-align: left;
+                border-top: 1px dashed #cbd5e1;
+                padding-top: 10px;
+            }
+
+            .sheet-client-form {
+                grid-template-columns: 1fr;
+                padding: 10px;
+                gap: 10px;
+            }
+
+            .sheet-bottom-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sheet-table {
+                min-width: 440px;
+            }
+
+            .dialog-footer {
+                padding: 10px 12px;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .dialog-footer .header-btn {
+                flex: 1 1 45%;
+                justify-content: center;
+            }
+
+            .dialog-footer .header-btn span {
+                display: inline;
+            }
+        }
+
+        /* =========================================================
+           PRINT ENGINE (100% VISIBLE EN PDF & PAPEL)
+           ========================================================= */
+        @media print {
+            body, html {
+                background: #ffffff !important;
+                color: #000000 !important;
+                height: auto !important;
+                overflow: visible !important;
+            }
+
+            .top-navbar, .app-layout, .mobile-dock, .modal-backdrop, .mobile-sheet-overlay {
+                display: none !important;
+            }
+
+            #print-isolated-container {
+                display: block !important;
+                position: absolute !important;
+                left: 0 !important;
+                top: 0 !important;
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                background: #ffffff !important;
+            }
+
+            #print-isolated-container * {
+                visibility: visible !important;
+            }
+        }
+
+        #print-isolated-container {
+            display: none;
         }
     </style>
 </head>
-<body class="theme-terminal">
+<body>
 
-    <div class="app-shell">
-        
-        <!-- NAVEGACIÓN -->
-        <nav class="nav-container">
-            <div class="nav-logo"><i class="ph ph-terminal-window" style="font-size: 28px;"></i> VCP</div>
-            <div class="nav-item active" onclick="switchTab('impresiones', this)"><i class="ph ph-printer"></i> <span>Impresiones</span></div>
-            <div class="nav-item" onclick="switchTab('diseno', this)"><i class="ph ph-pen-nib"></i> <span>Diseño</span></div>
-            <div class="nav-item" onclick="switchTab('especiales', this)"><i class="ph ph-star"></i> <span>Especiales</span></div>
-            <div class="nav-item" onclick="openPriceModal()" style="color: #60a5fa;"><i class="ph ph-list-dashes"></i> <span>Lista Precios</span></div>
-            
-            <div class="nav-spacer"></div>
-            
-            <div class="nav-item" onclick="resetCart()" style="color: #ef4444;"><i class="ph ph-trash"></i> <span>Limpiar</span></div>
-        </nav>
+    <!-- OVERLAY OSCURO PARA BOTTOM SHEET MÓVIL -->
+    <div class="mobile-sheet-overlay" id="mobile-cart-backdrop" onclick="closeMobileCart()"></div>
 
-        <!-- CONTENIDO -->
-        <div class="content-wrapper">
-            <div class="input-row">
-                <div class="input-card">
-                    <label id="lbl-qty">Páginas</label>
-                    <input type="number" class="input-field" value="" placeholder="1" id="inp-qty">
-                </div>
-                <div class="input-card" id="card-copies">
-                    <label>Copias</label>
-                    <input type="number" class="input-field" value="" placeholder="1" id="inp-copies">
-                </div>
-            </div>
-
-            <!-- STATUS BANNER -->
-            <div id="status-banner" class="status-bar" style="display:none;">
-                <span class="status-label">Modo Actual:</span>
-                <span id="current-mode-badge" class="status-badge tag-retail">MINORISTA</span>
-            </div>
-
-            <div id="dynamic-area"></div>
-        </div>
-
-        <!-- TICKET DRAWER -->
-        <div class="ticket-drawer" id="ticket-drawer">
-            <div class="ticket-header">
-                <div class="ticket-title">Resumen</div>
-                <div id="price-status"></div>
-                <button class="close-ticket" type="button" onclick="closeTicket()"><i class="ph ph-x"></i></button>
-            </div>
-            
-            <div class="ticket-body" id="ticket-items"></div>
-
-            <div style="border-top: 1px solid var(--border); padding-top: 10px; margin-top: 5px;">
-                <div class="ticket-row">
-                    <div class="total-label">TOTAL</div>
-                    <div class="total-amount" id="ticket-total">$0</div>
-                </div>
-                <button class="action-btn" onclick="shareWhatsApp()"><i class="ph ph-whatsapp-logo" style="font-size: 18px;"></i> Enviar WhatsApp</button>
+    <!-- TOP NAVIGATION HEADER (CON LOGO OFICIAL VCP) -->
+    <header class="top-navbar">
+        <div class="brand-section">
+            <img src="logo.png" alt="Impresiones VCP" class="brand-logo-img">
+            <div class="brand-text">
+                <span class="brand-name">IMPRESIONES VCP</span>
+                <span class="brand-meta"><span class="dot"></span> Cuadernillos · Libros · Impresiones</span>
             </div>
         </div>
 
-        <!-- FAB (BOTÓN FLOTANTE) -->
-        <div class="fab-container">
-            <button class="fab-btn" id="main-fab" onclick="toggleTicket()">
-                <i class="ph ph-receipt" style="font-size: 24px;"></i>
+        <div class="top-actions">
+            <button class="header-btn" onclick="toggleTheme()" title="Cambiar tema claro/oscuro">
+                <i class="ph ph-sun-dim" id="theme-icon"></i>
+            </button>
+            <button class="header-btn" onclick="openPriceModal()">
+                <i class="ph ph-tag" style="color: var(--accent-cyan);"></i>
+                <span>Precios</span>
+            </button>
+            <button class="header-btn primary" onclick="openRemitoModal()">
+                <i class="ph ph-receipt"></i>
+                <span>Remito</span>
+            </button>
+            <button class="header-btn" onclick="confirmResetCart()" title="Vaciar carrito" style="color: var(--accent-rose);">
+                <i class="ph ph-trash"></i>
             </button>
         </div>
+    </header>
 
-    </div>
-
-    <!-- MODAL CONFIRMACIÓN -->
-    <div id="confirm-modal" class="modal-overlay">
-        <div class="modal-box">
-            <div class="modal-title">¿Reiniciar Todo?</div>
-            <div class="modal-desc">Se borrarán todos los ítems cargados.</div>
-            <div class="modal-actions">
-                <button class="btn-modal btn-cancel" onclick="closeModal('confirm-modal')">Cancelar</button>
-                <button class="btn-modal btn-confirm" onclick="confirmReset()">Sí, Borrar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- MODAL LISTA DE PRECIOS COMPLETA -->
-    <div id="price-modal" class="modal-overlay">
-        <div class="modal-box" style="width: 400px; text-align: left;">
-            <div class="modal-title">Lista General de Precios</div>
-            
-            <div class="price-explanation">
-                <strong>Regla del Mínimo (Por Trabajo):</strong><br>
-                Cada hoja cuesta <strong>$200</strong>.<br>
-                Si el TOTAL supera <strong>$1.500</strong> (B&N) o <strong>$2.000</strong> (Color), se aplica precio mayorista/base.
-            </div>
-
-            <!-- TABLA DE CANTIDADES IMPRESIONES (1-10) -->
-            <table class="price-list-table">
-                <thead><tr><th colspan="3" style="text-align:center; background: #222; border-bottom:1px solid #333;">TABLA DE REFERENCIA</th></tr>
-                <tr><th>Cant.</th><th>Color ($200)</th><th>B&N ($200)</th></tr></thead>
-                <tbody id="full-retail-list">
-                    <!-- Se llena con JS -->
-                </tbody>
-            </table>
-
-            <!-- LISTA OTROS SERVICIOS -->
-            <table class="price-list-table">
-                <thead><tr><th colspan="2" style="background:var(--primary); color:#000;">PRECIOS MAYORISTAS (+10)</th></tr></thead>
-                <tbody>
-                    <tr><td>B&N Simple</td><td style="text-align:right;">$90</td></tr>
-                    <tr><td>B&N Doble</td><td style="text-align:right;">$60</td></tr>
-                    <tr><td>Color Simple</td><td style="text-align:right;">$120</td></tr>
-                    <tr><td>Color Doble</td><td style="text-align:right;">$80</td></tr>
-                    
-                    <tr class="section-header-row"><td colspan="2">Pisos Mínimos</td></tr>
-                    <tr><td>Trabajo B&N</td><td style="text-align:right;">$1.500</td></tr>
-                    <tr><td>Trabajo Color</td><td style="text-align:right;">$2.000</td></tr>
-
-                    <tr class="section-header-row"><td colspan="2">Especiales</td></tr>
-                    <tr><td>Anillado</td><td style="text-align:right;">$1.800</td></tr>
-                    <tr><td>Sticker</td><td style="text-align:right;">$1.800</td></tr>
-                    <tr><td>Papel Foto</td><td style="text-align:right;">$1.200</td></tr>
-                    
-                    <tr class="section-header-row"><td colspan="2">Diseño</td></tr>
-                    <tr><td>Ajuste Básico</td><td style="text-align:right;">$1.200</td></tr>
-                    <tr><td>Armado Letras</td><td style="text-align:right;">$300</td></tr>
-                    <tr><td>Armado A4</td><td style="text-align:right;">$3.000</td></tr>
-                    <tr><td>Diseño 0</td><td style="text-align:right;">$4.000</td></tr>
-                </tbody>
-            </table>
-
-            <div class="modal-actions">
-                <button class="btn-modal btn-cancel" onclick="closeModal('price-modal')">Cerrar</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // --- CONFIGURACIÓN & ESTADO ---
-        let cart = [];
-        let ticketTimeout;
-        const RETAIL_PRICE_PER_PAGE = 200; 
-        const THRESHOLD_BN = 1500;
-        const THRESHOLD_COLOR = 2000;
+    <!-- LAYOUT PRINCIPAL -->
+    <main class="app-layout">
         
-        // --- PRECIOS MAYORISTAS ---
-        const WHOLESALE_PRICES = {
-            'byn': 90, 'byn2': 60,
-            'color': 120, 'color2': 80
-        };
-
-        // --- DATOS TABLA IMAGEN (Visual) ---
-        const RETAIL_TABLE_DATA = [
-            { q: 1, col: 200, byn: 200 },
-            { q: 2, col: 400, byn: 400 },
-            { q: 3, col: 600, byn: 600 },
-            { q: 4, col: 800, byn: 800 },
-            { q: 5, col: 1000, byn: 1000 },
-            { q: 6, col: 1200, byn: 1100 }, 
-            { q: 7, col: 1400, byn: 1200 },
-            { q: 8, col: 1600, byn: 1300 },
-            { q: 9, col: 1800, byn: 1400 },
-            { q: 10, col: 2000, byn: 1500 }
-        ];
-
-        // --- DATOS SERVICIOS ---
-        const servicesImp = [
-            { 
-                name: 'Blanco y Negro', icon: 'ph-file-text', color: '#94A3B8',
-                options: [ { label: 'Simple', code: 'byn' }, { label: 'Doble', code: 'byn2' } ]
-            },
-            { 
-                name: 'Color', icon: 'ph-printer', color: '#F87171',
-                options: [ { label: 'Simple', code: 'color' }, { label: 'Doble', code: 'color2' } ]
-            },
-            { 
-                name: 'Full Color', icon: 'ph-image', color: '#FBBF24',
-                options: [ { label: 'Simple', price: 200 }, { label: 'Doble', price: 150 } ] 
-            },
-        ];
-
-        const servicesEsp = [
-            { name: 'Grueso', icon: 'ph-stack', color: '#A78BFA', options: [ { label: 'Simple', price: 1800 }, { label: 'Doble', price: 1250 } ] },
-            { name: 'Papel Foto', icon: 'ph-camera', color: '#C084FC', options: [ { label: 'Simple', price: 1200 }, { label: 'Doble', price: 900 } ] },
-            { name: 'Sticker', icon: 'ph-sticker', color: '#4ADE80', price: 1800 },
-            { name: 'Anillado', icon: 'ph-notebook', color: '#60A5FA', price: 1800 }
-        ];
-
-        const servicesDesign = [
-            { title: 'Ajuste Básico', desc: 'Centrar, mover.', price: 1200, icon: 'ph-sliders', color: '#2DD4BF' },
-            { title: 'Armado Letras', desc: 'Formato canción.', price: 300, icon: 'ph-music-notes', color: '#F472B6' },
-            { title: 'Armado A4', desc: 'Etiquetas en hoja.', price: 3000, icon: 'ph-ruler', color: '#FB923C' },
-            { title: 'Diseño 0', desc: 'Desde cero.', price: 4000, icon: 'ph-pencil-circle', color: '#A3E635' },
-        ];
-
-        // --- INIT ---
-        document.addEventListener("DOMContentLoaded", () => {
-            renderImpresiones();
-            generateRetailTableHTML(); 
-            document.getElementById('inp-qty').focus();
-        });
-
-        // Generar tabla 1-10 en el modal usando los datos de la imagen
-        function generateRetailTableHTML() {
-            let html = '';
-            RETAIL_TABLE_DATA.forEach(row => {
-                let style = row.q === 10 ? 'style="color:var(--tag-whls); font-weight:700; border-top:1px solid var(--primary);"' : '';
-                let label = row.q === 10 ? '10+ (Mayorista)' : row.q;
-                html += `<tr ${style}><td>${label}</td><td>$${row.col}</td><td>$${row.byn}</td></tr>`;
-            });
-            document.getElementById('full-retail-list').innerHTML = html;
-        }
-
-        // --- CARRITO ---
-        function addToCart(name, priceOrCode, type) {
-            const qty = parseInt(document.getElementById('inp-qty').value) || 1;
-            const copies = parseInt(document.getElementById('inp-copies').value) || 1;
+        <!-- COLUMNA IZQUIERDA: CONTROLES & CATÁLOGO -->
+        <section class="left-column">
             
-            let item = {
-                id: Date.now(),
-                name: name,
-                qty: qty,
-                copies: copies,
-                type: type,
-                finalPrice: 0
-            };
-
-            if (type === 'design') {
-                item.label = `${qty} un.`;
-                item.basePrice = priceOrCode; 
-                item.isWholesale = false;
-            } else if (type === 'print') {
-                item.label = `${qty}p x ${copies}c`;
-                if (typeof priceOrCode === 'string') {
-                    item.wholesaleCode = priceOrCode;
-                    item.isWholesale = true;
-                } else {
-                    item.basePrice = priceOrCode;
-                    item.isWholesale = false;
-                }
-            } else { 
-                item.label = `${qty * copies} un.`;
-                item.basePrice = priceOrCode;
-                item.isWholesale = false;
-            }
-
-            cart.push(item);
-            recalculateCart();
-            
-            document.getElementById('inp-qty').value = "";
-            document.getElementById('inp-copies').value = "";
-            document.getElementById('inp-qty').focus();
-
-            const drawer = document.getElementById('ticket-drawer');
-            drawer.classList.add('visible');
-            if(ticketTimeout) clearTimeout(ticketTimeout);
-            ticketTimeout = setTimeout(() => { drawer.classList.remove('visible'); }, 2000);
-        }
-
-        function addManualItem() {
-            const name = prompt("Nombre del servicio:");
-            if (!name) { document.getElementById('inp-qty').focus(); return; }
-            const price = prompt("Precio total:");
-            if (!price) { document.getElementById('inp-qty').focus(); return; }
-            
-            cart.push({
-                id: Date.now(),
-                name: name + " (Manual)",
-                label: "1 un.",
-                basePrice: parseFloat(price),
-                isWholesale: false,
-                qty: 1, copies: 1, type: 'manual',
-                finalPrice: parseFloat(price) 
-            });
-            recalculateCart();
-            document.getElementById('inp-qty').focus();
-        }
-
-        // --- LÓGICA DE PRECIOS MATEMÁTICA CORREGIDA ---
-        function recalculateCart() {
-            let totalRetailValue = 0;
-            let totalWholesaleValue = 0;
-            let wholesaleItems = []; 
-            let otherItemsValue = 0; 
-
-            let hasColor = false;
-
-            // 1. Acumular valores reales y mayoristas
-            cart.forEach(item => {
-                if (item.isWholesale) {
-                    const units = item.qty * item.copies;
-                    
-                    if (item.wholesaleCode.startsWith('col')) hasColor = true;
-
-                    // Valor Minorista Base (Lineal $200)
-                    totalRetailValue += units * RETAIL_PRICE_PER_PAGE;
-                    // Valor Mayorista Real
-                    totalWholesaleValue += units * WHOLESALE_PRICES[item.wholesaleCode];
-                    
-                    wholesaleItems.push(item);
-                } else {
-                    let units = (item.type === 'design' || item.type === 'manual') ? 1 : (item.qty * item.copies);
-                    if (item.type === 'design') units = item.qty;
-                    
-                    let itemVal = (item.type === 'manual') ? item.basePrice : (item.basePrice * units);
-                    item.finalPrice = itemVal; 
-                    otherItemsValue += itemVal;
-                }
-            });
-
-            // 2. Determinar el Umbral del Piso
-            const theoreticalTotalRetail = totalRetailValue + otherItemsValue;
-            const DYNAMIC_THRESHOLD = hasColor ? THRESHOLD_COLOR : THRESHOLD_BN;
-
-            const statusBanner = document.getElementById('status-banner');
-            const statusBadge = document.getElementById('current-mode-badge');
-
-            // 3. Evaluar y Asignar
-            if (wholesaleItems.length > 0) {
-                statusBanner.style.display = 'flex';
-
-                if (theoreticalTotalRetail >= DYNAMIC_THRESHOLD) {
-                    // MODO MAYORISTA (Superó el techo)
-                    // Verificamos cuál es la porción que le toca pagar a las impresiones para alcanzar el techo
-                    let printsFloor = DYNAMIC_THRESHOLD - otherItemsValue;
-                    if (printsFloor < 0) printsFloor = 0; 
-
-                    if (totalWholesaleValue >= printsFloor) {
-                        // El valor mayorista real ya es más alto que el piso. Se cobra exacto sin prorrateo.
-                        statusBadge.textContent = "MAYORISTA";
-                        statusBadge.className = "status-badge visible tag-whls";
-                        
-                        wholesaleItems.forEach(item => {
-                            item.finalPrice = (item.qty * item.copies) * WHOLESALE_PRICES[item.wholesaleCode];
-                        });
-                    } else {
-                        // El valor mayorista no llega al piso, entonces se cobra el piso (distribuido)
-                        statusBadge.textContent = "BASE";
-                        statusBadge.className = "status-badge visible tag-base";
-                        
-                        wholesaleItems.forEach(item => {
-                            const itemWholesaleVal = (item.qty * item.copies) * WHOLESALE_PRICES[item.wholesaleCode];
-                            const ratio = totalWholesaleValue > 0 ? (itemWholesaleVal / totalWholesaleValue) : 0;
-                            item.finalPrice = printsFloor * ratio;
-                        });
-                    }
-
-                } else {
-                    // MODO MINORISTA (No superó el techo)
-                    statusBadge.textContent = "MINORISTA";
-                    statusBadge.className = "status-badge visible tag-retail";
-                    
-                    wholesaleItems.forEach(item => {
-                        const units = item.qty * item.copies;
-                        const multiplier = (item.wholesaleCode.endsWith('2')) ? 2 : 1;
-                        item.finalPrice = units * multiplier * RETAIL_PRICE_PER_PAGE;
-                    });
-                }
-            } else {
-                statusBanner.style.display = 'none';
-            }
-
-            renderTicket();
-        }
-
-        function renderTicket() {
-            const list = document.getElementById('ticket-items');
-            const totalEl = document.getElementById('ticket-total');
-            const fab = document.getElementById('main-fab');
-
-            const finalTotal = cart.reduce((acc, curr) => acc + curr.finalPrice, 0);
-            const formattedTotal = `$${Math.round(finalTotal).toLocaleString()}`;
-            totalEl.textContent = formattedTotal;
-
-            if (finalTotal > 0) {
-                fab.innerHTML = `<span class="fab-content">${formattedTotal}</span>`;
-            } else {
-                fab.innerHTML = `<i class="ph ph-receipt" style="font-size: 24px;"></i>`;
-            }
-
-            if (cart.length === 0) {
-                list.innerHTML = '<div style="text-align: center; color: var(--text-gray); padding: 20px; font-size: 12px;">El carrito está vacío</div>';
-                return;
-            }
-
-            list.innerHTML = cart.map(item => `
-                <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:8px; padding-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.05);">
-                    <div>
-                        <span class="new-item-flash" style="color: var(--text-main); font-weight:600;">${item.name}</span>
-                        <div style="font-size:10px; color: var(--text-gray);">${item.label}</div>
+            <!-- PANEL DE CONTROL RÁPIDO: PÁGINAS Y COPIAS -->
+            <div class="quick-control-card">
+                <div class="inputs-split-row">
+                    <div class="input-widget" id="widget-pages">
+                        <div class="widget-label-row">
+                            <span class="widget-title">Páginas (Originales)</span>
+                            <span class="widget-badge">Pág/Carillas</span>
+                        </div>
+                        <input type="number" id="inp-pages" class="widget-field" placeholder="1" min="1" autofocus autocomplete="off">
                     </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="font-weight:700; color:var(--primary);">$${Math.round(item.finalPrice).toLocaleString()}</span>
-                        <i class="ph ph-trash" onclick="removeFromCart(${item.id})" style="cursor:pointer; color:#ef4444; font-size:14px;"></i>
+
+                    <div class="input-widget" id="widget-copies">
+                        <div class="widget-label-row">
+                            <span class="widget-title">Juegos (Copias)</span>
+                            <span class="widget-badge">Juegos</span>
+                        </div>
+                        <input type="number" id="inp-copies" class="widget-field" placeholder="1" min="1" autocomplete="off">
                     </div>
                 </div>
-            `).join('');
-            list.scrollTop = list.scrollHeight;
-        }
 
-        function removeFromCart(id) {
-            cart = cart.filter(i => i.id !== id);
+                <!-- SELECTOR DE RÉGIMEN DE PRECIO -->
+                <div class="pricing-status-bar">
+                    <div class="status-left">
+                        <i class="ph ph-scales" style="color: var(--primary); font-size: 16px;"></i>
+                        <span>Régimen:</span>
+                        <span id="active-pricing-badge" class="pricing-tag retail">MINORISTA</span>
+                    </div>
+
+                    <div class="mode-toggles-group">
+                        <button class="toggle-btn active" id="btn-mode-auto" onclick="setPricingMode('auto')">Auto (+10 May.)</button>
+                        <button class="toggle-btn" id="btn-mode-whls" onclick="setPricingMode('force-whls')">Forzar Mayorista</button>
+                        <button class="toggle-btn" id="btn-mode-ret" onclick="setPricingMode('force-retail')">Forzar Minorista</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABS DE CATEGORÍA -->
+            <nav class="category-nav">
+                <button class="cat-tab-btn active" onclick="switchTab('impresiones', this)">
+                    <i class="ph ph-copy"></i> Impresiones
+                </button>
+                <button class="cat-tab-btn" onclick="switchTab('especiales', this)">
+                    <i class="ph ph-star"></i> Papeles Especiales
+                </button>
+                <button class="cat-tab-btn" onclick="switchTab('diseno', this)">
+                    <i class="ph ph-paint-brush"></i> Diseño & Armado
+                </button>
+            </nav>
+
+            <!-- ÁREA DINÁMICA DE SERVICIOS -->
+            <div id="services-dynamic-area">
+                <!-- Se inyecta dinámicamente con JS -->
+            </div>
+
+        </section>
+
+        <!-- COLUMNA DERECHA: TICKET EN VIVO (STICKY / BOTTOM SHEET EN MÓVIL) -->
+        <aside class="right-column" id="cart-sidebar-pane">
+            <div class="live-ticket-card">
+                <div class="ticket-header-area">
+                    <div class="ticket-title-wrapper">
+                        <i class="ph ph-shopping-bag" style="color: var(--primary); font-size: 18px;"></i>
+                        <span class="ticket-heading">Presupuesto</span>
+                        <span class="ticket-counter-tag" id="ticket-count-pill">0</span>
+                    </div>
+                    <button class="close-dialog-btn" onclick="closeMobileCart()" style="display: none;" id="btn-close-mobile-cart">
+                        <i class="ph ph-x"></i>
+                    </button>
+                </div>
+
+                <div class="ticket-scroll-list" id="ticket-items-container">
+                    <!-- Filas del carrito -->
+                </div>
+
+                <div class="ticket-bottom-section">
+                    <div id="ticket-notice-box" style="display: none;"></div>
+
+                    <div class="total-price-row">
+                        <span class="total-label-text">Total Presupuesto</span>
+                        <span class="total-amount-display" id="ticket-total-val">$0</span>
+                    </div>
+
+                    <button class="main-remito-button" onclick="openRemitoModal()">
+                        <i class="ph ph-receipt" style="font-size: 20px;"></i>
+                        <span>Generar Remito Editable</span>
+                    </button>
+
+                    <div class="secondary-actions-bar">
+                        <button class="sub-btn wa" onclick="shareWhatsApp()">
+                            <i class="ph ph-whatsapp-logo" style="font-size: 16px;"></i> WhatsApp
+                        </button>
+                        <button class="sub-btn" onclick="copyBudgetSummary()">
+                            <i class="ph ph-copy" style="font-size: 16px;"></i> Copiar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+    </main>
+
+    <!-- BARRA DOCK FLOTANTE PARA MÓVILES -->
+    <div class="mobile-dock">
+        <div class="mobile-dock-info" onclick="toggleMobileCart()">
+            <span class="mobile-dock-title">Total en Carrito</span>
+            <span class="mobile-dock-sum" id="mobile-dock-sum">$0</span>
+        </div>
+        <div class="mobile-dock-buttons">
+            <button class="header-btn" onclick="toggleMobileCart()">
+                <i class="ph ph-list-dashes"></i> Ver Ticket
+            </button>
+            <button class="header-btn primary" onclick="openRemitoModal()">
+                <i class="ph ph-receipt"></i> Remito
+            </button>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         MODAL: REMITO EDITABLE PRO
+         ========================================================= -->
+    <div id="remito-modal" class="modal-backdrop">
+        <div class="modal-dialog">
+            <div class="dialog-header">
+                <div class="dialog-title-box">
+                    <i class="ph ph-receipt" style="color: var(--primary); font-size: 22px;"></i>
+                    <span class="dialog-title">Remito de Trabajo / Comprobante</span>
+                </div>
+                <button class="close-dialog-btn" onclick="closeModal('remito-modal')">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+
+            <div class="dialog-scroll-body">
+                
+                <!-- HOJA DEL REMITO FORMAL -->
+                <div class="remito-paper-sheet" id="remito-paper-render">
+                    
+                    <!-- ENCABEZADO CON LOGO OFICIAL -->
+                    <div class="sheet-header">
+                        <div class="sheet-brand-col">
+                            <img src="logo.png" alt="Logo" class="sheet-logo" onerror="this.style.display='none'">
+                            <div class="sheet-company-titles">
+                                <h3>IMPRESIONES VCP</h3>
+                                <p>Cuadernillos · Libros · Impresiones & Gráfica</p>
+                                <p>Villa Carlos Paz · Córdoba</p>
+                            </div>
+                        </div>
+
+                        <div class="sheet-meta-col">
+                            <div class="sheet-number-badge">
+                                <span>REMITO Nº:</span>
+                                <input type="text" id="remito-num-field" class="clean-paper-input" value="R-00124">
+                            </div>
+                            <div class="sheet-number-badge">
+                                <span>FECHA:</span>
+                                <input type="text" id="remito-date-field" class="clean-paper-date">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- FORMULARIO CLIENTE -->
+                    <div class="sheet-client-form">
+                        <div class="paper-field-block">
+                            <label>Cliente / Razón Social</label>
+                            <input type="text" id="remito-client-name" placeholder="Nombre del cliente o negocio">
+                        </div>
+                        <div class="paper-field-block">
+                            <label>Teléfono / WhatsApp</label>
+                            <input type="text" id="remito-client-phone" placeholder="Ej: 3541-123456">
+                        </div>
+                        <div class="paper-field-block">
+                            <label>Estado</label>
+                            <select id="remito-status-select">
+                                <option value="Presupuesto">Presupuesto</option>
+                                <option value="En Producción" selected>En Producción</option>
+                                <option value="Listo para Retiro">Listo para Retiro</option>
+                                <option value="Entregado">Entregado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- TABLA EDITABLE DE ÍTEMS -->
+                    <div class="sheet-table-frame">
+                        <table class="sheet-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 70px; text-align: center;">Cant.</th>
+                                    <th>Descripción / Detalle del Trabajo</th>
+                                    <th style="width: 120px; text-align: right;">Precio Unit.</th>
+                                    <th style="width: 120px; text-align: right;">Subtotal</th>
+                                    <th style="width: 40px; text-align: center;"></th>
+                                </tr>
+                            </thead>
+                            <tbody id="remito-table-rows">
+                                <!-- Filas editables se inyectan dinámicamente -->
+                            </tbody>
+                        </table>
+                        
+                        <div class="sheet-table-toolbar">
+                            <button class="btn-add-row" onclick="addManualRemitoRow()">
+                                <i class="ph ph-plus-circle"></i> Agregar Fila Manual
+                            </button>
+                            <span style="font-size: 11px; color: #64748b;">* Puedes editar cantidades, textos y precios directamente en la tabla.</span>
+                        </div>
+                    </div>
+
+                    <!-- TOTALES Y SEÑA -->
+                    <div class="sheet-bottom-grid">
+                        <div class="sheet-notes-area">
+                            <label>Observaciones / Entrega:</label>
+                            <textarea id="remito-notes-field" placeholder="Ej: Retira el miércoles por la tarde. Archivo recibido por mail."></textarea>
+                        </div>
+
+                        <div class="sheet-summary-box">
+                            <div class="sheet-sum-line">
+                                <span>Subtotal:</span>
+                                <span id="remito-subtotal-txt" style="font-family: var(--font-mono); font-weight: 700;">$0</span>
+                            </div>
+                            <div class="sheet-sum-line">
+                                <span>Descuento ($):</span>
+                                <input type="number" id="remito-discount-inp" class="sheet-calc-inp" value="0" min="0" oninput="recalculateRemitoSummary()">
+                            </div>
+                            <div class="sheet-sum-line total-line">
+                                <span>TOTAL:</span>
+                                <span id="remito-total-txt">$0</span>
+                            </div>
+                            <div class="sheet-sum-line">
+                                <span>Seña / Adelanto:</span>
+                                <input type="number" id="remito-deposit-inp" class="sheet-calc-inp" value="0" min="0" placeholder="$0" oninput="recalculateRemitoSummary()">
+                            </div>
+                            <div class="sheet-sum-line balance-line">
+                                <span>SALDO A PAGAR:</span>
+                                <span id="remito-balance-txt">$0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="dialog-footer">
+                <button class="header-btn" onclick="shareRemitoWhatsApp()">
+                    <i class="ph ph-whatsapp-logo" style="color: #25d366;"></i> WhatsApp
+                </button>
+                <button class="header-btn" onclick="downloadRemitoPDF()">
+                    <i class="ph ph-file-pdf" style="color: #ef4444;"></i> Descargar PDF
+                </button>
+                <button class="header-btn" onclick="printRemitoWindow()">
+                    <i class="ph ph-printer"></i> Imprimir
+                </button>
+                <button class="header-btn primary" onclick="closeModal('remito-modal')">
+                    Listo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================================================
+         MODAL: LISTA DE PRECIOS VIGENTES
+         ========================================================= -->
+    <div id="price-modal" class="modal-backdrop">
+        <div class="modal-dialog" style="max-width: 620px;">
+            <div class="dialog-header">
+                <div class="dialog-title-box">
+                    <i class="ph ph-tag" style="color: var(--accent-cyan); font-size: 20px;"></i>
+                    <span class="dialog-title">Lista de Tarifas Vigentes</span>
+                </div>
+                <button class="close-dialog-btn" onclick="closeModal('price-modal')">
+                    <i class="ph ph-x"></i>
+                </button>
+            </div>
+
+            <div class="dialog-scroll-body" style="gap: 16px;">
+                <div style="background: var(--bg-elevated); border-left: 3px solid var(--primary); padding: 12px 16px; border-radius: var(--radius-xs); font-size: 13px; line-height: 1.5; color: var(--text-muted);">
+                    <strong style="color: var(--text-main);">Régimen de Impresiones:</strong><br>
+                    • <strong>1 a 9 páginas (Minorista):</strong> B&N Simple $200 | Doble Faz $350 — Color Simple $300 | Doble Faz $550.<br>
+                    • <strong>10 o más páginas (Mayorista):</strong> B&N Simple $90 | Doble Faz $120 ($60/carilla) — Color Simple $120 | Doble Faz $160 ($80/carilla).<br>
+                    • <strong>Piso Mínimo de Trabajo Mayorista:</strong> B&N $1.500 | Color $2.000.
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div style="background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px;">
+                        <h4 style="color: var(--accent-cyan); font-size: 13px; margin-bottom: 8px;">Blanco y Negro</h4>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span>Simple (Minorista):</span><strong style="font-family: var(--font-mono); color: var(--text-main);">$200</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span>Doble Faz (Minorista):</span><strong style="font-family: var(--font-mono); color: var(--text-main);">$350</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span>Simple (Mayorista +10):</span><strong style="font-family: var(--font-mono); color: var(--primary);">$90</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span>Doble Faz (Mayorista +10):</span><strong style="font-family: var(--font-mono); color: var(--primary);">$120</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); margin-top: 6px; border-top: 1px solid var(--border-subtle); padding-top: 4px;">
+                            <span>Piso Mínimo Trabajo:</span><strong style="font-family: var(--font-mono);">$1.500</strong>
+                        </div>
+                    </div>
+
+                    <div style="background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px;">
+                        <h4 style="color: var(--accent-amber); font-size: 13px; margin-bottom: 8px;">Color</h4>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span>Simple (Minorista):</span><strong style="font-family: var(--font-mono); color: var(--text-main);">$300</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span>Doble Faz (Minorista):</span><strong style="font-family: var(--font-mono); color: var(--text-main);">$550</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span>Simple (Mayorista +10):</span><strong style="font-family: var(--font-mono); color: var(--primary);">$120</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
+                            <span>Doble Faz (Mayorista +10):</span><strong style="font-family: var(--font-mono); color: var(--primary);">$160</strong>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-dim); margin-top: 6px; border-top: 1px solid var(--border-subtle); padding-top: 4px;">
+                            <span>Piso Mínimo Trabajo:</span><strong style="font-family: var(--font-mono);">$2.000</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="background: var(--bg-elevated); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px;">
+                    <h4 style="color: var(--accent-purple); font-size: 13px; margin-bottom: 8px;">Especiales & Diseño</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px;">
+                        <div>• Papel Foto Simple: <strong>$1.500</strong></div>
+                        <div>• Papel Foto Doble Faz: <strong>$2.200</strong></div>
+                        <div>• Papel Grueso Simple: <strong>$1.600</strong></div>
+                        <div>• Papel Grueso Doble: <strong>$2.200</strong></div>
+                        <div>• Hoja Sticker: <strong>$1.800</strong></div>
+                        <div>• Anillado Espiral: <strong>$2.000</strong></div>
+                        <div>• Ajuste Básico: <strong>$1.200</strong></div>
+                        <div>• Armado Letras: <strong>$500</strong></div>
+                        <div>• Armado A4: <strong>$3.000</strong></div>
+                        <div>• Diseño Desde Cero: <strong>$4.000</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dialog-footer">
+                <button class="header-btn primary" onclick="closeModal('price-modal')">Entendido</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENEDOR AISLADO PARA IMPRESIÓN DIRECTA -->
+    <div id="print-isolated-container"></div>
+
+    <!-- =========================================================
+         LÓGICA JAVASCRIPT CON MOTOR DE IMPRESIÓN Y PDF INFALIBLE
+         ========================================================= -->
+    <script>
+        // --- TARIFAS EXACTAS CONFIGURADAS ---
+        const RETAIL_RATES = {
+            'byn': 200,          // B&N Simple ($200)
+            'byn2': 175,         // B&N Doble Faz ($175/pág -> $350 la hoja)
+            'color': 300,        // Color Simple ($300)
+            'color2': 275        // Color Doble Faz ($275/pág -> $550 la hoja)
+        };
+
+        const WHOLESALE_RATES = {
+            'byn': 90,           // B&N Simple ($90)
+            'byn2': 60,          // B&N Doble Faz ($60/carilla -> $120 la hoja)
+            'color': 120,        // Color Simple ($120)
+            'color2': 80         // Color Doble Faz ($80/carilla -> $160 la hoja)
+        };
+
+        const MIN_FLOOR_BN = 1500;
+        const MIN_FLOOR_COLOR = 2000;
+
+        // --- CATÁLOGOS DE SERVICIOS (SIN MARCAS, SIN GRAMAJES) ---
+        const catalogPrints = [
+            {
+                id: 'p-byn',
+                name: 'Blanco y Negro',
+                subtitle: 'Impresión & Copiado B&N',
+                icon: 'ph-file-text',
+                color: '#38bdf8',
+                options: [
+                    { label: 'Simple', code: 'byn', retailDisplay: '$200', whlsDisplay: '$90' },
+                    { label: 'Doble Faz', code: 'byn2', retailDisplay: '$350', whlsDisplay: '$120' }
+                ]
+            },
+            {
+                id: 'p-color',
+                name: 'Color',
+                subtitle: 'Impresión & Copiado Color',
+                icon: 'ph-printer',
+                color: '#fbbf24',
+                options: [
+                    { label: 'Simple', code: 'color', retailDisplay: '$300', whlsDisplay: '$120' },
+                    { label: 'Doble Faz', code: 'color2', retailDisplay: '$550', whlsDisplay: '$160' }
+                ]
+            }
+        ];
+
+        const catalogSpecial = [
+            {
+                name: 'Papel Foto Brillo (Glossy)',
+                subtitle: 'Calidad Fotográfica A4',
+                icon: 'ph-camera',
+                color: '#c084fc',
+                options: [
+                    { label: 'Simple', fixedPrice: 1500, btnText: '$1.500' },
+                    { label: 'Doble Faz', fixedPrice: 1100, btnText: '$2.200' }
+                ]
+            },
+            {
+                name: 'Papel Grueso / Cartulina',
+                subtitle: 'Cartulina / Alta rigidez',
+                icon: 'ph-stack',
+                color: '#a78bfa',
+                options: [
+                    { label: 'Simple', fixedPrice: 1600, btnText: '$1.600' },
+                    { label: 'Doble Faz', fixedPrice: 1100, btnText: '$2.200' }
+                ]
+            },
+            {
+                name: 'Hoja Sticker / Autoadhesivo',
+                subtitle: 'Papel autoadhesivo brillante A4',
+                icon: 'ph-sticker',
+                color: '#4ade80',
+                singlePrice: 1800
+            },
+            {
+                name: 'Anillado Espiral A4',
+                subtitle: 'Tapa cristal + contratapa negra',
+                icon: 'ph-notebook',
+                color: '#60a5fa',
+                singlePrice: 2000
+            },
+            {
+                name: 'Servicio Varios / Personalizado',
+                subtitle: 'Ingresar importe manual',
+                icon: 'ph-plus-circle',
+                color: '#a3e635',
+                isManual: true
+            }
+        ];
+
+        const catalogDesign = [
+            { title: 'Ajuste Básico', desc: 'Centrado, encuadre o mover márgenes rápidos', price: 1200, icon: 'ph-sliders', color: '#2dd4bf' },
+            { title: 'Armado Letras / Cancionero', desc: 'Formateo y tipografía para canciones/textos', price: 500, icon: 'ph-music-notes', color: '#f472b6' },
+            { title: 'Armado A4 para Etiquetas', desc: 'Duplicación y acomodo en hoja para corte', price: 3000, icon: 'ph-ruler', color: '#fb923c' },
+            { title: 'Diseño Gráfico Desde Cero', desc: 'Composición completa personalizada', price: 4000, icon: 'ph-pencil-circle', color: '#a3e635' }
+        ];
+
+        // --- ESTADO DE LA APLICACIÓN ---
+        let cart = [];
+        let pricingMode = 'auto'; // 'auto', 'force-whls', 'force-retail'
+        let currentTab = 'impresiones';
+        let remitoItems = [];
+
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderActiveTab();
             recalculateCart();
+            setupKeyboardNav();
+            setInitialRemitoDate();
+            loadThemePreference();
+        });
+
+        // Tema Claro / Oscuro
+        function toggleTheme() {
+            document.body.classList.toggle('light-theme');
+            const isLight = document.body.classList.contains('light-theme');
+            localStorage.setItem('vcp_theme', isLight ? 'light' : 'dark');
+            const icon = document.getElementById('theme-icon');
+            if (icon) icon.className = isLight ? 'ph ph-moon' : 'ph ph-sun-dim';
         }
 
-        // --- MODALES ---
-        function resetCart() { document.getElementById('confirm-modal').classList.add('active'); }
-        function openPriceModal() { document.getElementById('price-modal').classList.add('active'); }
-        
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-        
-        function confirmReset() {
-            cart = [];
-            recalculateCart();
-            closeTicket();
-            closeModal('confirm-modal');
-            document.getElementById('inp-qty').focus();
-        }
-
-        // --- UI HELPERS ---
-        function toggleTicket() { 
-            const drawer = document.getElementById('ticket-drawer');
-            if(drawer.classList.contains('visible')) closeTicket();
-            else {
-                drawer.classList.add('visible');
-                if(ticketTimeout) clearTimeout(ticketTimeout);
+        function loadThemePreference() {
+            const saved = localStorage.getItem('vcp_theme');
+            if (saved === 'light') {
+                document.body.classList.add('light-theme');
+                const icon = document.getElementById('theme-icon');
+                if (icon) icon.className = 'ph ph-moon';
             }
         }
-        function closeTicket() { 
-            document.getElementById('ticket-drawer').classList.remove('visible'); 
-            if(ticketTimeout) clearTimeout(ticketTimeout);
-            setTimeout(() => { document.getElementById('inp-qty').focus(); }, 50);
+
+        function setInitialRemitoDate() {
+            const today = new Date();
+            const dateStr = today.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const timeStr = today.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            const dateInput = document.getElementById('remito-date-field');
+            if (dateInput) {
+                dateInput.value = `${dateStr} ${timeStr} hs`;
+            }
         }
 
-        function renderImpresiones() {
-            const html = `
-                <div class="grid-section-title">Impresiones</div>
-                <div class="services-grid">
-                    ${servicesImp.map(s => `
-                        <div class="svc-card">
-                            <div class="svc-default-view">
-                                <i class="svc-icon ph ${s.icon}" style="color: ${s.color}"></i>
-                                <div class="svc-name">${s.name}</div>
+        // Control de teclado rápido (Enter)
+        function setupKeyboardNav() {
+            const inPages = document.getElementById('inp-pages');
+            const inCopies = document.getElementById('inp-copies');
+
+            inPages.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    inCopies.focus();
+                    inCopies.select();
+                }
+            });
+
+            inCopies.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    inCopies.blur();
+                }
+            });
+        }
+
+        // Navegación de pestañas
+        function switchTab(tab, btn) {
+            currentTab = tab;
+            document.querySelectorAll('.cat-tab-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            renderActiveTab();
+        }
+
+        function renderActiveTab() {
+            const container = document.getElementById('services-dynamic-area');
+            if (currentTab === 'impresiones') {
+                renderPrintsTab(container);
+            } else if (currentTab === 'especiales') {
+                renderSpecialsTab(container);
+            } else if (currentTab === 'diseno') {
+                renderDesignTab(container);
+            }
+        }
+
+        // Helper para obtener precio activo de los botones de impresión (limpio, sin barras ni precio viejo)
+        function getActivePrintPrice(opt) {
+            const isWholesale = (pricingMode === 'force-whls') || (pricingMode === 'auto' && getInputs().pages * getInputs().copies >= 10);
+            return isWholesale ? opt.whlsDisplay : opt.retailDisplay;
+        }
+
+        // Renderizado del catálogo
+        function renderPrintsTab(container) {
+            container.innerHTML = `
+                <div class="cards-grid">
+                    ${catalogPrints.map(item => `
+                        <div class="service-card">
+                            <div class="card-top">
+                                <div class="card-icon-box" style="color: ${item.color};">
+                                    <i class="ph ${item.icon}"></i>
+                                </div>
+                                <div class="card-info">
+                                    <div class="card-name">${item.name}</div>
+                                    <div class="card-desc">${item.subtitle}</div>
+                                </div>
                             </div>
-                            <div class="svc-overlay">
-                                ${s.options.map(opt => `
-                                    <button class="svc-opt-btn" onclick="addToCart('${s.name} ${opt.label}', ${opt.price || `'${opt.code}'`}, 'print')">
-                                        <span class="opt-label">${opt.label}</span>
-                                        <span class="opt-price">${opt.price ? '$'+opt.price : 'Var.'}</span>
+                            <div class="card-buttons-pair">
+                                ${item.options.map(opt => `
+                                    <button class="tap-action-btn" onclick="addPrintToCart('${item.name}', '${opt.label}', '${opt.code}')">
+                                        <span class="btn-label">${opt.label}</span>
+                                        <span class="btn-price-display">${getActivePrintPrice(opt)}</span>
                                     </button>
                                 `).join('')}
                             </div>
                         </div>
                     `).join('')}
-                </div>
-            `;
-            document.getElementById('dynamic-area').innerHTML = html;
-            updateInputs(true);
-        }
 
-        function renderEspeciales() {
-            const html = `
-                <div class="grid-section-title">Especiales</div>
-                <div class="services-grid">
-                    ${servicesEsp.map(s => {
-                        if(s.options) {
-                            return `
-                            <div class="svc-card">
-                                <div class="svc-default-view">
-                                    <i class="svc-icon ph ${s.icon}" style="color: ${s.color}"></i>
-                                    <div class="svc-name">${s.name}</div>
-                                </div>
-                                <div class="svc-overlay">
-                                    ${s.options.map(opt => `
-                                        <button class="svc-opt-btn" onclick="addToCart('${s.name} ${opt.label}', ${opt.price}, 'special-single')">
-                                            <span class="opt-label">${opt.label}</span>
-                                            <span class="opt-price">$${opt.price}</span>
-                                        </button>
-                                    `).join('')}
-                                </div>
-                            </div>`;
-                        } else {
-                            return `
-                            <div class="svc-card single-action" onclick="addToCart('${s.name}', ${s.price}, 'special-single')">
-                                <div class="svc-default-view">
-                                    <i class="svc-icon ph ${s.icon}" style="color: ${s.color}"></i>
-                                    <div class="svc-name">${s.name}</div>
-                                    <div class="svc-price">$${s.price}</div>
-                                </div>
-                            </div>`;
-                        }
-                    }).join('')}
-                    <div class="svc-card single-action" onclick="addManualItem()" style="border-style: dashed;">
-                        <div class="svc-default-view">
-                            <i class="svc-icon ph ph-plus" style="color: var(--text-gray)"></i>
-                            <div class="svc-name">Varios</div>
+                    <!-- BOTÓN DE ANILLADO EN LA PESTAÑA IMPRESIONES -->
+                    <div class="service-card">
+                        <div class="card-top">
+                            <div class="card-icon-box" style="color: #60a5fa;">
+                                <i class="ph ph-notebook"></i>
+                            </div>
+                            <div class="card-info">
+                                <div class="card-name">Anillado Espiral</div>
+                                <div class="card-desc">Tapa cristal + contratapa negra</div>
+                            </div>
                         </div>
+                        <button class="full-width-action-btn" onclick="addSpecialToCart('Anillado Espiral A4', 2000)">
+                            <span style="font-weight: 700; font-size: 13px;">Anillar Documento</span>
+                            <span class="action-price">$2.000</span>
+                        </button>
                     </div>
                 </div>
             `;
-            document.getElementById('dynamic-area').innerHTML = html;
-            updateInputs(true);
         }
 
-        function renderDiseno() {
-            const html = `
-                <div class="grid-section-title">Servicios de Diseño</div>
-                <div class="design-list">
-                    ${servicesDesign.map(s => `
-                        <div class="design-item" onclick='addToCart("${s.title}", ${s.price}, "design")'>
-                            <div class="d-icon"><i class="ph ${s.icon}" style="color: ${s.color}"></i></div>
-                            <div class="d-content">
-                                <div class="d-title">${s.title}</div>
-                                <div class="d-desc">${s.desc}</div>
+        function renderSpecialsTab(container) {
+            container.innerHTML = `
+                <div class="cards-grid">
+                    ${catalogSpecial.map(item => {
+                        if (item.isManual) {
+                            return `
+                                <div class="service-card" style="border-style: dashed;">
+                                    <div class="card-top">
+                                        <div class="card-icon-box" style="color: ${item.color};">
+                                            <i class="ph ${item.icon}"></i>
+                                        </div>
+                                        <div class="card-info">
+                                            <div class="card-name">${item.name}</div>
+                                            <div class="card-desc">${item.subtitle}</div>
+                                        </div>
+                                    </div>
+                                    <button class="full-width-action-btn" onclick="addManualItemToCart()">
+                                        <span style="font-weight: 700; font-size: 13px;">Personalizado</span>
+                                        <span class="action-price">+ Agregar</span>
+                                    </button>
+                                </div>
+                            `;
+                        }
+                        if (item.options) {
+                            return `
+                                <div class="service-card">
+                                    <div class="card-top">
+                                        <div class="card-icon-box" style="color: ${item.color};">
+                                            <i class="ph ${item.icon}"></i>
+                                        </div>
+                                        <div class="card-info">
+                                            <div class="card-name">${item.name}</div>
+                                            <div class="card-desc">${item.subtitle}</div>
+                                        </div>
+                                    </div>
+                                    <div class="card-buttons-pair">
+                                        ${item.options.map(opt => `
+                                            <button class="tap-action-btn" onclick="addSpecialToCart('${item.name} ${opt.label}', ${opt.fixedPrice})">
+                                                <span class="btn-label">${opt.label}</span>
+                                                <span class="btn-price-display">${opt.btnText || '$'+opt.fixedPrice}</span>
+                                            </button>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            return `
+                                <div class="service-card">
+                                    <div class="card-top">
+                                        <div class="card-icon-box" style="color: ${item.color};">
+                                            <i class="ph ${item.icon}"></i>
+                                        </div>
+                                        <div class="card-info">
+                                            <div class="card-name">${item.name}</div>
+                                            <div class="card-desc">${item.subtitle}</div>
+                                        </div>
+                                    </div>
+                                    <button class="full-width-action-btn" onclick="addSpecialToCart('${item.name}', ${item.singlePrice})">
+                                        <span style="font-weight: 700; font-size: 13px;">Precio Unitario</span>
+                                        <span class="action-price">$${item.singlePrice.toLocaleString('es-AR')}</span>
+                                    </button>
+                                </div>
+                            `;
+                        }
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function renderDesignTab(container) {
+            container.innerHTML = `
+                <div class="design-stack">
+                    ${catalogDesign.map(item => `
+                        <div class="design-row-card" onclick="addDesignToCart('${item.title}', ${item.price})">
+                            <div class="design-row-left">
+                                <div class="card-icon-box" style="color: ${item.color};">
+                                    <i class="ph ${item.icon}"></i>
+                                </div>
+                                <div>
+                                    <div class="card-name">${item.title}</div>
+                                    <div class="card-desc">${item.desc}</div>
+                                </div>
                             </div>
-                            <div class="d-price">$${s.price}</div>
+                            <div class="design-pill-price">$${item.price.toLocaleString('es-AR')}</div>
                         </div>
                     `).join('')}
                 </div>
             `;
-            document.getElementById('dynamic-area').innerHTML = html;
-            updateInputs(false);
         }
 
-        function updateInputs(showCopies) {
-            const cardCopies = document.getElementById('card-copies');
-            const lblQty = document.getElementById('lbl-qty');
-            const inpCopies = document.getElementById('inp-copies');
-            
-            if(showCopies) {
-                cardCopies.style.opacity = '1';
-                cardCopies.style.pointerEvents = 'auto';
-                lblQty.textContent = "Páginas";
-                inpCopies.disabled = false;
-            } else {
-                cardCopies.style.opacity = '0.3';
-                cardCopies.style.pointerEvents = 'none';
-                lblQty.textContent = "Cantidad";
-                inpCopies.disabled = true;
+        // Modo de Régimen
+        function setPricingMode(mode) {
+            pricingMode = mode;
+            document.getElementById('btn-mode-auto').classList.toggle('active', mode === 'auto');
+            document.getElementById('btn-mode-whls').classList.toggle('active', mode === 'force-whls');
+            document.getElementById('btn-mode-ret').classList.toggle('active', mode === 'force-retail');
+            renderActiveTab();
+            recalculateCart();
+        }
+
+        function getInputs() {
+            const pagesInp = document.getElementById('inp-pages');
+            const copiesInp = document.getElementById('inp-copies');
+
+            let pages = parseInt(pagesInp.value) || 1;
+            let copies = parseInt(copiesInp.value) || 1;
+            if (pages < 1) pages = 1;
+            if (copies < 1) copies = 1;
+
+            return { pages, copies };
+        }
+
+        function resetInputsAfterAdd() {
+            document.getElementById('inp-pages').value = '';
+            document.getElementById('inp-copies').value = '';
+            document.getElementById('inp-pages').focus();
+        }
+
+        // Agregar al carrito
+        function addPrintToCart(baseName, optionLabel, code) {
+            const { pages, copies } = getInputs();
+            const fullName = `${baseName} ${optionLabel}`;
+
+            cart.push({
+                id: Date.now() + Math.random(),
+                name: fullName,
+                type: 'print',
+                pages: pages,
+                copies: copies,
+                code: code,
+                finalPrice: 0,
+                appliedRate: 'retail'
+            });
+
+            resetInputsAfterAdd();
+            recalculateCart();
+        }
+
+        function addSpecialToCart(name, price) {
+            const { pages, copies } = getInputs();
+            const units = (name.includes('Anillado')) ? copies : (pages * copies);
+
+            cart.push({
+                id: Date.now() + Math.random(),
+                name: name,
+                type: 'special',
+                pages: units,
+                copies: 1,
+                units: units,
+                unitPrice: price,
+                finalPrice: units * price,
+                appliedRate: 'fixed'
+            });
+
+            resetInputsAfterAdd();
+            recalculateCart();
+        }
+
+        function addDesignToCart(name, price) {
+            const { pages } = getInputs();
+            const units = pages;
+
+            cart.push({
+                id: Date.now() + Math.random(),
+                name: name,
+                type: 'design',
+                pages: units,
+                copies: 1,
+                units: units,
+                unitPrice: price,
+                finalPrice: units * price,
+                appliedRate: 'fixed'
+            });
+
+            resetInputsAfterAdd();
+            recalculateCart();
+        }
+
+        function addManualItemToCart() {
+            const name = prompt('Nombre o detalle del ítem:');
+            if (!name) return;
+            const price = parseFloat(prompt('Precio total del ítem ($):'));
+            if (isNaN(price) || price < 0) return;
+
+            cart.push({
+                id: Date.now() + Math.random(),
+                name: name + ' (Manual)',
+                type: 'manual',
+                pages: 1,
+                copies: 1,
+                units: 1,
+                unitPrice: price,
+                finalPrice: price,
+                appliedRate: 'manual'
+            });
+
+            resetInputsAfterAdd();
+            recalculateCart();
+        }
+
+        function adjustItemCopies(id, delta) {
+            const item = cart.find(i => i.id === id);
+            if (!item) return;
+
+            if (item.type === 'print') {
+                item.copies += delta;
+                if (item.copies <= 0) {
+                    cart = cart.filter(i => i.id !== id);
+                }
+            } else if (item.type === 'special' || item.type === 'design') {
+                item.pages += delta;
+                if (item.pages <= 0) {
+                    cart = cart.filter(i => i.id !== id);
+                } else {
+                    item.units = item.pages * item.copies;
+                    item.finalPrice = item.units * item.unitPrice;
+                }
+            }
+            recalculateCart();
+        }
+
+        function removeItemFromCart(id) {
+            cart = cart.filter(i => i.id !== id);
+            recalculateCart();
+        }
+
+        function confirmResetCart() {
+            if (cart.length === 0) return;
+            if (confirm('¿Vaciar todo el presupuesto actual?')) {
+                cart = [];
+                recalculateCart();
             }
         }
 
-        function switchTab(tab, btn) {
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            btn.classList.add('active');
-            if(tab === 'impresiones') renderImpresiones();
-            if(tab === 'especiales') renderEspeciales();
-            if(tab === 'diseno') renderDiseno();
+        // =========================================================
+        // MOTOR DE CÁLCULO DE PRECIOS EXACTO
+        // =========================================================
+        function recalculateCart() {
+            const printItems = cart.filter(i => i.type === 'print');
             
-            document.getElementById('inp-qty').focus(); 
+            let totalPrintUnits = 0;
+            let containsColor = false;
+
+            printItems.forEach(item => {
+                const units = item.pages * item.copies;
+                totalPrintUnits += units;
+                if (item.code && item.code.startsWith('col')) {
+                    containsColor = true;
+                }
+            });
+
+            let isWholesale = false;
+            if (pricingMode === 'force-whls') {
+                isWholesale = true;
+            } else if (pricingMode === 'force-retail') {
+                isWholesale = false;
+            } else {
+                isWholesale = totalPrintUnits >= 10;
+            }
+
+            let wholesalePrintsSum = 0;
+            let retailPrintsSum = 0;
+
+            printItems.forEach(item => {
+                const units = item.pages * item.copies;
+                const whlsUnit = WHOLESALE_RATES[item.code] || 90;
+                const retailUnit = RETAIL_RATES[item.code] || 200;
+
+                const itemWhlsTotal = units * whlsUnit;
+                const itemRetailTotal = units * retailUnit;
+
+                if (isWholesale) {
+                    item.finalPrice = itemWhlsTotal;
+                    item.appliedRate = 'wholesale';
+                } else {
+                    item.finalPrice = itemRetailTotal;
+                    item.appliedRate = 'retail';
+                }
+
+                wholesalePrintsSum += itemWhlsTotal;
+                retailPrintsSum += itemRetailTotal;
+            });
+
+            // Piso Mínimo
+            let floorApplied = false;
+            let targetFloor = containsColor ? MIN_FLOOR_COLOR : MIN_FLOOR_BN;
+
+            if (isWholesale && printItems.length > 0) {
+                if (wholesalePrintsSum < targetFloor && totalPrintUnits > 0) {
+                    floorApplied = true;
+                    printItems.forEach(item => {
+                        const ratio = wholesalePrintsSum > 0 ? (item.finalPrice / wholesalePrintsSum) : (1 / printItems.length);
+                        item.finalPrice = Math.round(targetFloor * ratio);
+                        item.appliedRate = 'floor';
+                    });
+                }
+            }
+
+            // Actualizar Badge
+            const badge = document.getElementById('active-pricing-badge');
+            if (badge) {
+                if (printItems.length === 0) {
+                    badge.textContent = 'ESTÁNDAR';
+                    badge.className = 'pricing-tag retail';
+                } else if (floorApplied) {
+                    badge.textContent = `PISO ($${targetFloor.toLocaleString('es-AR')})`;
+                    badge.className = 'pricing-tag floor';
+                } else if (isWholesale) {
+                    badge.textContent = 'MAYORISTA';
+                    badge.className = 'pricing-tag wholesale';
+                } else {
+                    badge.textContent = 'MINORISTA';
+                    badge.className = 'pricing-tag retail';
+                }
+            }
+
+            renderTicketUI(totalPrintUnits, isWholesale, floorApplied, targetFloor);
         }
 
-        function shareWhatsApp() {
-            if(cart.length === 0) return;
-            const total = document.getElementById('ticket-total').textContent;
-            let text = `*PRESUPUESTO*\n------------------\n`;
-            cart.forEach(item => {
-                text += `• ${item.name} (${item.label}): $${Math.round(item.finalPrice)}\n`;
+        // Renderizado del Ticket
+        function renderTicketUI(totalPrintUnits, isWholesale, floorApplied, targetFloor) {
+            const listEl = document.getElementById('ticket-items-container');
+            const totalEl = document.getElementById('ticket-total-val');
+            const mobileDockEl = document.getElementById('mobile-dock-sum');
+            const countPill = document.getElementById('ticket-count-pill');
+            const noticeBox = document.getElementById('ticket-notice-box');
+
+            const total = cart.reduce((acc, curr) => acc + curr.finalPrice, 0);
+            const formattedTotal = `$${Math.round(total).toLocaleString('es-AR')}`;
+
+            totalEl.textContent = formattedTotal;
+            if (mobileDockEl) mobileDockEl.textContent = formattedTotal;
+            if (countPill) countPill.textContent = cart.length;
+
+            if (noticeBox) {
+                if (floorApplied) {
+                    noticeBox.style.display = 'flex';
+                    noticeBox.className = 'ticket-progress-notice floor';
+                    noticeBox.innerHTML = `<i class="ph ph-shield-check" style="font-size: 15px;"></i> Se aplicó el <strong>Piso Mínimo de $${targetFloor.toLocaleString('es-AR')}</strong> por trabajo mayorista.`;
+                } else if (totalPrintUnits > 0 && totalPrintUnits < 10 && pricingMode === 'auto') {
+                    const remaining = 10 - totalPrintUnits;
+                    noticeBox.style.display = 'flex';
+                    noticeBox.className = 'ticket-progress-notice';
+                    noticeBox.style.background = 'var(--bg-elevated)';
+                    noticeBox.style.color = 'var(--text-muted)';
+                    noticeBox.innerHTML = `<i class="ph ph-info" style="font-size: 15px;"></i> Faltan <strong>${remaining} página${remaining > 1 ? 's' : ''}</strong> para Tarifa Mayorista.`;
+                } else if (isWholesale && totalPrintUnits >= 10) {
+                    noticeBox.style.display = 'flex';
+                    noticeBox.className = 'ticket-progress-notice wholesale';
+                    noticeBox.innerHTML = `<i class="ph ph-check-circle" style="font-size: 15px;"></i> ¡Tarifa Mayorista Activa! (${totalPrintUnits} páginas).`;
+                } else {
+                    noticeBox.style.display = 'none';
+                }
+            }
+
+            if (cart.length === 0) {
+                listEl.innerHTML = `
+                    <div class="empty-cart-view">
+                        <i class="ph ph-receipt"></i>
+                        <span>El presupuesto está vacío.<br>Selecciona un servicio para comenzar.</span>
+                    </div>
+                `;
+                return;
+            }
+
+            listEl.innerHTML = cart.map(item => {
+                let detailText = '';
+                let rateBadgeHtml = '';
+
+                if (item.type === 'print') {
+                    detailText = `${item.pages} pág. × ${item.copies} c. = ${item.pages * item.copies} un.`;
+                    if (item.appliedRate === 'wholesale') {
+                        rateBadgeHtml = `<span class="item-sub-tag" style="background: var(--primary-subtle); color: var(--primary);">Mayorista</span>`;
+                    } else if (item.appliedRate === 'floor') {
+                        rateBadgeHtml = `<span class="item-sub-tag" style="background: rgba(56,189,248,0.2); color: var(--accent-cyan);">Piso Mín.</span>`;
+                    } else {
+                        rateBadgeHtml = `<span class="item-sub-tag" style="background: rgba(244,63,94,0.15); color: #fb7185;">Minorista</span>`;
+                    }
+                } else {
+                    detailText = `${item.pages} un. × $${item.unitPrice.toLocaleString('es-AR')}`;
+                    rateBadgeHtml = `<span class="item-sub-tag" style="background: rgba(255,255,255,0.08); color: var(--text-muted);">Fijo</span>`;
+                }
+
+                return `
+                    <div class="cart-item-card">
+                        <div class="item-main-row">
+                            <div>
+                                <div class="item-title-text">${item.name}</div>
+                                <div>${rateBadgeHtml}</div>
+                            </div>
+                            <span class="item-cost-text">$${Math.round(item.finalPrice).toLocaleString('es-AR')}</span>
+                        </div>
+                        <div class="item-actions-row">
+                            <span>${detailText}</span>
+                            <div class="stepper-controls">
+                                <button class="stepper-btn" onclick="adjustItemCopies(${item.id}, -1)"><i class="ph ph-minus"></i></button>
+                                <button class="stepper-btn" onclick="adjustItemCopies(${item.id}, 1)"><i class="ph ph-plus"></i></button>
+                                <button class="trash-btn" onclick="removeItemFromCart(${item.id})"><i class="ph ph-trash"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // =========================================================
+        // MÓDULO REMITO: GENERACIÓN, EDICIÓN Y EXPORTACIÓN
+        // =========================================================
+        function openRemitoModal() {
+            setInitialRemitoDate();
+
+            remitoItems = cart.map(item => {
+                let qty = (item.type === 'print') ? (item.pages * item.copies) : item.pages;
+                let desc = item.name;
+                if (item.type === 'print') {
+                    desc += ` (${item.pages} pág × ${item.copies} copias)`;
+                }
+                let unitPrice = qty > 0 ? Math.round(item.finalPrice / qty) : Math.round(item.finalPrice);
+
+                return {
+                    id: Date.now() + Math.random(),
+                    qty: qty || 1,
+                    desc: desc,
+                    unitPrice: unitPrice,
+                    subtotal: Math.round(item.finalPrice)
+                };
             });
-            text += `------------------\n*TOTAL: ${total}*`;
-            
-            const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+
+            if (remitoItems.length === 0) {
+                remitoItems.push({
+                    id: Date.now(),
+                    qty: 1,
+                    desc: 'Impresiones / Trabajo gráfico',
+                    unitPrice: 0,
+                    subtotal: 0
+                });
+            }
+
+            renderRemitoTable();
+            document.getElementById('remito-modal').classList.add('active');
+        }
+
+        function renderRemitoTable() {
+            const tbody = document.getElementById('remito-table-rows');
+            tbody.innerHTML = remitoItems.map((item, idx) => `
+                <tr data-id="${item.id}">
+                    <td style="text-align: center;">
+                        <input type="number" class="sheet-row-inp num" value="${item.qty}" min="1" oninput="updateRemitoRow(${idx}, 'qty', this.value)">
+                    </td>
+                    <td>
+                        <input type="text" class="sheet-row-inp" value="${escapeHtml(item.desc)}" oninput="updateRemitoRow(${idx}, 'desc', this.value)">
+                    </td>
+                    <td style="text-align: right;">
+                        <input type="number" class="sheet-row-inp num" value="${item.unitPrice}" min="0" oninput="updateRemitoRow(${idx}, 'unitPrice', this.value)">
+                    </td>
+                    <td style="text-align: right; font-family: var(--font-mono); font-weight: 700; color: #0f172a;">
+                        $${item.subtotal.toLocaleString('es-AR')}
+                    </td>
+                    <td style="text-align: center;">
+                        <button class="trash-btn" onclick="deleteRemitoRow(${idx})" title="Eliminar fila">
+                            <i class="ph ph-trash" style="color: #ef4444;"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            recalculateRemitoSummary();
+        }
+
+        function updateRemitoRow(idx, field, value) {
+            const item = remitoItems[idx];
+            if (!item) return;
+
+            if (field === 'qty') {
+                item.qty = parseInt(value) || 0;
+            } else if (field === 'unitPrice') {
+                item.unitPrice = parseFloat(value) || 0;
+            } else if (field === 'desc') {
+                item.desc = value;
+            }
+
+            item.subtotal = item.qty * item.unitPrice;
+            renderRemitoTable();
+        }
+
+        function addManualRemitoRow() {
+            remitoItems.push({
+                id: Date.now() + Math.random(),
+                qty: 1,
+                desc: 'Nuevo ítem / Servicio',
+                unitPrice: 0,
+                subtotal: 0
+            });
+            renderRemitoTable();
+        }
+
+        function deleteRemitoRow(idx) {
+            remitoItems.splice(idx, 1);
+            renderRemitoTable();
+        }
+
+        function recalculateRemitoSummary() {
+            const subtotal = remitoItems.reduce((acc, curr) => acc + curr.subtotal, 0);
+            const discount = parseFloat(document.getElementById('remito-discount-inp').value) || 0;
+            const deposit = parseFloat(document.getElementById('remito-deposit-inp').value) || 0;
+
+            const total = Math.max(0, subtotal - discount);
+            const balance = Math.max(0, total - deposit);
+
+            document.getElementById('remito-subtotal-txt').textContent = `$${subtotal.toLocaleString('es-AR')}`;
+            document.getElementById('remito-total-txt').textContent = `$${total.toLocaleString('es-AR')}`;
+            document.getElementById('remito-balance-txt').textContent = `$${balance.toLocaleString('es-AR')}`;
+        }
+
+        // =========================================================
+        // MOTOR DE EXPORTACIÓN INFALIBLE: PDF & IMPRESIÓN
+        // =========================================================
+
+        function generateCleanRemitoPrintHTML() {
+            const remitoNum = document.getElementById('remito-num-field').value || 'S/N';
+            const dateStr = document.getElementById('remito-date-field').value || '';
+            const clientName = document.getElementById('remito-client-name').value || 'Consumidor Final';
+            const clientPhone = document.getElementById('remito-client-phone').value || '-';
+            const status = document.getElementById('remito-status-select').value || 'En Producción';
+            const notes = document.getElementById('remito-notes-field').value || '';
+
+            const subtotal = document.getElementById('remito-subtotal-txt').textContent;
+            const discount = parseFloat(document.getElementById('remito-discount-inp').value) || 0;
+            const total = document.getElementById('remito-total-txt').textContent;
+            const deposit = parseFloat(document.getElementById('remito-deposit-inp').value) || 0;
+            const balance = document.getElementById('remito-balance-txt').textContent;
+
+            return `
+                <div style="font-family: 'Plus Jakarta Sans', Arial, sans-serif; color: #0f172a; background: #ffffff; padding: 25px; max-width: 800px; margin: 0 auto; box-sizing: border-box;">
+                    <!-- ENCABEZADO CON LOGO OFICIAL -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cbd5e1; padding-bottom: 15px; margin-bottom: 15px;">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <img src="logo.png" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid #0f172a;" onerror="this.style.display='none'">
+                            <div>
+                                <h2 style="margin: 0; font-size: 20px; font-weight: 800; color: #0f172a; letter-spacing: -0.5px;">IMPRESIONES VCP</h2>
+                                <p style="margin: 2px 0 0; font-size: 11px; color: #64748b;">Cuadernillos · Libros · Impresiones & Gráfica · Villa Carlos Paz</p>
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 14px; font-weight: 800; color: #0f172a;">REMITO Nº ${escapeHtml(remitoNum)}</div>
+                            <div style="font-size: 11px; color: #64748b; margin-top: 3px;">Fecha: ${escapeHtml(dateStr)}</div>
+                        </div>
+                    </div>
+
+                    <!-- DATOS DEL CLIENTE -->
+                    <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 12px 16px; margin-bottom: 15px; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px; font-size: 12px;">
+                        <div><strong style="color: #475569;">CLIENTE:</strong> <span style="font-weight: 700; color: #0f172a;">${escapeHtml(clientName)}</span></div>
+                        <div><strong style="color: #475569;">TEL:</strong> ${escapeHtml(clientPhone)}</div>
+                        <div style="text-align: right;"><strong style="color: #475569;">ESTADO:</strong> <span style="font-weight: 700; color: #0284c7;">${escapeHtml(status)}</span></div>
+                    </div>
+
+                    <!-- TABLA DE ÍTEMS -->
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 12px;">
+                        <thead>
+                            <tr style="background: #f1f5f9; border-bottom: 2px solid #cbd5e1; text-align: left;">
+                                <th style="padding: 8px 10px; width: 60px; text-align: center;">CANT.</th>
+                                <th style="padding: 8px 10px;">DESCRIPCIÓN / TRABAJO</th>
+                                <th style="padding: 8px 10px; text-align: right; width: 110px;">UNITARIO</th>
+                                <th style="padding: 8px 10px; text-align: right; width: 110px;">SUBTOTAL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${remitoItems.map(i => `
+                                <tr style="border-bottom: 1px solid #e2e8f0;">
+                                    <td style="padding: 8px 10px; text-align: center; font-weight: 700;">${i.qty}</td>
+                                    <td style="padding: 8px 10px;">${escapeHtml(i.desc)}</td>
+                                    <td style="padding: 8px 10px; text-align: right; font-family: monospace;">$${i.unitPrice.toLocaleString('es-AR')}</td>
+                                    <td style="padding: 8px 10px; text-align: right; font-weight: 700; font-family: monospace;">$${i.subtotal.toLocaleString('es-AR')}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+
+                    <!-- RESUMEN Y OBSERVACIONES -->
+                    <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 15px; margin-top: 10px; font-size: 12px;">
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px;">
+                            <strong style="color: #475569; display: block; margin-bottom: 4px;">OBSERVACIONES / ENTREGA:</strong>
+                            <p style="margin: 0; color: #334155; line-height: 1.4; white-space: pre-wrap;">${escapeHtml(notes) || 'Sin observaciones adicionales.'}</p>
+                        </div>
+
+                        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 14px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #475569;">
+                                <span>Subtotal:</span><strong>${subtotal}</strong>
+                            </div>
+                            ${discount > 0 ? `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px; color: #ef4444;">
+                                    <span>Descuento:</span><strong>-$${discount.toLocaleString('es-AR')}</strong>
+                                </div>
+                            ` : ''}
+                            <div style="display: flex; justify-content: space-between; border-top: 1px solid #cbd5e1; padding-top: 6px; margin-top: 4px; font-size: 15px; font-weight: 800; color: #0f172a;">
+                                <span>TOTAL:</span><span>${total}</span>
+                            </div>
+                            ${deposit > 0 ? `
+                                <div style="display: flex; justify-content: space-between; margin-top: 4px; color: #16a34a; font-size: 12px;">
+                                    <span>Seña Abonada:</span><strong>$${deposit.toLocaleString('es-AR')}</strong>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-top: 6px; background: #e0f2fe; padding: 6px 8px; border-radius: 4px; font-size: 14px; font-weight: 800; color: #0284c7;">
+                                    <span>SALDO A PAGAR:</span><span>${balance}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+
+                    <!-- FIRMA Y PIE -->
+                    <div style="margin-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 11px; color: #64748b; border-top: 1px dashed #cbd5e1; padding-top: 12px;">
+                        <div>Comprobante no válido como factura · Impresiones VCP</div>
+                        <div style="text-align: center; border-top: 1px solid #94a3b8; width: 160px; padding-top: 4px;">Firma / Recibí Conforme</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 1. Descarga Directa en PDF usando html2pdf.js
+        function downloadRemitoPDF() {
+            const cleanHTML = generateCleanRemitoPrintHTML();
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = cleanHTML;
+            document.body.appendChild(tempDiv);
+
+            const remitoNum = document.getElementById('remito-num-field').value || '001';
+            const clientName = document.getElementById('remito-client-name').value.trim() || 'Cliente';
+            const fileName = `Remito_${remitoNum}_${clientName.replace(/\s+/g, '_')}.pdf`;
+
+            const opt = {
+                margin: [10, 10, 10, 10],
+                filename: fileName,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(tempDiv).save().then(() => {
+                document.body.removeChild(tempDiv);
+            }).catch(err => {
+                console.error(err);
+                document.body.removeChild(tempDiv);
+                printRemitoWindow();
+            });
+        }
+
+        // 2. Ventana de Impresión Directa y Aislada
+        function printRemitoWindow() {
+            const cleanHTML = generateCleanRemitoPrintHTML();
+            const printWin = window.open('', '_blank', 'width=850,height=900');
+            if (printWin) {
+                printWin.document.open();
+                printWin.document.write(`
+                    <!DOCTYPE html>
+                    <html lang="es">
+                    <head>
+                        <meta charset="UTF-8">
+                        <title>Imprimir Remito - Impresiones VCP</title>
+                        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+                        <style>
+                            @page { size: A4 portrait; margin: 12mm; }
+                            body { margin: 0; padding: 0; background: #fff; font-family: 'Plus Jakarta Sans', Arial, sans-serif; }
+                            @media print {
+                                body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                            }
+                        </style>
+                    </head>
+                    <body>
+                        ${cleanHTML}
+                        <script>
+                            window.onload = function() {
+                                setTimeout(function() {
+                                    window.print();
+                                    window.close();
+                                }, 250);
+                            };
+                        <\/script>
+                    </body>
+                    </html>
+                `);
+                printWin.document.close();
+            } else {
+                const container = document.getElementById('print-isolated-container');
+                container.innerHTML = cleanHTML;
+                window.print();
+            }
+        }
+
+        // WhatsApp para el Remito
+        function shareRemitoWhatsApp() {
+            const remitoNum = document.getElementById('remito-num-field').value || 'S/N';
+            const clientName = document.getElementById('remito-client-name').value || 'Cliente';
+            const dateStr = document.getElementById('remito-date-field').value || '';
+            const status = document.getElementById('remito-status-select').value || 'En Producción';
+            const notes = document.getElementById('remito-notes-field').value || '';
+
+            const subtotal = document.getElementById('remito-subtotal-txt').textContent;
+            const total = document.getElementById('remito-total-txt').textContent;
+            const deposit = document.getElementById('remito-deposit-inp').value || '0';
+            const balance = document.getElementById('remito-balance-txt').textContent;
+
+            let text = `📄 *COMPROBANTE / REMITO #${remitoNum}*\n`;
+            text += `🏢 *IMPRESIONES VCP*\n`;
+            text += `📅 Fecha: ${dateStr}\n`;
+            text += `👤 Cliente: ${clientName}\n`;
+            text += `📌 Estado: *${status}*\n`;
+            text += `--------------------------------\n`;
+            text += `*DETALLE DE TRABAJOS:*\n`;
+
+            remitoItems.forEach(i => {
+                text += `• ${i.qty}x ${i.desc} ($${i.unitPrice} c/u) = *$${i.subtotal.toLocaleString('es-AR')}*\n`;
+            });
+
+            text += `--------------------------------\n`;
+            text += `Subtotal: ${subtotal}\n`;
+            text += `*TOTAL FINAL: ${total}*\n`;
+            if (parseFloat(deposit) > 0) {
+                text += `Seña abonada: $${parseFloat(deposit).toLocaleString('es-AR')}\n`;
+                text += `*SALDO A PAGAR: ${balance}*\n`;
+            }
+            if (notes.trim()) {
+                text += `\n📝 *Observaciones:* ${notes}\n`;
+            }
+            text += `--------------------------------\n`;
+            text += `¡Muchas gracias por su confianza! ✨`;
+
+            const phone = document.getElementById('remito-client-phone').value.replace(/\D/g, '');
+            const url = phone ? `https://wa.me/${phone}?text=${encodeURIComponent(text)}` : `https://wa.me/?text=${encodeURIComponent(text)}`;
             window.open(url, '_blank');
         }
 
+        // WhatsApp para el Presupuesto
+        function shareWhatsApp() {
+            if (cart.length === 0) {
+                alert('El presupuesto está vacío.');
+                return;
+            }
+
+            const total = document.getElementById('ticket-total-val').textContent;
+            let text = `📄 *PRESUPUESTO - IMPRESIONES VCP*\n`;
+            text += `--------------------------------\n`;
+
+            cart.forEach(item => {
+                let subtext = (item.type === 'print') ? `${item.pages} pág × ${item.copies} copias` : `${item.pages} un.`;
+                text += `• *${item.name}* (${subtext}): $${Math.round(item.finalPrice).toLocaleString('es-AR')}\n`;
+            });
+
+            text += `--------------------------------\n`;
+            text += `*TOTAL APROXIMADO: ${total}*\n`;
+            text += `_Precios válidos por 48 hs. Consulta para coordinar la entrega._`;
+
+            window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function copyBudgetSummary() {
+            if (cart.length === 0) return;
+            const total = document.getElementById('ticket-total-val').textContent;
+            let text = `PRESUPUESTO IMPRESIONES VCP\n------------------------\n`;
+            cart.forEach(item => {
+                let subtext = (item.type === 'print') ? `${item.pages}p x ${item.copies}c` : `${item.pages} un.`;
+                text += `• ${item.name} (${subtext}): $${Math.round(item.finalPrice)}\n`;
+            });
+            text += `------------------------\nTOTAL: ${total}`;
+
+            navigator.clipboard.writeText(text).then(() => {
+                alert('¡Resumen copiado al portapapeles!');
+            }).catch(() => {
+                alert('No se pudo copiar automáticamente.');
+            });
+        }
+
+        // Control de modales
+        function openPriceModal() {
+            document.getElementById('price-modal').classList.add('active');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
         document.addEventListener('keydown', (e) => {
-            if(e.key === 'Enter') {
-                const active = document.activeElement;
-                if(active.id === 'inp-qty') document.getElementById('inp-copies').focus();
-                else if(active.id === 'inp-copies') active.blur(); 
+            if (e.key === 'Escape') {
+                closeModal('remito-modal');
+                closeModal('price-modal');
+                closeMobileCart();
             }
         });
 
+        // Drawer Móvil
+        function toggleMobileCart() {
+            const pane = document.getElementById('cart-sidebar-pane');
+            const backdrop = document.getElementById('mobile-cart-backdrop');
+            const closeBtn = document.getElementById('btn-close-mobile-cart');
+            
+            pane.classList.toggle('mobile-expanded');
+            const isOpen = pane.classList.contains('mobile-expanded');
+            
+            if (backdrop) backdrop.classList.toggle('active', isOpen);
+            if (closeBtn) closeBtn.style.display = isOpen ? 'block' : 'none';
+        }
+
+        function closeMobileCart() {
+            const pane = document.getElementById('cart-sidebar-pane');
+            const backdrop = document.getElementById('mobile-cart-backdrop');
+            const closeBtn = document.getElementById('btn-close-mobile-cart');
+            
+            pane.classList.remove('mobile-expanded');
+            if (backdrop) backdrop.classList.remove('active');
+            if (closeBtn) closeBtn.style.display = 'none';
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+        }
     </script>
 </body>
 </html>

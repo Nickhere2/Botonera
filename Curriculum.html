@@ -1,0 +1,2550 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Armá tu Currículum Profesional en PDF · Todo el País | Impresiones VCP</title>
+  
+  <!-- Favicon y SEO / Open Graph -->
+  <link rel="icon" type="image/png" href="logo.png">
+  <meta name="description" content="Armamos tu currículum profesional en PDF listo para enviar por WhatsApp, mail o portales de empleo e imprimir en cualquier lado. Envíos digitales a toda Argentina en menos de 24 hs. Precio único $8.900.">
+  <meta property="og:title" content="🚀 Tu Currículum Profesional en PDF · Envíos a Todo el País | Impresiones VCP">
+  <meta property="og:description" content="Completá tus datos en 5 minutos desde el celular y recibí tu CV en PDF listo para mandar o imprimir. Precio único $8.900. ¡Ves la muestra antes de pagar!">
+  <meta property="og:image" content="logo.png">
+  <meta property="og:type" content="website">
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Phosphor Icons -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+  <style>
+    :root {
+      --cyan: #00b4d8;
+      --cyan-dark: #0284c7;
+      --magenta: #f72585;
+      --yellow: #ffb703;
+      --dark-bg: #050811;
+      --dark-card: #0d1322;
+      --whatsapp: #25D366;
+      --whatsapp-dark: #16a34a;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --surface: #ffffff;
+      --surface-subtle: #f8fafc;
+      --border: #e2e8f0;
+      --radius-sm: 10px;
+      --radius-md: 14px;
+      --radius-lg: 24px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    body {
+      background-color: var(--dark-bg);
+      background-image:
+        radial-gradient(circle at 12% 10%, rgba(0, 180, 216, 0.2) 0%, transparent 40%),
+        radial-gradient(circle at 88% 85%, rgba(247, 37, 133, 0.16) 0%, transparent 40%),
+        linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 34px 34px, 34px 34px;
+      min-height: 100vh;
+      color: var(--text-main);
+      padding: 14px 12px 90px 12px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* CMYK Bar */
+    .cmyk-line {
+      height: 5px;
+      display: flex;
+      width: 100%;
+    }
+    .cmyk-c { flex: 1; background: #00b4d8; }
+    .cmyk-m { flex: 1; background: #f72585; }
+    .cmyk-y { flex: 1; background: #ffb703; }
+    .cmyk-k { flex: 1; background: #090d16; }
+
+    /* App Container */
+    .app-card {
+      width: 100%;
+      max-width: 680px;
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* Top Trust Banner */
+    .trust-top-banner {
+      background: #071020;
+      color: #cbd5e1;
+      font-size: 11px;
+      font-weight: 700;
+      text-align: center;
+      padding: 7px 12px;
+      letter-spacing: 0.25px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      border-bottom: 1px solid rgba(56, 189, 248, 0.16);
+    }
+    .urgency-dot {
+      width: 7px;
+      height: 7px;
+      background: #4ade80;
+      border-radius: 50%;
+      display: inline-block;
+      box-shadow: 0 0 10px #4ade80;
+      flex-shrink: 0;
+      animation: blinkDot 1.6s infinite;
+    }
+    @keyframes blinkDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Header */
+    .brand-header {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(0, 180, 216, 0.16) 0%, transparent 65%),
+        linear-gradient(160deg, #090f1d 0%, #121c30 100%);
+      color: #fff;
+      padding: 15px 18px 14px;
+      text-align: center;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .brand-lockup {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+    }
+    .brand-logo-wrap {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      padding: 2.5px;
+      background: linear-gradient(135deg, #00b4d8 0%, #f72585 52%, #ffb703 100%);
+      box-shadow: 0 0 22px rgba(0, 180, 216, 0.3), 0 6px 16px rgba(0, 0, 0, 0.55);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .brand-logo-wrap img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #000000;
+      display: block;
+    }
+    .brand-identity {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+    }
+    .brand-name-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      color: #ffffff;
+      line-height: 1;
+    }
+    .brand-name-text span {
+      color: #38bdf8;
+    }
+    .social-proof-bar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: #fde047;
+      background: rgba(250, 204, 21, 0.1);
+      border: 1px solid rgba(250, 204, 21, 0.25);
+      padding: 3px 9px;
+      border-radius: 99px;
+      letter-spacing: 0.1px;
+    }
+    .brand-header h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      line-height: 1.18;
+      background: linear-gradient(135deg, #ffffff 35%, #7dd3fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .brand-header p {
+      font-size: 13px;
+      color: #94a3b8;
+      max-width: 520px;
+      line-height: 1.45;
+    }
+
+    /* Progress Bar */
+    .progress-section {
+      background: #f8fafc;
+      padding: 12px 20px;
+      border-bottom: 1px solid var(--border);
+    }
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+      flex-wrap: wrap;
+    }
+    .progress-pills-right {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .progress-info .step-title-pill {
+      color: var(--cyan-dark);
+      background: #e0f2fe;
+      border: 1px solid #bae6fd;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .time-left-pill {
+      color: #15803d;
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      padding: 3px 9px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+    .progress-track {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--cyan) 0%, #3b82f6 50%, var(--magenta) 100%);
+      width: 0%;
+      transition: width 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+      border-radius: 10px;
+    }
+
+    /* Steps Content */
+    .step-container {
+      padding: 20px 18px 22px;
+      background: #ffffff;
+    }
+    .step-content {
+      display: none;
+      animation: stepFade 0.25s ease forwards;
+    }
+    .step-content.active {
+      display: block;
+    }
+    @keyframes stepFade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-header {
+      margin-bottom: 18px;
+    }
+    .step-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      color: #0f172a;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .step-title > i {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: #f1f5f9;
+      border: 1px solid #e2e8f0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+      flex-shrink: 0;
+    }
+    .step-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 5px;
+      line-height: 1.45;
+    }
+
+    /* Oferta Única Paso 1 (100% Digital - $8.900) */
+    .single-offer-card {
+      background:
+        radial-gradient(circle at 100% 0%, rgba(0, 180, 216, 0.08) 0%, transparent 55%),
+        linear-gradient(180deg, #f8fcff 0%, #ffffff 100%);
+      border: 1.5px solid #bae6fd;
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 14px 32px -12px rgba(2, 132, 199, 0.2), inset 0 1px 0 rgba(255,255,255,0.9);
+      margin-bottom: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+    .single-offer-card::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--cyan) 0%, #3b82f6 50%, var(--magenta) 100%);
+    }
+    .offer-main-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .offer-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      color: #0f172a;
+      line-height: 1.2;
+    }
+    .offer-subtitle {
+      font-size: 12.5px;
+      color: #475569;
+      margin-top: 3px;
+      font-weight: 500;
+    }
+    .offer-price-box {
+      text-align: right;
+    }
+    @media (max-width: 480px) {
+      .offer-price-box { text-align: left; }
+    }
+    .offer-price {
+      font-family: 'Outfit', sans-serif;
+      font-size: 33px;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.6px;
+      background: linear-gradient(135deg, #0284c7 0%, #0f172a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      line-height: 1;
+    }
+    .offer-price-sub {
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      color: #15803d;
+      background: #dcfce7;
+      border: 1px solid #bbf7d0;
+      padding: 2px 8px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-top: 4px;
+    }
+    .plan-features {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+      color: #1e293b;
+    }
+    .plan-features li {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      line-height: 1.35;
+    }
+    .plan-features li i {
+      color: #16a34a;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    .more-info-details {
+      margin-top: 14px;
+      border-top: 1px solid #e2e8f0;
+      padding-top: 10px;
+    }
+    .more-info-details summary {
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748b;
+      cursor: pointer;
+      text-align: center;
+      list-style: none;
+      transition: color 0.15s;
+    }
+    .more-info-details summary:hover {
+      color: var(--cyan-dark);
+    }
+    .more-info-details summary::-webkit-details-marker { display: none; }
+    .more-info-body {
+      margin-top: 12px;
+    }
+
+    /* Micro-testimonio CRO */
+    .trust-review-box {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      color: #475569;
+    }
+    .trust-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #e0f2fe, #bae6fd);
+      color: #0369a1;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      font-size: 14px;
+    }
+
+    /* Botón Empezar Destacado */
+    .btn-start-hero {
+      width: 100%;
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 60%, #0369a1 100%);
+      color: #ffffff;
+      padding: 16px 20px;
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: 0.4px;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 10px 26px -4px rgba(2, 132, 199, 0.5), inset 0 1px 0 rgba(255,255,255,0.35);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-start-hero:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 30px -4px rgba(2, 132, 199, 0.6), inset 0 1px 0 rgba(255,255,255,0.45);
+    }
+    .btn-start-hero:active {
+      transform: scale(0.985);
+    }
+    .guarantees-bar {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #64748b;
+      margin-top: 11px;
+      flex-wrap: wrap;
+    }
+    .guarantees-bar span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Formularios y Campos */
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      margin-bottom: 6px;
+    }
+    .form-label .req {
+      color: var(--magenta);
+    }
+    .form-label .opt {
+      font-weight: 500;
+      font-size: 11px;
+      color: #94a3b8;
+      margin-left: 4px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 11px;
+      font-size: 14px;
+      color: #0f172a;
+      background: #f8fafc;
+      transition: all 0.2s ease;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: #0ea5e9;
+      box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.14);
+      background: #ffffff;
+    }
+    textarea.form-control {
+      min-height: 82px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 520px) {
+      .form-row { grid-template-columns: 1fr; }
+    }
+
+    /* Chips rápidos */
+    .chips-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #475569;
+      margin: 6px 0 5px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .chips-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 9px;
+    }
+    .chip {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #334155;
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      user-select: none;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    }
+    .chip:hover {
+      background: #f1f5f9;
+      border-color: #94a3b8;
+      transform: translateY(-1px);
+    }
+    .chip.selected {
+      background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+      color: #ffffff;
+      border-color: #0284c7;
+      box-shadow: 0 3px 10px rgba(2, 132, 199, 0.28);
+    }
+
+    /* Bloques dinámicos */
+    .card-block {
+      background: #ffffff;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 12px;
+      position: relative;
+      box-shadow: 0 4px 14px -4px rgba(15, 23, 42, 0.06);
+    }
+    .card-block-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 9px;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .card-block-number {
+      font-size: 11px;
+      font-weight: 800;
+      color: #0369a1;
+      background: #e0f2fe;
+      padding: 3px 10px;
+      border-radius: 99px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn-remove-block {
+      background: #fee2e2;
+      color: #ef4444;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .btn-add-more {
+      width: 100%;
+      background: #f0fdf4;
+      border: 1.5px dashed #22c55e;
+      color: #15803d;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s;
+      margin-top: 6px;
+    }
+    .btn-add-more:hover {
+      background: #dcfce7;
+      border-color: #16a34a;
+    }
+
+    /* Toggle primer empleo */
+    .first-job-toggle {
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      border-radius: 10px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .first-job-toggle input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--yellow);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .first-job-toggle span {
+      font-size: 13px;
+      font-weight: 700;
+      color: #92400e;
+    }
+
+    /* Selector de Estilo de Diseño (Paso 8) */
+    .style-selector-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    @media (max-width: 500px) {
+      .style-selector-grid { grid-template-columns: 1fr; }
+    }
+    .style-option-card {
+      border: 1.5px solid #e2e8f0;
+      border-radius: 14px;
+      padding: 13px 10px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #ffffff;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+    .style-option-card:hover {
+      border-color: #7dd3fc;
+      transform: translateY(-2px);
+    }
+    .style-option-card.selected {
+      border-color: var(--cyan-dark);
+      background: linear-gradient(180deg, #f0f9ff 0%, #ffffff 100%);
+      box-shadow: 0 8px 18px -6px rgba(2, 132, 199, 0.28), 0 0 0 1px rgba(2, 132, 199, 0.15);
+    }
+    .style-swatch {
+      height: 6px;
+      width: 48px;
+      border-radius: 99px;
+      margin: 0 auto 8px;
+    }
+    .style-swatch.modern { background: linear-gradient(90deg, #00b4d8, #3b82f6, #f72585); }
+    .style-swatch.exec { background: linear-gradient(90deg, #0f172a, #334155, #64748b); }
+    .style-swatch.classic { background: linear-gradient(90deg, #cbd5e1, #0284c7, #cbd5e1); }
+    .style-option-title {
+      font-weight: 800;
+      font-size: 13px;
+      color: #0f172a;
+      margin-top: 5px;
+    }
+    .style-option-desc {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+
+    /* Opciones de Foto */
+    .photo-choice-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    @media (max-width: 500px) {
+      .photo-choice-grid { grid-template-columns: 1fr; }
+    }
+    .photo-choice-btn {
+      background: #ffffff;
+      border: 1.5px dashed #38bdf8;
+      border-radius: var(--radius-md);
+      padding: 18px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      box-shadow: 0 3px 10px rgba(15, 23, 42, 0.04);
+    }
+    .photo-choice-btn:hover {
+      background: #f0f9ff;
+      border-color: #0284c7;
+      transform: translateY(-2px);
+    }
+    .photo-choice-btn.primary-cam {
+      background: linear-gradient(155deg, #f0f9ff 0%, #e0f2fe 100%);
+      border: 1.5px solid #0ea5e9;
+    }
+    .photo-choice-btn .choice-icon {
+      font-size: 32px;
+      color: #00b4d8;
+      margin-bottom: 6px;
+    }
+    .photo-choice-btn .choice-title {
+      font-weight: 800;
+      font-size: 14px;
+      color: #0f172a;
+    }
+    .photo-choice-btn .choice-sub {
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .photo-choice-btn input {
+      display: none;
+    }
+
+    .photo-skip-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 480px) {
+      .photo-skip-row { grid-template-columns: 1fr; }
+    }
+    .btn-photo-alt {
+      background: #f1f5f9;
+      border: 1.5px solid #cbd5e1;
+      color: #334155;
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .btn-photo-alt:hover {
+      background: #e2e8f0;
+    }
+    .btn-photo-alt.active-mode {
+      background: #ecfdf5;
+      border-color: #16a34a;
+      color: #15803d;
+    }
+
+    .photo-preview-wrap {
+      text-align: center;
+      display: none;
+      margin-top: 12px;
+      margin-bottom: 12px;
+    }
+    .photo-avatar {
+      width: 125px;
+      height: 125px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #ffffff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+      display: inline-block;
+    }
+
+    .tips-card {
+      background: #fffbeb;
+      border-left: 4px solid var(--yellow);
+      border-radius: var(--radius-sm);
+      padding: 11px 14px;
+      font-size: 12px;
+      color: #78350f;
+      line-height: 1.45;
+      margin-top: 10px;
+    }
+
+    /* Tarjeta Ejecutiva de Vista Previa (Paso 8) */
+    .cv-preview-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      color: #ffffff;
+      border-radius: 14px;
+      padding: 16px;
+      margin-top: 18px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+    }
+    .cv-preview-info h4 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+    .cv-preview-info p {
+      font-size: 12px;
+      color: #38bdf8;
+      font-weight: 600;
+      margin-top: 2px;
+    }
+    .cv-preview-meta {
+      font-size: 11px;
+      color: #94a3b8;
+      margin-top: 6px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .summary-box {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: var(--radius-md);
+      padding: 14px;
+      font-family: monospace;
+      font-size: 11.5px;
+      line-height: 1.45;
+      max-height: 200px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      color: #1e293b;
+      margin-top: 8px;
+    }
+
+    /* Modal de Subida */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(9, 13, 22, 0.85);
+      backdrop-filter: blur(6px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 16px;
+    }
+    .modal-card {
+      background: #ffffff;
+      border-radius: var(--radius-lg);
+      max-width: 440px;
+      width: 100%;
+      padding: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+    .modal-icon-badge {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: #dcfce7;
+      color: #16a34a;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      margin-bottom: 12px;
+    }
+    .modal-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 6px;
+    }
+    .modal-desc {
+      font-size: 13px;
+      color: #475569;
+      line-height: 1.5;
+      margin-bottom: 16px;
+    }
+
+    .spinner-ring {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      border: 3.5px solid #e2e8f0;
+      border-radius: 50%;
+      border-top-color: var(--cyan);
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 10px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Botones de Navegación */
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 16px 20px;
+      background: #f8fafc;
+      border-top: 1px solid var(--border);
+    }
+    .btn {
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+    .btn-prev {
+      background: #e2e8f0;
+      color: #475569;
+    }
+    .btn-prev:hover {
+      background: #cbd5e1;
+    }
+    .btn-next {
+      background: linear-gradient(135deg, var(--cyan) 0%, #0284c7 100%);
+      color: #ffffff;
+      flex-grow: 1;
+      box-shadow: 0 4px 14px rgba(0, 180, 216, 0.35);
+    }
+    .btn-next:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(0, 180, 216, 0.45);
+    }
+    .btn-whatsapp-final {
+      background: linear-gradient(135deg, #25D366 0%, #16a34a 100%);
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 800;
+      padding: 16px 20px;
+      border-radius: 12px;
+      width: 100%;
+      box-shadow: 0 8px 24px rgba(37, 211, 102, 0.4);
+      animation: pulseWhatsApp 2s infinite;
+    }
+    @keyframes pulseWhatsApp {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.015); }
+    }
+    .btn-copy {
+      background: #1e293b;
+      color: #ffffff;
+      width: 100%;
+    }
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 11px 18px;
+      border-radius: 30px;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.25s ease;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.15);
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .footer-note {
+      text-align: center;
+      font-size: 11px;
+      color: #64748b;
+      padding: 12px 10px 16px;
+      background: #f8fafc;
+      border-top: 1px solid #e2e8f0;
+    }
+    .footer-note a {
+      color: var(--cyan-dark);
+      font-weight: 700;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-card">
+    <!-- Barra CMYK -->
+    <div class="cmyk-line">
+      <div class="cmyk-c"></div>
+      <div class="cmyk-m"></div>
+      <div class="cmyk-y"></div>
+      <div class="cmyk-k"></div>
+    </div>
+
+    <!-- Banner Superior de Cero Riesgo -->
+    <div class="trust-top-banner">
+      <span class="urgency-dot"></span>
+      <span>🔒 Pagás recién al ver tu muestra por WhatsApp</span>
+    </div>
+
+    <!-- Encabezado Compacto con Logo Impresiones VCP -->
+    <header class="brand-header">
+      <div class="brand-lockup">
+        <div class="brand-logo-wrap">
+          <img src="logo.png" alt="Impresiones VCP" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-weight:900;font-size:13px;color:#fff;\'>VCP</span>';">
+        </div>
+        <div class="brand-identity">
+          <div class="brand-name-text">IMPRESIONES <span>VCP</span></div>
+          <div class="social-proof-bar">
+            <span>⭐⭐⭐⭐⭐</span>
+            <span>4.9/5 · +120 CVs armados</span>
+          </div>
+        </div>
+      </div>
+      <h1>Tu Currículum Profesional en PDF</h1>
+    </header>
+
+    <!-- Barra de Progreso (oculta en Paso 1 para no saturar) -->
+    <div class="progress-section" id="progressSection" style="display:none;">
+      <div class="progress-info">
+        <span>Paso <strong id="stepNum">1</strong> de <strong id="stepTotal">8</strong></span>
+        <div class="progress-pills-right">
+          <span class="time-left-pill" id="stepTimePill">⏱️ 5 minutos</span>
+          <span class="step-title-pill" id="stepPill">Inicio</span>
+        </div>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+    </div>
+
+    <!-- Formulario / Pasos -->
+    <form id="cvWizardForm" onsubmit="return false;">
+      <div class="step-container">
+
+        <!-- PASO 1: Directo al grano (entra completo en 1 pantalla de celular) -->
+        <div class="step-content active" data-step="1">
+          <div class="single-offer-card" style="padding:16px; margin-bottom:14px;">
+            <div class="offer-main-row" style="margin-bottom:10px; padding-bottom:10px;">
+              <div>
+                <div class="offer-title" style="font-size:18px;">Envío a todo el país</div>
+                <div class="offer-subtitle">Listo para WhatsApp, Mail o imprimir en A4</div>
+              </div>
+              <div class="offer-price-box">
+                <div class="offer-price">$8.900</div>
+                <span class="offer-price-sub">PRECIO ÚNICO</span>
+              </div>
+            </div>
+
+            <ul class="plan-features">
+              <li><i class="ph ph-check-circle-fill"></i> <span><strong>Listo en menos de 24 hs</strong> en formato PDF</span></li>
+              <li><i class="ph ph-check-circle-fill"></i> <span><strong>Diseño moderno y redacción</strong> (sirve si es 1° empleo)</span></li>
+              <li><i class="ph ph-check-circle-fill"></i> <span><strong>Cero riesgo:</strong> ves la muestra antes de transferir</span></li>
+            </ul>
+          </div>
+
+          <button type="button" class="btn-start-hero" onclick="navegarPaso(1)">
+            EMPEZAR MI CV AHORA <i class="ph ph-arrow-right" style="font-size:20px;"></i>
+          </button>
+
+          <div class="guarantees-bar" style="margin-top:10px;">
+            <span><i class="ph ph-clock"></i> Menos de 5 min</span>
+            <span>•</span>
+            <span><i class="ph ph-floppy-disk"></i> Guardado automático</span>
+          </div>
+
+          <!-- Opiniones y detalles completos colapsados para no saturar -->
+          <details class="more-info-details">
+            <summary>Ver opiniones y detalles completos ▾</summary>
+            <div class="more-info-body">
+              <div class="trust-review-box" style="margin-bottom:10px;">
+                <div class="trust-avatar">MC</div>
+                <div>
+                  <strong>"Lo recibí por WhatsApp rápido y quedó impecable"</strong><br>
+                  <span>Lo mandé desde el celular a varios comercios y también lo imprimí cerca de casa. A los dos días me llamaron. — <em>Micaela C.</em></span>
+                </div>
+              </div>
+              <ul class="plan-features" style="font-size:12px;">
+                <li><i class="ph ph-check-bold"></i> Archivo PDF de alta definición tamaño A4</li>
+                <li><i class="ph ph-check-bold"></i> Optimizado para portales (Computrabajo, LinkedIn, Bumeran)</li>
+                <li><i class="ph ph-check-bold"></i> Elegís tu estilo (Moderno, Ejecutivo o Clásico) y foto opcional</li>
+              </ul>
+            </div>
+          </details>
+        </div>
+
+        <!-- PASO 2: Datos de Contacto -->
+        <div class="step-content" data-step="2">
+          <div class="step-header">
+            <div class="step-title"><i class="ph ph-identification-card" style="color:var(--cyan)"></i> Tus Datos de Contacto</div>
+            <div class="step-subtitle">Datos que irán destacados arriba en tu CV para que te contacten rápido.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nombre y Apellido Completo <span class="req">*</span></label>
+            <input type="text" class="form-control" name="nombre" required placeholder="Ej: Valentino Gómez" oninput="guardarBorrador()">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Tu WhatsApp / Celular <span class="req">*</span></label>
+              <input type="tel" class="form-control" name="telefono" inputmode="tel" required placeholder="Ej: 3541 654321 o 11 4567 8900" oninput="guardarBorrador()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Correo Electrónico <span class="opt">(opcional)</span></label>
+              <input type="text" class="form-control" id="emailInput" name="email" inputmode="email" placeholder="tuemail@gmail.com" oninput="guardarBorrador()">
+              <div class="chips-container" style="margin-top:6px; margin-bottom:0;">
+                <span class="chip" style="padding:4px 9px; font-size:11px;" onclick="completarDominioEmail('@gmail.com')">+ @gmail.com</span>
+                <span class="chip" style="padding:4px 9px; font-size:11px;" onclick="completarDominioEmail('@hotmail.com')">+ @hotmail.com</span>
+                <span class="chip" style="padding:4px 9px; font-size:11px;" onclick="setEmailNoTengo()">Sin email</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Localidad / Ciudad <span class="req">*</span> <span class="opt">(tocá rápido o escribí para autocompletar)</span></label>
+            <div class="chips-container" id="ciudadChipsContainer">
+              <span class="chip" onclick="seleccionarCiudadRapida(this, 'Villa Carlos Paz')">📍 Villa Carlos Paz</span>
+              <span class="chip" onclick="seleccionarCiudadRapida(this, 'Córdoba Capital')">Córdoba Capital</span>
+              <span class="chip" onclick="seleccionarCiudadRapida(this, 'Buenos Aires / GBA')">Buenos Aires / GBA</span>
+              <span class="chip" onclick="seleccionarCiudadRapida(this, 'Rosario')">Rosario</span>
+            </div>
+            <div class="form-row">
+              <div>
+                <input type="text" class="form-control" id="ciudadInput" name="ciudad" list="ciudadesArg" required placeholder="Escribí tu ciudad o elegí arriba..." oninput="sincronizarCiudadAlEscribir()">
+              </div>
+              <div>
+                <input type="text" class="form-control" name="barrio" placeholder="Barrio o Zona (opcional)" oninput="guardarBorrador()">
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">¿Tenés movilidad propia? <span class="opt">(opcional)</span></label>
+            <div class="chips-container" data-target="movilidad">
+              <span class="chip" onclick="toggleChip(this, 'movilidad')">🛵 Moto propia</span>
+              <span class="chip" onclick="toggleChip(this, 'movilidad')">🚗 Auto propio</span>
+              <span class="chip" onclick="toggleChip(this, 'movilidad')">🚲 Bicicleta</span>
+              <span class="chip" onclick="toggleChip(this, 'movilidad')">🚌 Transporte público</span>
+            </div>
+            <input type="hidden" name="movilidad" id="movilidadInput">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Carnet de Conducir vigente <span class="opt">(opcional)</span></label>
+            <div class="chips-container" data-target="carnet">
+              <span class="chip" onclick="toggleChip(this, 'carnet', true)">Auto (B1)</span>
+              <span class="chip" onclick="toggleChip(this, 'carnet', true)">Moto (A)</span>
+              <span class="chip" onclick="toggleChip(this, 'carnet', true)">Profesional</span>
+              <span class="chip" onclick="toggleChip(this, 'carnet', false)">Sin carnet</span>
+            </div>
+            <input type="hidden" name="carnet" id="carnetInput">
+          </div>
+        </div>
+
+        <!-- PASO 3: Información Personal & Disponibilidad -->
+        <div class="step-content" data-step="3">
+          <div class="step-header">
+            <div class="step-title"><i class="ph ph-calendar-check" style="color:var(--magenta)"></i> Edad y Disponibilidad Horaria</div>
+            <div class="step-subtitle">Las empresas y comercios valoran muchísimo saber qué horarios podés cubrir.</div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Fecha de Nacimiento <span class="opt">(calcula tu edad sola)</span></label>
+              <input type="date" class="form-control" name="fechaNac" id="fechaNacInput" onchange="calcularEdadAutomatica()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Edad actual <span class="opt">(años)</span></label>
+              <input type="number" class="form-control" id="edadInput" name="edad" inputmode="numeric" placeholder="Ej: 23" oninput="guardarBorrador()">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">DNI <span class="opt">(opcional)</span></label>
+              <input type="text" class="form-control" name="dni" inputmode="numeric" placeholder="Ej: 43.123.456" oninput="guardarBorrador()">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estado Civil / Nacionalidad <span class="opt">(opcional)</span></label>
+              <input type="text" class="form-control" name="nacionalidad" placeholder="Ej: Soltero/a - Argentina" value="Argentina" oninput="guardarBorrador()">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Disponibilidad Horaria <span class="opt">(podés tocar varias)</span></label>
+            <div class="chips-container" data-target="disponibilidad">
+              <span class="chip" onclick="toggleChip(this, 'disponibilidad', true)">⏰ Full Time (Tiempo completo)</span>
+              <span class="chip" onclick="toggleChip(this, 'disponibilidad', true)">⏱️ Part Time (Medio tiempo)</span>
+              <span class="chip" onclick="toggleChip(this, 'disponibilidad', true)">🔄 Horarios Rotativos / Cortados</span>
+              <span class="chip" onclick="toggleChip(this, 'disponibilidad', true)">🌅 Turno Mañana</span>
+              <span class="chip" onclick="toggleChip(this, 'disponibilidad', true)">🌆 Turno Tarde / Noche</span>
+              <span class="chip" onclick="toggleChip(this, 'disponibilidad', true)">☀️ Fines de semana / Temporada</span>
+              <span class="chip" onclick="toggleChip(this, 'disponibilidad', true)">⚡ Incorporación inmediata</span>
+            </div>
+            <input type="hidden" name="disponibilidad" id="disponibilidadInput">
+          </div>
+        </div>
+
+        <!-- PASO 4: Puesto al que aspirás + Redactor de Perfil en 1 Clic -->
+        <div class="step-content" data-step="4">
+          <div class="step-header">
+            <div class="step-title"><i class="ph ph-target" style="color:var(--yellow)"></i> ¿A qué puestos apuntás?</div>
+            <div class="step-subtitle">Nosotros redactamos tu presentación profesional según los rubros que elijas.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Rubros de tu interés <span class="opt">(tocá uno o varios)</span></label>
+            <div class="chips-container" data-target="puestoDeseado">
+              <span class="chip" onclick="toggleChip(this, 'puestoDeseado', true)">🛒 Atención al Público / Ventas</span>
+              <span class="chip" onclick="toggleChip(this, 'puestoDeseado', true)">💵 Cajero/a y Encargado</span>
+              <span class="chip" onclick="toggleChip(this, 'puestoDeseado', true)">🍽️ Gastronomía / Mozo / Cafetería</span>
+              <span class="chip" onclick="toggleChip(this, 'puestoDeseado', true)">👨🍳 Cocina / Ayudante / Bachero</span>
+              <span class="chip" onclick="toggleChip(this, 'puestoDeseado', true)">🏨 Hotelería / Recepción / Mucama</span>
+              <span class="chip" onclick="toggleChip(this, 'puestoDeseado', true)">💻 Administración / Secretaría</span>
+              <span class="chip" onclick="toggleChip(this, 'puestoDeseado', true)">📦 Depósito / Reparto / Cadetería</span>
+              <span class="chip" onclick="toggleChip(this, 'puestoDeseado', true)">🧹 Limpieza / Maestranza</span>
+              <span class="chip" onclick="toggleChip(this, 'puestoDeseado', true)">🔧 Mantenimiento / Oficios</span>
+            </div>
+            <input type="hidden" name="puestoDeseado" id="puestoDeseadoInput">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Tu Presentación / Perfil Profesional <span class="opt">(tocá una plantilla o escribí la tuya)</span></label>
+            <div class="chips-label"><i class="ph ph-magic-wand" style="color:var(--cyan-dark)"></i> Plantillas listas para usar en 1 clic:</div>
+            <div class="chips-container">
+              <span class="chip" onclick="usarPlantillaPerfil('Persona responsable, puntual y proactiva, con excelente trato hacia el público y facilidad para el trabajo en equipo. Me adapto rápido a nuevas tareas con total compromiso.')">✨ Perfil Comercial / Atención</span>
+              <span class="chip" onclick="usarPlantillaPerfil('Cuento con experiencia en atención dinámica, manejo de caja y trato cordial con clientes. Busco sumar valor desde el primer día con orden y buena predisposición.')">✨ Perfil Con Experiencia</span>
+              <span class="chip" onclick="usarPlantillaPerfil('Joven con gran entusiasmo por aprender, excelente presencia, puntualidad y responsabilidad. Busco una oportunidad laboral donde demostrar mi compromiso y ganas de trabajar.')">✨ Perfil Primer Empleo</span>
+              <span class="chip" onclick="usarPlantillaPerfil('Perfil organizado, resolutivo y detallista, con manejo de herramientas informáticas, gestión administrativa y atención personalizada.')">✨ Perfil Administrativo / Recepción</span>
+            </div>
+            <textarea class="form-control" name="perfil" placeholder="Tocá una de las plantillas de arriba o contanos brevemente cómo trabajás..." oninput="guardarBorrador()"></textarea>
+          </div>
+        </div>
+
+        <!-- PASO 5: Experiencia Laboral con Asistente de Tareas -->
+        <div class="step-content" data-step="5">
+          <div class="step-header">
+            <div class="step-title"><i class="ph ph-briefcase" style="color:var(--cyan)"></i> Experiencia Laboral</div>
+            <div class="step-subtitle">Incluí trabajos anteriores, comercios, negocios familiares o trabajos por tu cuenta.</div>
+          </div>
+
+          <label class="first-job-toggle" for="checkPrimerEmpleo">
+            <input type="checkbox" id="checkPrimerEmpleo" name="sinExperiencia" onchange="togglePrimerEmpleo()">
+            <span>👉 Busco mi primer empleo (Destacaremos tus habilidades y formación)</span>
+          </label>
+
+          <div id="experienciasWrapper">
+            <div id="experienciasList"></div>
+            <button type="button" class="btn-add-more" onclick="agregarBloqueExperiencia()">
+              <i class="ph ph-plus-circle"></i> + Agregar otro trabajo o experiencia
+            </button>
+          </div>
+        </div>
+
+        <!-- PASO 6: Estudios y Educación -->
+        <div class="step-content" data-step="6">
+          <div class="step-header">
+            <div class="step-title"><i class="ph ph-graduation-cap" style="color:var(--magenta)"></i> Estudios y Cursos</div>
+            <div class="step-subtitle">Tu nivel de estudios y cualquier curso o capacitación que sume puntos.</div>
+          </div>
+
+          <div id="educacionList"></div>
+          <button type="button" class="btn-add-more" onclick="agregarBloqueEducacion()">
+            <i class="ph ph-plus-circle"></i> + Agregar otro estudio o carrera
+          </button>
+
+          <div class="form-group" style="margin-top:20px;">
+            <label class="form-label">Cursos, Carnets o Capacitaciones <span class="opt">(tocá para sumar rápido)</span></label>
+            <div class="chips-container">
+              <span class="chip" onclick="sumarCursoRapido('Carnet de Manipulación de Alimentos')">+ Manipulación de Alimentos</span>
+              <span class="chip" onclick="sumarCursoRapido('Curso de Atención al Cliente y Ventas')">+ Atención al Cliente</span>
+              <span class="chip" onclick="sumarCursoRapido('Computación / Paquete Office')">+ Computación / Office</span>
+              <span class="chip" onclick="sumarCursoRapido('Curso de Barista / Cafetería')">+ Barista / Cafetería</span>
+              <span class="chip" onclick="sumarCursoRapido('Primeros Auxilios y RCP')">+ RCP / Primeros Auxilios</span>
+            </div>
+            <textarea class="form-control" id="cursosTextarea" name="cursos" placeholder="Ej: Curso de Manipulación de Alimentos vigente, Secretariado, Excel, etc." oninput="guardarBorrador()"></textarea>
+          </div>
+        </div>
+
+        <!-- PASO 7: Habilidades y Referencias -->
+        <div class="step-content" data-step="7">
+          <div class="step-header">
+            <div class="step-title"><i class="ph ph-wrench" style="color:var(--yellow)"></i> Habilidades & Referencias</div>
+            <div class="step-subtitle">Tocá todas las habilidades que manejes para armar tu columna destacada.</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Habilidades Prácticas y de Trabajo</label>
+            <div class="chips-container" data-skill-cat="tecnicas">
+              <span class="chip" onclick="toggleHabilidad(this, 'tecnicas', 'Manejo de Caja, Efectivo y Posnet')">+ Caja y Posnet</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'tecnicas', 'Cobros con MercadoPago, QR y Transferencias')">+ MercadoPago / QR</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'tecnicas', 'Atención al Público y Asesoramiento')">+ Atención al Público</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'tecnicas', 'Control de Stock y Reposición')">+ Stock y Reposición</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'tecnicas', 'Manejo de PC, Word y Excel')">+ PC / Word / Excel</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'tecnicas', 'Ventas por WhatsApp Business y Redes')">+ WhatsApp / Redes</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'tecnicas', 'Manejo de Cafetera Express y Bandeja')">+ Cafetera y Bandeja</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'tecnicas', 'Limpieza profunda, orden y desinfección')">+ Orden y Limpieza</span>
+            </div>
+            <textarea class="form-control" id="tecnicasText" name="habilidadesTecnicas" placeholder="Otras herramientas o conocimientos que tengas..." oninput="guardarBorrador()"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Fortalezas Personales</label>
+            <div class="chips-container" data-skill-cat="personales">
+              <span class="chip" onclick="toggleHabilidad(this, 'personales', 'Puntualidad y Asistencia Perfecta')">+ Puntualidad</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'personales', 'Compromiso y Responsabilidad')">+ Responsabilidad</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'personales', 'Excelente presencia y dicción')">+ Buena presencia</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'personales', 'Trato amable y paciencia con el cliente')">+ Trato cordial</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'personales', 'Trabajo en equipo y compañerismo')">+ Trabajo en equipo</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'personales', 'Rápido aprendizaje y adaptación')">+ Rápido aprendizaje</span>
+            </div>
+            <textarea class="form-control" id="personalesText" name="habilidadesPersonales" placeholder="Otras cualidades personales..." oninput="guardarBorrador()"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Idiomas</label>
+            <div class="chips-container" data-skill-cat="idiomas">
+              <span class="chip" onclick="toggleHabilidad(this, 'idiomas', 'Español (Nativo)')">Español Nativo</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'idiomas', 'Inglés Básico')">Inglés Básico</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'idiomas', 'Inglés Intermedio / Fluido')">Inglés Intermedio</span>
+              <span class="chip" onclick="toggleHabilidad(this, 'idiomas', 'Portugués Básico')">Portugués</span>
+            </div>
+            <input type="text" class="form-control" id="idiomasText" name="idiomas" placeholder="Ej: Español nativo, Inglés básico" oninput="guardarBorrador()">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Referencias Comprobables <span class="opt">(opcional)</span></label>
+            <textarea class="form-control" name="referencias" placeholder="Ej: Martín López (Encargado de Comercio) - Tel: 11-5544-3322&#10;O escribí: 'Referencias disponibles a solicitud'." oninput="guardarBorrador()"></textarea>
+          </div>
+        </div>
+
+        <!-- PASO 8: Estilo Visual, Foto (con pasar después) & Envío Final -->
+        <div class="step-content" data-step="8">
+          <div class="step-header">
+            <div class="step-title"><i class="ph ph-check-square-offset" style="color:var(--whatsapp)"></i> Último Paso: Estilo, Foto y Envío</div>
+            <div class="step-subtitle">Elegí qué estilo visual te gusta más y decidí cómo sumar tu foto.</div>
+          </div>
+
+          <!-- Selector de Estilo de Diseño -->
+          <label class="form-label">1. ¿Qué estilo de diseño preferís para tu CV?</label>
+          <div class="style-selector-grid">
+            <div class="style-option-card selected" data-style="Moderno con Detalles a Color" onclick="seleccionarEstiloCV(this, 'Moderno con Detalles a Color')">
+              <div class="style-swatch modern"></div>
+              <i class="ph ph-palette" style="font-size:22px; color:var(--cyan-dark);"></i>
+              <div class="style-option-title">Moderno a Color</div>
+              <div class="style-option-desc">Llamativo, fresco y actual</div>
+            </div>
+            <div class="style-option-card" data-style="Ejecutivo Sobrio y Formal" onclick="seleccionarEstiloCV(this, 'Ejecutivo Sobrio y Formal')">
+              <div class="style-swatch exec"></div>
+              <i class="ph ph-briefcase" style="font-size:22px; color:#334155;"></i>
+              <div class="style-option-title">Ejecutivo Formal</div>
+              <div class="style-option-desc">Tonos oscuros, elegante y serio</div>
+            </div>
+            <div class="style-option-card" data-style="Minimalista Claro" onclick="seleccionarEstiloCV(this, 'Minimalista Claro')">
+              <div class="style-swatch classic"></div>
+              <i class="ph ph-file-text" style="font-size:22px; color:#0284c7;"></i>
+              <div class="style-option-title">Clásico Limpio</div>
+              <div class="style-option-desc">Lectura ultra rápida y clara</div>
+            </div>
+          </div>
+          <input type="hidden" name="estiloDiseno" id="estiloDisenoInput" value="Moderno con Detalles a Color">
+
+          <!-- Carga de Foto + Opciones para no trabarse -->
+          <label class="form-label">2. Tu Foto de Perfil <span class="opt">(podés subirla ahora o pasarla después por WhatsApp)</span></label>
+          <div id="photoChoicesWrap">
+            <div class="photo-choice-grid">
+              <label class="photo-choice-btn primary-cam" for="fotoCamaraInput">
+                <div class="choice-icon"><i class="ph ph-camera"></i></div>
+                <div class="choice-title">Sacarme una foto ahora</div>
+                <div class="choice-sub">Usa la cámara de tu celu</div>
+                <input type="file" id="fotoCamaraInput" accept="image/*" capture="user" onchange="procesarFoto(event)">
+              </label>
+
+              <label class="photo-choice-btn" for="fotoGaleriaInput">
+                <div class="choice-icon" style="color:var(--magenta)"><i class="ph ph-images"></i></div>
+                <div class="choice-title">Subir desde mi galería</div>
+                <div class="choice-sub">Elegir una foto que ya tengas</div>
+                <input type="file" id="fotoGaleriaInput" accept="image/*" onchange="procesarFoto(event)">
+              </label>
+            </div>
+
+            <!-- Botones rápidos si no tiene la foto a mano ahora -->
+            <div class="photo-skip-row">
+              <button type="button" class="btn-photo-alt" id="btnFotoWhatsApp" onclick="elegirModoFotoExtra('whatsapp')">
+                <i class="ph ph-whatsapp-logo" style="color:var(--whatsapp); font-size:16px;"></i> La paso después por WhatsApp
+              </button>
+              <button type="button" class="btn-photo-alt" id="btnSinFoto" onclick="elegirModoFotoExtra('sinfoto')">
+                <i class="ph ph-user-circle-minus" style="font-size:16px;"></i> Prefiero CV sin foto
+              </button>
+            </div>
+          </div>
+
+          <div class="photo-preview-wrap" id="photoPreviewWrap">
+            <div style="position:relative; display:inline-block;">
+              <img id="photoPreviewImg" class="photo-avatar" alt="Foto CV">
+              <span style="position:absolute; bottom:6px; right:6px; background:#22c55e; color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid #fff; font-size:16px;">
+                <i class="ph ph-check-bold"></i>
+              </span>
+            </div>
+            <div style="font-size:13px; font-weight:800; color:#15803d; margin-top:6px;">
+              ¡Foto cargada y optimizada!
+            </div>
+            <div style="margin-top:8px; display:flex; gap:8px; justify-content:center;">
+              <label for="fotoGaleriaInput" class="btn btn-prev" style="padding:6px 12px; font-size:12px; cursor:pointer;">
+                <i class="ph ph-arrows-clockwise"></i> Cambiar foto
+              </label>
+              <button type="button" class="btn btn-prev" onclick="quitarFoto()" style="padding:6px 12px; font-size:12px; color:#ef4444;">
+                <i class="ph ph-trash"></i> Quitar
+              </button>
+            </div>
+          </div>
+
+          <div class="tips-card">
+            <strong>💡 Tip de Impresiones VCP:</strong> Si te sacás la foto ahora, buscá una pared clara de fondo y buena luz de frente para que salga bien nítida.
+          </div>
+
+          <!-- Tarjeta Ejecutiva de Vista Previa -->
+          <div class="cv-preview-card">
+            <div class="cv-preview-info">
+              <div style="font-size:10px; text-transform:uppercase; letter-spacing:1px; color:#94a3b8; font-weight:800;">VISTA PREVIA DE TU PERFIL</div>
+              <h4 id="cardPreviewName">Tu Nombre y Apellido</h4>
+              <p id="cardPreviewRole">Búsqueda laboral activa</p>
+              <div class="cv-preview-meta">
+                <span id="cardPreviewStyle">🎨 Moderno a Color</span>
+                <span>•</span>
+                <span id="cardPreviewExp">💼 Sin experiencia cargada</span>
+              </div>
+            </div>
+            <div style="text-align:right; flex-shrink:0;">
+              <span style="background:rgba(37,211,102,0.18); color:#4ade80; border:1px solid rgba(37,211,102,0.35); font-size:11px; font-weight:800; padding:4px 10px; border-radius:99px;">LISTO PARA ARMAR</span>
+            </div>
+          </div>
+
+          <!-- Card de Cierre Precio Único ($8.900) -->
+          <div id="checkoutCardBox" style="background:#f0fdf4; border:2px solid #86efac; border-radius:16px; padding:18px; text-align:center; margin-top:12px;">
+            <div style="color:#15803d; font-weight:800; font-size:15px; margin-bottom:2px;">
+              📦 CV PROFESIONAL EN PDF (ENVÍO DIGITAL)
+            </div>
+            <div style="color:#166534; font-size:14px; margin-bottom:14px;">
+              Precio único al aprobar la muestra: <strong style="font-size:20px;">$8.900</strong>
+            </div>
+            
+            <button type="button" class="btn btn-whatsapp-final" id="btnEnviarFinal" onclick="enviarPedidoCompleto()">
+              <i class="ph ph-whatsapp-logo" style="font-size:24px;"></i>
+              ENVIAR DATOS POR WHATSAPP AHORA
+            </button>
+            
+            <p style="font-size:11.5px; color:#15803d; margin-top:10px; font-weight:600;">
+              🔒 No pagás nada ahora. Primero ves la muestra de tu CV por WhatsApp.
+            </p>
+          </div>
+
+          <details style="margin-top:14px;">
+            <summary style="font-size:12px; font-weight:700; color:#64748b; cursor:pointer; text-align:center;">
+              Ver el texto completo que se enviará por WhatsApp
+            </summary>
+            <div class="summary-box" id="summaryView">Cargando datos...</div>
+            <div style="margin-top:8px; text-align:center;">
+              <button type="button" class="btn btn-copy" onclick="copiarAlPortapapeles()" style="font-size:12px; padding:9px 14px;">
+                <i class="ph ph-copy"></i> Copiar texto manualmente
+              </button>
+            </div>
+          </details>
+        </div>
+
+      </div>
+
+      <!-- Barra de Navegación Inferior (oculta en Paso 1 para tener un único CTA claro) -->
+      <div class="nav-bar" id="bottomNavBar" style="display:none;">
+        <button type="button" class="btn btn-prev" id="btnPrev" onclick="navegarPaso(-1)" disabled>
+          <i class="ph ph-arrow-left"></i> Anterior
+        </button>
+        <button type="button" class="btn btn-next" id="btnNext" onclick="navegarPaso(1)">
+          Siguiente <i class="ph ph-arrow-right"></i>
+        </button>
+      </div>
+    </form>
+
+    <!-- Listas predictivas para autocompletado rápido -->
+    <datalist id="ciudadesArg">
+      <option value="Villa Carlos Paz, Córdoba"></option>
+      <option value="Córdoba Capital, Córdoba"></option>
+      <option value="San Antonio de Arredondo, Córdoba"></option>
+      <option value="Villa Santa Cruz del Lago, Córdoba"></option>
+      <option value="Tanti, Córdoba"></option>
+      <option value="Icho Cruz, Córdoba"></option>
+      <option value="Cosquín, Córdoba"></option>
+      <option value="La Falda, Córdoba"></option>
+      <option value="Bialet Massé, Córdoba"></option>
+      <option value="Alta Gracia, Córdoba"></option>
+      <option value="Villa María, Córdoba"></option>
+      <option value="Río Cuarto, Córdoba"></option>
+      <option value="San Francisco, Córdoba"></option>
+      <option value="Jesús María, Córdoba"></option>
+      <option value="Buenos Aires (CABA)"></option>
+      <option value="La Plata, Buenos Aires"></option>
+      <option value="Mar del Plata, Buenos Aires"></option>
+      <option value="Bahía Blanca, Buenos Aires"></option>
+      <option value="Quilmes / Zona Sur GBA"></option>
+      <option value="Morón / Zona Oeste GBA"></option>
+      <option value="San Isidro / Zona Norte GBA"></option>
+      <option value="Rosario, Santa Fe"></option>
+      <option value="Santa Fe Capital"></option>
+      <option value="Mendoza Capital"></option>
+      <option value="San Miguel de Tucumán"></option>
+      <option value="Salta Capital"></option>
+      <option value="Neuquén Capital"></option>
+      <option value="San Carlos de Bariloche"></option>
+      <option value="San Juan Capital"></option>
+      <option value="Resistencia, Chaco"></option>
+      <option value="Corrientes Capital"></option>
+      <option value="Paraná, Entre Ríos"></option>
+      <option value="Posadas, Misiones"></option>
+      <option value="San Salvador de Jujuy"></option>
+      <option value="San Luis Capital"></option>
+      <option value="Santiago del Estero"></option>
+    </datalist>
+
+    <datalist id="puestosComunes">
+      <option value="Atención al Público"></option>
+      <option value="Vendedor / Vendedora"></option>
+      <option value="Cajero / Cajera"></option>
+      <option value="Mozo / Camarero"></option>
+      <option value="Ayudante de Cocina"></option>
+      <option value="Bachero / Bachera"></option>
+      <option value="Barista / Cafetería"></option>
+      <option value="Recepcionista de Hotel"></option>
+      <option value="Mucama / Housekeeping"></option>
+      <option value="Administrativo / Secretaria"></option>
+      <option value="Repositor / Control de Stock"></option>
+      <option value="Depósito y Logística"></option>
+      <option value="Cadete / Repartidor"></option>
+      <option value="Limpieza / Maestranza"></option>
+      <option value="Operario de Producción"></option>
+      <option value="Mantenimiento General"></option>
+      <option value="Niñera / Cuidador de Adultos"></option>
+    </datalist>
+
+    <datalist id="institucionesArg">
+      <option value="Colegio IES - Villa Carlos Paz"></option>
+      <option value="Instituto Bernardo D'Elía"></option>
+      <option value="Instituto Cristo Obrero"></option>
+      <option value="IPEM 190 Dr. René Favaloro"></option>
+      <option value="IPEM 359 Arturo Umberto Illia"></option>
+      <option value="Instituto Parroquial Remedios de Escalada"></option>
+      <option value="IPET 382 (Escuela Industrial)"></option>
+      <option value="IPEM 117 Dante Bonatti"></option>
+      <option value="UNC - Universidad Nacional de Córdoba"></option>
+      <option value="UTN - Universidad Tecnológica Nacional"></option>
+      <option value="UBA - Universidad de Buenos Aires"></option>
+      <option value="UNR - Universidad Nacional de Rosario"></option>
+      <option value="Universidad Siglo 21"></option>
+      <option value="Universidad Blas Pascal"></option>
+    </datalist>
+
+    <div class="footer-note">
+      <strong>Impresiones VCP</strong> · CVs Digitales en PDF para toda Argentina · WhatsApp: <a href="https://wa.me/5493541293602" target="_blank">3541-293602</a>
+    </div>
+  </div>
+
+  <!-- Modal de Subida / Procesando -->
+  <div class="modal-overlay" id="modalCargaOverlay">
+    <div class="modal-card">
+      <div id="modalLoadingState">
+        <div class="spinner-ring"></div>
+        <div class="modal-title">Preparando tu CV y subiendo foto...</div>
+        <div class="modal-desc">
+          Estamos adjuntando tu fotografía para que Impresiones VCP la reciba directo en el mensaje.
+        </div>
+      </div>
+
+      <div id="modalSuccessState" style="display:none;">
+        <div class="modal-icon-badge">
+          <i class="ph ph-check-circle"></i>
+        </div>
+        <div class="modal-title">¡Pedido Listo para Enviar!</div>
+        <div class="modal-desc">
+          Tus datos y tu foto ya están cargados. Tocá el botón verde para abrir WhatsApp y enviarnos el mensaje.
+        </div>
+        <button type="button" class="btn btn-whatsapp-final" id="btnModalAbrirWhatsApp">
+          <i class="ph ph-whatsapp-logo" style="font-size:22px;"></i>
+          ABRIR WHATSAPP Y ENVIAR
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast flotante -->
+  <div class="toast" id="toastBox">
+    <i class="ph ph-check-circle" style="color:#4ade80; font-size:18px;"></i> <span id="toastMsg">Mensaje</span>
+  </div>
+
+  <script>
+    // Configuración oficial de Impresiones VCP
+    const WHATSAPP_NUMERO = "5493541293602";
+    const PRECIO_UNICO = 8900;
+    let pasoActual = 1;
+    const totalPasos = 8;
+    let contadorExp = 0;
+    let contadorEdu = 0;
+    let fotoDataUrl = null;
+    let fotoBase64Clean = null;
+    let fotoNombre = null;
+    let fotoCloudUrl = null;
+    let fotoModoExtra = 'auto'; // 'auto' | 'whatsapp' | 'sinfoto'
+
+    const stepTitles = [
+      "Inicio",
+      "Contacto",
+      "Edad y Horarios",
+      "Puesto y Perfil",
+      "Experiencia",
+      "Estudios",
+      "Habilidades",
+      "Estilo y Envío"
+    ];
+
+    const stepTimes = [
+      "⏱️ 5 minutos",
+      "⏱️ Quedan ~4 min",
+      "⏱️ Quedan ~3 min",
+      "⏱️ Quedan ~3 min",
+      "⏱️ Quedan ~2 min",
+      "⏱️ Quedan ~1 min",
+      "⏱️ ¡Casi listo!",
+      "🏁 ¡Último paso!"
+    ];
+
+    document.addEventListener("DOMContentLoaded", () => {
+      agregarBloqueExperiencia();
+      agregarBloqueEducacion();
+      recuperarBorrador();
+      actualizarProgreso();
+    });
+
+    function seleccionarEstiloCV(cardEl, estiloNombre) {
+      document.querySelectorAll('.style-option-card').forEach(c => c.classList.remove('selected'));
+      if (cardEl) cardEl.classList.add('selected');
+      document.getElementById('estiloDisenoInput').value = estiloNombre;
+      if (pasoActual === totalPasos) {
+        generarResumenFinal();
+      }
+      guardarBorrador();
+    }
+
+    function elegirModoFotoExtra(modo) {
+      fotoModoExtra = modo;
+      const btnWa = document.getElementById('btnFotoWhatsApp');
+      const btnSin = document.getElementById('btnSinFoto');
+      if (btnWa) btnWa.classList.toggle('active-mode', modo === 'whatsapp');
+      if (btnSin) btnSin.classList.toggle('active-mode', modo === 'sinfoto');
+
+      if (modo === 'whatsapp') {
+        mostrarToast("📲 Anotado: pasás tu foto después por WhatsApp");
+      } else if (modo === 'sinfoto') {
+        mostrarToast("👍 Anotado: diseñamos el CV sin foto");
+      }
+
+      generarResumenFinal();
+      guardarBorrador();
+
+      const checkout = document.getElementById('checkoutCardBox');
+      if (checkout) {
+        checkout.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    // Autocompletado práctico de Ciudad y Email
+    function seleccionarCiudadRapida(chipEl, ciudadNombre) {
+      const inp = document.getElementById('ciudadInput');
+      if (inp) inp.value = ciudadNombre;
+      const cont = document.getElementById('ciudadChipsContainer');
+      if (cont) {
+        cont.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        chipEl.classList.add('selected');
+      }
+      guardarBorrador();
+    }
+
+    function sincronizarCiudadAlEscribir() {
+      const inp = document.getElementById('ciudadInput');
+      const cont = document.getElementById('ciudadChipsContainer');
+      if (inp && cont) {
+        const val = inp.value.trim().toLowerCase();
+        cont.querySelectorAll('.chip').forEach(c => {
+          const clean = limpiarTextoChip(c).toLowerCase();
+          c.classList.toggle('selected', val === clean);
+        });
+      }
+      guardarBorrador();
+    }
+
+    function completarDominioEmail(dominio) {
+      const inp = document.getElementById('emailInput');
+      if (!inp) return;
+      let val = inp.value.trim();
+      if (!val || val.toLowerCase() === 'no tengo') {
+        inp.focus();
+        mostrarToast("✏️ Escribí primero el inicio de tu correo");
+        return;
+      }
+      val = val.split('@')[0];
+      inp.value = val + dominio;
+      guardarBorrador();
+    }
+
+    function setEmailNoTengo() {
+      const inp = document.getElementById('emailInput');
+      if (inp) {
+        inp.value = 'No tengo';
+        guardarBorrador();
+        mostrarToast("👍 Anotado sin correo electrónico");
+      }
+    }
+
+    // Cálculo automático de edad al elegir Fecha de Nacimiento
+    function calcularEdadAutomatica() {
+      const val = document.getElementById('fechaNacInput').value;
+      if (!val) return;
+      const partes = val.split('-');
+      if (partes.length !== 3) return;
+      const hoy = new Date();
+      let edad = hoy.getFullYear() - parseInt(partes[0], 10);
+      const m = (hoy.getMonth() + 1) - parseInt(partes[1], 10);
+      if (m < 0 || (m === 0 && hoy.getDate() < parseInt(partes[2], 10))) {
+        edad--;
+      }
+      if (edad > 12 && edad < 95) {
+        document.getElementById('edadInput').value = edad;
+        mostrarToast(`🎂 Edad calculada: ${edad} años`);
+      }
+      guardarBorrador();
+    }
+
+    // Navegación entre pasos
+    function navegarPaso(direccion) {
+      const stepActivo = document.querySelector(`.step-content[data-step="${pasoActual}"]`);
+      
+      if (direccion > 0) {
+        const inputsRequeridos = stepActivo.querySelectorAll('[required]');
+        for (let input of inputsRequeridos) {
+          if (!input.value.trim()) {
+            input.focus();
+            input.style.borderColor = "#f72585";
+            mostrarToast("⚠️ Completá este campo obligatorio para continuar");
+            setTimeout(() => input.style.borderColor = "", 2500);
+            return;
+          }
+        }
+      }
+
+      const nuevoPaso = pasoActual + direccion;
+      if (nuevoPaso < 1 || nuevoPaso > totalPasos) return;
+
+      stepActivo.classList.remove('active');
+      pasoActual = nuevoPaso;
+      document.querySelector(`.step-content[data-step="${pasoActual}"]`).classList.add('active');
+
+      actualizarProgreso();
+      guardarBorrador();
+
+      if (pasoActual === totalPasos) {
+        generarResumenFinal();
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function actualizarProgreso() {
+      const progressSec = document.getElementById('progressSection');
+      const bottomNav = document.getElementById('bottomNavBar');
+      if (progressSec) progressSec.style.display = (pasoActual === 1) ? 'none' : 'block';
+      if (bottomNav) bottomNav.style.display = (pasoActual === 1) ? 'none' : 'flex';
+
+      const porcentaje = Math.round(((pasoActual - 1) / (totalPasos - 1)) * 100);
+      document.getElementById('stepNum').textContent = pasoActual;
+      document.getElementById('stepTotal').textContent = totalPasos;
+      document.getElementById('progressFill').style.width = porcentaje + "%";
+      document.getElementById('stepPill').textContent = stepTitles[pasoActual - 1] || "";
+      document.getElementById('stepTimePill').textContent = stepTimes[pasoActual - 1] || "";
+
+      document.getElementById('btnPrev').disabled = (pasoActual === 1);
+      
+      const btnNext = document.getElementById('btnNext');
+      if (pasoActual === totalPasos) {
+        btnNext.style.display = "none";
+      } else {
+        btnNext.style.display = "inline-flex";
+        btnNext.innerHTML = 'Siguiente paso <i class="ph ph-arrow-right"></i>';
+      }
+    }
+
+    // Extraer texto limpio sin emoji inicial
+    function limpiarTextoChip(chipEl) {
+      return chipEl.innerText.replace(/^[^\w\sÁÉÍÓÚáéíóúÑñ()/+]+/, '').trim();
+    }
+
+    // Manejo de Chips
+    function toggleChip(chipEl, targetInputId, allowMultiple = false) {
+      const container = chipEl.parentElement;
+      const targetInput = document.getElementById(targetInputId + 'Input');
+      const cleanText = limpiarTextoChip(chipEl);
+
+      if (!allowMultiple) {
+        const yaEstaba = chipEl.classList.contains('selected');
+        container.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        if (!yaEstaba) {
+          chipEl.classList.add('selected');
+          if (targetInput) targetInput.value = cleanText;
+        } else {
+          if (targetInput) targetInput.value = '';
+        }
+      } else {
+        chipEl.classList.toggle('selected');
+        const seleccionados = Array.from(container.querySelectorAll('.chip.selected'))
+          .map(c => limpiarTextoChip(c));
+        if (targetInput) targetInput.value = seleccionados.join(', ');
+      }
+      guardarBorrador();
+    }
+
+    function usarPlantillaPerfil(frase) {
+      const txt = document.querySelector('textarea[name="perfil"]');
+      txt.value = frase;
+      guardarBorrador();
+      mostrarToast("✨ Presentación profesional aplicada");
+    }
+
+    function sumarCursoRapido(cursoNombre) {
+      const txt = document.getElementById('cursosTextarea');
+      const actual = txt.value.trim();
+      if (actual.includes(cursoNombre)) return;
+      txt.value = actual ? `${actual}\n• ${cursoNombre}` : `• ${cursoNombre}`;
+      guardarBorrador();
+      mostrarToast("📜 Curso agregado a tu lista");
+    }
+
+    function toggleHabilidad(chipEl, categoria, habilidadTexto) {
+      let targetEl;
+      if (categoria === 'tecnicas') targetEl = document.getElementById('tecnicasText');
+      else if (categoria === 'personales') targetEl = document.getElementById('personalesText');
+      else if (categoria === 'idiomas') targetEl = document.getElementById('idiomasText');
+
+      if (!targetEl) return;
+      chipEl.classList.toggle('selected');
+
+      let items = targetEl.value.split(',').map(s => s.trim()).filter(Boolean);
+      const existe = items.includes(habilidadTexto);
+
+      if (existe) {
+        items = items.filter(s => s !== habilidadTexto);
+      } else {
+        items.push(habilidadTexto);
+      }
+      targetEl.value = items.join(', ');
+      guardarBorrador();
+    }
+
+    // Bloques de Experiencia (asignación segura al DOM)
+    function agregarBloqueExperiencia(datosPrevios = null) {
+      contadorExp++;
+      const id = contadorExp;
+      const wrap = document.getElementById('experienciasList');
+      const div = document.createElement('div');
+      div.className = 'card-block';
+      div.id = 'exp-block-' + id;
+      div.innerHTML = `
+        <div class="card-block-header">
+          <span class="card-block-number">Experiencia #${id}</span>
+          ${id > 1 ? `<button type="button" class="btn-remove-block" onclick="eliminarBloque('exp-block-${id}')" title="Eliminar"><i class="ph ph-trash"></i></button>` : ''}
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Puesto o Rol</label>
+            <input type="text" class="form-control" name="exp_puesto_${id}" list="puestosComunes" placeholder="Ej: Atención al público / Cajero / Mozo" oninput="guardarBorrador()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Comercio, Empresa o Rubro</label>
+            <input type="text" class="form-control" name="exp_empresa_${id}" placeholder="Ej: Supermercado / Comercio / Hotel / Particular" oninput="guardarBorrador()">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Desde (Año o Mes/Año)</label>
+            <input type="text" class="form-control" name="exp_inicio_${id}" placeholder="Ej: Marzo 2024 o 2023" oninput="guardarBorrador()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Hasta</label>
+            <input type="text" class="form-control" id="exp_fin_${id}" name="exp_fin_${id}" placeholder="Ej: 2026 o Actualidad" oninput="guardarBorrador()">
+            <label style="font-size:11px; color:#64748b; margin-top:4px; display:inline-flex; align-items:center; gap:4px; cursor:pointer;">
+              <input type="checkbox" id="exp_actual_${id}" onchange="toggleTrabajoActual(this, 'exp_fin_${id}')"> Sigo trabajando aquí
+            </label>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Tareas realizadas <span class="opt">(tocá una sugerencia o escribí)</span></label>
+          <div class="chips-container">
+            <span class="chip" onclick="insertarTareaSugerida(${id}, 'Atención y asesoramiento al cliente, manejo de caja, cobros con Posnet/QR, reposición de stock y orden del local.')">+ Comercio / Caja</span>
+            <span class="chip" onclick="insertarTareaSugerida(${id}, 'Recepción de comensales, toma de pedidos, servicio de salón y cafetería, armado de mesas y limpieza del sector.')">+ Gastronomía / Mozo</span>
+            <span class="chip" onclick="insertarTareaSugerida(${id}, 'Limpieza integral de habitaciones y espacios comunes, recambio de blancos y atención de requerimientos de huéspedes.')">+ Hotelería / Mucama</span>
+            <span class="chip" onclick="insertarTareaSugerida(${id}, 'Recepción de consultas por WhatsApp, carga de datos, control de planillas, facturación y atención telefónica.')">+ Administración</span>
+          </div>
+          <textarea class="form-control" id="exp_tareas_${id}" name="exp_tareas_${id}" placeholder="Detallá brevemente qué tareas hacías..." oninput="guardarBorrador()"></textarea>
+        </div>
+      `;
+      wrap.appendChild(div);
+
+      if (datosPrevios) {
+        div.querySelector(`[name="exp_puesto_${id}"]`).value = datosPrevios.puesto || '';
+        div.querySelector(`[name="exp_empresa_${id}"]`).value = datosPrevios.empresa || '';
+        div.querySelector(`[name="exp_inicio_${id}"]`).value = datosPrevios.inicio || '';
+        const finInp = div.querySelector(`[name="exp_fin_${id}"]`);
+        finInp.value = datosPrevios.fin || '';
+        if (datosPrevios.fin === 'Actualidad') {
+          finInp.readOnly = true;
+          const actualChk = div.querySelector(`#exp_actual_${id}`);
+          if (actualChk) actualChk.checked = true;
+        }
+        div.querySelector(`[name="exp_tareas_${id}"]`).value = datosPrevios.tareas || '';
+      }
+    }
+
+    function insertarTareaSugerida(id, texto) {
+      const el = document.getElementById('exp_tareas_' + id);
+      if (el) {
+        el.value = texto;
+        guardarBorrador();
+        mostrarToast("💼 Descripción de tareas completada");
+      }
+    }
+
+    function toggleTrabajoActual(checkbox, inputId) {
+      const inp = document.getElementById(inputId);
+      if (checkbox.checked) {
+        inp.value = "Actualidad";
+        inp.readOnly = true;
+      } else {
+        inp.value = "";
+        inp.readOnly = false;
+      }
+      guardarBorrador();
+    }
+
+    function togglePrimerEmpleo(silencioso = false) {
+      const chk = document.getElementById('checkPrimerEmpleo');
+      const wrapper = document.getElementById('experienciasWrapper');
+      if (chk.checked) {
+        wrapper.style.display = 'none';
+        if (!silencioso) mostrarToast("👍 Configurado para Primer Empleo");
+      } else {
+        wrapper.style.display = 'block';
+      }
+      guardarBorrador();
+    }
+
+    // Bloques de Educación (asignación segura al DOM)
+    function agregarBloqueEducacion(datosPrevios = null) {
+      contadorEdu++;
+      const id = contadorEdu;
+      const wrap = document.getElementById('educacionList');
+      const div = document.createElement('div');
+      div.className = 'card-block';
+      div.id = 'edu-block-' + id;
+      div.innerHTML = `
+        <div class="card-block-header">
+          <span class="card-block-number">Estudio #${id}</span>
+          ${id > 1 ? `<button type="button" class="btn-remove-block" onclick="eliminarBloque('edu-block-${id}')" title="Eliminar"><i class="ph ph-trash"></i></button>` : ''}
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nivel o Título</label>
+          <div class="chips-container">
+            <span class="chip" onclick="setValorInput(this, 'edu_titulo_${id}', 'Secundario Completo')">Secundario Completo</span>
+            <span class="chip" onclick="setValorInput(this, 'edu_titulo_${id}', 'Secundario en Curso')">Secundario en Curso</span>
+            <span class="chip" onclick="setValorInput(this, 'edu_titulo_${id}', 'Secundario Incompleto')">Secundario Incompleto</span>
+            <span class="chip" onclick="setValorInput(this, 'edu_titulo_${id}', 'Terciario / Universitario')">Terciario / Univ.</span>
+          </div>
+          <input type="text" class="form-control" id="edu_titulo_${id}" name="edu_titulo_${id}" placeholder="Ej: Secundario Completo" oninput="guardarBorrador()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Institución, Colegio o Orientación <span class="opt">(escribí el nombre o elegí)</span></label>
+          <div class="chips-container">
+            <span class="chip" onclick="setValorInput(this, 'edu_inst_${id}', 'Escuela Secundaria (Bachiller)')">Bachiller / Común</span>
+            <span class="chip" onclick="setValorInput(this, 'edu_inst_${id}', 'Escuela Técnica / Industrial')">Escuela Técnica</span>
+            <span class="chip" onclick="setValorInput(this, 'edu_inst_${id}', 'Instituto Terciario')">Instituto Terciario</span>
+            <span class="chip" onclick="setValorInput(this, 'edu_inst_${id}', 'Universidad Nacional / Privada')">Universidad</span>
+          </div>
+          <input type="text" class="form-control" id="edu_inst_${id}" name="edu_inst_${id}" list="institucionesArg" placeholder="Ej: IES / Bernardo D'Elía / UNC / UTN..." oninput="guardarBorrador()">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label">Año de Egreso o Estado</label>
+          <input type="text" class="form-control" name="edu_periodo_${id}" placeholder="Ej: Egresado 2023 / En curso" oninput="guardarBorrador()">
+        </div>
+      `;
+      wrap.appendChild(div);
+
+      if (datosPrevios) {
+        div.querySelector(`[name="edu_titulo_${id}"]`).value = datosPrevios.titulo || '';
+        div.querySelector(`[name="edu_inst_${id}"]`).value = datosPrevios.institucion || '';
+        div.querySelector(`[name="edu_periodo_${id}"]`).value = datosPrevios.periodo || '';
+      }
+    }
+
+    function setValorInput(chipEl, targetInputId, valor) {
+      const inp = document.getElementById(targetInputId);
+      if (inp) inp.value = valor;
+      chipEl.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+      chipEl.classList.add('selected');
+      guardarBorrador();
+    }
+
+    function eliminarBloque(id) {
+      const el = document.getElementById(id);
+      if (el) el.remove();
+      guardarBorrador();
+    }
+
+    // Procesamiento de Foto
+    function procesarFoto(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (file.size > 15 * 1024 * 1024) {
+        mostrarToast("⚠️ La foto supera los 15MB permitidos");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 900;
+          let w = img.width;
+          let h = img.height;
+          if (w > h && w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+
+          fotoDataUrl = canvas.toDataURL('image/jpeg', 0.88);
+          fotoBase64Clean = fotoDataUrl.split(',')[1];
+          fotoNombre = (file.name || "foto_cv.jpg").replace(/\s+/g, '_');
+          fotoCloudUrl = null;
+          fotoModoExtra = 'auto';
+
+          const btnWa = document.getElementById('btnFotoWhatsApp');
+          const btnSin = document.getElementById('btnSinFoto');
+          if (btnWa) btnWa.classList.remove('active-mode');
+          if (btnSin) btnSin.classList.remove('active-mode');
+
+          document.getElementById('photoPreviewImg').src = fotoDataUrl;
+          document.getElementById('photoPreviewWrap').style.display = 'block';
+          const choices = document.getElementById('photoChoicesWrap');
+          if (choices) choices.style.display = 'none';
+          mostrarToast("📸 ¡Foto lista para tu CV!");
+          generarResumenFinal();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function quitarFoto() {
+      fotoDataUrl = null;
+      fotoBase64Clean = null;
+      fotoNombre = null;
+      fotoCloudUrl = null;
+      fotoModoExtra = 'auto';
+      const cam = document.getElementById('fotoCamaraInput');
+      if (cam) cam.value = '';
+      const gal = document.getElementById('fotoGaleriaInput');
+      if (gal) gal.value = '';
+      document.getElementById('photoPreviewWrap').style.display = 'none';
+      const choices = document.getElementById('photoChoicesWrap');
+      if (choices) choices.style.display = 'block';
+      generarResumenFinal();
+      mostrarToast("Foto eliminada");
+    }
+
+    async function subirFotoCloud() {
+      if (!fotoBase64Clean) return null;
+      if (fotoCloudUrl) return fotoCloudUrl;
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            image: fotoBase64Clean,
+            name: fotoNombre || 'Foto_CV.jpg'
+          }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (response.ok) {
+          const resData = await response.json();
+          if (resData && resData.url) {
+            fotoCloudUrl = resData.url;
+            return fotoCloudUrl;
+          }
+        }
+      } catch (err) {}
+
+      try {
+        const byteCharacters = atob(fotoBase64Clean);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/jpeg' });
+
+        const formData = new FormData();
+        formData.append("file", blob, fotoNombre || "Foto_CV.jpg");
+
+        const controller2 = new AbortController();
+        const timeoutId2 = setTimeout(() => controller2.abort(), 6000);
+
+        const response2 = await fetch("https://tmpfiles.org/api/v1/upload", {
+          method: "POST",
+          body: formData,
+          signal: controller2.signal
+        });
+
+        clearTimeout(timeoutId2);
+
+        if (response2.ok) {
+          const resData2 = await response2.json();
+          if (resData2 && resData2.data && resData2.data.url) {
+            fotoCloudUrl = resData2.data.url.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+            return fotoCloudUrl;
+          }
+        }
+      } catch (err2) {}
+
+      return null;
+    }
+
+    function recopilarDatos() {
+      const form = document.getElementById('cvWizardForm');
+      const fd = new FormData(form);
+      const data = {};
+      for (let [k, v] of fd.entries()) {
+        data[k] = (typeof v === 'string') ? v.trim() : v;
+      }
+
+      data.sinExperiencia = document.getElementById('checkPrimerEmpleo').checked;
+
+      data.experiencias = [];
+      if (!data.sinExperiencia) {
+        for (let i = 1; i <= contadorExp; i++) {
+          const puesto = data['exp_puesto_' + i];
+          const empresa = data['exp_empresa_' + i];
+          if (puesto || empresa) {
+            data.experiencias.push({
+              puesto: puesto || 'Empleado/a',
+              empresa: empresa || 'Comercio / Particular',
+              inicio: data['exp_inicio_' + i] || '',
+              fin: data['exp_fin_' + i] || '',
+              tareas: data['exp_tareas_' + i] || ''
+            });
+          }
+        }
+      }
+
+      data.educaciones = [];
+      for (let i = 1; i <= contadorEdu; i++) {
+        const titulo = data['edu_titulo_' + i];
+        const inst = data['edu_inst_' + i];
+        if (titulo || inst) {
+          data.educaciones.push({
+            titulo: titulo || 'Estudios cursados',
+            institucion: inst || '',
+            periodo: data['edu_periodo_' + i] || ''
+          });
+        }
+      }
+
+      data.tieneFoto = !!fotoDataUrl;
+      data.fotoNombre = fotoNombre;
+      data.fotoCloudUrl = fotoCloudUrl;
+      data.fotoModoExtra = fotoModoExtra;
+      data.precioFinal = PRECIO_UNICO;
+      return data;
+    }
+
+    function formatearMensajeWhatsApp(d, urlFotoCloud = null) {
+      const precioStr = PRECIO_UNICO.toLocaleString('es-AR');
+
+      let t = `🚀 *NUEVO PEDIDO DE CV - IMPRESIONES VCP*\n\n`;
+
+      t += `👤 *DATOS PERSONALES*\n`;
+      t += `• *Nombre:* ${d.nombre || '-'}\n`;
+      t += `• *WhatsApp:* ${d.telefono || '-'}\n`;
+      if (d.email) t += `• *Email:* ${d.email}\n`;
+      t += `• *Ubicación:* ${[d.barrio, d.ciudad].filter(Boolean).join(', ') || 'No especificada'}\n`;
+      if (d.fechaNac) t += `• *Nacimiento:* ${d.fechaNac}\n`;
+      if (d.edad) t += `• *Edad:* ${d.edad} años\n`;
+      if (d.dni) t += `• *DNI:* ${d.dni}\n`;
+      if (d.nacionalidad) t += `• *Nacionalidad/Info:* ${d.nacionalidad}\n`;
+      if (d.movilidad) t += `• *Movilidad:* ${d.movilidad}\n`;
+      if (d.carnet) t += `• *Carnet:* ${d.carnet}\n`;
+      if (d.disponibilidad) t += `• *Disponibilidad:* ${d.disponibilidad}\n`;
+
+      if (d.puestoDeseado) {
+        t += `\n🎯 *RUBROS DE INTERÉS:*\n${d.puestoDeseado}\n`;
+      }
+
+      if (d.perfil) {
+        t += `\n📝 *PERFIL PROFESIONAL:*\n"${d.perfil}"\n`;
+      }
+
+      t += `\n💼 *EXPERIENCIA LABORAL:*\n`;
+      if (d.sinExperiencia) {
+        t += `_Búsqueda de primer empleo (Enfocar en habilidades y predisposición)._\n`;
+      } else if (d.experiencias && d.experiencias.length) {
+        d.experiencias.forEach(e => {
+          t += `\n▸ *${e.puesto}* en *${e.empresa}*\n`;
+          if (e.inicio || e.fin) t += `  _Periodo: ${e.inicio} - ${e.fin}_\n`;
+          if (e.tareas) t += `  _Tareas: ${e.tareas}_\n`;
+        });
+      } else {
+        t += `_Sin experiencias especificadas._\n`;
+      }
+
+      t += `\n🎓 *EDUCACIÓN:*\n`;
+      if (d.educaciones && d.educaciones.length) {
+        d.educaciones.forEach(ed => {
+          t += `▸ *${ed.titulo}* ${ed.institucion ? `- ${ed.institucion}` : ''} ${ed.periodo ? `(${ed.periodo})` : ''}\n`;
+        });
+      } else {
+        t += `_No especificado._\n`;
+      }
+
+      if (d.cursos) {
+        t += `\n📜 *CURSOS Y CERTIFICADOS:*\n${d.cursos}\n`;
+      }
+
+      if (d.habilidadesTecnicas) {
+        t += `\n🛠️ *HABILIDADES PRÁCTICAS:*\n${d.habilidadesTecnicas}\n`;
+      }
+      if (d.habilidadesPersonales) {
+        t += `\n🤝 *FORTALEZAS PERSONALES:*\n${d.habilidadesPersonales}\n`;
+      }
+      if (d.idiomas) {
+        t += `\n🗣️ *IDIOMAS:* ${d.idiomas}\n`;
+      }
+      if (d.referencias) {
+        t += `\n👥 *REFERENCIAS:*\n${d.referencias}\n`;
+      }
+
+      if (urlFotoCloud) {
+        t += `\n📸 *FOTO LISTA PARA DESCARGAR:*\n${urlFotoCloud}\n`;
+      } else if (d.tieneFoto) {
+        t += `\n📸 *FOTO:* Sí (La envío adjunta acá mismo en el chat 👇)\n`;
+      } else if (d.fotoModoExtra === 'whatsapp') {
+        t += `\n📸 *FOTO:* La envío ahora aparte por este chat de WhatsApp 👇\n`;
+      } else {
+        t += `\n📸 *FOTO:* Diseño sin foto.\n`;
+      }
+
+      t += `\n━━━━━━━━━━━━━━━━━━━━━━\n`;
+      t += `📦 *RESUMEN DEL PEDIDO:*\n`;
+      t += `• *Servicio:* CV Profesional en PDF (Todo el País)\n`;
+      t += `• *Estilo:* ${d.estiloDiseno || 'Moderno a Color'}\n`;
+      t += `• *TOTAL A ABONAR AL VER MUESTRA:* $${precioStr}\n`;
+      t += `• *Modalidad:* Muestra previa por WhatsApp → Transferencia / MP → Entrega PDF HD final.\n`;
+      t += `━━━━━━━━━━━━━━━━━━━━━━\n`;
+      t += `¡Hola *Impresiones VCP*! Acá envío mis datos para ver la muestra previa de mi CV.`;
+      return t;
+    }
+
+    function generarResumenFinal() {
+      const d = recopilarDatos();
+      const txt = formatearMensajeWhatsApp(d, fotoCloudUrl);
+      document.getElementById('summaryView').textContent = txt;
+
+      document.getElementById('cardPreviewName').textContent = d.nombre || 'Tu Nombre y Apellido';
+      document.getElementById('cardPreviewRole').textContent = d.puestoDeseado || 'Búsqueda laboral activa';
+      document.getElementById('cardPreviewStyle').textContent = '🎨 ' + (d.estiloDiseno || 'Moderno a Color');
+      document.getElementById('cardPreviewExp').textContent = d.sinExperiencia
+        ? '🌱 Primer Empleo'
+        : (d.experiencias.length > 0 ? `💼 ${d.experiencias.length} exp. cargada(s)` : '💼 Sin experiencia cargada');
+    }
+
+    async function enviarPedidoCompleto() {
+      const d = recopilarDatos();
+      if (!d.nombre || !d.telefono) {
+        mostrarToast("⚠️ Completá tu nombre y celular en el Paso 2");
+        return;
+      }
+
+      const modal = document.getElementById('modalCargaOverlay');
+      const stateLoading = document.getElementById('modalLoadingState');
+      const stateSuccess = document.getElementById('modalSuccessState');
+
+      if (d.tieneFoto && fotoBase64Clean) {
+        modal.style.display = 'flex';
+        stateLoading.style.display = 'block';
+        stateSuccess.style.display = 'none';
+
+        const cloudUrl = await subirFotoCloud();
+
+        stateLoading.style.display = 'none';
+        stateSuccess.style.display = 'block';
+
+        const txt = formatearMensajeWhatsApp(d, cloudUrl);
+        const urlWhatsApp = `https://wa.me/${WHATSAPP_NUMERO}?text=` + encodeURIComponent(txt);
+
+        if (!cloudUrl && fotoDataUrl) {
+          const a = document.createElement('a');
+          a.href = fotoDataUrl;
+          a.download = `Foto_CV_${d.nombre.replace(/\s+/g, '_')}.jpg`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        }
+
+        document.getElementById('btnModalAbrirWhatsApp').onclick = function() {
+          window.open(urlWhatsApp, '_blank');
+          modal.style.display = 'none';
+        };
+
+        setTimeout(() => {
+          window.open(urlWhatsApp, '_blank');
+          modal.style.display = 'none';
+        }, 1000);
+
+      } else {
+        const txt = formatearMensajeWhatsApp(d, null);
+        const urlWhatsApp = `https://wa.me/${WHATSAPP_NUMERO}?text=` + encodeURIComponent(txt);
+        window.open(urlWhatsApp, '_blank');
+      }
+    }
+
+    function copiarAlPortapapeles() {
+      const d = recopilarDatos();
+      const txt = formatearMensajeWhatsApp(d, fotoCloudUrl);
+      navigator.clipboard.writeText(txt).then(() => {
+        mostrarToast("✅ Resumen copiado al portapapeles");
+      }).catch(() => {
+        mostrarToast("No se pudo copiar automáticamente");
+      });
+    }
+
+    function guardarBorrador() {
+      try {
+        const d = recopilarDatos();
+        delete d.tieneFoto;
+        localStorage.setItem("borrador_cv_impresionesvcp_v4", JSON.stringify(d));
+      } catch(e) {}
+    }
+
+    function sincronizarChipsDesdeBorrador(d) {
+      document.querySelectorAll('.chips-container[data-target]').forEach(container => {
+        const targetName = container.getAttribute('data-target');
+        const val = d[targetName];
+        if (!val) return;
+        const items = val.split(',').map(s => s.trim()).filter(Boolean);
+        container.querySelectorAll('.chip').forEach(chip => {
+          const clean = limpiarTextoChip(chip);
+          if (items.includes(clean)) {
+            chip.classList.add('selected');
+          }
+        });
+      });
+
+      const skillMap = {
+        tecnicas: d.habilidadesTecnicas,
+        personales: d.habilidadesPersonales,
+        idiomas: d.idiomas
+      };
+      for (const [cat, savedStr] of Object.entries(skillMap)) {
+        if (!savedStr) continue;
+        const container = document.querySelector(`.chips-container[data-skill-cat="${cat}"]`);
+        if (!container) continue;
+        const savedList = savedStr.split(',').map(s => s.trim()).filter(Boolean);
+        container.querySelectorAll('.chip').forEach(chip => {
+          const onclickAttr = chip.getAttribute('onclick') || '';
+          const matched = savedList.some(item => onclickAttr.includes(item));
+          if (matched) chip.classList.add('selected');
+        });
+      }
+
+      if (d.ciudad) {
+        const contCiudad = document.getElementById('ciudadChipsContainer');
+        if (contCiudad) {
+          const valLow = d.ciudad.trim().toLowerCase();
+          contCiudad.querySelectorAll('.chip').forEach(chip => {
+            const clean = limpiarTextoChip(chip).toLowerCase();
+            chip.classList.toggle('selected', valLow === clean);
+          });
+        }
+      }
+
+      if (d.estiloDiseno) {
+        const styleCard = document.querySelector(`.style-option-card[data-style="${d.estiloDiseno}"]`);
+        if (styleCard) {
+          document.querySelectorAll('.style-option-card').forEach(c => c.classList.remove('selected'));
+          styleCard.classList.add('selected');
+        }
+      }
+
+      if (d.fotoModoExtra === 'whatsapp' || d.fotoModoExtra === 'sinfoto') {
+        fotoModoExtra = d.fotoModoExtra;
+        const btnWa = document.getElementById('btnFotoWhatsApp');
+        const btnSin = document.getElementById('btnSinFoto');
+        if (btnWa) btnWa.classList.toggle('active-mode', d.fotoModoExtra === 'whatsapp');
+        if (btnSin) btnSin.classList.toggle('active-mode', d.fotoModoExtra === 'sinfoto');
+      }
+    }
+
+    function recuperarBorrador() {
+      try {
+        const raw = localStorage.getItem("borrador_cv_impresionesvcp_v4");
+        if (!raw) return;
+        const d = JSON.parse(raw);
+
+        for (let k in d) {
+          const inp = document.querySelector(`[name="${k}"]`);
+          if (inp && typeof d[k] === 'string' && !k.startsWith('exp_') && !k.startsWith('edu_')) {
+            inp.value = d[k];
+          }
+        }
+
+        if (Array.isArray(d.experiencias) && d.experiencias.length > 0) {
+          document.getElementById('experienciasList').innerHTML = '';
+          contadorExp = 0;
+          d.experiencias.forEach(exp => agregarBloqueExperiencia(exp));
+        }
+
+        if (Array.isArray(d.educaciones) && d.educaciones.length > 0) {
+          document.getElementById('educacionList').innerHTML = '';
+          contadorEdu = 0;
+          d.educaciones.forEach(edu => agregarBloqueEducacion(edu));
+        }
+
+        if (d.sinExperiencia) {
+          document.getElementById('checkPrimerEmpleo').checked = true;
+          togglePrimerEmpleo(true);
+        }
+
+        sincronizarChipsDesdeBorrador(d);
+
+        if (d.nombre) {
+          mostrarToast("💾 Recuperamos tu borrador guardado");
+        }
+      } catch(e) {}
+    }
+
+    function mostrarToast(msg) {
+      const t = document.getElementById('toastBox');
+      document.getElementById('toastMsg').textContent = msg;
+      t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2600);
+    }
+  </script>
+</body>
+</html>

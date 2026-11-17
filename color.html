@@ -363,7 +363,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         
         // --- State Variables ---
-        let apiKey = localStorage.getItem('geminiApiKey');
+        let apiKey = localStorage.getItem('geminiApiKey') || localStorage.getItem('gemini_api_key');
         let jobQueue = []; 
         let currentJobIndex = -1;
         let pieImage = null; 
@@ -443,11 +443,21 @@
 
         saveApiKeyButton?.addEventListener('click', () => { 
             const key = apiKeyInput?.value.trim(); 
-            if (key) { apiKey = key; localStorage.setItem('geminiApiKey', key); hideApiKeyModal(); loadPieImage(); } 
+            if (key) { 
+                apiKey = key; 
+                localStorage.setItem('geminiApiKey', key); 
+                localStorage.setItem('gemini_api_key', key);
+                hideApiKeyModal(); 
+                loadPieImage(); 
+            } 
             else alert('Ingresa clave API o elige continuar sin IA.'); 
         });
         skipApiKeyButton?.addEventListener('click', () => {
-            apiKey = ''; localStorage.removeItem('geminiApiKey'); hideApiKeyModal(); loadPieImage();
+            apiKey = ''; 
+            localStorage.removeItem('geminiApiKey'); 
+            localStorage.removeItem('gemini_api_key');
+            hideApiKeyModal(); 
+            loadPieImage();
         });
         reopenApiModalBtn?.addEventListener('click', showApiKeyModal);
 
@@ -515,7 +525,7 @@
 
         async function parseRequestsWithAI(text) {
             if (!apiKey) { showApiKeyModal(); throw new Error("API Key faltante"); }
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             const prompt = "Extrae pedidos. Extrae 'name', 'age' (solo número), 'theme' y 'quantity' (default 1). Devuelve JSON ARRAY.";
             const payload = {
                 contents: [{ parts: [{ text: text }] }],

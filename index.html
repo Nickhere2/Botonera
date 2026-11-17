@@ -2191,7 +2191,8 @@ function openSettingsHelpModal() {
             tabs.forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             modal.querySelectorAll('.tab-content').forEach(c => c.classList.add('hidden'));
-            document.getElementById(`${tab.dataset.tab}-content`).classList.remove('hidden');
+            const targetContent = document.getElementById(`${tab.dataset.tab}-tab-content`) || document.getElementById(`${tab.dataset.tab}-content`);
+            if (targetContent) targetContent.classList.remove('hidden');
         });
     });
     
@@ -2220,7 +2221,15 @@ function saveSettings() {
     const geminiKey = document.getElementById('geminiApiKeyInput').value.trim();
     if (gistId) localStorage.setItem('gist_id', gistId); else localStorage.removeItem('gist_id');
     if (pat) localStorage.setItem('github_pat', pat); else localStorage.removeItem('github_pat');
-    if (geminiKey) localStorage.setItem('gemini_api_key', geminiKey); else localStorage.removeItem('gemini_api_key');
+    if (geminiKey) {
+        localStorage.setItem('gemini_api_key', geminiKey);
+        localStorage.setItem('geminiApiKey', geminiKey);
+        localStorage.setItem('finanzasGeminiKey', geminiKey);
+    } else {
+        localStorage.removeItem('gemini_api_key');
+        localStorage.removeItem('geminiApiKey');
+        localStorage.removeItem('finanzasGeminiKey');
+    }
 
     document.getElementById('settingsHelpPanel').classList.add('hidden');
     showToast("Configuración guardada. Recargando...");
@@ -2529,20 +2538,24 @@ function simpleMarkdownToHtml(text) {
 }
 
 async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], generationConfig = null) {
-    const apiKey = localStorage.getItem('gemini_api_key');
+    const apiKey = localStorage.getItem('gemini_api_key') || localStorage.getItem('geminiApiKey');
     if (!apiKey) {
         showToast("Configura tu API Key de Gemini en los ajustes.", 'error');
         return null;
     }
 
-    const originalButtonText = triggerButton.innerHTML;
-    const buttons = allButtonsToDisable.length > 0 ? allButtonsToDisable : [triggerButton];
+    const originalButtonText = triggerButton ? triggerButton.innerHTML : '';
+    const buttons = allButtonsToDisable.length > 0 ? allButtonsToDisable : (triggerButton ? [triggerButton] : []);
 
     buttons.forEach(b => b.disabled = true);
-    triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
+    if (triggerButton) triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
 
-    // Modelo predeterminado: gemini-2.5-flash (con auto-detección resiliente)
-    let modelName = localStorage.getItem('gemini_model') || 'gemini-2.5-flash';
+    // Modelo predeterminado: gemini-1.5-flash (estable, con soporte nativo de JSON schema y búsqueda)
+    let modelName = localStorage.getItem('gemini_model');
+    if (!modelName || modelName.includes('2.5') || modelName === 'gemini-pro') {
+        modelName = 'gemini-1.5-flash';
+        localStorage.setItem('gemini_model', modelName);
+    }
 
     const getApiUrl = (model) => `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
@@ -2583,7 +2596,10 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
                             const listData = await listResp.json();
                             const availableModel = listData.models?.find(m => 
                                 m.supportedGenerationMethods?.includes('generateContent') && 
-                                (m.name.includes('flash') || m.name.includes('gemini'))
+                                (m.name.includes('gemini-1.5-flash') || m.name.includes('gemini-2.0-flash') || m.name.includes('flash'))
+                            ) || listData.models?.find(m => 
+                                m.supportedGenerationMethods?.includes('generateContent') && 
+                                m.name.includes('gemini-1.5-pro')
                             );
                             if (availableModel) {
                                 modelName = availableModel.name.replace('models/', '');

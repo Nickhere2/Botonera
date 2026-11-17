@@ -1,0 +1,834 @@
+﻿<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impresiones VCP | Cuadernillos, Libros y Gráfica en Villa Carlos Paz</title>
+    
+    <!-- Meta SEO & Open Graph -->
+    <meta name="description" content="Impresiones de alta definición en Villa Carlos Paz. Especialistas en cuadernillos universitarios, manuales, anillados, stickers y folletos con entrega express.">
+    <meta name="keywords" content="impresiones carlos paz, fotocopias vcp, cuadernillos universitarios carlos paz, anillados vcp, stickers vcp, imprenta rapida carlos paz">
+    <meta property="og:title" content="Impresiones VCP | Cuadernillos, Libros & Impresión Digital">
+    <meta property="og:description" content="Tus ideas en papel con la máxima nitidez. Pedí tu presupuesto en 1 clic sin moverte de casa.">
+    <meta property="og:image" content="logo.png">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="logo.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Iconos Phosphor -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            cyan: '#00b4d8',
+                            pink: '#f72585',
+                            yellow: '#ffb703',
+                            dark: '#080a0f',
+                            card: '#10141e',
+                            cardBorder: '#1e2433',
+                            whatsapp: '#25D366'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        display: ['"Outfit"', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Gradientes y efectos visuales de alta gama */
+        body {
+            background-color: #07090e;
+            color: #f1f5f9;
+            overflow-x: hidden;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .gradient-text-cmyk {
+            background: linear-gradient(135deg, #00d2ff 0%, #ff2a85 50%, #ffb703 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-border {
+            position: relative;
+            background: #10141e;
+            border-radius: 1.25rem;
+        }
+        .gradient-border::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 1.35rem;
+            background: linear-gradient(135deg, rgba(0, 180, 216, 0.4), rgba(247, 37, 133, 0.4), rgba(255, 183, 3, 0.3));
+            z-index: -1;
+            transition: opacity 0.3s ease;
+            opacity: 0.5;
+        }
+        .gradient-border:hover::before {
+            opacity: 1;
+        }
+
+        .hero-glow {
+            position: absolute;
+            width: 550px;
+            height: 550px;
+            background: radial-gradient(circle, rgba(0, 180, 216, 0.15) 0%, rgba(247, 37, 133, 0.12) 40%, rgba(0,0,0,0) 70%);
+            filter: blur(80px);
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Botón con efecto de pulso magnético */
+        .btn-pulse {
+            box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.6);
+            animation: pulse-green 2s infinite cubic-bezier(0.66, 0, 0, 1);
+        }
+        @keyframes pulse-green {
+            to {
+                box-shadow: 0 0 0 20px rgba(37, 211, 102, 0);
+            }
+        }
+
+        /* Tarjetas de servicios con zoom de imagen */
+        .service-card .img-zoom {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .service-card:hover .img-zoom {
+            transform: scale(1.08);
+        }
+
+        /* FAQ Accordion Styling */
+        details summary::-webkit-details-marker {
+            display: none;
+        }
+    </style>
+</head>
+<body class="selection:bg-brand-pink selection:text-white">
+
+    <!-- =========================================================
+         BARRA DE NAVEGACIÓN SUPERIOR
+         ========================================================= -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-[#080a0f]/85 backdrop-blur-md border-b border-white/5 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Logo + Nombre de Marca -->
+            <a href="#" class="flex items-center gap-3.5 group">
+                <div class="relative w-12 h-12 rounded-full overflow-hidden p-0.5 bg-gradient-to-tr from-brand-cyan via-brand-pink to-brand-yellow shadow-lg shadow-brand-pink/20 transition-transform duration-300 group-hover:scale-105">
+                    <img src="logo.png" alt="Logo Impresiones VCP" class="w-full h-full object-cover rounded-full bg-black">
+                </div>
+                <div>
+                    <span class="font-display font-extrabold text-xl tracking-tight text-white block leading-none">
+                        Impresiones <span class="gradient-text-cmyk">VCP</span>
+                    </span>
+                    <span class="text-[11px] font-medium text-slate-400 tracking-wider uppercase block mt-1">
+                        Cuadernillos · Libros · Gráfica
+                    </span>
+                </div>
+            </a>
+
+            <!-- Menú Escritorio -->
+            <nav class="hidden md:flex items-center gap-8 text-sm font-semibold text-slate-300">
+                <a href="#servicios" class="hover:text-white transition-colors">Servicios</a>
+                <a href="#como-trabajamos" class="hover:text-white transition-colors">¿Cómo pedir?</a>
+                <a href="#ventajas" class="hover:text-white transition-colors">Por qué elegirnos</a>
+                <a href="#cotizar" class="hover:text-white transition-colors">Cotizador Rápido</a>
+                <a href="#faq" class="hover:text-white transition-colors">Preguntas Frecuentes</a>
+            </nav>
+
+            <!-- Acciones Directas -->
+            <div class="flex items-center gap-3">
+                <a href="presupuesta.html" target="_blank" class="hidden sm:inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-3.5 py-2.5 rounded-xl border border-white/10 transition-all">
+                    <i class="ph ph-calculator text-brand-cyan text-base"></i>
+                    <span>Terminal Taller</span>
+                </a>
+                
+                <a href="#cotizar" class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm bg-gradient-to-r from-brand-cyan to-brand-pink text-white hover:opacity-95 shadow-lg shadow-brand-pink/25 hover:shadow-brand-cyan/30 transition-all transform hover:-translate-y-0.5">
+                    <i class="ph ph-whatsapp-logo text-lg"></i>
+                    <span>Consultar Ahora</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- =========================================================
+         SECCIÓN HERO (ALTO IMPACTO + MARKETING CONVERSACIONAL)
+         ========================================================= -->
+    <section class="relative pt-32 pb-20 md:pt-44 md:pb-32 overflow-hidden">
+        <!-- Luces de fondo ambientadas con los colores del logo -->
+        <div class="hero-glow top-10 left-1/4 -translate-x-1/2"></div>
+        <div class="hero-glow top-40 right-10 opacity-70"></div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+                
+                <!-- Columna Texto y Copy de Ventas -->
+                <div class="lg:col-span-7 text-center lg:text-left">
+                    <!-- Badge de confianza y localidad -->
+                    <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/5 border border-white/10 text-brand-cyan text-xs font-bold tracking-wide mb-6 uppercase">
+                        <span class="w-2 h-2 rounded-full bg-brand-cyan animate-ping"></span>
+                        Villa Carlos Paz · Calidad Fotográfica & Editorial
+                    </div>
+
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black font-display tracking-tight text-white leading-[1.1] mb-6">
+                        Tus impresiones listas, <span class="gradient-text-cmyk">impecables</span> y sin hacer filas.
+                    </h1>
+
+                    <p class="text-base sm:text-lg text-slate-300 font-normal leading-relaxed mb-8 max-w-2xl mx-auto lg:mx-0">
+                        Especialistas en <strong>cuadernillos universitarios, manuales de estudio, anillados reforzados y papelería comercial</strong>. Nos enviás el PDF o diseño por WhatsApp y lo retirás listo para usar o estudiar.
+                    </p>
+
+                    <!-- CTAs principales -->
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-10">
+                        <a href="https://wa.me/5493541293602?text=Hola%20Impresiones%20VCP!%20Quiero%20hacer%20una%20consulta%20para%20imprimir%20un%20trabajo." target="_blank" class="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-brand-whatsapp text-white font-extrabold text-base hover:bg-[#20ba59] transition-all transform hover:-translate-y-1 shadow-xl shadow-brand-whatsapp/25 btn-pulse">
+                            <i class="ph ph-whatsapp-logo text-2xl"></i>
+                            <span>Pedir Presupuesto por WhatsApp</span>
+                        </a>
+
+                        <a href="#servicios" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-semibold text-base border border-white/10 transition-all">
+                            <span>Ver Trabajos & Servicios</span>
+                            <i class="ph ph-arrow-down text-lg"></i>
+                        </a>
+                    </div>
+
+                    <!-- Micro-beneficios inmediatos (Garantías) -->
+                    <div class="grid grid-cols-3 gap-4 pt-6 border-t border-white/10 max-w-lg mx-auto lg:mx-0">
+                        <div class="text-center lg:text-left">
+                            <div class="text-xl sm:text-2xl font-black text-white font-display">100%</div>
+                            <div class="text-xs text-slate-400 font-medium">Textos Nítidos</div>
+                        </div>
+                        <div class="text-center lg:text-left">
+                            <div class="text-xl sm:text-2xl font-black text-brand-cyan font-display">Express</div>
+                            <div class="text-xs text-slate-400 font-medium">Envío por WhatsApp</div>
+                        </div>
+                        <div class="text-center lg:text-left">
+                            <div class="text-xl sm:text-2xl font-black text-brand-yellow font-display">Descuento</div>
+                            <div class="text-xs text-slate-400 font-medium">Por Cantidad</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna Visual Mockup / Galería Flotante -->
+                <div class="lg:col-span-5 relative">
+                    <div class="relative mx-auto max-w-md lg:max-w-none">
+                        
+                        <!-- Tarjeta Principal con Imagen de Alta Definición -->
+                        <div class="gradient-border overflow-hidden p-2 shadow-2xl shadow-black/80">
+                            <div class="relative h-96 sm:h-[420px] rounded-2xl overflow-hidden group">
+                                <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=900&q=80" alt="Libros y Cuadernillos Anillados Profesionales" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105">
+                                <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent"></div>
+                                
+                                <div class="absolute bottom-5 left-5 right-5">
+                                    <span class="inline-block px-3 py-1 rounded-full bg-brand-pink text-white text-xs font-bold uppercase tracking-wider mb-2">
+                                        Especialidad de la casa
+                                    </span>
+                                    <h3 class="text-xl font-bold text-white font-display">Cuadernillos & Libros Anillados</h3>
+                                    <p class="text-xs text-slate-300 mt-1">Tapas plásticas protectoras, doble faz perfecta y lectura ultra descansada.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Badge Flotante 1: Stickers y Fotos -->
+                        <div class="absolute -top-6 -right-6 hidden sm:flex items-center gap-3 bg-[#131825]/95 backdrop-blur-md border border-white/10 p-3.5 rounded-2xl shadow-2xl">
+                            <div class="w-10 h-10 rounded-xl bg-brand-cyan/20 text-brand-cyan flex items-center justify-center text-xl">
+                                <i class="ph ph-sparkle"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-white">Papel Foto & Stickers</div>
+                                <div class="text-[11px] text-slate-400">Brillo y troquelados</div>
+                            </div>
+                        </div>
+
+                        <!-- Badge Flotante 2: Sin Mínimos -->
+                        <div class="absolute -bottom-6 -left-6 hidden sm:flex items-center gap-3 bg-[#131825]/95 backdrop-blur-md border border-white/10 p-3.5 rounded-2xl shadow-2xl">
+                            <div class="w-10 h-10 rounded-xl bg-brand-yellow/20 text-brand-yellow flex items-center justify-center text-xl">
+                                <i class="ph ph-check-circle"></i>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-white">Desde 1 unidad</div>
+                                <div class="text-[11px] text-slate-400">Hasta tiradas mayoristas</div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================================
+         BARRA DE VALOR AGREGADO (PSICOLOGÍA DE COMPRA)
+         ========================================================= -->
+    <section class="border-y border-white/5 bg-[#0a0d14]/60 py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center md:text-left">
+                <div class="flex flex-col md:flex-row items-center gap-3">
+                    <i class="ph ph-file-pdf text-3xl text-brand-cyan"></i>
+                    <div>
+                        <div class="text-sm font-bold text-white">Recepción Digital</div>
+                        <div class="text-xs text-slate-400">Mandás tu PDF por WhatsApp</div>
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row items-center gap-3">
+                    <i class="ph ph-drop-half-bottom text-3xl text-brand-pink"></i>
+                    <div>
+                        <div class="text-sm font-bold text-white">Tinta HD sin Manchas</div>
+                        <div class="text-xs text-slate-400">Textos definidos y colores vivos</div>
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row items-center gap-3">
+                    <i class="ph ph-book-open text-3xl text-brand-yellow"></i>
+                    <div>
+                        <div class="text-sm font-bold text-white">Encuadernación Robusta</div>
+                        <div class="text-xs text-slate-400">Espirales firmes para uso diario</div>
+                    </div>
+                </div>
+                <div class="flex flex-col md:flex-row items-center gap-3">
+                    <i class="ph ph-clock-countdown text-3xl text-emerald-400"></i>
+                    <div>
+                        <div class="text-sm font-bold text-white">Entrega Coordinada</div>
+                        <div class="text-xs text-slate-400">Listo para retirar cuando te avisamos</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================================
+         SERVICIOS Y SOLUCIONES (CATÁLOGO VISUAL ENFOCADO EN VALOR)
+         ========================================================= -->
+    <section id="servicios" class="py-24 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            <div class="text-center max-w-3xl mx-auto mb-16">
+                <span class="text-brand-pink font-bold text-xs uppercase tracking-widest block mb-2">Nuestras Especialidades</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold font-display text-white tracking-tight">
+                    Todo lo que necesitás impreso con terminación profesional
+                </h2>
+                <p class="text-slate-400 mt-3 text-sm sm:text-base">
+                    No imprimas a ciegas. Cuidamos la alineación de márgenes, la densidad del color y las tapas para que tu material luzca impecable.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                
+                <!-- CARD 1: Cuadernillos Universitarios y Libros -->
+                <div class="service-card group rounded-2xl bg-brand-card border border-brand-cardBorder overflow-hidden flex flex-col hover:border-brand-cyan/50 transition-all duration-300 hover:shadow-xl hover:shadow-brand-cyan/10">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?auto=format&fit=crop&w=800&q=80" alt="Cuadernillos Universitarios" class="img-zoom w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-card via-transparent to-transparent"></div>
+                        <span class="absolute top-4 left-4 bg-brand-cyan/90 text-white text-[11px] font-extrabold uppercase px-3 py-1 rounded-full backdrop-blur-sm">
+                            El más pedido
+                        </span>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold font-display text-white group-hover:text-brand-cyan transition-colors">
+                                Cuadernillos & Material de Estudio
+                            </h3>
+                            <p class="text-slate-400 text-sm mt-2.5 leading-relaxed">
+                                Ideal para estudiantes, docentes y cursos. Doble faz calibrada para aprovechar el papel, anillado espiral resistente y tapas plásticas duraderas.
+                            </p>
+                            <ul class="mt-4 space-y-2 text-xs text-slate-300 font-medium">
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-brand-cyan text-base"></i> Apuntes, manuales y dossiers
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-brand-cyan text-base"></i> B&N y color para gráficos/esquemas
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-brand-cyan text-base"></i> Precios especiales por cantidad
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="https://wa.me/5493541293602?text=Hola!%20Quiero%20presupuestar%20unos%20cuadernillos%20o%20apuntes%20de%20estudio." target="_blank" class="mt-6 inline-flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-white/5 hover:bg-brand-cyan hover:text-black font-bold text-xs uppercase tracking-wider text-slate-300 transition-all">
+                            <span>Cotizar Cuadernillos</span>
+                            <i class="ph ph-arrow-right text-base"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CARD 2: Anillados y Encuadernación -->
+                <div class="service-card group rounded-2xl bg-brand-card border border-brand-cardBorder overflow-hidden flex flex-col hover:border-brand-pink/50 transition-all duration-300 hover:shadow-xl hover:shadow-brand-pink/10">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=800&q=80" alt="Anillados y Encuadernación" class="img-zoom w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-card via-transparent to-transparent"></div>
+                        <span class="absolute top-4 left-4 bg-brand-pink/90 text-white text-[11px] font-extrabold uppercase px-3 py-1 rounded-full backdrop-blur-sm">
+                            Protección Total
+                        </span>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold font-display text-white group-hover:text-brand-pink transition-colors">
+                                Anillados con Tapas Cristal
+                            </h3>
+                            <p class="text-slate-400 text-sm mt-2.5 leading-relaxed">
+                                Transformá tus hojas sueltas en un tomo profesional y fácil de manipular. Espirales resistentes a enganches y tapas plásticas que cuidan tu contenido.
+                            </p>
+                            <ul class="mt-4 space-y-2 text-xs text-slate-300 font-medium">
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-brand-pink text-base"></i> Tapa cristal transparente + contratapa negra
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-brand-pink text-base"></i> Espiralado a medida según cantidad de hojas
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-brand-pink text-base"></i> Encarpetado y anillado de hojas ya impresas
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="https://wa.me/5493541293602?text=Hola!%20Necesito%20anillar%20un%20trabajo,%20me%20decís%20cómo%20hacemos?" target="_blank" class="mt-6 inline-flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-white/5 hover:bg-brand-pink hover:text-white font-bold text-xs uppercase tracking-wider text-slate-300 transition-all">
+                            <span>Consultar Anillados</span>
+                            <i class="ph ph-arrow-right text-base"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CARD 3: Papel Foto Brillante (Glossy) -->
+                <div class="service-card group rounded-2xl bg-brand-card border border-brand-cardBorder overflow-hidden flex flex-col hover:border-brand-yellow/50 transition-all duration-300 hover:shadow-xl hover:shadow-brand-yellow/10">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80" alt="Impresión Fotográfica en Papel Brillo" class="img-zoom w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-card via-transparent to-transparent"></div>
+                        <span class="absolute top-4 left-4 bg-brand-yellow/90 text-black text-[11px] font-extrabold uppercase px-3 py-1 rounded-full backdrop-blur-sm">
+                            Calidad Máxima
+                        </span>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold font-display text-white group-hover:text-brand-yellow transition-colors">
+                                Papel Fotográfico Brillo
+                            </h3>
+                            <p class="text-slate-400 text-sm mt-2.5 leading-relaxed">
+                                Para cuando la imagen tiene que impactar. Brillo satinado, negros profundos y gama de colores vívidos ideal para recuerdos, portfolios y presentaciones.
+                            </p>
+                            <ul class="mt-4 space-y-2 text-xs text-slate-300 font-medium">
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-brand-yellow text-base"></i> Recuerdos familiares, fotos y retratos
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-brand-yellow text-base"></i> Portadas de proyectos y catálogos
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-brand-yellow text-base"></i> Opción Simple y Doble Faz
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="https://wa.me/5493541293602?text=Hola!%20Quiero%20imprimir%20en%20papel%20fotográfico%20brillante." target="_blank" class="mt-6 inline-flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-white/5 hover:bg-brand-yellow hover:text-black font-bold text-xs uppercase tracking-wider text-slate-300 transition-all">
+                            <span>Cotizar Impresiones Foto</span>
+                            <i class="ph ph-arrow-right text-base"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CARD 4: Stickers y Papelería Adhesiva -->
+                <div class="service-card group rounded-2xl bg-brand-card border border-brand-cardBorder overflow-hidden flex flex-col hover:border-emerald-400/50 transition-all duration-300 hover:shadow-xl hover:shadow-emerald-400/10">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1572375992501-4b0892d50c69?auto=format&fit=crop&w=800&q=80" alt="Stickers y Etiquetas Autoadhesivas" class="img-zoom w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-card via-transparent to-transparent"></div>
+                        <span class="absolute top-4 left-4 bg-emerald-500/90 text-white text-[11px] font-extrabold uppercase px-3 py-1 rounded-full backdrop-blur-sm">
+                            Emprendedores
+                        </span>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold font-display text-white group-hover:text-emerald-400 transition-colors">
+                                Stickers & Autoadhesivos
+                            </h3>
+                            <p class="text-slate-400 text-sm mt-2.5 leading-relaxed">
+                                Dale valor y distinción al packaging de tu emprendimiento. Etiquetas para frascos, bolsas, souvenirs, cajas y productos artesanales.
+                            </p>
+                            <ul class="mt-4 space-y-2 text-xs text-slate-300 font-medium">
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-emerald-400 text-base"></i> Planchas A4 autoadhesivas de alta adherencia
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-emerald-400 text-base"></i> Etiquetas de cierre de bolsa y packaging
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-emerald-400 text-base"></i> Stickers escolares y personalizados
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="https://wa.me/5493541293602?text=Hola!%20Quiero%20hacer%20stickers%20o%20etiquetas%20autoadhesivas%20para%20mi%20marca." target="_blank" class="mt-6 inline-flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-white/5 hover:bg-emerald-400 hover:text-black font-bold text-xs uppercase tracking-wider text-slate-300 transition-all">
+                            <span>Cotizar Stickers</span>
+                            <i class="ph ph-arrow-right text-base"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CARD 5: Cartulinas y Papel Grueso -->
+                <div class="service-card group rounded-2xl bg-brand-card border border-brand-cardBorder overflow-hidden flex flex-col hover:border-purple-400/50 transition-all duration-300 hover:shadow-xl hover:shadow-purple-400/10">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1586075010923-2dd4570fb338?auto=format&fit=crop&w=800&q=80" alt="Cartulina y Papeles Especiales" class="img-zoom w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-card via-transparent to-transparent"></div>
+                        <span class="absolute top-4 left-4 bg-purple-500/90 text-white text-[11px] font-extrabold uppercase px-3 py-1 rounded-full backdrop-blur-sm">
+                            Mayor Rigidez
+                        </span>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold font-display text-white group-hover:text-purple-400 transition-colors">
+                                Cartulinas & Papel Grueso
+                            </h3>
+                            <p class="text-slate-400 text-sm mt-2.5 leading-relaxed">
+                                Soporte consistente y rígido para piezas que requieren presencia táctil: diplomas, certificados, tarjetas de agradecimiento y láminas ilustradas.
+                            </p>
+                            <ul class="mt-4 space-y-2 text-xs text-slate-300 font-medium">
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-purple-400 text-base"></i> Diplomas de egresados y certificados de cursos
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-purple-400 text-base"></i> Tarjetas de presentación y postales
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-purple-400 text-base"></i> Láminas decorativas y cartelería interior
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="https://wa.me/5493541293602?text=Hola!%20Consulto%20por%20impresiones%20en%20papel%20grueso%20o%20cartulina." target="_blank" class="mt-6 inline-flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-white/5 hover:bg-purple-400 hover:text-white font-bold text-xs uppercase tracking-wider text-slate-300 transition-all">
+                            <span>Cotizar Cartulinas</span>
+                            <i class="ph ph-arrow-right text-base"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- CARD 6: Ajuste de Diseño & Armado -->
+                <div class="service-card group rounded-2xl bg-brand-card border border-brand-cardBorder overflow-hidden flex flex-col hover:border-sky-400/50 transition-all duration-300 hover:shadow-xl hover:shadow-sky-400/10">
+                    <div class="relative h-56 overflow-hidden">
+                        <img src="https://images.unsplash.com/photo-1542744094-3a31f272c490?auto=format&fit=crop&w=800&q=80" alt="Diseño Gráfico y Ajuste de Archivos" class="img-zoom w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-brand-card via-transparent to-transparent"></div>
+                        <span class="absolute top-4 left-4 bg-sky-500/90 text-white text-[11px] font-extrabold uppercase px-3 py-1 rounded-full backdrop-blur-sm">
+                            Asistencia Experta
+                        </span>
+                    </div>
+                    <div class="p-6 flex-1 flex flex-col justify-between">
+                        <div>
+                            <h3 class="text-xl font-bold font-display text-white group-hover:text-sky-400 transition-colors">
+                                Asistencia y Ajuste de Archivos
+                            </h3>
+                            <p class="text-slate-400 text-sm mt-2.5 leading-relaxed">
+                                ¿Tenés un PDF desfasado, querés armar una plancha de etiquetas o necesitás adaptar márgenes? Te ayudamos para que no se corte nada al imprimir.
+                            </p>
+                            <ul class="mt-4 space-y-2 text-xs text-slate-300 font-medium">
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-sky-400 text-base"></i> Calibración de sangrías y márgenes de anillado
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-sky-400 text-base"></i> Armado de cancioneros, libretas y guías
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <i class="ph ph-check-circle text-sky-400 text-base"></i> Multiplicación de tarjetas y etiquetas en hoja A4
+                                </li>
+                            </ul>
+                        </div>
+                        <a href="https://wa.me/5493541293602?text=Hola!%20Tengo%20un%20archivo%20que%20necesito%20acomodar%20para%20imprimir." target="_blank" class="mt-6 inline-flex items-center justify-between w-full px-4 py-2.5 rounded-xl bg-white/5 hover:bg-sky-400 hover:text-black font-bold text-xs uppercase tracking-wider text-slate-300 transition-all">
+                            <span>Consultar Asistencia</span>
+                            <i class="ph ph-arrow-right text-base"></i>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================================
+         PASO A PASO: ¿CÓMO TRABAJAMOS? (SIN FRICCIÓN)
+         ========================================================= -->
+    <section id="como-trabajamos" class="py-20 bg-[#0a0d14]/80 border-y border-white/5 relative">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center max-w-2xl mx-auto mb-16">
+                <span class="text-brand-cyan font-bold text-xs uppercase tracking-widest block mb-2">Comodidad y Rapidez</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold font-display text-white">Pedir tu trabajo es tan simple como esto:</h2>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">Sin esperas ni demoras en mostrador. Todo resuelto desde tu teléfono o computadora.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+                
+                <!-- PASO 1 -->
+                <div class="relative bg-brand-card p-6 rounded-2xl border border-white/5 text-center flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-2xl bg-brand-cyan/15 text-brand-cyan flex items-center justify-center text-3xl mb-4 font-display font-black">
+                        1
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Envianos tu archivo</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Mandanos tu documento por WhatsApp (ideal formato PDF, imagen en alta o enlace de Google Drive).
+                    </p>
+                </div>
+
+                <!-- PASO 2 -->
+                <div class="relative bg-brand-card p-6 rounded-2xl border border-white/5 text-center flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-2xl bg-brand-pink/15 text-brand-pink flex items-center justify-center text-3xl mb-4 font-display font-black">
+                        2
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Cotización al Instante</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Te pasamos el presupuesto exacto según cantidad de hojas, simple o doble faz y tipo de encuadernación.
+                    </p>
+                </div>
+
+                <!-- PASO 3 -->
+                <div class="relative bg-brand-card p-6 rounded-2xl border border-white/5 text-center flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-2xl bg-brand-yellow/15 text-brand-yellow flex items-center justify-center text-3xl mb-4 font-display font-black">
+                        3
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">Producción Cuidadosa</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Confirmás con seña por transferencia o Mercado Pago y ponemos en marcha la impresión y anillado de inmediato.
+                    </p>
+                </div>
+
+                <!-- PASO 4 -->
+                <div class="relative bg-brand-card p-6 rounded-2xl border border-white/5 text-center flex flex-col items-center">
+                    <div class="w-16 h-16 rounded-2xl bg-emerald-400/15 text-emerald-400 flex items-center justify-center text-3xl mb-4 font-display font-black">
+                        4
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-2">¡Listo para retirar!</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        Te avisamos apenas termina el control de calidad para que pases a buscar tu pedido prolijo y empaquetado.
+                    </p>
+                </div>
+
+            </div>
+
+            <!-- Banner WhatsApp Directo -->
+            <div class="mt-14 max-w-3xl mx-auto rounded-2xl bg-gradient-to-r from-brand-cyan/20 via-brand-pink/20 to-brand-yellow/20 p-[1px]">
+                <div class="bg-[#0e121b] rounded-2xl p-6 sm:p-8 flex flex-col sm:flex-row items-center justify-between gap-6 text-center sm:text-left">
+                    <div>
+                        <h4 class="text-lg font-bold text-white">¿Tenés un archivo listo para imprimir ahora?</h4>
+                        <p class="text-xs text-slate-400 mt-1">Hacé clic y adjuntalo directamente por WhatsApp sin vueltas.</p>
+                    </div>
+                    <a href="https://wa.me/5493541293602?text=Hola%20Impresiones%20VCP!%20Tengo%20un%20archivo%20para%20mandarte%20ahora%20mismo." target="_blank" class="px-6 py-3.5 rounded-xl bg-brand-whatsapp text-white font-bold text-sm flex items-center gap-2 hover:bg-[#20ba59] transition-all flex-shrink-0 shadow-lg shadow-brand-whatsapp/20">
+                        <i class="ph ph-paper-plane-tilt text-lg"></i>
+                        <span>Enviar Archivo</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================================
+         SIMULADOR INTERACTIVO / COTIZADOR GUIADO (LEAD GENERATION)
+         (Sin mostrar precios fijos, enfocado en generar el mensaje exacto para WhatsApp)
+         ========================================================= -->
+    <section id="cotizar" class="py-24 relative overflow-hidden">
+        <div class="hero-glow bottom-0 left-1/3 opacity-50"></div>
+
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="text-center mb-12">
+                <span class="text-brand-yellow font-bold text-xs uppercase tracking-widest block mb-2">Generador de Consulta Rápida</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold font-display text-white">Armá tu consulta personalizada en 30 segundos</h2>
+                <p class="text-slate-400 mt-2 text-sm sm:text-base">Seleccioná lo que necesitás y te armamos el mensaje listo para enviar con 1 solo toque.</p>
+            </div>
+
+            <div class="bg-brand-card border border-brand-cardBorder rounded-3xl p-6 sm:p-10 shadow-2xl">
+                <form id="quoteGeneratorForm" onsubmit="event.preventDefault(); submitQuoteToWhatsApp();" class="space-y-6">
+                    
+                    <!-- Tipo de Trabajo -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">1. ¿Qué tipo de trabajo necesitás?</label>
+                        <select id="q-service" class="w-full bg-[#0a0d14] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-brand-cyan transition-colors">
+                            <option value="Cuadernillo o Libro de Estudio">Cuadernillo o Libro de Estudio (Apuntes / Manuales)</option>
+                            <option value="Hojas Sueltas / Documentos">Impresión de Documentos / Hojas Sueltas</option>
+                            <option value="Stickers / Autoadhesivos">Stickers o Etiquetas Autoadhesivas</option>
+                            <option value="Papel Fotográfico Brillo">Fotos / Portadas en Papel Fotográfico Brillo</option>
+                            <option value="Cartulina / Papel Grueso">Diplomas o Certificados en Cartulina Gruesa</option>
+                            <option value="Solo Anillado">Solo Anillado de hojas que ya tengo</option>
+                            <option value="Otro Trabajo Especial">Otro trabajo especial / Consulta gráfica</option>
+                        </select>
+                    </div>
+
+                    <!-- Grilla de Opciones: Faz y Tinta -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">2. Color o Blanco y Negro</label>
+                            <select id="q-color" class="w-full bg-[#0a0d14] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-brand-cyan transition-colors">
+                                <option value="Blanco y Negro">Blanco y Negro (Económico para lectura)</option>
+                                <option value="Color">Color Completo (Gráficos, fotos o imágenes)</option>
+                                <option value="Mixto (Parte color y parte B&N)">Mixto (Texto en B&N con carátula o gráficos color)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">3. Tipo de Faz</label>
+                            <select id="q-faz" class="w-full bg-[#0a0d14] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-brand-cyan transition-colors">
+                                <option value="Doble Faz (Reverso)">Doble Faz (Aprovecha ambos lados, menos bulto)</option>
+                                <option value="Simple Faz (Solo frente)">Simple Faz (Una sola cara)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cantidades y Anillado -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">4. Cantidad estimada de páginas u hojas</label>
+                            <input type="text" id="q-qty" placeholder="Ej: 80 páginas / 2 tomos / 15 hojas" class="w-full bg-[#0a0d14] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-cyan transition-colors">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">5. ¿Lleva Anillado y Tapas?</label>
+                            <select id="q-binding" class="w-full bg-[#0a0d14] border border-white/10 rounded-xl px-4 py-3.5 text-sm text-white focus:outline-none focus:border-brand-cyan transition-colors">
+                                <option value="Sí, con anillado espiral y tapas plásticas">Sí, anillado con tapas plásticas</option>
+                                <option value="No, solo las hojas impresas sueltas">No, solo las hojas impresas</option>
+                                <option value="Abrochado / Emprolijado simple">Abrochado / Grampado simple</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Comentarios adicionales -->
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-2">6. Aclaración o detalle especial (Opcional)</label>
+                        <textarea id="q-notes" rows="2" placeholder="Ej: ¿Tienen descuento si hago 3 copias iguales? / Lo necesito para hoy a la tarde..." class="w-full bg-[#0a0d14] border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-brand-cyan transition-colors"></textarea>
+                    </div>
+
+                    <!-- Botón Generador de WhatsApp -->
+                    <div class="pt-4">
+                        <button type="submit" class="w-full py-4 rounded-2xl bg-gradient-to-r from-brand-whatsapp to-[#1ea851] text-white font-extrabold text-base tracking-wide flex items-center justify-center gap-3 shadow-xl shadow-brand-whatsapp/25 hover:opacity-95 transition-all transform hover:-translate-y-0.5">
+                            <i class="ph ph-whatsapp-logo text-2xl"></i>
+                            <span>Enviar Solicitud por WhatsApp</span>
+                        </button>
+                        <p class="text-[11px] text-center text-slate-400 mt-2.5">
+                            🔒 Te atendemos de forma personalizada y te pasamos el costo exacto en minutos.
+                        </p>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================================
+         PREGUNTAS FRECUENTES (DERRIBAR OBJECIONES DE VENTA)
+         ========================================================= -->
+    <section id="faq" class="py-20 bg-[#0a0d14]/70 border-t border-white/5">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-14">
+                <span class="text-brand-cyan font-bold text-xs uppercase tracking-widest block mb-2">Despejá tus dudas</span>
+                <h2 class="text-3xl sm:text-4xl font-extrabold font-display text-white">Preguntas Frecuentes</h2>
+            </div>
+
+            <div class="space-y-4">
+                
+                <details class="group bg-brand-card border border-brand-cardBorder rounded-2xl p-5 [&_svg]:open:-rotate-180 transition-all">
+                    <summary class="flex justify-between items-center cursor-pointer list-none font-bold text-white text-base">
+                        <span>¿En qué formato me conviene enviar los archivos?</span>
+                        <i class="ph ph-caret-down text-brand-cyan text-lg transition-transform duration-300"></i>
+                    </summary>
+                    <p class="text-sm text-slate-400 mt-3.5 leading-relaxed">
+                        El formato ideal por excelencia es <strong>PDF</strong>, ya que asegura que los márgenes, fuentes y diseño no se muevan ni se desconfiguren al abrirlo. También podés enviarnos imágenes en alta calidad (JPG o PNG) o enlaces de Google Drive si el archivo es muy pesado.
+                    </p>
+                </details>
+
+                <details class="group bg-brand-card border border-brand-cardBorder rounded-2xl p-5 [&_svg]:open:-rotate-180 transition-all">
+                    <summary class="flex justify-between items-center cursor-pointer list-none font-bold text-white text-base">
+                        <span>¿Hay cantidad mínima para hacer un pedido?</span>
+                        <i class="ph ph-caret-down text-brand-cyan text-lg transition-transform duration-300"></i>
+                    </summary>
+                    <p class="text-sm text-slate-400 mt-3.5 leading-relaxed">
+                        ¡No! Hacemos desde <strong>1 sola hoja</strong> o 1 cuadernillo personal hasta tiradas mayores para institutos, cursos, comercios o colegios. Para trabajos de volumen disponemos de tarifas promocionales y pisos mayoristas muy convenientes.
+                    </p>
+                </details>
+
+                <details class="group bg-brand-card border border-brand-cardBorder rounded-2xl p-5 [&_svg]:open:-rotate-180 transition-all">
+                    <summary class="flex justify-between items-center cursor-pointer list-none font-bold text-white text-base">
+                        <span>¿Puedo llevar hojas que ya tengo impresas para anillar?</span>
+                        <i class="ph ph-caret-down text-brand-cyan text-lg transition-transform duration-300"></i>
+                    </summary>
+                    <p class="text-sm text-slate-400 mt-3.5 leading-relaxed">
+                        Sí, claro. Si ya imprimiste tu material y querés emprolijarlo, traés las hojas y nosotros le colocamos el anillado espiralado reforzado y las tapas plásticas protectoras.
+                    </p>
+                </details>
+
+                <details class="group bg-brand-card border border-brand-cardBorder rounded-2xl p-5 [&_svg]:open:-rotate-180 transition-all">
+                    <summary class="flex justify-between items-center cursor-pointer list-none font-bold text-white text-base">
+                        <span>¿Cómo es la forma de pago y entrega?</span>
+                        <i class="ph ph-caret-down text-brand-cyan text-lg transition-transform duration-300"></i>
+                    </summary>
+                    <p class="text-sm text-slate-400 mt-3.5 leading-relaxed">
+                        Aceptamos transferencias bancarias, Mercado Pago y efectivo. Una vez abonada la seña o el total, pasamos a producción y te avisamos con un mensaje apenas tu trabajo esté empaquetado para que vengas a retirarlo sin demoras.
+                    </p>
+                </details>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================================
+         FOOTER ELEGANTE CON LOCALÍA VCP
+         ========================================================= -->
+    <footer class="bg-[#05070a] border-t border-white/5 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                
+                <div class="flex items-center gap-3">
+                    <img src="logo.png" alt="Logo Impresiones VCP" class="w-10 h-10 rounded-full">
+                    <div>
+                        <div class="text-sm font-bold text-white">Impresiones VCP</div>
+                        <div class="text-xs text-slate-400">Cuadernillos · Libros · Impresión de Alta Nitidez</div>
+                    </div>
+                </div>
+
+                <div class="text-center md:text-right">
+                    <p class="text-xs text-slate-400">Villa Carlos Paz, Córdoba, Argentina</p>
+                    <p class="text-[11px] text-slate-600 mt-1">Atención personalizada vía WhatsApp · Calidad garantizada</p>
+                </div>
+
+            </div>
+        </div>
+    </footer>
+
+    <!-- =========================================================
+         BOTÓN FLOTANTE PERMANENTE DE WHATSAPP (CONVERSIÓN DIRECTA)
+         ========================================================= -->
+    <a href="https://wa.me/5493541293602?text=Hola%20Impresiones%20VCP!%20Quisiera%20hacerles%20una%20consulta." target="_blank" class="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 px-4 py-3.5 rounded-full bg-brand-whatsapp text-white font-extrabold text-sm shadow-2xl shadow-brand-whatsapp/40 hover:scale-105 transition-all btn-pulse group">
+        <i class="ph ph-whatsapp-logo text-2xl group-hover:rotate-12 transition-transform"></i>
+        <span class="hidden sm:inline">¿Hablamos por WhatsApp?</span>
+    </a>
+
+    <!-- =========================================================
+         SCRIPT COTIZADOR INTERACTIVO A WHATSAPP
+         ========================================================= -->
+    <script>
+        function submitQuoteToWhatsApp() {
+            const service = document.getElementById('q-service').value;
+            const color = document.getElementById('q-color').value;
+            const faz = document.getElementById('q-faz').value;
+            const qty = document.getElementById('q-qty').value.trim() || 'A confirmar';
+            const binding = document.getElementById('q-binding').value;
+            const notes = document.getElementById('q-notes').value.trim();
+
+            let message = `¡Hola Impresiones VCP! Estuve viendo la página web y quiero pedirles un presupuesto:\n\n`;
+            message += `📌 *Servicio:* ${service}\n`;
+            message += `🎨 *Tipo de Tinta:* ${color}\n`;
+            message += `📄 *Faz:* ${faz}\n`;
+            message += `🔢 *Cantidad aprox.:* ${qty}\n`;
+            message += `📚 *Encuadernación:* ${binding}\n`;
+            
+            if (notes) {
+                message += `📝 *Detalle extra:* ${notes}\n`;
+            }
+
+            message += `\n¿Me podrían decir el costo y cuándo lo podría tener listo? ¡Muchas gracias!`;
+
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/5493541293602?text=${encodedMessage}`, '_blank');
+        }
+    </script>
+
+</body>
+</html>
+

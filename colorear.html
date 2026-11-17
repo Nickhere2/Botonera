@@ -433,7 +433,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             
             // --- Variables de Estado de la App ---
-            let apiKey = localStorage.getItem('geminiApiKey');
+            let apiKey = localStorage.getItem('geminiApiKey') || localStorage.getItem('gemini_api_key');
             let jobQueue = []; let pdfSheets = []; let imagesForZip = []; let recentImages = [];
             let originalClipboardContent = ""; let currentJobIndex = -1;
             let pieImage = null; let currentUserImage = null;
@@ -488,7 +488,19 @@
             if (!apiKey) { showApiKeyModal(); } else { hideApiKeyModal(); loadPieImage(); }
     
             // --- Handlers de API Key y Carga ---
-            saveApiKeyButton.addEventListener('click', () => { const key = apiKeyInput.value.trim(); if (key) { apiKey = key; localStorage.setItem('geminiApiKey', key); hideApiKeyModal(); loadPieImage(); console.log("API Key guardada."); } else { alert('Ingresa clave API.'); } });
+            saveApiKeyButton.addEventListener('click', () => { 
+                const key = apiKeyInput.value.trim(); 
+                if (key) { 
+                    apiKey = key; 
+                    localStorage.setItem('geminiApiKey', key); 
+                    localStorage.setItem('gemini_api_key', key);
+                    hideApiKeyModal(); 
+                    loadPieImage(); 
+                    console.log("API Key guardada."); 
+                } else { 
+                    alert('Ingresa clave API.'); 
+                } 
+            });
             function showApiKeyModal() { apiKeyModal.classList.add('flex'); apiKeyModal.classList.remove('hidden'); }
             function hideApiKeyModal() { apiKeyModal.classList.add('hidden'); apiKeyModal.classList.remove('flex'); }
             async function loadPieImage() { try { pieImage = new Image(); pieImage.src = 'pie.png'; await pieImage.decode(); console.log('pie.png cargado.'); redrawCanvas(); } catch (err) { console.error('Error pie.png:', err); /*alert('Error: No se pudo cargar pie.png.');*/ pieImage = null; } } // --- CAMBIO: No mostrar alert por pie.png ---
@@ -659,7 +671,7 @@
                 }
                 
                 // Usamos la misma apiKey global que el usuario proveyó
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     
                 const systemPrompt = "Eres un asistente que extrae pedidos de una lista para una app de hojas de colorear. El usuario te pasará un texto, a veces desordenado. Extrae el nombre de la persona (name), la edad (age) (SOLO EL NÚMERO, ej: '6'), el tema del dibujo (theme) y la cantidad (quantity). 'años' significa 'years old'. Si no se especifica cantidad, usa 3. Responde SÓLO con el array JSON. Si el texto es incomprensible o no parece un pedido, responde con un array JSON vacío [].";
                 

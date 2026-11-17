@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Protector de Muestras CV · Impresiones VCP</title>
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <style>
+    :root {
+      --cyan: #00b4d8;
+      --cyan-dark: #0284c7;
+      --magenta: #f72585;
+      --bg: #0b0f19;
+      --card: #131926;
+      --border: #253047;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 20px 14px 50px;
+      display: flex;
+      justify-content: center;
+    }
+    .wrap { width: 100%; max-width: 980px; }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand img { width: 48px; height: 48px; background: #000; border-radius: 50%; object-fit: cover; border: 2px solid var(--cyan); }
+    .brand h1 { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; }
+    .brand p { font-size: 12px; color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: 330px 1fr;
+      gap: 18px;
+      align-items: start;
+    }
+    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+    }
+    .drop-zone {
+      border: 2px dashed var(--cyan);
+      background: rgba(0, 180, 216, 0.06);
+      border-radius: 14px;
+      padding: 24px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 16px;
+    }
+    .drop-zone.dragover { background: rgba(0, 180, 216, 0.16); transform: scale(1.01); }
+    .drop-zone i { font-size: 36px; color: var(--cyan); display: block; margin-bottom: 8px; }
+    .drop-zone strong { font-size: 14px; display: block; margin-bottom: 4px; }
+    .drop-zone span { font-size: 11.5px; color: var(--muted); line-height: 1.4; display: block; }
+    .ctrl-group { margin-bottom: 14px; }
+    .ctrl-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-bottom: 6px;
+    }
+    .ctrl-label span { color: var(--cyan); }
+    input[type="text"] {
+      width: 100%;
+      background: #0b0f19;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 9px 11px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    input[type="range"] { width: 100%; accent-color: var(--cyan); cursor: pointer; }
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #cbd5e1;
+      cursor: pointer;
+      margin-bottom: 10px;
+      user-select: none;
+    }
+    .check-row input { width: 16px; height: 16px; accent-color: var(--cyan); cursor: pointer; }
+    .btn {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: none;
+      font-weight: 800;
+      font-size: 13.5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s;
+      margin-bottom: 8px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #25D366, #16a34a); color: #fff; }
+    .btn-primary:hover { filter: brightness(1.06); }
+    .btn-secondary { background: linear-gradient(135deg, var(--cyan), var(--cyan-dark)); color: #fff; }
+    .btn-secondary:hover { filter: brightness(1.06); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .preview-panel {
+      background: #06080f;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: center;
+      min-height: 460px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    .page-nav {
+      display: none;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .page-nav button {
+      background: var(--card);
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #previewImg {
+      max-width: 100%;
+      max-height: 76vh;
+      border-radius: 8px;
+      box-shadow: 0 12px 35px rgba(0,0,0,0.6);
+      display: none;
+    }
+    .empty-state { color: var(--muted); font-size: 13px; max-width: 340px; line-height: 1.5; }
+    .tip-box {
+      background: rgba(255, 183, 3, 0.1);
+      border: 1px solid rgba(255, 183, 3, 0.3);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 11.5px;
+      color: #fde68a;
+      line-height: 1.45;
+      margin-top: 8px;
+    }
+    .stats { font-size: 11px; color: var(--muted); margin-top: 8px; }
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #16a34a;
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 99px;
+      font-size: 13px;
+      font-weight: 700;
+      display: none;
+      z-index: 99;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="header">
+      <div class="brand">
+        <img src="logo.png" alt="Impresiones VCP" onerror="this.style.display='none'">
+        <div>
+          <h1>Protector de Muestras CV</h1>
+          <p>Convierte tu PDF o imagen en vista previa JPG de baja resolución + marca de agua densa lista para WhatsApp</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <i class="ph ph-file-pdf"></i>
+          <strong>Arrastrá el PDF o Imagen del CV</strong>
+          <span>También podés hacer clic para buscar el archivo o apretar <b>Ctrl + V</b> si copiaste una captura</span>
+          <input type="file" id="fileInput" accept=".pdf,image/*" style="display:none">
+        </div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-label">Texto de la Marca de Agua</div>
+          <input type="text" id="wmText" value="MUESTRA PREVIA · IMPRESIONES VCP · NO VÁLIDA" oninput="renderProtect()">
+        </div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-label">Ancho salida (Menor = imposible imprimir) <span id="valWidth">680 px</span></div>
+          <input type="range" id="outWidth" min="480" max="900" step="20" value="680" oninput="renderProtect()">
+        </div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-label">Intensidad / Opacidad Marca <span id="valOpacity">32%</span></div>
+          <input type="range" id="wmOpacity" min="15" max="60" step="2" value="32" oninput="renderProtect()">
+        </div>
+
+        <div class="ctrl-group">
+          <div class="ctrl-label">Compresión JPG (Baja calidad visual HD) <span id="valQuality">55%</span></div>
+          <input type="range" id="jpgQuality" min="30" max="85" step="5" value="55" oninput="renderProtect()">
+        </div>
+
+        <label class="check-row">
+          <input type="checkbox" id="chkCenterBadge" checked onchange="renderProtect()">
+          <span>Incluir franja central "Pagar para recibir PDF HD"</span>
+        </label>
+
+        <button class="btn btn-primary" id="btnCopy" onclick="copiarImagen()" disabled>
+          <i class="ph ph-copy"></i> Copiar Imagen (Ctrl+V en WhatsApp)
+        </button>
+        <button class="btn btn-secondary" id="btnDownload" onclick="descargarJpg()" disabled>
+          <i class="ph ph-download-simple"></i> Descargar JPG Protegido
+        </button>
+
+        <div class="tip-box">
+          <b>Tip anti-IA y anti-captura:</b> Con 680 px + 55% JPG se lee perfecto en el celu para revisar datos, pero si la limpian con IA sale borrosa. Y si la enviás en el chat como <b>"Ver una sola vez" (ícono ①)</b>, WhatsApp además bloquea las capturas de pantalla.
+        </div>
+      </div>
+
+      <div class="preview-panel">
+        <div class="page-nav" id="pageNav">
+          <button onclick="cambiarPagina(-1)">◀ Anterior</button>
+          <span id="pageInfo">Página 1 de 1</span>
+          <button onclick="cambiarPagina(1)">Siguiente ▶</button>
+        </div>
+        <div class="empty-state" id="emptyState">
+          <i class="ph ph-shield-check" style="font-size:48px; color:#334155; margin-bottom:10px; display:block;"></i>
+          Cargá o soltá el PDF del CV terminado a la izquierda para generar la vista previa protegida al instante.
+        </div>
+        <img id="previewImg" alt="Vista previa protegida">
+        <div class="stats" id="statsText"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">✅ Imagen copiada al portapapeles</div>
+
+  <script>
+    if (window.pdfjsLib) {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+
+    let sourceCanvas = document.createElement('canvas');
+    let outputBlob = null;
+    let outputDataUrl = null;
+    let baseFileName = 'Muestra_CV';
+    let pdfDoc = null;
+    let currentPage = 1;
+    let hasSource = false;
+
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+
+    dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+    dropZone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', e => {
+      if (e.target.files[0]) handleFile(e.target.files[0]);
+    });
+    window.addEventListener('paste', e => {
+      const items = e.clipboardData?.items || [];
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          handleFile(item.getAsFile());
+          break;
+        }
+      }
+    });
+
+    async function handleFile(file) {
+      baseFileName = (file.name || 'Muestra_CV').replace(/\.[^/.]+$/, '').replace(/\s+/g, '_');
+      if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+        if (!window.pdfjsLib) {
+          alert('No se pudo cargar PDF.js (requiere conexión a internet para leer PDFs). Podés pegar una captura con Ctrl+V.');
+          return;
+        }
+        const buf = await file.arrayBuffer();
+        pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
+        currentPage = 1;
+        await renderPdfPage(1);
+      } else if (file.type.startsWith('image/')) {
+        pdfDoc = null;
+        document.getElementById('pageNav').style.display = 'none';
+        const img = new Image();
+        img.onload = () => {
+          sourceCanvas.width = img.width;
+          sourceCanvas.height = img.height;
+          sourceCanvas.getContext('2d').drawImage(img, 0, 0);
+          hasSource = true;
+          renderProtect();
+        };
+        img.src = URL.createObjectURL(file);
+      }
+    }
+
+    async function renderPdfPage(num) {
+      if (!pdfDoc) return;
+      const page = await pdfDoc.getPage(num);
+      const viewport = page.getViewport({ scale: 2.0 });
+      sourceCanvas.width = viewport.width;
+      sourceCanvas.height = viewport.height;
+      await page.render({ canvasContext: sourceCanvas.getContext('2d'), viewport }).promise;
+      hasSource = true;
+
+      const nav = document.getElementById('pageNav');
+      if (pdfDoc.numPages > 1) {
+        nav.style.display = 'flex';
+        document.getElementById('pageInfo').textContent = `Página ${num} de ${pdfDoc.numPages}`;
+      } else {
+        nav.style.display = 'none';
+      }
+      renderProtect();
+    }
+
+    function cambiarPagina(delta) {
+      if (!pdfDoc) return;
+      const next = currentPage + delta;
+      if (next >= 1 && next <= pdfDoc.numPages) {
+        currentPage = next;
+        renderPdfPage(currentPage);
+      }
+    }
+
+    function renderProtect() {
+      const targetW = parseInt(document.getElementById('outWidth').value, 10);
+      const opacity = parseInt(document.getElementById('wmOpacity').value, 10) / 100;
+      const quality = parseInt(document.getElementById('jpgQuality').value, 10) / 100;
+      const wmText = document.getElementById('wmText').value.trim() || 'MUESTRA PREVIA · IMPRESIONES VCP';
+      const showCenter = document.getElementById('chkCenterBadge').checked;
+
+      document.getElementById('valWidth').textContent = targetW + ' px';
+      document.getElementById('valOpacity').textContent = Math.round(opacity * 100) + '%';
+      document.getElementById('valQuality').textContent = Math.round(quality * 100) + '%';
+
+      if (!hasSource) return;
+
+      const ratio = sourceCanvas.height / sourceCanvas.width;
+      const targetH = Math.round(targetW * ratio);
+
+      const outCanvas = document.createElement('canvas');
+      outCanvas.width = targetW;
+      outCanvas.height = targetH;
+      const ctx = outCanvas.getContext('2d');
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, targetW, targetH);
+      ctx.drawImage(sourceCanvas, 0, 0, targetW, targetH);
+
+      // Grilla densa diagonal de marca de agua
+      ctx.save();
+      ctx.translate(targetW / 2, targetH / 2);
+      ctx.rotate(-32 * Math.PI / 180);
+      const fontSize = Math.max(15, Math.round(targetW * 0.026));
+      ctx.font = `900 ${fontSize}px Outfit, Arial, sans-serif`;
+      ctx.textAlign = 'center';
+
+      const stepX = ctx.measureText(wmText).width + 55;
+      const stepY = fontSize * 4.2;
+      const diag = Math.hypot(targetW, targetH);
+
+      for (let y = -diag; y <= diag; y += stepY) {
+        const offsetX = (Math.round(y / stepY) % 2 === 0) ? 0 : stepX / 2;
+        for (let x = -diag; x <= diag; x += stepX) {
+          ctx.fillStyle = `rgba(15, 23, 42, ${opacity})`;
+          ctx.fillText(wmText, x + offsetX, y);
+          ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.65})`;
+          ctx.lineWidth = 1.2;
+          ctx.strokeText(wmText, x + offsetX, y);
+        }
+      }
+      ctx.restore();
+
+      // Franja central protectora
+      if (showCenter) {
+        const barH = Math.round(targetW * 0.065);
+        const barY = Math.round(targetH * 0.48);
+        ctx.fillStyle = `rgba(15, 23, 42, ${Math.min(0.85, opacity + 0.45)})`;
+        ctx.fillRect(0, barY, targetW, barH);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `800 ${Math.max(12, Math.round(targetW * 0.021))}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('MUESTRA DE CONTROL · AL ABONAR SE ENVÍA EL PDF HD LIMPIO', targetW / 2, barY + barH / 2);
+      }
+
+      outputDataUrl = outCanvas.toDataURL('image/jpeg', quality);
+      outCanvas.toBlob(blob => {
+        outputBlob = blob;
+        const imgEl = document.getElementById('previewImg');
+        imgEl.src = outputDataUrl;
+        imgEl.style.display = 'block';
+        document.getElementById('emptyState').style.display = 'none';
+        document.getElementById('btnCopy').disabled = false;
+        document.getElementById('btnDownload').disabled = false;
+        const kb = Math.round((blob.size || 0) / 1024);
+        document.getElementById('statsText').textContent = `Salida: ${targetW}x${targetH} px · JPG ${kb} KB (no imprimible en HD)`;
+      }, 'image/jpeg', quality);
+    }
+
+    async function copiarImagen() {
+      if (!outputBlob) return;
+      try {
+        // Clipboard API requiere PNG en varios navegadores, convertimos el JPG ya degradado a PNG para portapapeles manteniendo pixelado/marca
+        const img = new Image();
+        img.onload = async () => {
+          const c = document.createElement('canvas');
+          c.width = img.width;
+          c.height = img.height;
+          c.getContext('2d').drawImage(img, 0, 0);
+          c.toBlob(async pngBlob => {
+            await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]);
+            mostrarToast('✅ Imagen copiada (hacé Ctrl+V en WhatsApp)');
+          }, 'image/png');
+        };
+        img.src = outputDataUrl;
+      } catch (e) {
+        alert('Tu navegador bloqueó el copiado directo al abrir desde archivo local. Usá el botón "Descargar JPG Protegido".');
+      }
+    }
+
+    function descargarJpg() {
+      if (!outputDataUrl) return;
+      const a = document.createElement('a');
+      a.href = outputDataUrl;
+      const suffix = (pdfDoc && pdfDoc.numPages > 1) ? `_pag${currentPage}` : '';
+      a.download = `${baseFileName}${suffix}_MUESTRA.jpg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    function mostrarToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.style.display = 'block';
+      setTimeout(() => t.style.display = 'none', 2500);
+    }
+  </script>
+</body>
+</html>

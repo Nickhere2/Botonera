@@ -256,15 +256,21 @@ async function saveData() {
 function renderBotGrid(searchTerm = '') {
     const container = document.getElementById('ai-grid-container');
     container.innerHTML = '';
-    const apiKey = localStorage.getItem('gemini_api_key');
+    const apiKey = localStorage.getItem('gemini_api_key') || localStorage.getItem('geminiApiKey');
 
     if (!apiKey) {
         container.innerHTML = `
-            <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border">
+            <div class="text-center py-16 px-6 rounded-lg border-2 border-dashed border-border max-w-md mx-auto">
                 <i class="fas fa-key text-4xl text-muted-foreground mb-4"></i>
                 <h3 class="text-xl font-semibold">Configuración Requerida</h3>
-                <p class="text-muted-foreground mt-2 mb-4">Para usar la Fábrica de IA, necesitas agregar tu API Key de Gemini en los ajustes de la página principal.</p>
-                <a href="index.html" class="btn btn-primary">Ir a la Página Principal</a>
+                <p class="text-muted-foreground mt-2 mb-4">Para usar la Fábrica de IA, ingresa tu API Key de Gemini:</p>
+                <div class="flex flex-col gap-3">
+                    <input type="password" id="directApiKeyInput" class="input-base text-center" placeholder="Pega tu API Key de Google AI Studio">
+                    <div class="flex gap-2 justify-center">
+                        <button onclick="saveDirectApiKey()" class="btn btn-primary">Guardar Clave</button>
+                        <a href="index.html" class="btn btn-secondary">Ir al Inicio</a>
+                    </div>
+                </div>
             </div>
         `;
         return;
@@ -701,18 +707,38 @@ function simpleMarkdownToHtml(text) {
     return processedHtml.replace(/<p><\/p>/g, '');
 }
 
+function saveDirectApiKey() {
+    const input = document.getElementById('directApiKeyInput');
+    const val = input ? input.value.trim() : '';
+    if (val) {
+        localStorage.setItem('gemini_api_key', val);
+        localStorage.setItem('geminiApiKey', val);
+        localStorage.setItem('finanzasGeminiKey', val);
+        showToast("Clave API guardada.");
+        renderBotGrid();
+    } else {
+        showToast("Ingresa una clave válida.", "error");
+    }
+}
+
 async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], generationConfig = null) {
-    const apiKey = localStorage.getItem('gemini_api_key');
+    const apiKey = localStorage.getItem('gemini_api_key') || localStorage.getItem('geminiApiKey');
     if (!apiKey) {
-        showToast("Configura tu API Key de Gemini en los ajustes de la página principal.", 'error');
+        showToast("Configura tu API Key de Gemini.", 'error');
         return null;
     }
-    const originalButtonText = triggerButton.innerHTML;
-    const buttons = allButtonsToDisable.length > 0 ? allButtonsToDisable : [triggerButton];
+    const originalButtonText = triggerButton ? triggerButton.innerHTML : '';
+    const buttons = allButtonsToDisable.length > 0 ? allButtonsToDisable : (triggerButton ? [triggerButton] : []);
     buttons.forEach(b => b.disabled = true);
-    triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
+    if (triggerButton) triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
     
-    const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    let modelName = localStorage.getItem('gemini_model');
+    if (!modelName || modelName.includes('2.5') || modelName === 'gemini-pro') {
+        modelName = 'gemini-1.5-flash';
+        localStorage.setItem('gemini_model', modelName);
+    }
+    
+    const getApiUrl = (model) => `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     
     const payload = {
         contents: [{ parts: [{ text: prompt }] }]
@@ -720,8 +746,6 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
 
     if (generationConfig) {
         payload.generationConfig = generationConfig;
-    } else {
-        payload.tools = [{ "google_search": {} }];
     }
 
     try {
@@ -731,13 +755,22 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
 
         while (attempt < maxRetries) {
             try {
-                response = await fetch(API_URL, {
+                response = await fetch(getApiUrl(modelName), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
                 if (response.ok) break; // Éxito
+
+                // Fallback automático si el modelo da 404
+                if (response.status === 404 && attempt === 0) {
+                    console.warn(`Modelo ${modelName} no encontrado (404). Cambiando a gemini-1.5-flash...`);
+                    modelName = 'gemini-1.5-flash';
+                    localStorage.setItem('gemini_model', modelName);
+                    attempt++;
+                    continue;
+                }
 
                 if (response.status === 429 && attempt < maxRetries - 1) {
                     const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000;

@@ -835,7 +835,7 @@
         function loadGistConfig() {
             try {
                 const c = localStorage.getItem('finanzasGistConfig');
-                const k = localStorage.getItem('finanzasGeminiKey');
+                const k = localStorage.getItem('finanzasGeminiKey') || localStorage.getItem('gemini_api_key');
                 if(c) { appState.gistConfig = JSON.parse(c); $('#gist-id').value = appState.gistConfig.gistId||''; $('#gist-pat').value = appState.gistConfig.pat||''; }
                 if(k) { appState.geminiKey = k; $('#gemini-key').value = k; }
             } catch(e) { console.error("Error config", e); }
