@@ -142,6 +142,7 @@
                 <a href="#" data-section="notes-tasks" class="nav-link"><i class="fas fa-check-double w-5 text-center"></i><span>Notas y Tareas</span></a>
                 <a href="#" data-section="videos" class="nav-link"><i class="fas fa-tv w-5 text-center"></i><span>Videos</span></a>
                 <a href="ia.html" class="nav-link"><i class="fas fa-robot w-5 text-center"></i><span>Fábrica de IA</span></a>
+                <a href="#" id="open-radar-btn" class="nav-link text-violet-400 font-semibold hover:text-violet-300"><i class="fas fa-satellite-dish w-5 text-center"></i><span class="nav-link-text">Radar & Auditor</span></a>
             </nav>
             
             <!-- Sidebar Footer -->
@@ -195,6 +196,7 @@
     <div id="promptManagerPanel" class="hidden fixed inset-0 z-[1200] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="videoPlayerModal" class="hidden fixed inset-0 z-[1300] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="confirmModal" class="hidden fixed inset-0 z-[1400] p-4 flex items-center justify-center modal-overlay"></div>
+    <div id="radarModal" class="hidden fixed inset-0 z-[1350] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="toast" class="hidden fixed bottom-5 right-5 p-4 rounded-lg font-bold z-[2000] shadow-lg" style="background-color: var(--primary); color: var(--primary-foreground);"></div>
     <div id="preview-modal" class="hidden fixed z-[1500] w-80 h-60 p-1 bg-card-background rounded-lg shadow-lg pointer-events-none transition-opacity duration-200 opacity-0">
         <div id="preview-modal-content" class="relative w-full h-full bg-cover bg-center rounded-md border border-border">
@@ -478,6 +480,48 @@ function debounce(func, delay) {
     };
 }
 
+function getCategoryCollapsedState(categoryName) {
+    try {
+        const map = JSON.parse(localStorage.getItem('collapsed_categories') || '{}');
+        return !!map[categoryName];
+    } catch(e) { return false; }
+}
+
+function toggleCategoryCollapse(categoryName) {
+    try {
+        const map = JSON.parse(localStorage.getItem('collapsed_categories') || '{}');
+        map[categoryName] = !map[categoryName];
+        localStorage.setItem('collapsed_categories', JSON.stringify(map));
+        applyGlobalFilter();
+    } catch(e) {}
+}
+
+function setAllCategoriesCollapsed(sectionName, shouldCollapse) {
+    try {
+        const map = JSON.parse(localStorage.getItem('collapsed_categories') || '{}');
+        const activeContainer = getActiveSectionContainer();
+        if (activeContainer) {
+            const catWrappers = activeContainer.querySelectorAll('.category-wrapper');
+            catWrappers.forEach(w => {
+                const name = w.dataset.categoryName;
+                if (name) map[name] = shouldCollapse;
+            });
+        }
+        localStorage.setItem('collapsed_categories', JSON.stringify(map));
+        applyGlobalFilter();
+    } catch(e) {}
+}
+
+function toggleItemFavoriteDirectly(itemId) {
+    const item = data.items.find(i => String(i.id) === String(itemId));
+    if (item) {
+        item.isFavorite = !item.isFavorite;
+        saveData();
+        showToast(item.isFavorite ? '⭐ Agregado al Foco Diario' : 'Quitado del Foco Diario');
+        refreshUI();
+    }
+}
+
 function getActiveSectionContainer() {
     return document.querySelector('.section:not(.hidden)');
 }
@@ -527,6 +571,15 @@ function setupEventListeners() {
 
     document.getElementById('fab-theme').addEventListener('click', changeTheme);
     document.getElementById('open-settings-help').addEventListener('click', openSettingsHelpModal);
+    
+    const radarBtn = document.getElementById('open-radar-btn');
+    if (radarBtn) {
+        radarBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            openRadarModal();
+            if (window.innerWidth < 1024) toggleMobileSidebar();
+        });
+    }
     
     document.getElementById('global-view-switcher').addEventListener('click', (e) => {
         const button = e.target.closest('button');
@@ -662,6 +715,23 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
     const sectionOrders = data.categoryOrders?.[sectionName] || [];
     const sortedCategories = [...new Set([...sectionOrders, ...Object.keys(categorized).filter(c => !sectionOrders.includes(c))])];
     
+    if (sortedCategories.length > 1) {
+        const toolbar = document.createElement('div');
+        toolbar.className = 'flex items-center justify-between mb-4 pb-2 border-b border-border/40 text-xs text-muted-foreground select-none';
+        toolbar.innerHTML = `
+            <div class="flex items-center gap-2">
+                <i class="fas fa-folder text-primary/80"></i>
+                <span class="font-medium">${sortedCategories.length} bibliotecas temáticas</span>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="setAllCategoriesCollapsed('${sectionName}', false)" class="hover:text-foreground transition font-medium flex items-center gap-1"><i class="fas fa-chevron-down text-[10px]"></i> Expandir todas</button>
+                <span class="opacity-40">&bull;</span>
+                <button onclick="setAllCategoriesCollapsed('${sectionName}', true)" class="hover:text-foreground transition font-medium flex items-center gap-1"><i class="fas fa-chevron-right text-[10px]"></i> Colapsar todas</button>
+            </div>
+        `;
+        container.appendChild(toolbar);
+    }
+
     const categoryContainerWrapper = document.createElement('div');
     container.appendChild(categoryContainerWrapper);
 
@@ -673,14 +743,29 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
             
             let editButtonHTML = '';
             if (categoryName !== 'Sin Categoría') {
-                editButtonHTML = `<button onclick="openCategoryEditModal(event, '${categoryName}')" class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" title="Editar categoría"><i class="fas fa-pencil-alt text-sm"></i></button>`;
+                editButtonHTML = `<button onclick="openCategoryEditModal(event, '${categoryName.replace(/'/g, "\\'")}')" class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" title="Editar categoría"><i class="fas fa-pencil-alt text-sm"></i></button>`;
             }
-            catWrapper.innerHTML = `<div class="flex items-center gap-2 mb-4"><h2 class="text-xl font-bold text-muted-foreground category-drag-handle">${categoryName}</h2>${editButtonHTML}</div>`;
+
+            const isCollapsed = getCategoryCollapsedState(categoryName);
+            const count = categorized[categoryName].length;
+            const safeCatName = categoryName.replace(/'/g, "\\'");
+
+            catWrapper.innerHTML = `
+                <div class="flex items-center justify-between gap-2 mb-4 select-none">
+                    <div class="flex items-center gap-2.5 cursor-pointer group" onclick="toggleCategoryCollapse('${safeCatName}')" title="Clic para colapsar o expandir">
+                        <i class="fas fa-chevron-${isCollapsed ? 'right' : 'down'} text-xs text-muted-foreground group-hover:text-primary transition-transform"></i>
+                        <h2 class="text-xl font-bold text-muted-foreground group-hover:text-foreground category-drag-handle transition">${categoryName}</h2>
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground font-semibold">${count}</span>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        ${editButtonHTML}
+                    </div>
+                </div>`;
 
             const contentContainer = document.createElement('div');
             
             const viewClasses = { grid: 'card-grid', list: 'list-view', table: 'table-view' };
-            contentContainer.className = `item-container ${viewClasses[currentView] || 'card-grid'}`;
+            contentContainer.className = `item-container ${viewClasses[currentView] || 'card-grid'} ${isCollapsed ? 'hidden' : ''}`;
             
             categorized[categoryName].forEach(item => {
                 let element;
@@ -772,9 +857,96 @@ function renderInicioSection() {
     }
 }
 
+function renderDailyFocusSection(container) {
+    const favorites = data.items.filter(item => item.isFavorite);
+    if (favorites.length === 0) return;
+
+    const focusWrapper = document.createElement('div');
+    focusWrapper.className = 'mb-10';
+    focusWrapper.innerHTML = `
+        <div class="flex items-center justify-between mb-3.5 select-none">
+            <div class="flex items-center gap-2">
+                <span class="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <h2 class="text-lg font-bold text-foreground">Foco Diario (Tus Accesos Clave)</h2>
+                <span class="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground font-semibold">Nivel 1 &bull; ${Math.min(favorites.length, 10)} activos</span>
+            </div>
+            <span class="text-xs text-muted-foreground hidden sm:inline">Tus herramientas cotidianas</span>
+        </div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" id="daily-focus-grid"></div>
+    `;
+
+    const grid = focusWrapper.querySelector('#daily-focus-grid');
+    favorites.slice(0, 10).forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'flex items-center gap-3 p-3 rounded-xl border border-border bg-card-background hover:border-primary/50 hover:bg-secondary/40 hover:shadow-md transition-all group cursor-pointer';
+        
+        const safeTitle = (item.title || 'Sin título').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const safeCat = (item.category || item.type || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+        card.innerHTML = `
+            <div class="w-8 h-8 rounded-lg bg-secondary/80 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                ${getIconHtml(item.icon, 'text-base')}
+            </div>
+            <div class="min-w-0 flex-1">
+                <div class="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">${safeTitle}</div>
+                <div class="text-[11px] text-muted-foreground truncate">${safeCat}</div>
+            </div>
+            <i class="fas fa-external-link-alt text-[10px] text-muted-foreground group-hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"></i>
+        `;
+
+        card.onclick = (e) => handleCardClick(item.id, e);
+        grid.appendChild(card);
+    });
+
+    container.appendChild(focusWrapper);
+}
+
+function renderRediscoveryBanner(container) {
+    const nonFavorites = data.items.filter(item => !item.isFavorite && (item.type === 'Link' || item.type === 'Promp' || item.type === 'Video'));
+    if (nonFavorites.length === 0) return;
+
+    const seed = Math.floor(Date.now() / (1000 * 60 * 45));
+    const item = nonFavorites[seed % nonFavorites.length];
+    if (!item) return;
+
+    const banner = document.createElement('div');
+    banner.className = 'mb-10 p-4 rounded-xl border border-violet-500/30 bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-transparent flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm';
+    
+    const safeTitle = (item.title || 'Sin título').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const safeCat = (item.category || item.type || 'Recurso').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    banner.innerHTML = `
+        <div class="flex items-center gap-3.5 min-w-0">
+            <div class="w-9 h-9 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center flex-shrink-0">
+                ${getIconHtml(item.icon, 'text-lg')}
+            </div>
+            <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-violet-400 flex items-center gap-1.5"><i class="fas fa-satellite-dish"></i> Redescubrir (Lo que guardaste y olvidaste)</span>
+                    <span class="text-[10px] px-2 py-0.2 rounded-full bg-violet-500/20 text-violet-300 font-semibold">${safeCat}</span>
+                </div>
+                <div class="text-sm font-semibold text-foreground truncate mt-0.5">${safeTitle}</div>
+            </div>
+        </div>
+        <div class="flex items-center gap-2 flex-shrink-0 w-full md:w-auto justify-end">
+            <button class="btn btn-secondary !py-1.5 !px-3 text-xs" onclick="handleCardClick(${item.id}, event)"><i class="fas fa-external-link-alt mr-1.5"></i>Abrir</button>
+            <button class="btn btn-secondary !py-1.5 !px-3 text-xs hover:text-amber-400" title="Agregar a Foco Diario" onclick="toggleItemFavoriteDirectly(${item.id})"><i class="far fa-star mr-1"></i>Al Foco Diario</button>
+            <button class="btn btn-primary !py-1.5 !px-3 text-xs bg-violet-600 hover:bg-violet-700 text-white" onclick="openRadarModal()"><i class="fas fa-satellite-dish mr-1.5"></i>Abrir Radar &rarr;</button>
+        </div>
+    `;
+
+    container.appendChild(banner);
+}
+
 function renderDisenoClasico(container) {
     container.innerHTML = getMainSearchBarHTML();
     
+    // Nivel 1: Foco Diario (Los 8 a 10 accesos directos principales)
+    renderDailyFocusSection(container);
+
+    // Radar Inteligente: Redescubrir lo olvidado
+    renderRediscoveryBanner(container);
+
     const widgetsContainer = document.createElement('div');
     widgetsContainer.className = "grid grid-cols-1 md:grid-cols-3 gap-8 mb-12";
     container.appendChild(widgetsContainer);
@@ -1514,8 +1686,8 @@ function handleGlobalShortcuts(e) {
     const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable;
 
     if (e.key === 'Escape') {
-        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal', 'videoAIPanel', 'videoPlayerModal'];
-        modals.forEach(id => document.getElementById(id).classList.add('hidden'));
+        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal', 'videoAIPanel', 'videoPlayerModal', 'radarModal'];
+        modals.forEach(id => document.getElementById(id)?.classList.add('hidden'));
         const videoPlayer = document.getElementById('videoPlayerModal')?.querySelector('iframe');
         if (videoPlayer) {
             videoPlayer.src = '';
@@ -1603,21 +1775,76 @@ function renderGlobalSearchResults(searchTerm, itemsToRender = null) {
     if (itemsToRender) {
         allResults = itemsToRender;
     } else {
-        allResults = data.items.filter(card => {
-            const lowerCaseSearchTerm = searchTerm.toLowerCase();
-            const titleMatch = card.title.toLowerCase().includes(lowerCaseSearchTerm);
-            const categoryNameMatch = (card.category || '').toLowerCase().includes(lowerCaseSearchTerm);
-            const tagListMatch = (card.tags || []).join(' ').toLowerCase().includes(lowerCaseSearchTerm);
-            let contentMatch = false;
+        const CONCEPT_SYNONYMS = {
+            'foto': ['foto', 'fotos', 'imagen', 'imagenes', 'fotografia', 'pic', 'photo', 'png', 'jpg', 'jpeg', 'canva', 'photoshop', 'iloveimg', 'remover', 'fondo', 'remove.bg', 'marcaagua', 'recortar', 'diseño'],
+            'fotos': ['foto', 'fotos', 'imagen', 'imagenes', 'canva', 'photoshop', 'iloveimg', 'remover', 'fondo', 'diseño'],
+            'imagen': ['foto', 'imagen', 'imagenes', 'grafico', 'diseño', 'banner', 'vector', 'svg', 'logo'],
+            'imagenes': ['foto', 'imagen', 'imagenes', 'grafico', 'diseño'],
+            'diseño': ['canva', 'photoshop', 'iloveimg', 'diseño', 'foto', 'vector', 'svg', 'logo'],
+            'editar': ['editor', 'editar', 'edicion', 'modificar', 'ajustar', 'canva', 'photoshop', 'iloveimg', 'ilovepdf', 'capcut', 'clipchamp'],
+            'imprenta': ['imprenta', 'impresion', 'imprimir', 'pliego', 'pliegos', 'papel', 'troquel', 'troquelado', 'stickers', 'pegatinas', 'colorear', 'cuadernos', 'cuaderno', 'librito', 'anillado', 'offset', 'guillotina', 'corte', 'hojas'],
+            'impresion': ['imprenta', 'impresion', 'imprimir', 'pliego', 'papel', 'stickers', 'colorear'],
+            'precio': ['precio', 'precios', 'costo', 'costos', 'cotizacion', 'presupuesto', 'calculadora', 'tarifa', 'valor', 'cuanto'],
+            'precios': ['precio', 'precios', 'costo', 'cotizacion', 'presupuesto', 'calculadora'],
+            'video': ['video', 'videos', 'youtube', 'reels', 'shorts', 'tiktok', 'clip', 'film', 'grabacion', 'capcut', 'premiere', 'audio'],
+            'videos': ['video', 'videos', 'youtube', 'reels', 'shorts', 'tiktok'],
+            'musica': ['musica', 'audio', 'sonido', 'cancion', 'canciones', 'spotify', 'youtube', 'sound', 'mp3', 'track'],
+            'audio': ['musica', 'audio', 'sonido', 'voz', 'microfono', 'podcast', 'mp3'],
+            'pdf': ['pdf', 'documento', 'documentos', 'ilovepdf', 'lector', 'convertir', 'unir', 'separar'],
+            'ia': ['ia', 'ai', 'gemini', 'chatgpt', 'gpt', 'claude', 'bot', 'prompt', 'inteligencia', 'artificial', 'deepseek', 'copilot', 'midjourney'],
+            'prompt': ['prompt', 'prompts', 'instruccion', 'ia', 'plantilla', 'orden'],
+            'finanzas': ['finanzas', 'plata', 'dinero', 'banco', 'afip', 'factura', 'facturacion', 'mercadopago', 'dolar', 'peso', 'gastos', 'ingresos'],
+            'cliente': ['cliente', 'clientes', 'contacto', 'pedidos', 'crm', 'agenda', 'telefono', 'whatsapp']
+        };
+
+        const lowerTerm = searchTerm.toLowerCase().trim();
+        const tokens = lowerTerm.split(/\s+/).filter(Boolean);
+
+        const expandedTerms = new Set(tokens);
+        tokens.forEach(tok => {
+            if (CONCEPT_SYNONYMS[tok]) {
+                CONCEPT_SYNONYMS[tok].forEach(syn => expandedTerms.add(syn));
+            }
+        });
+
+        const scoredResults = data.items.map(card => {
+            const title = (card.title || '').toLowerCase();
+            const category = (card.category || '').toLowerCase();
+            const tags = (card.tags || []).join(' ').toLowerCase();
+            let actionText = '';
             if (typeof card.action === 'string') {
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = card.action;
-                contentMatch = (tempDiv.textContent || tempDiv.innerText).toLowerCase().includes(lowerCaseSearchTerm);
+                actionText = (tempDiv.textContent || tempDiv.innerText || card.action).toLowerCase();
             } else if (Array.isArray(card.action)) {
-                contentMatch = card.action.some(task => task.text.toLowerCase().includes(lowerCaseSearchTerm));
+                actionText = card.action.map(t => t.text).join(' ').toLowerCase();
             }
-            return titleMatch || categoryNameMatch || tagListMatch || contentMatch;
-        });
+
+            let score = 0;
+            if (title.includes(lowerTerm)) score += 100;
+            if (category.includes(lowerTerm)) score += 40;
+            if (tags.includes(lowerTerm)) score += 40;
+            if (actionText.includes(lowerTerm)) score += 30;
+
+            tokens.forEach(tok => {
+                if (title.includes(tok)) score += 30;
+                if (category.includes(tok)) score += 20;
+                if (tags.includes(tok)) score += 20;
+                if (actionText.includes(tok)) score += 15;
+            });
+
+            expandedTerms.forEach(syn => {
+                if (title.includes(syn)) score += 15;
+                if (category.includes(syn)) score += 15;
+                if (tags.includes(syn)) score += 15;
+                if (actionText.includes(syn)) score += 10;
+            });
+
+            return { card, score };
+        }).filter(res => res.score > 0);
+
+        scoredResults.sort((a, b) => b.score - a.score);
+        allResults = scoredResults.map(r => r.card);
     }
 
     // This function can be called from the main search bar or from a section view
@@ -3190,6 +3417,479 @@ Responde solo con el array de IDs en formato JSON.`;
         showToast("La búsqueda con IA falló, usando búsqueda normal.", "error");
         renderGlobalSearchResults(term);
     }
+}
+
+// ==========================================
+// RADAR & AUDITOR DE CONTENIDO
+// ==========================================
+let currentRadarTab = 'rediscover';
+
+function openRadarModal() {
+    const modal = document.getElementById('radarModal');
+    if (!modal) return;
+    modal.classList.remove('hidden');
+    renderRadarModalContent();
+}
+
+function closeRadarModal() {
+    const modal = document.getElementById('radarModal');
+    if (modal) modal.classList.add('hidden');
+}
+
+function switchRadarTab(tab) {
+    currentRadarTab = tab;
+    renderRadarModalContent();
+}
+
+function renderRadarModalContent() {
+    const modal = document.getElementById('radarModal');
+    if (!modal) return;
+
+    modal.innerHTML = `
+        <div class="modal-container w-full max-w-4xl p-6 relative flex flex-col max-h-[90vh]">
+            <!-- Header -->
+            <div class="flex items-center justify-between pb-4 border-b border-border select-none">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center text-xl flex-shrink-0">
+                        <i class="fas fa-satellite-dish"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-bold flex items-center gap-2">
+                            Radar & Auditor de Contenido
+                            <span class="text-xs px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 font-normal">Inteligente</span>
+                        </h2>
+                        <p class="text-xs text-muted-foreground">Descubrí lo que tenés guardado, limpiá duplicados y organizá tus bibliotecas.</p>
+                    </div>
+                </div>
+                <button onclick="closeRadarModal()" class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="flex items-center gap-2 pt-4 pb-2 border-b border-border text-sm overflow-x-auto select-none">
+                <button onclick="switchRadarTab('rediscover')" class="px-3.5 py-2 rounded-lg font-medium transition flex items-center gap-2 ${currentRadarTab === 'rediscover' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}">
+                    <i class="fas fa-magic"></i>
+                    <span>Redescubrir Olvidados</span>
+                </button>
+                <button onclick="switchRadarTab('duplicates')" class="px-3.5 py-2 rounded-lg font-medium transition flex items-center gap-2 ${currentRadarTab === 'duplicates' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}">
+                    <i class="fas fa-broom"></i>
+                    <span>Detector de Duplicados & Rotos</span>
+                    <span id="radar-dup-badge" class="text-[10px] px-1.5 py-0.2 rounded-full bg-amber-500/20 text-amber-300 font-bold hidden">!</span>
+                </button>
+                <button onclick="switchRadarTab('inventory')" class="px-3.5 py-2 rounded-lg font-medium transition flex items-center gap-2 ${currentRadarTab === 'inventory' ? 'bg-primary text-primary-foreground font-semibold' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'}">
+                    <i class="fas fa-boxes"></i>
+                    <span>Mi Inventario Total</span>
+                </button>
+            </div>
+
+            <!-- Tab Body -->
+            <div class="flex-1 overflow-y-auto py-4" id="radar-tab-body">
+            </div>
+        </div>
+    `;
+
+    modal.onclick = (e) => {
+        if (e.target === modal) closeRadarModal();
+    };
+
+    if (currentRadarTab === 'rediscover') renderRadarRediscoveryTab();
+    else if (currentRadarTab === 'duplicates') renderRadarDuplicatesTab();
+    else if (currentRadarTab === 'inventory') renderRadarInventoryTab();
+}
+
+function renderRadarRediscoveryTab() {
+    const container = document.getElementById('radar-tab-body');
+    if (!container) return;
+
+    const nonFavorites = data.items.filter(item => !item.isFavorite && (item.type === 'Link' || item.type === 'Promp' || item.type === 'Video' || item.type === 'Nota'));
+    
+    if (nonFavorites.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12 px-4">
+                <i class="fas fa-check-circle text-4xl text-green-500 mb-3"></i>
+                <h3 class="text-lg font-bold">¡Todo tu contenido está activo o en Favoritos!</h3>
+                <p class="text-sm text-muted-foreground mt-1">No hay elementos archivados fuera del foco diario para redescubrir.</p>
+            </div>
+        `;
+        return;
+    }
+
+    const shuffled = [...nonFavorites].sort(() => 0.5 - Math.random()).slice(0, 4);
+
+    container.innerHTML = `
+        <div class="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+            <p class="text-xs text-muted-foreground">
+                Te mostramos 4 recursos que guardaste hace tiempo. Podés abrirlos, sumarlos a tu Foco Diario, editarlos o descartarlos si ya no te sirven:
+            </p>
+            <button onclick="renderRadarRediscoveryTab()" class="btn btn-secondary !py-1 !px-2.5 text-xs flex items-center gap-1.5 flex-shrink-0">
+                <i class="fas fa-sync-alt"></i> Traer otros 4
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="radar-rediscovery-grid"></div>
+    `;
+
+    const grid = container.querySelector('#radar-rediscovery-grid');
+    shuffled.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'p-3.5 rounded-xl border border-border bg-card-background hover:border-primary/40 flex flex-col justify-between transition-all';
+        
+        const safeTitle = (item.title || 'Sin título').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        const safeCat = (item.category || item.type || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        let actionPreview = '';
+        if (typeof item.action === 'string') {
+            actionPreview = item.action.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        }
+
+        card.innerHTML = `
+            <div>
+                <div class="flex items-start gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0 mt-0.5">
+                        ${getIconHtml(item.icon, 'text-base')}
+                    </div>
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] px-2 py-0.2 rounded-full bg-secondary text-muted-foreground font-semibold">${item.type}</span>
+                            <span class="text-[10px] text-muted-foreground truncate">${safeCat}</span>
+                        </div>
+                        <h4 class="text-sm font-bold text-foreground truncate mt-1">${safeTitle}</h4>
+                        ${actionPreview ? `<p class="text-xs text-muted-foreground truncate mt-0.5 font-mono">${actionPreview}</p>` : ''}
+                    </div>
+                </div>
+            </div>
+            <div class="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-border/50 text-xs">
+                <div class="flex items-center gap-1.5">
+                    <button class="btn btn-secondary !py-1 !px-2 text-xs" onclick="handleCardClick(${item.id}, event)" title="Abrir">
+                        <i class="fas fa-external-link-alt mr-1"></i>Abrir
+                    </button>
+                    <button class="btn btn-secondary !py-1 !px-2 text-xs hover:text-amber-400" onclick="toggleItemFavoriteDirectly(${item.id}); renderRadarRediscoveryTab();" title="Agregar a Foco Diario">
+                        <i class="far fa-star mr-1"></i>Foco
+                    </button>
+                    <button class="btn btn-ghost !py-1 !px-2 text-xs text-muted-foreground hover:text-foreground" onclick="closeRadarModal(); openEditPanel(data.items.find(i=>i.id===${item.id}));" title="Editar">
+                        <i class="fas fa-pencil-alt"></i>
+                    </button>
+                </div>
+                <button class="btn btn-ghost !py-1 !px-2 text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10" onclick="deleteItemFromRadar(${item.id})" title="Ya no me sirve (Eliminar)">
+                    <i class="fas fa-trash-alt mr-1"></i>Descartar
+                </button>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+function deleteItemFromRadar(itemId) {
+    showConfirmModal("¿Estás seguro de que querés descartar este recurso guardado?", (confirmed) => {
+        if (confirmed) {
+            data.items = data.items.filter(i => String(i.id) !== String(itemId));
+            if (data.favoriteOrders) {
+                for (const sec in data.favoriteOrders) {
+                    data.favoriteOrders[sec] = data.favoriteOrders[sec].filter(favId => String(favId) !== String(itemId));
+                }
+            }
+            saveData().then(() => {
+                showToast("Recurso descartado.");
+                renderRadarRediscoveryTab();
+                refreshUI();
+            });
+        }
+    });
+}
+
+function renderRadarDuplicatesTab() {
+    const container = document.getElementById('radar-tab-body');
+    if (!container) return;
+
+    const normalizeUrl = (url) => {
+        if (!url || typeof url !== 'string') return '';
+        try {
+            return url.trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '');
+        } catch(e) { return url.trim().toLowerCase(); }
+    };
+
+    const urlMap = {};
+    const brokenLinks = [];
+
+    data.items.forEach(item => {
+        if (item.type === 'Link' || item.type === 'Video') {
+            const rawAction = (typeof item.action === 'string') ? item.action.trim() : '';
+            if (!rawAction || rawAction === '#' || (!rawAction.includes('.') && !rawAction.startsWith('http'))) {
+                brokenLinks.push(item);
+            } else {
+                const norm = normalizeUrl(rawAction);
+                if (!urlMap[norm]) urlMap[norm] = [];
+                urlMap[norm].push(item);
+            }
+        }
+    });
+
+    const duplicateGroups = Object.entries(urlMap)
+        .filter(([url, items]) => items.length > 1)
+        .map(([url, items]) => ({ url, items }));
+
+    const titleMap = {};
+    data.items.forEach(item => {
+        if (item.type === 'Promp' || item.type === 'Nota') {
+            const normTitle = (item.title || '').trim().toLowerCase();
+            if (normTitle) {
+                if (!titleMap[normTitle]) titleMap[normTitle] = [];
+                titleMap[normTitle].push(item);
+            }
+        }
+    });
+    const duplicateTitles = Object.entries(titleMap)
+        .filter(([title, items]) => items.length > 1)
+        .map(([title, items]) => ({ title, items }));
+
+    const totalIssues = duplicateGroups.length + duplicateTitles.length + brokenLinks.length;
+
+    const badge = document.getElementById('radar-dup-badge');
+    if (badge) {
+        if (totalIssues > 0) {
+            badge.textContent = totalIssues;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+
+    if (totalIssues === 0) {
+        container.innerHTML = `
+            <div class="text-center py-12 px-4">
+                <div class="w-16 h-16 rounded-full bg-green-500/10 text-green-400 flex items-center justify-center mx-auto mb-3 text-3xl">
+                    <i class="fas fa-check-double"></i>
+                </div>
+                <h3 class="text-lg font-bold text-foreground">¡Tu colección está 100% limpia!</h3>
+                <p class="text-sm text-muted-foreground mt-1 max-w-md mx-auto">
+                    No se encontraron links repetidos, títulos duplicados ni enlaces rotos. Todo está ordenado.
+                </p>
+            </div>
+        `;
+        return;
+    }
+
+    let html = `
+        <div class="mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 rounded-lg bg-secondary/50 border border-border">
+            <div>
+                <h3 class="text-sm font-bold flex items-center gap-2">
+                    <i class="fas fa-exclamation-triangle text-amber-400"></i>
+                    Se encontraron ${totalIssues} oportunidades de limpieza
+                </h3>
+                <p class="text-xs text-muted-foreground mt-0.5">Podés resolverlos de a uno o limpiar todos automáticamente.</p>
+            </div>
+            ${duplicateGroups.length > 0 ? `
+                <button onclick="cleanAllDuplicatesAuto()" class="btn btn-primary !py-1.5 !px-3 text-xs bg-amber-600 hover:bg-amber-700 text-white flex items-center gap-1.5 flex-shrink-0">
+                    <i class="fas fa-broom"></i> Limpiar duplicados automáticamente
+                </button>
+            ` : ''}
+        </div>
+        <div class="space-y-4">
+    `;
+
+    duplicateGroups.forEach(group => {
+        html += `
+            <div class="p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/5">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-amber-400 flex items-center gap-1.5">
+                        <i class="fas fa-link"></i> URL compartida (${group.items.length} veces):
+                    </span>
+                    <button onclick="keepFirstDuplicate('${group.url.replace(/'/g, "\\'")}', [${group.items.map(i => i.id).join(',')}])" class="btn btn-secondary !py-0.5 !px-2 text-[11px] text-amber-300 hover:bg-amber-500/20">
+                        Conservar sólo 1
+                    </button>
+                </div>
+                <p class="text-xs font-mono text-muted-foreground mb-3 truncate">${group.url}</p>
+                <div class="space-y-2">
+                    ${group.items.map((item, idx) => `
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-card-background border border-border text-xs">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="text-[10px] px-1.5 py-0.2 rounded bg-secondary text-muted-foreground">${idx === 0 ? 'Original' : 'Duplicado'}</span>
+                                <span class="font-semibold text-foreground truncate">${item.title}</span>
+                                <span class="text-muted-foreground text-[11px] truncate">(${item.category || 'Sin categoría'})</span>
+                            </div>
+                            <div class="flex items-center gap-2 flex-shrink-0">
+                                <button class="btn btn-ghost !p-1 text-muted-foreground hover:text-foreground" onclick="handleCardClick(${item.id}, event)" title="Abrir"><i class="fas fa-external-link-alt"></i></button>
+                                ${idx > 0 ? `<button class="btn btn-ghost !p-1 text-red-400 hover:text-red-300" onclick="deleteDuplicateItem(${item.id})" title="Eliminar"><i class="fas fa-trash-alt"></i></button>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    });
+
+    if (brokenLinks.length > 0) {
+        html += `
+            <div class="p-3.5 rounded-xl border border-red-500/30 bg-red-500/5">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-bold text-red-400 flex items-center gap-1.5">
+                        <i class="fas fa-unlink"></i> Enlaces sin URL o incompletos (${brokenLinks.length}):
+                    </span>
+                    <button onclick="cleanupAllBrokenLinks([${brokenLinks.map(i => i.id).join(',')}])" class="btn btn-secondary !py-0.5 !px-2 text-[11px] text-red-300 hover:bg-red-500/20">
+                        Eliminar todos los rotos
+                    </button>
+                </div>
+                <div class="space-y-2 mt-2">
+                    ${brokenLinks.map(item => `
+                        <div class="flex items-center justify-between p-2 rounded-lg bg-card-background border border-border text-xs">
+                            <div class="min-w-0">
+                                <span class="font-semibold text-foreground truncate">${item.title}</span>
+                                <span class="text-red-400 text-[11px] block font-mono">URL vacía: "${item.action || ''}"</span>
+                            </div>
+                            <button class="btn btn-ghost !p-1 text-red-400 hover:text-red-300" onclick="deleteDuplicateItem(${item.id})" title="Eliminar"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+function deleteDuplicateItem(itemId) {
+    data.items = data.items.filter(i => String(i.id) !== String(itemId));
+    saveData().then(() => {
+        showToast("Elemento eliminado.");
+        renderRadarDuplicatesTab();
+        refreshUI();
+    });
+}
+
+function keepFirstDuplicate(url, ids) {
+    if (!ids || ids.length < 2) return;
+    const toRemove = ids.slice(1);
+    data.items = data.items.filter(i => !toRemove.includes(i.id));
+    saveData().then(() => {
+        showToast(`Se conservó el original y se eliminaron ${toRemove.length} duplicados.`);
+        renderRadarDuplicatesTab();
+        refreshUI();
+    });
+}
+
+function cleanAllDuplicatesAuto() {
+    showConfirmModal("¿Deseas eliminar automáticamente todas las URLs duplicadas manteniendo el primer elemento de cada una?", (confirmed) => {
+        if (!confirmed) return;
+        const seenUrls = new Set();
+        let removedCount = 0;
+        data.items = data.items.filter(item => {
+            if (item.type === 'Link' || item.type === 'Video') {
+                const norm = (item.action || '').trim().toLowerCase().replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/+$/, '');
+                if (norm && seenUrls.has(norm)) {
+                    removedCount++;
+                    return false;
+                }
+                if (norm) seenUrls.add(norm);
+            }
+            return true;
+        });
+        saveData().then(() => {
+            showToast(`¡Listo! Se limpiaron ${removedCount} elementos duplicados.`);
+            renderRadarDuplicatesTab();
+            refreshUI();
+        });
+    });
+}
+
+function cleanupAllBrokenLinks(ids) {
+    showConfirmModal(`¿Eliminar los ${ids.length} enlaces vacíos o rotos?`, (confirmed) => {
+        if (!confirmed) return;
+        data.items = data.items.filter(i => !ids.includes(i.id));
+        saveData().then(() => {
+            showToast("Enlaces rotos eliminados.");
+            renderRadarDuplicatesTab();
+            refreshUI();
+        });
+    });
+}
+
+function renderRadarInventoryTab() {
+    const container = document.getElementById('radar-tab-body');
+    if (!container) return;
+
+    const total = data.items.length;
+    const byType = {
+        'Link': data.items.filter(i => i.type === 'Link').length,
+        'Promp': data.items.filter(i => i.type === 'Promp').length,
+        'Nota': data.items.filter(i => i.type === 'Nota').length,
+        'Tarea': data.items.filter(i => i.type === 'Tarea').length,
+        'Video': data.items.filter(i => i.type === 'Video').length,
+        'Buscador': data.items.filter(i => i.type === 'Buscador').length
+    };
+
+    const categoryMap = {};
+    data.items.forEach(item => {
+        const cat = item.category || 'Sin Categoría';
+        categoryMap[cat] = (categoryMap[cat] || 0) + 1;
+    });
+
+    const sortedCats = Object.entries(categoryMap).sort((a, b) => b[1] - a[1]);
+
+    container.innerHTML = `
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2 mb-6 select-none">
+            <div class="p-3 rounded-xl bg-secondary/50 border border-border text-center">
+                <span class="text-xl font-bold text-foreground block">${total}</span>
+                <span class="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Total</span>
+            </div>
+            <div class="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-center">
+                <span class="text-xl font-bold text-blue-400 block">${byType.Link}</span>
+                <span class="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Links</span>
+            </div>
+            <div class="p-3 rounded-xl bg-purple-500/10 border border-purple-500/20 text-center">
+                <span class="text-xl font-bold text-purple-400 block">${byType.Promp}</span>
+                <span class="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Prompts</span>
+            </div>
+            <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-center">
+                <span class="text-xl font-bold text-amber-400 block">${byType.Nota}</span>
+                <span class="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Notas</span>
+            </div>
+            <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
+                <span class="text-xl font-bold text-emerald-400 block">${byType.Tarea}</span>
+                <span class="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Tareas</span>
+            </div>
+            <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-center">
+                <span class="text-xl font-bold text-rose-400 block">${byType.Video}</span>
+                <span class="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">Videos</span>
+            </div>
+        </div>
+
+        <div class="mb-3 flex items-center justify-between select-none">
+            <h3 class="text-sm font-bold flex items-center gap-2">
+                <i class="fas fa-folder text-primary"></i>
+                Distribución por Bibliotecas / Categorías (${sortedCats.length})
+            </h3>
+            <span class="text-xs text-muted-foreground">Estado y volumen</span>
+        </div>
+
+        <div class="space-y-2">
+            ${sortedCats.map(([cat, count]) => {
+                let badgeClass = 'bg-secondary text-muted-foreground';
+                let statusText = 'Normal';
+                if (count >= 20) {
+                    badgeClass = 'bg-amber-500/20 text-amber-300 font-semibold';
+                    statusText = 'Muy cargada';
+                } else if (count === 1) {
+                    badgeClass = 'bg-blue-500/20 text-blue-300';
+                    statusText = '1 solo item';
+                }
+                const pct = Math.round((count / total) * 100);
+                return `
+                    <div class="p-3 rounded-xl bg-card-background border border-border flex items-center justify-between gap-4">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <span class="font-bold text-sm text-foreground truncate">${cat}</span>
+                                <span class="text-[10px] px-2 py-0.2 rounded-full ${badgeClass}">${count} items &bull; ${statusText}</span>
+                            </div>
+                            <div class="w-full bg-secondary h-1.5 rounded-full overflow-hidden">
+                                <div class="bg-primary h-full rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                        </div>
+                        <span class="text-xs font-mono text-muted-foreground flex-shrink-0">${pct}%</span>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
 }
 </script>
 </body>
