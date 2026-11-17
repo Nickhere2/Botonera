@@ -734,7 +734,7 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
     
     let modelName = localStorage.getItem('gemini_model');
     if (!modelName || modelName.includes('2.5') || modelName === 'gemini-pro') {
-        modelName = 'gemini-1.5-flash';
+        modelName = 'gemini-3.8-flash';
         localStorage.setItem('gemini_model', modelName);
     }
     
@@ -763,11 +763,17 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
 
                 if (response.ok) break; // Éxito
 
-                // Fallback automático si el modelo da 404
-                if (response.status === 404 && attempt === 0) {
-                    console.warn(`Modelo ${modelName} no encontrado (404). Cambiando a gemini-1.5-flash...`);
-                    modelName = 'gemini-1.5-flash';
+                let errorMessage = `Error HTTP: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error?.message || errorMessage;
+                } catch(e) { /* Error de parseo */ }
+
+                // Fallback automático si el modelo da 404 o fue descontinuado
+                if ((response.status === 404 || errorMessage.includes('no longer available') || errorMessage.includes('not found')) && attempt === 0) {
+                    modelName = (modelName && modelName.includes('3.8')) ? 'gemini-1.5-flash' : 'gemini-3.8-flash';
                     localStorage.setItem('gemini_model', modelName);
+                    console.warn(`Modelo alternado a ${modelName}. Reintentando...`);
                     attempt++;
                     continue;
                 }
@@ -779,11 +785,6 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
                     continue;
                 }
 
-                let errorMessage = `Error HTTP: ${response.status}`;
-                try {
-                    const errorData = await response.json();
-                    errorMessage = errorData.error?.message || errorMessage;
-                } catch(e) { /* Error de parseo */ }
                 throw new Error(errorMessage);
 
             } catch (fetchError) {

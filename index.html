@@ -2550,10 +2550,10 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
     buttons.forEach(b => b.disabled = true);
     if (triggerButton) triggerButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generando...';
 
-    // Modelo predeterminado: gemini-1.5-flash (estable, con soporte nativo de JSON schema y búsqueda)
+    // Modelo predeterminado: gemini-3.8-flash (recomendado por Google) con fallback a 1.5-flash
     let modelName = localStorage.getItem('gemini_model');
     if (!modelName || modelName.includes('2.5') || modelName === 'gemini-pro') {
-        modelName = 'gemini-1.5-flash';
+        modelName = 'gemini-3.8-flash';
         localStorage.setItem('gemini_model', modelName);
     }
 
@@ -2587,31 +2587,20 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
 
                 if (response.ok) break;
 
-                // Si el modelo da 404 (no existe o fue actualizado por Google), autodescubrir modelo activo
-                if (response.status === 404 && attempt === 0) {
-                    console.warn(`Modelo ${modelName} no encontrado (404). Consultando modelos disponibles...`);
-                    try {
-                        const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-                        if (listResp.ok) {
-                            const listData = await listResp.json();
-                            const availableModel = listData.models?.find(m => 
-                                m.supportedGenerationMethods?.includes('generateContent') && 
-                                (m.name.includes('gemini-1.5-flash') || m.name.includes('gemini-2.0-flash') || m.name.includes('flash'))
-                            ) || listData.models?.find(m => 
-                                m.supportedGenerationMethods?.includes('generateContent') && 
-                                m.name.includes('gemini-1.5-pro')
-                            );
-                            if (availableModel) {
-                                modelName = availableModel.name.replace('models/', '');
-                                localStorage.setItem('gemini_model', modelName);
-                                console.log(`Nuevo modelo detectado y configurado: ${modelName}`);
-                                attempt++;
-                                continue; // Reintentar con el modelo descubierto
-                            }
-                        }
-                    } catch (listErr) {
-                        console.error("Error al listar modelos:", listErr);
-                    }
+                // Otros errores HTTP
+                let errorMessage = `Error HTTP: ${response.status}`;
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.error?.message || errorMessage;
+                } catch(e) { /* Error parseando JSON */ }
+
+                // Si el modelo no existe o fue descontinuado, alternar entre gemini-3.8-flash y gemini-1.5-flash
+                if ((response.status === 404 || errorMessage.includes('no longer available') || errorMessage.includes('not found')) && attempt === 0) {
+                    modelName = (modelName && modelName.includes('3.8')) ? 'gemini-1.5-flash' : 'gemini-3.8-flash';
+                    localStorage.setItem('gemini_model', modelName);
+                    console.warn(`Modelo alternado a ${modelName}. Reintentando...`);
+                    attempt++;
+                    continue;
                 }
                 
                 // Manejar error 429 de límite de peticiones con retroceso exponencial
@@ -2622,17 +2611,11 @@ async function callGeminiAPI(prompt, triggerButton, allButtonsToDisable = [], ge
                     continue;
                 }
 
-                // Otros errores HTTP
-                let errorMessage = `Error HTTP: ${response.status}`;
-                try {
-                    const errorData = await response.json();
-                    errorMessage = errorData.error?.message || errorMessage;
-                    if (response.status === 400 && errorMessage.includes('API key not valid')) {
-                        errorMessage = "API Key inválida o mal configurada. Revísala en Ajustes.";
-                    } else if (response.status === 429) {
-                        errorMessage = "Límite de peticiones a la API alcanzado. Inténtalo más tarde.";
-                    }
-                } catch(e) { /* Error parseando JSON */ }
+                if (response.status === 400 && errorMessage.includes('API key not valid')) {
+                    errorMessage = "API Key inválida o mal configurada. Revísala en Ajustes.";
+                } else if (response.status === 429) {
+                    errorMessage = "Límite de peticiones a la API alcanzado. Inténtalo más tarde.";
+                }
                 throw new Error(errorMessage);
 
             } catch (fetchError) {

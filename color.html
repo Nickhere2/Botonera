@@ -525,7 +525,7 @@
 
         async function parseRequestsWithAI(text) {
             if (!apiKey) { showApiKeyModal(); throw new Error("API Key faltante"); }
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${apiKey}`;
             const prompt = "Extrae pedidos. Extrae 'name', 'age' (solo número), 'theme' y 'quantity' (default 1). Devuelve JSON ARRAY.";
             const payload = {
                 contents: [{ parts: [{ text: text }] }],
