@@ -894,7 +894,7 @@ function renderDailyFocusSection(container) {
             <i class="fas fa-external-link-alt text-[10px] text-muted-foreground group-hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"></i>
         `;
 
-        card.onclick = (e) => handleCardClick(item.id, e);
+        card.onclick = (e) => openItemAction(item.id);
         grid.appendChild(card);
     });
 
@@ -916,8 +916,8 @@ function renderRediscoveryBanner(container) {
     const safeCat = (item.category || item.type || 'Recurso').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
     banner.innerHTML = `
-        <div class="flex items-center gap-3.5 min-w-0">
-            <div class="w-9 h-9 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center flex-shrink-0">
+        <div class="flex items-center gap-3.5 min-w-0 cursor-pointer flex-1 group" onclick="openItemAction(${item.id})" title="Clic para abrir ${safeTitle}">
+            <div class="w-9 h-9 rounded-xl bg-violet-500/20 text-violet-400 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
                 ${getIconHtml(item.icon, 'text-lg')}
             </div>
             <div class="min-w-0">
@@ -925,12 +925,16 @@ function renderRediscoveryBanner(container) {
                     <span class="text-[11px] font-bold uppercase tracking-wider text-violet-400 flex items-center gap-1.5"><i class="fas fa-satellite-dish"></i> Redescubrir (Lo que guardaste y olvidaste)</span>
                     <span class="text-[10px] px-2 py-0.2 rounded-full bg-violet-500/20 text-violet-300 font-semibold">${safeCat}</span>
                 </div>
-                <div class="text-sm font-semibold text-foreground truncate mt-0.5">${safeTitle}</div>
+                <div class="text-sm font-semibold text-foreground truncate mt-0.5 group-hover:text-primary transition-colors flex items-center gap-2">
+                    <span>${safeTitle}</span>
+                    <i class="fas fa-external-link-alt text-[11px] text-muted-foreground group-hover:text-primary transition-colors"></i>
+                </div>
             </div>
         </div>
         <div class="flex items-center gap-2 flex-shrink-0 w-full md:w-auto justify-end">
-            <button class="btn btn-secondary !py-1.5 !px-3 text-xs" onclick="handleCardClick(${item.id}, event)"><i class="fas fa-external-link-alt mr-1.5"></i>Abrir</button>
+            <button class="btn btn-secondary !py-1.5 !px-3 text-xs" onclick="openItemAction(${item.id})"><i class="fas fa-external-link-alt mr-1.5"></i>Abrir</button>
             <button class="btn btn-secondary !py-1.5 !px-3 text-xs hover:text-amber-400" title="Agregar a Foco Diario" onclick="toggleItemFavoriteDirectly(${item.id})"><i class="far fa-star mr-1"></i>Al Foco Diario</button>
+            <button class="btn btn-ghost !py-1.5 !px-2.5 text-xs text-muted-foreground hover:text-foreground" title="Editar este recurso" onclick="openEditPanel(${item.id})"><i class="fas fa-pencil-alt"></i></button>
             <button class="btn btn-primary !py-1.5 !px-3 text-xs bg-violet-600 hover:bg-violet-700 text-white" onclick="openRadarModal()"><i class="fas fa-satellite-dish mr-1.5"></i>Abrir Radar &rarr;</button>
         </div>
     `;
@@ -1411,29 +1415,46 @@ function createTaskCard(item, searchTerm) {
 
 
 // --- ACTIONS & EVENT HANDLERS ---
-function handleCardClick(id, event) {
-    if (event.target.closest('button, input, .drag-handle')) return;    
-    const item = data.items.find(i => String(i.id) === String(id));
+function openItemAction(itemOrId) {
+    let item = (typeof itemOrId === 'object' && itemOrId !== null) ? itemOrId : data.items.find(i => String(i.id) === String(itemOrId));
     if (!item) return;
 
     if (item.type === "Link") {
-        window.open(item.action, "_blank");
+        let url = (item.action || '').trim();
+        if (!url) {
+            showToast("Este enlace no tiene una dirección URL configurada.", "warning");
+            openEditPanel(item);
+            return;
+        }
+        if (!/^https?:\/\//i.test(url)) {
+            url = 'https://' + url;
+        }
+        const win = window.open(url, "_blank");
+        if (!win || win.closed || typeof win.closed === 'undefined') {
+            window.location.href = url;
+        }
     } else if (item.type === "Video") {
         openVideoPlayerModal(item);
     } else if (item.type === "Buscador") {
         selectSearchEngine(item.id);
-        const activeSection = document.querySelector('#main-nav .active')?.dataset.section
-        if(activeSection !== 'inicio') {
-            switchTab('inicio')
+        const activeSection = document.querySelector('#main-nav .active')?.dataset.section;
+        if (activeSection !== 'inicio') {
+            switchTab('inicio');
         }
         getActiveSectionContainer()?.querySelector('.main-search-input')?.focus();
     } else if (item.type === "Promp") {
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = item.action;
-        navigator.clipboard.writeText(tempDiv.textContent || tempDiv.innerText).then(() => showToast("Prompt copiado."));
+        tempDiv.innerHTML = item.action || '';
+        const text = tempDiv.textContent || tempDiv.innerText || item.action || '';
+        navigator.clipboard.writeText(text).then(() => showToast("Prompt copiado al portapapeles."));
     } else {
-        openEditPanel(id);
+        openEditPanel(item);
     }
+}
+
+function handleCardClick(id, event) {
+    if (event && event.target && event.target.closest('button, input, .drag-handle')) return;    
+    openItemAction(id);
 }
 
 // --- BUSCADOR MEJORADO & ATAJOS ---
@@ -2078,7 +2099,8 @@ function getIconHtml(icon, sizeClass = 'text-2xl', isForCard = false) {
 // --- MODAL IMPLEMENTATIONS ---
 function openEditPanel(itemId = null, prefillData = null) {
     const modal = document.getElementById('editPanel');
-    const item = itemId ? data.items.find(i => String(i.id) === String(itemId)) : null;
+    const resolvedId = (itemId && typeof itemId === 'object') ? itemId.id : itemId;
+    const item = resolvedId ? data.items.find(i => String(i.id) === String(resolvedId)) : (typeof itemId === 'object' ? itemId : null);
     
     const initialData = prefillData || item;
     
@@ -3559,13 +3581,13 @@ function renderRadarRediscoveryTab() {
             </div>
             <div class="flex items-center justify-between gap-2 mt-4 pt-3 border-t border-border/50 text-xs">
                 <div class="flex items-center gap-1.5">
-                    <button class="btn btn-secondary !py-1 !px-2 text-xs" onclick="handleCardClick(${item.id}, event)" title="Abrir">
+                    <button class="btn btn-secondary !py-1 !px-2 text-xs" onclick="openItemAction(${item.id})" title="Abrir">
                         <i class="fas fa-external-link-alt mr-1"></i>Abrir
                     </button>
                     <button class="btn btn-secondary !py-1 !px-2 text-xs hover:text-amber-400" onclick="toggleItemFavoriteDirectly(${item.id}); renderRadarRediscoveryTab();" title="Agregar a Foco Diario">
                         <i class="far fa-star mr-1"></i>Foco
                     </button>
-                    <button class="btn btn-ghost !py-1 !px-2 text-xs text-muted-foreground hover:text-foreground" onclick="closeRadarModal(); openEditPanel(data.items.find(i=>i.id===${item.id}));" title="Editar">
+                    <button class="btn btn-ghost !py-1 !px-2 text-xs text-muted-foreground hover:text-foreground" onclick="closeRadarModal(); openEditPanel(${item.id});" title="Editar">
                         <i class="fas fa-pencil-alt"></i>
                     </button>
                 </div>
@@ -3707,7 +3729,7 @@ function renderRadarDuplicatesTab() {
                                 <span class="text-muted-foreground text-[11px] truncate">(${item.category || 'Sin categoría'})</span>
                             </div>
                             <div class="flex items-center gap-2 flex-shrink-0">
-                                <button class="btn btn-ghost !p-1 text-muted-foreground hover:text-foreground" onclick="handleCardClick(${item.id}, event)" title="Abrir"><i class="fas fa-external-link-alt"></i></button>
+                                <button class="btn btn-ghost !p-1 text-muted-foreground hover:text-foreground" onclick="openItemAction(${item.id})" title="Abrir"><i class="fas fa-external-link-alt"></i></button>
                                 ${idx > 0 ? `<button class="btn btn-ghost !p-1 text-red-400 hover:text-red-300" onclick="deleteDuplicateItem(${item.id})" title="Eliminar"><i class="fas fa-trash-alt"></i></button>` : ''}
                             </div>
                         </div>
