@@ -671,8 +671,9 @@ function switchTab(tabName) {
 }
 
 // --- RENDER FUNCTIONS ---
-function renderSection(sectionName, itemsToRender, searchTerm = '') {
-    const container = document.getElementById(`section-${sectionName}`);
+function renderSection(sectionName, itemsToRender, searchTerm = '', targetContainer = null) {
+    const container = targetContainer || document.getElementById(`section-${sectionName}`);
+    if (!container) return;
     container.innerHTML = '';
     
     if (sectionName === 'buscadores') {
@@ -704,7 +705,7 @@ function renderSection(sectionName, itemsToRender, searchTerm = '') {
         return;
     }
     
-    renderFavoritesBar(container);
+    renderFavoritesBar(container, sectionName);
 
     if (itemsToRender.length === 0 && searchTerm !== '') {
         return;
@@ -1126,7 +1127,7 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '', c
         return;
     }
 
-    renderFavoritesBar(container);
+    renderFavoritesBar(container, 'notes-tasks');
 
     const notes = itemsToRender.filter(item => item.type === 'Nota');
     const tasks = itemsToRender.filter(item => item.type === 'Tarea');
@@ -1163,13 +1164,12 @@ function renderNotesAndTasksSection(container, itemsToRender, searchTerm = '', c
     }
 }
 
-function renderFavoritesBar(container) {
+function renderFavoritesBar(container, overrideSectionName = null) {
     let bar = container.querySelector('.favorites-bar');
     if (bar) bar.remove();
 
     const activeNavBtn = document.querySelector('.nav-link.active');
-    if (!activeNavBtn) return;
-    const activeSectionName = activeNavBtn.dataset.section;
+    const activeSectionName = overrideSectionName || activeNavBtn?.dataset.section || 'links';
     
     const orderedFavoritesIds = (data.favoriteOrders && data.favoriteOrders[activeSectionName]) ? data.favoriteOrders[activeSectionName] : [];
 

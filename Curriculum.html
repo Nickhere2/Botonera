@@ -6,11 +6,11 @@
   <title>Armá tu Currículum Profesional en PDF · Todo el País | Impresiones VCP</title>
   
   <!-- Favicon y SEO / Open Graph -->
-  <link rel="icon" type="image/png" href="logo.png">
-  <meta name="description" content="Armamos tu currículum profesional en PDF listo para enviar por WhatsApp, mail o portales de empleo e imprimir en cualquier lado. Envíos digitales a toda Argentina en menos de 24 hs. Precio único $8.900.">
+  <link rel="icon" type="image/png" href="logo-impresionesvcp.png">
+  <meta name="description" content="Armamos tu currículum profesional en PDF listo para enviar por WhatsApp, mail o portales de empleo e imprimir en cualquier lado. Envíos digitales a toda Argentina en menos de 24 hs. Solo $8.900.">
   <meta property="og:title" content="🚀 Tu Currículum Profesional en PDF · Envíos a Todo el País | Impresiones VCP">
-  <meta property="og:description" content="Completá tus datos en 5 minutos desde el celular y recibí tu CV en PDF listo para mandar o imprimir. Precio único $8.900. ¡Ves la muestra antes de pagar!">
-  <meta property="og:image" content="logo.png">
+  <meta property="og:description" content="Completá tus datos en 5 minutos desde el celular y recibí tu CV en PDF listo para mandar o imprimir. Solo $8.900. ¡Ves la muestra antes de pagar!">
+  <meta property="og:image" content="logo-impresionesvcp.png">
   <meta property="og:type" content="website">
 
   <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
@@ -1080,7 +1080,7 @@
     <header class="brand-header">
       <div class="brand-lockup">
         <div class="brand-logo-wrap">
-          <img src="logo.png" alt="Impresiones VCP" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-weight:900;font-size:13px;color:#fff;\'>VCP</span>';">
+          <img src="logo-impresionesvcp.png" alt="Impresiones VCP" onerror="this.onerror=null; this.parentElement.innerHTML='<span style=\'font-weight:900;font-size:13px;color:#fff;\'>VCP</span>';">
         </div>
         <div class="brand-identity">
           <div class="brand-name-text">IMPRESIONES <span>VCP</span></div>
@@ -1121,13 +1121,12 @@
               </div>
               <div class="offer-price-box">
                 <div class="offer-price">$8.900</div>
-                <span class="offer-price-sub">PRECIO ÚNICO</span>
               </div>
             </div>
 
             <ul class="plan-features">
               <li><i class="ph ph-check-circle-fill"></i> <span><strong>Listo en menos de 24 hs</strong> en formato PDF</span></li>
-              <li><i class="ph ph-check-circle-fill"></i> <span><strong>Diseño moderno y redacción</strong> (sirve si es 1° empleo)</span></li>
+              <li><i class="ph ph-check-circle-fill"></i> <span><strong>Diseño moderno y redacción</strong> (también sirve si es 1er empleo)</span></li>
               <li><i class="ph ph-check-circle-fill"></i> <span><strong>Cero riesgo:</strong> ves la muestra antes de transferir</span></li>
             </ul>
           </div>
@@ -1206,6 +1205,9 @@
                 <input type="text" class="form-control" name="barrio" placeholder="Barrio o Zona (opcional)" oninput="guardarBorrador()">
               </div>
             </div>
+            <div style="margin-top:10px;">
+              <input type="text" class="form-control" name="calle" placeholder="Calle y numeración (opcional - Ej: Av. San Martín 450)" oninput="guardarBorrador()">
+            </div>
           </div>
 
           <div class="form-group">
@@ -1214,7 +1216,6 @@
               <span class="chip" onclick="toggleChip(this, 'movilidad')">🛵 Moto propia</span>
               <span class="chip" onclick="toggleChip(this, 'movilidad')">🚗 Auto propio</span>
               <span class="chip" onclick="toggleChip(this, 'movilidad')">🚲 Bicicleta</span>
-              <span class="chip" onclick="toggleChip(this, 'movilidad')">🚌 Transporte público</span>
             </div>
             <input type="hidden" name="movilidad" id="movilidadInput">
           </div>
@@ -1234,29 +1235,53 @@
         <!-- PASO 3: Información Personal & Disponibilidad -->
         <div class="step-content" data-step="3">
           <div class="step-header">
-            <div class="step-title"><i class="ph ph-calendar-check" style="color:var(--magenta)"></i> Edad y Disponibilidad Horaria</div>
-            <div class="step-subtitle">Las empresas y comercios valoran muchísimo saber qué horarios podés cubrir.</div>
+            <div class="step-title"><i class="ph ph-calendar-check" style="color:var(--magenta)"></i> Datos Personales y Disponibilidad</div>
+            <div class="step-subtitle">Información clave para que el empleador conozca tu perfil y horarios.</div>
           </div>
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Fecha de Nacimiento <span class="opt">(calcula tu edad sola)</span></label>
-              <input type="date" class="form-control" name="fechaNac" id="fechaNacInput" onchange="calcularEdadAutomatica()">
+              <label class="form-label">Fecha de Nacimiento <span class="opt">(opcional)</span></label>
+              <input type="date" class="form-control" name="fechaNac" id="fechaNacInput" onchange="guardarBorrador()" oninput="guardarBorrador()">
             </div>
-            <div class="form-group">
-              <label class="form-label">Edad actual <span class="opt">(años)</span></label>
-              <input type="number" class="form-control" id="edadInput" name="edad" inputmode="numeric" placeholder="Ej: 23" oninput="guardarBorrador()">
-            </div>
-          </div>
-
-          <div class="form-row">
             <div class="form-group">
               <label class="form-label">DNI <span class="opt">(opcional)</span></label>
               <input type="text" class="form-control" name="dni" inputmode="numeric" placeholder="Ej: 43.123.456" oninput="guardarBorrador()">
             </div>
+          </div>
+
+          <div class="form-row">
             <div class="form-group">
-              <label class="form-label">Estado Civil / Nacionalidad <span class="opt">(opcional)</span></label>
-              <input type="text" class="form-control" name="nacionalidad" placeholder="Ej: Soltero/a - Argentina" value="Argentina" oninput="guardarBorrador()">
+              <label class="form-label">Estado Civil <span class="opt">(opcional)</span></label>
+              <select class="form-control" name="estadoCivil" id="estadoCivilSelect" onchange="guardarBorrador()">
+                <option value="">Seleccionar estado civil...</option>
+                <option value="Soltero/a">Soltero/a</option>
+                <option value="En pareja / Conviviente">En pareja / Conviviente</option>
+                <option value="Casado/a">Casado/a</option>
+                <option value="Divorciado/a">Divorciado/a</option>
+                <option value="Viudo/a">Viudo/a</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Hijos <span class="opt">(opcional)</span></label>
+              <div class="chips-container" data-target="hijos" style="margin-bottom:0;">
+                <span class="chip" onclick="toggleChip(this, 'hijos')">Sin hijos</span>
+                <span class="chip" onclick="toggleChip(this, 'hijos')">1 hijo/a</span>
+                <span class="chip" onclick="toggleChip(this, 'hijos')">2 hijos</span>
+                <span class="chip" onclick="toggleChip(this, 'hijos')">3 o más</span>
+              </div>
+              <input type="hidden" name="hijos" id="hijosInput">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nacionalidad <span class="opt">(opcional)</span></label>
+            <input type="text" class="form-control" id="nacionalidadInput" name="nacionalidad" placeholder="Ej: Argentina" value="Argentina" oninput="sincronizarNacionalidadAlEscribir()">
+            <div class="chips-container" style="margin-top:6px; margin-bottom:0;">
+              <span class="chip selected" id="chipNacArg" onclick="setNacionalidadRapida(this, 'Argentina')">🇦🇷 Argentina</span>
+              <span class="chip" onclick="setNacionalidadRapida(this, 'Uruguaya')">🇺🇾 Uruguaya</span>
+              <span class="chip" onclick="setNacionalidadRapida(this, 'Paraguaya')">🇵🇾 Paraguaya</span>
+              <span class="chip" onclick="setNacionalidadRapida(this, 'Otra')">🌎 Otra</span>
             </div>
           </div>
 
@@ -1516,7 +1541,7 @@
               📦 CV PROFESIONAL EN PDF (ENVÍO DIGITAL)
             </div>
             <div style="color:#166534; font-size:14px; margin-bottom:14px;">
-              Precio único al aprobar la muestra: <strong style="font-size:20px;">$8.900</strong>
+              Total al aprobar la muestra: <strong style="font-size:20px;">$8.900</strong>
             </div>
             
             <button type="button" class="btn btn-whatsapp-final" id="btnEnviarFinal" onclick="enviarPedidoCompleto()">
@@ -1686,7 +1711,7 @@
     const stepTitles = [
       "Inicio",
       "Contacto",
-      "Edad y Horarios",
+      "Datos y Horarios",
       "Puesto y Perfil",
       "Experiencia",
       "Estudios",
@@ -1792,21 +1817,30 @@
       }
     }
 
-    // Cálculo automático de edad al elegir Fecha de Nacimiento
-    function calcularEdadAutomatica() {
-      const val = document.getElementById('fechaNacInput').value;
-      if (!val) return;
-      const partes = val.split('-');
-      if (partes.length !== 3) return;
-      const hoy = new Date();
-      let edad = hoy.getFullYear() - parseInt(partes[0], 10);
-      const m = (hoy.getMonth() + 1) - parseInt(partes[1], 10);
-      if (m < 0 || (m === 0 && hoy.getDate() < parseInt(partes[2], 10))) {
-        edad--;
+    function setNacionalidadRapida(chipEl, valor) {
+      const inp = document.getElementById('nacionalidadInput');
+      if (inp) {
+        inp.value = valor;
       }
-      if (edad > 12 && edad < 95) {
-        document.getElementById('edadInput').value = edad;
-        mostrarToast(`🎂 Edad calculada: ${edad} años`);
+      const cont = chipEl.parentElement;
+      if (cont) {
+        cont.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        chipEl.classList.add('selected');
+      }
+      guardarBorrador();
+      mostrarToast(`🌎 Nacionalidad: ${valor}`);
+    }
+
+    function sincronizarNacionalidadAlEscribir() {
+      const inp = document.getElementById('nacionalidadInput');
+      const chipArg = document.getElementById('chipNacArg');
+      if (inp && chipArg) {
+        const val = inp.value.trim().toLowerCase();
+        if (val === 'argentina' || val === 'argentino' || val === 'argentina / argentino') {
+          chipArg.classList.add('selected');
+        } else {
+          chipArg.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        }
       }
       guardarBorrador();
     }
@@ -2284,11 +2318,13 @@
       t += `• *Nombre:* ${d.nombre || '-'}\n`;
       t += `• *WhatsApp:* ${d.telefono || '-'}\n`;
       if (d.email) t += `• *Email:* ${d.email}\n`;
-      t += `• *Ubicación:* ${[d.barrio, d.ciudad].filter(Boolean).join(', ') || 'No especificada'}\n`;
+      const ubicacionArr = [d.calle, d.barrio, d.ciudad].filter(Boolean);
+      t += `• *Ubicación:* ${ubicacionArr.join(', ') || 'No especificada'}\n`;
       if (d.fechaNac) t += `• *Nacimiento:* ${d.fechaNac}\n`;
-      if (d.edad) t += `• *Edad:* ${d.edad} años\n`;
       if (d.dni) t += `• *DNI:* ${d.dni}\n`;
-      if (d.nacionalidad) t += `• *Nacionalidad/Info:* ${d.nacionalidad}\n`;
+      if (d.estadoCivil) t += `• *Estado Civil:* ${d.estadoCivil}\n`;
+      if (d.hijos) t += `• *Hijos:* ${d.hijos}\n`;
+      if (d.nacionalidad) t += `• *Nacionalidad:* ${d.nacionalidad}\n`;
       if (d.movilidad) t += `• *Movilidad:* ${d.movilidad}\n`;
       if (d.carnet) t += `• *Carnet:* ${d.carnet}\n`;
       if (d.disponibilidad) t += `• *Disponibilidad:* ${d.disponibilidad}\n`;
@@ -2529,6 +2565,14 @@
         if (d.sinExperiencia) {
           document.getElementById('checkPrimerEmpleo').checked = true;
           togglePrimerEmpleo(true);
+        }
+
+        if (d.nacionalidad) {
+          const valLow = d.nacionalidad.trim().toLowerCase();
+          const chipArg = document.getElementById('chipNacArg');
+          if (chipArg) {
+            chipArg.classList.toggle('selected', valLow === 'argentina' || valLow === 'argentino');
+          }
         }
 
         sincronizarChipsDesdeBorrador(d);
