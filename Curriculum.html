@@ -2235,6 +2235,33 @@
         const byteArray = new Uint8Array(byteNumbers);
         const blob = new Blob([byteArray], { type: 'image/jpeg' });
 
+        // 1. Litterbox (Catbox): Retención de 72 horas (3 días), CORS abierto, sin caída a los 60 min
+        try {
+          const fdLitter = new FormData();
+          fdLitter.append("reqtype", "fileupload");
+          fdLitter.append("time", "72h");
+          fdLitter.append("fileToUpload", blob, fotoNombre || "Foto_CV.jpg");
+
+          const ctrlLitter = new AbortController();
+          const tidLitter = setTimeout(() => ctrlLitter.abort(), 9000);
+
+          const resLitter = await fetch("https://litterbox.catbox.moe/resources/internals/api.php", {
+            method: "POST",
+            body: fdLitter,
+            signal: ctrlLitter.signal
+          });
+          clearTimeout(tidLitter);
+
+          if (resLitter.ok) {
+            const textUrl = (await resLitter.text()).trim();
+            if (textUrl && textUrl.startsWith("http")) {
+              fotoCloudUrl = textUrl;
+              return fotoCloudUrl;
+            }
+          }
+        } catch (errLitter) {}
+
+        // 2. Respaldo secundario: tmpfiles.org
         const formData = new FormData();
         formData.append("file", blob, fotoNombre || "Foto_CV.jpg");
 
