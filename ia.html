@@ -724,7 +724,7 @@ function saveDirectApiKey() {
 
 // --- MOTOR DE IA OPEN SOURCE / GRATUITO ---
 async function callOpenSourceAI(prompt, isJson = false) {
-    if (window.puter && window.puter.ai && typeof window.puter.ai.chat === 'function') {
+    if (window.puter && window.puter.auth && typeof window.puter.auth.isSignedIn === 'function' && window.puter.auth.isSignedIn() && window.puter.ai) {
         try {
             console.log("Consultando IA Open Source vía Puter.js...");
             const res = await window.puter.ai.chat(prompt, { model: 'deepseek-chat' });
