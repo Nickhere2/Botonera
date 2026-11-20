@@ -4,8 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Centro de Accesos v54 - Fábrica de Asistentes de IA</title>
-    <!-- Logo del Favicon -->
-    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
+    <!-- Logo del Favicon & PWA Icons -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
     <!-- PWA & Mobile Web App -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#090e1a">
@@ -13,7 +16,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Botonera">
-    <link rel="apple-touch-icon" href="icon-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -201,6 +203,10 @@
                 <a href="#" id="btn-install-pwa" class="nav-link text-emerald-400 font-semibold hover:text-emerald-300 hidden" title="Instalar Botonera como Aplicación">
                     <i class="fas fa-download w-5 text-center"></i>
                     <span class="nav-link-text">Instalar App</span>
+                </a>
+                <a href="#" id="btn-force-refresh" class="nav-link text-cyan-400 font-semibold hover:text-cyan-300" title="Recargar y sincronizar última versión">
+                    <i class="fas fa-rotate w-5 text-center"></i>
+                    <span class="nav-link-text">Actualizar App</span>
                 </a>
                 <a href="#" id="open-settings-help" class="nav-link"><i class="fas fa-cog w-5 text-center"></i><span class="nav-link-text">Ajustes y Ayuda</span></a>
                 <a href="#" id="fab-theme" class="nav-link"><i class="fas fa-palette w-5 text-center"></i><span class="nav-link-text">Cambiar Tema</span></a>
@@ -591,12 +597,56 @@ function getYouTubeID(url) {
 // --- PWA SERVICE WORKER & INSTALACIÓN COMO APP ---
 let deferredPromptPWA = null;
 
+async function forceAppUpdate() {
+    showToast("🔄 Sincronizando y actualizando...", "success");
+    try {
+        if ('caches' in window) {
+            const keys = await caches.keys();
+            await Promise.all(keys.map(k => caches.delete(k)));
+        }
+        if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations();
+            for (const r of regs) {
+                await r.unregister();
+            }
+        }
+    } catch (err) {
+        console.error('Error al limpiar caché:', err);
+    }
+    const cleanUrl = window.location.origin + window.location.pathname + '?reload=' + Date.now();
+    window.location.replace(cleanUrl);
+}
+
 function setupPWAInstallation() {
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js')
-                .then(reg => console.log('Botonera PWA SW registrado'))
+            navigator.serviceWorker.register('./sw.js?v=2.1', { updateViaCache: 'none' })
+                .then(reg => {
+                    console.log('Botonera PWA SW registrado v2.1');
+                    reg.update();
+                    reg.onupdatefound = () => {
+                        const newWorker = reg.installing;
+                        newWorker.onstatechange = () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                showToast("✨ Hay una nueva versión. Recargando...");
+                                setTimeout(() => window.location.reload(), 1000);
+                            }
+                        };
+                    };
+                })
                 .catch(err => console.log('SW error:', err));
+        });
+
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            console.log('Controlador de Service Worker actualizado');
+        });
+    }
+
+    const refreshBtn = document.getElementById('btn-force-refresh');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            forceAppUpdate();
         });
     }
 
