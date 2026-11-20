@@ -1,5 +1,5 @@
 // Service Worker para Botonera PWA - Network First con Soporte Offline y Auto-Refresh
-const CACHE_NAME = 'botonera-app-v2.1';
+const CACHE_NAME = 'botonera-app-v2.2';
 const ASSETS = [
   './',
   './index.html',

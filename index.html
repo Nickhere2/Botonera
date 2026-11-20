@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
     <title>Centro de Accesos v54 - Fábrica de Asistentes de IA</title>
     <!-- Logo del Favicon & PWA Icons -->
     <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -145,6 +145,100 @@
         .ai-chat-bubble.gemini { background-color: var(--secondary); }
         .ai-prompt-btn { font-size: 0.8rem; padding: 0.3rem 0.6rem; }
         
+        /* --- OPTIMIZACIÓN APP MÓVIL & TECLADO VIRTUAL --- */
+        @media (max-width: 768px) {
+            /* Evitar auto-zoom invasivo de iOS/Android forzando mínimo 16px en inputs */
+            input, textarea, select {
+                font-size: 16px !important;
+            }
+
+            main {
+                padding: 0.75rem 0.5rem !important;
+            }
+
+            .header {
+                margin-bottom: 0.75rem !important;
+                padding-bottom: 0.5rem !important;
+                gap: 0.5rem !important;
+            }
+
+            #main-title {
+                font-size: 1.25rem !important;
+            }
+
+            .main-search-bar-container {
+                margin-bottom: 1rem !important;
+            }
+
+            .main-search-input {
+                padding: 0.75rem 0.5rem !important;
+                font-size: 0.95rem !important;
+            }
+
+            .search-engine-selector-button {
+                padding-left: 0.75rem !important;
+                padding-right: 0.5rem !important;
+            }
+
+            .main-search-button {
+                padding-left: 0.85rem !important;
+                padding-right: 0.85rem !important;
+            }
+
+            /* Modales en móvil: que no se desborden detrás del teclado */
+            .modal-overlay {
+                padding: 0.5rem !important;
+                align-items: flex-start !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .modal-container {
+                margin-top: auto;
+                margin-bottom: auto;
+                max-height: calc(100dvh - 1rem) !important;
+                max-height: calc(100svh - 1rem) !important;
+                padding: 1rem !important;
+                width: 100% !important;
+            }
+
+            /* Dropdown de resultados en vivo: que no tape el teclado */
+            .live-search-dropdown {
+                max-height: 40dvh !important;
+                max-height: 40svh !important;
+            }
+
+            .live-search-results-list {
+                max-height: 32dvh !important;
+                max-height: 32svh !important;
+            }
+
+            /* Cuando el teclado está abierto: ganar 100% del espacio visual útil */
+            body.keyboard-open .header {
+                display: none !important;
+            }
+
+            body.keyboard-open #daily-focus-wrapper,
+            body.keyboard-open #rediscovery-banner {
+                display: none !important;
+            }
+
+            body.keyboard-open .main-search-bar-container {
+                position: sticky;
+                top: 0;
+                z-index: 50;
+                margin-bottom: 0.5rem !important;
+            }
+
+            body.keyboard-open .modal-container {
+                max-height: calc(100dvh - 0.5rem) !important;
+                max-height: calc(100svh - 0.5rem) !important;
+            }
+
+            #scratchpad-textarea:focus {
+                min-height: 140px;
+            }
+        }
     </style>
 </head>
 <body class="dark"> <!-- Inicia en modo oscuro por defecto -->
@@ -732,6 +826,67 @@ function setupPWAInstallation() {
     });
 }
 
+// --- OPTIMIZACIÓN TECLADO MÓVIL & VISUAL VIEWPORT ---
+function initMobileKeyboardOptimizer() {
+    if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', () => {
+            const currentHeight = window.visualViewport.height;
+            const isKeyboardOpen = (window.innerHeight - currentHeight) > 130;
+
+            if (isKeyboardOpen) {
+                document.body.classList.add('keyboard-open');
+                const active = document.activeElement;
+                if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA' || active.isContentEditable)) {
+                    setTimeout(() => {
+                        active.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 80);
+                }
+            } else {
+                document.body.classList.remove('keyboard-open');
+            }
+        });
+    }
+
+    document.addEventListener('focusin', (e) => {
+        const target = e.target;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
+            if (window.innerWidth <= 768) {
+                document.body.classList.add('keyboard-open');
+                setTimeout(() => {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 220);
+            }
+        }
+    });
+
+    document.addEventListener('focusout', (e) => {
+        setTimeout(() => {
+            const active = document.activeElement;
+            if (!active || (active.tagName !== 'INPUT' && active.tagName !== 'TEXTAREA')) {
+                document.body.classList.remove('keyboard-open');
+            }
+        }, 120);
+    });
+
+    let touchStartY = 0;
+    window.addEventListener('touchstart', (e) => {
+        if (e.touches && e.touches.length > 0) {
+            touchStartY = e.touches[0].clientY;
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        if (!e.touches || e.touches.length === 0) return;
+        const currentY = e.touches[0].clientY;
+        if (Math.abs(currentY - touchStartY) > 28) {
+            const active = document.activeElement;
+            if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
+                active.blur();
+            }
+        }
+    }, { passive: true });
+}
+
 // --- UI INITIALIZATION & EVENT LISTENERS ---
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
@@ -739,6 +894,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function setupEventListeners() {
+    initMobileKeyboardOptimizer();
     const sidebar = document.getElementById('sidebar');
     const mainContent = document.querySelector('main');
     document.getElementById('sidebar-toggle').addEventListener('click', () => {
@@ -1069,6 +1225,7 @@ function renderDailyFocusSection(container) {
     if (favorites.length === 0) return;
 
     const focusWrapper = document.createElement('div');
+    focusWrapper.id = 'daily-focus-wrapper';
     focusWrapper.className = 'mb-10';
     focusWrapper.innerHTML = `
         <div class="flex items-center justify-between mb-3.5 select-none">
@@ -1117,6 +1274,7 @@ function renderRediscoveryBanner(container) {
     if (!item) return;
 
     const banner = document.createElement('div');
+    banner.id = 'rediscovery-banner';
     banner.className = 'mb-10 p-4 rounded-xl border border-violet-500/30 bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-transparent flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm';
     
     const safeTitle = (item.title || 'Sin título').replace(/</g, '&lt;').replace(/>/g, '&gt;');
