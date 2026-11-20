@@ -6,6 +6,14 @@
     <title>Centro de Accesos v54 - Fábrica de Asistentes de IA</title>
     <!-- Logo del Favicon -->
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nickhere2/Botonera/main/logo.png">
+    <!-- PWA & Mobile Web App -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1f2937">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Botonera">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -42,8 +50,8 @@
         /* --- LAYOUT Y ANIMACIÓN SIDEBAR MEJORADA --- */
         .sidebar { background-color: #1f2937; border-right: 1px solid var(--border); width: 280px; transition: width 0.3s ease-in-out, transform 0.3s ease-in-out; }
         .sidebar.is-collapsed { width: 80px; }
-        .sidebar .sidebar-header .font-bold, .sidebar .nav-link span, .sidebar .sidebar-footer .nav-link-text { transition: opacity 0.2s ease, visibility 0.2s ease; opacity: 1; visibility: visible; }
-        .sidebar.is-collapsed .sidebar-header .font-bold, .sidebar.is-collapsed .nav-link span, .sidebar.is-collapsed .sidebar-footer .nav-link-text { opacity: 0; visibility: hidden; pointer-events: none; }
+        .sidebar .sidebar-header .font-bold, .sidebar .nav-link span, .sidebar .sidebar-footer .nav-link-text, .sidebar-section-title, .sidebar-badge { transition: opacity 0.2s ease, visibility 0.2s ease; opacity: 1; visibility: visible; }
+        .sidebar.is-collapsed .sidebar-header .font-bold, .sidebar.is-collapsed .nav-link span, .sidebar.is-collapsed .sidebar-footer .nav-link-text, .sidebar.is-collapsed .sidebar-section-title, .sidebar.is-collapsed .sidebar-badge { opacity: 0; visibility: hidden; display: none; pointer-events: none; }
         .sidebar.is-collapsed .sidebar-header, .sidebar.is-collapsed #agenda-widget .agenda-header { justify-content: center; }
         .sidebar.is-collapsed .nav-link, .sidebar.is-collapsed .sidebar-footer a { justify-content: center; }
         .sidebar.is-collapsed .sidebar-footer { align-items: center; }
@@ -143,10 +151,45 @@
                 <a href="#" data-section="videos" class="nav-link"><i class="fas fa-tv w-5 text-center"></i><span>Videos</span></a>
                 <a href="ia.html" class="nav-link"><i class="fas fa-robot w-5 text-center"></i><span>Fábrica de IA</span></a>
                 <a href="#" id="open-radar-btn" class="nav-link text-violet-400 font-semibold hover:text-violet-300"><i class="fas fa-satellite-dish w-5 text-center"></i><span class="nav-link-text">Radar & Auditor</span></a>
+
+                <!-- Sección Taller e Impresiones VCP -->
+                <div class="pt-3 pb-1 px-3 border-t border-border/40 mt-3">
+                    <div class="sidebar-section-title text-[10px] uppercase font-bold tracking-wider text-muted-foreground/60 flex items-center justify-between">
+                        <span>Taller VCP</span>
+                        <i class="fas fa-tools text-[10px] opacity-70"></i>
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <a href="Curriculum.html" target="_blank" class="nav-link text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 group" title="Armador de Currículums en PDF">
+                        <i class="fas fa-file-invoice w-5 text-center"></i>
+                        <span>Armar CVs</span>
+                        <span class="sidebar-badge ml-auto text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">PDF</span>
+                    </a>
+                    <a href="presupuesta.html" target="_blank" class="nav-link text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 group" title="Presupuestador de Trabajos">
+                        <i class="fas fa-calculator w-5 text-center"></i>
+                        <span>Presupuestador</span>
+                    </a>
+                    <a href="impresiones.html" target="_blank" class="nav-link text-amber-400 hover:text-amber-300 hover:bg-amber-500/10 group" title="Calculadora de Impresiones">
+                        <i class="fas fa-print w-5 text-center"></i>
+                        <span>Impresiones</span>
+                    </a>
+                    <a href="finanzas.html" target="_blank" class="nav-link text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 group" title="Panel Financiero">
+                        <i class="fas fa-chart-line w-5 text-center"></i>
+                        <span>Finanzas</span>
+                    </a>
+                    <a href="MarcaAgua.html" target="_blank" class="nav-link text-pink-400 hover:text-pink-300 hover:bg-pink-500/10 group" title="Marca de Agua">
+                        <i class="fas fa-tint w-5 text-center"></i>
+                        <span>Marca de Agua</span>
+                    </a>
+                </div>
             </nav>
             
             <!-- Sidebar Footer -->
             <div class="sidebar-footer mt-auto flex flex-col gap-2 px-2 pt-4 border-t border-border">
+                <a href="#" id="btn-install-pwa" class="nav-link text-emerald-400 font-semibold hover:text-emerald-300 hidden" title="Instalar Botonera como Aplicación">
+                    <i class="fas fa-download w-5 text-center"></i>
+                    <span class="nav-link-text">Instalar App</span>
+                </a>
                 <a href="#" id="open-settings-help" class="nav-link"><i class="fas fa-cog w-5 text-center"></i><span class="nav-link-text">Ajustes y Ayuda</span></a>
                 <a href="#" id="fab-theme" class="nav-link"><i class="fas fa-palette w-5 text-center"></i><span class="nav-link-text">Cambiar Tema</span></a>
                 <div id="sync-status" class="text-xs flex items-center gap-2 opacity-70 p-2 justify-center">
@@ -533,6 +576,52 @@ function getYouTubeID(url) {
     return (match && match[2].length === 11) ? match[2] : null;
 }
 
+// --- PWA SERVICE WORKER & INSTALACIÓN COMO APP ---
+let deferredPromptPWA = null;
+
+function setupPWAInstallation() {
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then(reg => console.log('Botonera PWA SW registrado'))
+                .catch(err => console.log('SW error:', err));
+        });
+    }
+
+    const installBtn = document.getElementById('btn-install-pwa');
+    if (!installBtn) return;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPromptPWA = e;
+        installBtn.classList.remove('hidden');
+    });
+
+    installBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (deferredPromptPWA) {
+            deferredPromptPWA.prompt();
+            const { outcome } = await deferredPromptPWA.userChoice;
+            if (outcome === 'accepted') {
+                showToast("🎉 ¡Botonera instalada como aplicación!");
+                installBtn.classList.add('hidden');
+            }
+            deferredPromptPWA = null;
+        } else {
+            showToast("ℹ️ Podés instalar la Botonera desde el icono de la barra del navegador");
+        }
+    });
+
+    window.addEventListener('appinstalled', () => {
+        installBtn.classList.add('hidden');
+        showToast("🚀 Botonera abierta en modo App");
+    });
+
+    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+        installBtn.classList.add('hidden');
+    }
+}
+
 // --- UI INITIALIZATION & EVENT LISTENERS ---
 document.addEventListener("DOMContentLoaded", () => {
     loadData();
@@ -580,6 +669,8 @@ function setupEventListeners() {
             if (window.innerWidth < 1024) toggleMobileSidebar();
         });
     }
+
+    setupPWAInstallation();
     
     document.getElementById('global-view-switcher').addEventListener('click', (e) => {
         const button = e.target.closest('button');
@@ -1095,6 +1186,9 @@ function getMainSearchBarHTML() {
                     </div>
                 </div>
                 <input type="text" autocomplete="off" class="main-search-input relative w-full p-4 bg-transparent border-0 focus:ring-0 text-foreground placeholder:text-muted-foreground" placeholder="Busca con Google, YouTube o escribe algo para buscar...">
+                <div class="hidden sm:flex items-center px-3 pointer-events-none select-none">
+                    <kbd class="text-[10px] px-2 py-0.5 rounded bg-secondary/80 text-muted-foreground border border-border font-mono font-bold tracking-wider shadow-sm">Ctrl K</kbd>
+                </div>
                 <button class="main-search-button flex-shrink-0 px-6 text-white bg-primary rounded-r-xl border-l border-primary-hover hover:bg-primary-hover focus:outline-none" type="submit">
                     <i class="fas fa-search text-lg"></i>
                 </button>
@@ -2082,6 +2176,13 @@ function handleGlobalShortcuts(e) {
         return;
     }
 
+    // Atajo Global Ctrl+K / Cmd+K para Búsqueda Instantánea
+    if (modifier && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        activarBusquedaGlobalCtrlK();
+        return;
+    }
+
     if (modifier && e.altKey && !isInputFocused) {
         switch (e.key.toLowerCase()) {
             case 'n': e.preventDefault(); document.getElementById('smartAddButton').click(); break;
@@ -2098,6 +2199,25 @@ function handleGlobalShortcuts(e) {
                 break;
         }
     }
+}
+
+function activarBusquedaGlobalCtrlK() {
+    const currentSection = document.querySelector('#main-nav .nav-link.active')?.dataset.section;
+    if (currentSection !== 'inicio') {
+        switchTab('inicio');
+    }
+
+    setTimeout(() => {
+        const searchInput = document.querySelector('.main-search-input');
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+            searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (searchInput.value.trim().length > 0) {
+                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }
+    }, currentSection !== 'inicio' ? 90 : 10);
 }
 
 
