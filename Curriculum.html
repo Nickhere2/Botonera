@@ -654,6 +654,59 @@
       border-color: #16a34a;
     }
 
+    /* Botón de Dictado por Voz */
+    .btn-voice-dictate {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #0284c7;
+      background: #f0f9ff;
+      border: 1px solid #bae6fd;
+      padding: 4px 10px;
+      border-radius: 99px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    .btn-voice-dictate:hover {
+      background: #e0f2fe;
+      border-color: #7dd3fc;
+      transform: translateY(-1px);
+    }
+    .btn-voice-dictate.listening {
+      background: #fee2e2 !important;
+      border-color: #fca5a5 !important;
+      color: #dc2626 !important;
+      animation: pulseMic 1.2s infinite ease-in-out;
+    }
+    @keyframes pulseMic {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+      50% { transform: scale(1.04); box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    }
+
+    /* Botón de Limpiar / Empezar Nuevo CV */
+    .btn-clean-draft {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.15s ease;
+    }
+    .btn-clean-draft:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #dc2626;
+    }
+
     /* Toggle primer empleo */
     .first-job-toggle {
       background: #fffbeb;
@@ -1096,7 +1149,12 @@
     <!-- Barra de Progreso (oculta en Paso 1 para no saturar) -->
     <div class="progress-section" id="progressSection" style="display:none;">
       <div class="progress-info">
-        <span>Paso <strong id="stepNum">1</strong> de <strong id="stepTotal">8</strong></span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span>Paso <strong id="stepNum">1</strong> de <strong id="stepTotal">8</strong></span>
+          <button type="button" class="btn-clean-draft" onclick="confirmarReiniciarBorrador()" title="Limpiar y empezar nuevo CV">
+            <i class="ph ph-arrow-counter-clockwise"></i> Nuevo CV
+          </button>
+        </div>
         <div class="progress-pills-right">
           <span class="time-left-pill" id="stepTimePill">⏱️ 5 minutos</span>
           <span class="step-title-pill" id="stepPill">Inicio</span>
@@ -1139,6 +1197,8 @@
             <span><i class="ph ph-clock"></i> Menos de 5 min</span>
             <span>•</span>
             <span><i class="ph ph-floppy-disk"></i> Guardado automático</span>
+            <span>•</span>
+            <span style="cursor:pointer; color:#dc2626; font-weight:700;" onclick="confirmarReiniciarBorrador()"><i class="ph ph-arrow-counter-clockwise"></i> Empezar de cero</span>
           </div>
 
           <!-- Opiniones y detalles completos colapsados para no saturar -->
@@ -1324,7 +1384,12 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label">Tu Presentación / Perfil Profesional <span class="opt">(tocá una plantilla o escribí la tuya)</span></label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+              <label class="form-label" style="margin-bottom:0;">Tu Presentación / Perfil Profesional <span class="opt">(tocá una plantilla o dictá)</span></label>
+              <button type="button" class="btn-voice-dictate" onclick="iniciarDictadoVoz('perfilTextarea', this)" title="Tocá y hablá para dictar tu presentación">
+                <i class="ph ph-microphone"></i> <span>Dictar por voz</span>
+              </button>
+            </div>
             <div class="chips-label"><i class="ph ph-magic-wand" style="color:var(--cyan-dark)"></i> Plantillas listas para usar en 1 clic:</div>
             <div class="chips-container">
               <span class="chip" onclick="usarPlantillaPerfil('Persona responsable, puntual y proactiva, con excelente trato hacia el público y facilidad para el trabajo en equipo. Me adapto rápido a nuevas tareas con total compromiso.')">✨ Perfil Comercial / Atención</span>
@@ -1332,7 +1397,7 @@
               <span class="chip" onclick="usarPlantillaPerfil('Joven con gran entusiasmo por aprender, excelente presencia, puntualidad y responsabilidad. Busco una oportunidad laboral donde demostrar mi compromiso y ganas de trabajar.')">✨ Perfil Primer Empleo</span>
               <span class="chip" onclick="usarPlantillaPerfil('Perfil organizado, resolutivo y detallista, con manejo de herramientas informáticas, gestión administrativa y atención personalizada.')">✨ Perfil Administrativo / Recepción</span>
             </div>
-            <textarea class="form-control" name="perfil" placeholder="Tocá una de las plantillas de arriba o contanos brevemente cómo trabajás..." oninput="guardarBorrador()"></textarea>
+            <textarea class="form-control" id="perfilTextarea" name="perfil" placeholder="Tocá una de las plantillas de arriba, dictá con el micrófono o contanos cómo trabajás..." oninput="guardarBorrador()"></textarea>
           </div>
         </div>
 
@@ -1845,6 +1910,236 @@
       guardarBorrador();
     }
 
+    // Dictado por Voz (Web Speech API)
+    let reconocimientoVozActivo = null;
+    let botonDictadoActivo = null;
+
+    function iniciarDictadoVoz(targetId, btnEl) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        mostrarToast("🎙️ Podés usar el micrófono del teclado de tu celu para dictar");
+        const targetEl = document.getElementById(targetId) || document.querySelector(`[name="${targetId}"]`);
+        if (targetEl) targetEl.focus();
+        return;
+      }
+
+      // Si ya está escuchando en este botón, detenerlo
+      if (reconocimientoVozActivo && botonDictadoActivo === btnEl) {
+        reconocimientoVozActivo.stop();
+        return;
+      }
+
+      // Si había otro botón escuchando, pararlo
+      if (reconocimientoVozActivo) {
+        try { reconocimientoVozActivo.abort(); } catch(e) {}
+      }
+
+      const targetEl = document.getElementById(targetId) || document.querySelector(`[name="${targetId}"]`);
+      if (!targetEl) return;
+
+      try {
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'es-AR';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        reconocimientoVozActivo = recognition;
+        botonDictadoActivo = btnEl;
+
+        btnEl.classList.add('listening');
+        const textSpan = btnEl.querySelector('span');
+        if (textSpan) textSpan.textContent = 'Escuchando...';
+
+        mostrarToast("🎙️ Hablá ahora, te estamos escuchando...");
+
+        recognition.onresult = (event) => {
+          const resultado = event.results[0][0].transcript;
+          if (resultado) {
+            const actual = targetEl.value.trim();
+            const textoLimpio = resultado.charAt(0).toUpperCase() + resultado.slice(1);
+            if (actual) {
+              targetEl.value = actual + (actual.endsWith('.') ? ' ' : '. ') + textoLimpio + '.';
+            } else {
+              targetEl.value = textoLimpio + '.';
+            }
+            guardarBorrador();
+            mostrarToast("👍 Texto dictado agregado");
+          }
+        };
+
+        recognition.onerror = (event) => {
+          if (event.error === 'not-allowed') {
+            mostrarToast("⚠️ Habilitá el permiso del micrófono en tu navegador");
+          } else if (event.error !== 'aborted') {
+            mostrarToast("⚠️ No se captó audio, probá de nuevo");
+          }
+        };
+
+        recognition.onend = () => {
+          btnEl.classList.remove('listening');
+          if (textSpan) textSpan.textContent = 'Dictar';
+          reconocimientoVozActivo = null;
+          botonDictadoActivo = null;
+        };
+
+        recognition.start();
+      } catch (err) {
+        mostrarToast("🎙️ Tocá el micrófono del teclado de tu celular para dictar");
+      }
+    }
+
+    // Reiniciar y limpiar borrador completo
+    function confirmarReiniciarBorrador() {
+      if (!confirm("¿Querés limpiar el formulario y empezar un CV nuevo desde cero? Se borrarán los datos guardados en este celular.")) {
+        return;
+      }
+      try {
+        localStorage.removeItem("borrador_cv_impresionesvcp_v4");
+      } catch(e) {}
+
+      document.getElementById('cvWizardForm').reset();
+
+      contadorExp = 0;
+      contadorEdu = 0;
+      fotoBase64Clean = null;
+      fotoDataUrl = null;
+      fotoNombre = null;
+      fotoCloudUrl = null;
+      fotoModoExtra = 'auto';
+
+      document.getElementById('experienciasList').innerHTML = '';
+      document.getElementById('educacionList').innerHTML = '';
+      agregarBloqueExperiencia();
+      agregarBloqueEducacion();
+
+      document.querySelectorAll('.chip.selected').forEach(c => c.classList.remove('selected'));
+
+      const photoWrap = document.getElementById('photoPreviewWrap');
+      if (photoWrap) photoWrap.style.display = 'none';
+      const photoChoices = document.getElementById('photoChoicesWrap');
+      if (photoChoices) photoChoices.style.display = 'block';
+
+      const chipArg = document.getElementById('chipNacArg');
+      if (chipArg) chipArg.classList.add('selected');
+      const nacInp = document.getElementById('nacionalidadInput');
+      if (nacInp) nacInp.value = 'Argentina';
+
+      document.querySelectorAll('.style-option-card').forEach(c => c.classList.remove('selected'));
+      const defStyle = document.querySelector('.style-option-card[data-style="Moderno con Detalles a Color"]');
+      if (defStyle) defStyle.classList.add('selected');
+      const estiloInp = document.getElementById('estiloDisenoInput');
+      if (estiloInp) estiloInp.value = 'Moderno con Detalles a Color';
+
+      const steps = document.querySelectorAll('.step-content');
+      steps.forEach(s => s.classList.remove('active'));
+      pasoActual = 1;
+      document.querySelector('.step-content[data-step="1"]').classList.add('active');
+      actualizarProgreso();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      mostrarToast("✨ Formulario listo para un nuevo CV");
+    }
+
+    // Diccionario de tareas inteligentes por rubro
+    const DICCIONARIO_TAREAS = {
+      comercio: {
+        etiqueta: "+ Comercio / Ventas",
+        texto: "Atención y asesoramiento al cliente, manejo de caja, cobros con Posnet/QR, reposición de mercadería y orden del local."
+      },
+      cajero: {
+        etiqueta: "+ Cajero / Arqueos",
+        texto: "Cobros en efectivo, tarjetas y QR, apertura y cierre de turno, arqueo preciso de caja y facturación."
+      },
+      mozo: {
+        etiqueta: "+ Mozo / Salón",
+        texto: "Recepción de comensales, toma de comandas, servicio de salón y cafetería, armado y fajinado de mesas, y cobro."
+      },
+      cocina: {
+        etiqueta: "+ Cocina / Ayudante",
+        texto: "Preparación de materias primas (mise en place), despacho ágil de platos, minutas, control de freidoras y limpieza profunda."
+      },
+      hotel: {
+        etiqueta: "+ Recepción Hotel",
+        texto: "Check-in y check-out de huéspedes, atención de consultas presenciales y telefónicas, gestión de reservas y facturación."
+      },
+      mucama: {
+        etiqueta: "+ Mucama / Habitación",
+        texto: "Limpieza y desinfección integral de habitaciones y áreas comunes, recambio de blancos y reposición de amenities."
+      },
+      admin: {
+        etiqueta: "+ Administración",
+        texto: "Recepción de consultas por WhatsApp, carga de datos en planillas Excel, facturación, archivo y atención telefónica."
+      },
+      deposito: {
+        etiqueta: "+ Depósito / Reparto",
+        texto: "Recepción y control de mercadería, armado de pedidos (picking), embalaje cuidadoso y reparto logístico puntual."
+      },
+      limpieza: {
+        etiqueta: "+ Limpieza / Maestranza",
+        texto: "Limpieza profunda, sanitización y mantenimiento preventivo de salones, oficinas, vidrieras y sanitarios."
+      },
+      oficios: {
+        etiqueta: "+ Mantenimiento / Oficios",
+        texto: "Mantenimiento general edilicio, reparaciones básicas de electricidad, plomería, pintura y uso responsable de herramientas."
+      }
+    };
+
+    function obtenerTareasSugeridasPorRubros() {
+      const puestoDeseadoVal = (document.getElementById('puestoDeseadoInput')?.value || '').toLowerCase();
+      const prioritarias = [];
+      const secundarias = [];
+
+      const coincidencias = {
+        comercio: puestoDeseadoVal.includes('atención') || puestoDeseadoVal.includes('ventas'),
+        cajero: puestoDeseadoVal.includes('cajero'),
+        mozo: puestoDeseadoVal.includes('gastronomía') || puestoDeseadoVal.includes('mozo'),
+        cocina: puestoDeseadoVal.includes('cocina'),
+        hotel: puestoDeseadoVal.includes('hotelería') || puestoDeseadoVal.includes('recepción'),
+        mucama: puestoDeseadoVal.includes('mucama'),
+        admin: puestoDeseadoVal.includes('administración'),
+        deposito: puestoDeseadoVal.includes('depósito') || puestoDeseadoVal.includes('reparto'),
+        limpieza: puestoDeseadoVal.includes('limpieza') || puestoDeseadoVal.includes('maestranza'),
+        oficios: puestoDeseadoVal.includes('mantenimiento') || puestoDeseadoVal.includes('oficios')
+      };
+
+      for (const [key, info] of Object.entries(DICCIONARIO_TAREAS)) {
+        if (coincidencias[key]) {
+          prioritarias.push(info);
+        } else {
+          secundarias.push(info);
+        }
+      }
+
+      if (prioritarias.length === 0) {
+        return [
+          DICCIONARIO_TAREAS.comercio,
+          DICCIONARIO_TAREAS.cajero,
+          DICCIONARIO_TAREAS.mozo,
+          DICCIONARIO_TAREAS.admin,
+          DICCIONARIO_TAREAS.limpieza
+        ];
+      }
+
+      return [...prioritarias, ...secundarias.slice(0, 3)];
+    }
+
+    function renderizarHTMLChipsTareas(id) {
+      const sugerencias = obtenerTareasSugeridasPorRubros();
+      return sugerencias.map(s => {
+        const textoEscapado = s.texto.replace(/'/g, "\\'");
+        return `<span class="chip" onclick="insertarTareaSugerida(${id}, '${textoEscapado}')">${s.etiqueta}</span>`;
+      }).join('');
+    }
+
+    function actualizarTodasLasSugerenciasTareas() {
+      for (let i = 1; i <= contadorExp; i++) {
+        const cont = document.getElementById(`chipsTareasExp_${i}`);
+        if (cont) {
+          cont.innerHTML = renderizarHTMLChipsTareas(i);
+        }
+      }
+    }
+
     // Navegación entre pasos
     function navegarPaso(direccion) {
       const stepActivo = document.querySelector(`.step-content[data-step="${pasoActual}"]`);
@@ -1871,6 +2166,10 @@
 
       actualizarProgreso();
       guardarBorrador();
+
+      if (pasoActual === 5) {
+        actualizarTodasLasSugerenciasTareas();
+      }
 
       if (pasoActual === totalPasos) {
         generarResumenFinal();
@@ -1930,6 +2229,9 @@
         if (targetInput) targetInput.value = seleccionados.join(', ');
       }
       guardarBorrador();
+      if (targetInputId === 'puestoDeseado') {
+        actualizarTodasLasSugerenciasTareas();
+      }
     }
 
     function usarPlantillaPerfil(frase) {
@@ -2006,14 +2308,16 @@
           </div>
         </div>
         <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label">Tareas realizadas <span class="opt">(tocá una sugerencia o escribí)</span></label>
-          <div class="chips-container">
-            <span class="chip" onclick="insertarTareaSugerida(${id}, 'Atención y asesoramiento al cliente, manejo de caja, cobros con Posnet/QR, reposición de stock y orden del local.')">+ Comercio / Caja</span>
-            <span class="chip" onclick="insertarTareaSugerida(${id}, 'Recepción de comensales, toma de pedidos, servicio de salón y cafetería, armado de mesas y limpieza del sector.')">+ Gastronomía / Mozo</span>
-            <span class="chip" onclick="insertarTareaSugerida(${id}, 'Limpieza integral de habitaciones y espacios comunes, recambio de blancos y atención de requerimientos de huéspedes.')">+ Hotelería / Mucama</span>
-            <span class="chip" onclick="insertarTareaSugerida(${id}, 'Recepción de consultas por WhatsApp, carga de datos, control de planillas, facturación y atención telefónica.')">+ Administración</span>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; flex-wrap:wrap; gap:6px;">
+            <label class="form-label" style="margin-bottom:0;">Tareas realizadas <span class="opt">(tocá sugerencia o dictá)</span></label>
+            <button type="button" class="btn-voice-dictate" onclick="iniciarDictadoVoz('exp_tareas_${id}', this)" title="Tocá y hablá para dictar tus tareas">
+              <i class="ph ph-microphone"></i> <span>Dictar</span>
+            </button>
           </div>
-          <textarea class="form-control" id="exp_tareas_${id}" name="exp_tareas_${id}" placeholder="Detallá brevemente qué tareas hacías..." oninput="guardarBorrador()"></textarea>
+          <div class="chips-container" id="chipsTareasExp_${id}">
+            ${renderizarHTMLChipsTareas(id)}
+          </div>
+          <textarea class="form-control" id="exp_tareas_${id}" name="exp_tareas_${id}" placeholder="Detallá tus tareas o tocalas de las sugerencias de arriba..." oninput="guardarBorrador()"></textarea>
         </div>
       `;
       wrap.appendChild(div);
@@ -2036,9 +2340,16 @@
     function insertarTareaSugerida(id, texto) {
       const el = document.getElementById('exp_tareas_' + id);
       if (el) {
-        el.value = texto;
+        const actual = el.value.trim();
+        if (actual) {
+          if (!actual.includes(texto)) {
+            el.value = actual + (actual.endsWith('.') ? ' ' : '. ') + texto;
+          }
+        } else {
+          el.value = texto;
+        }
         guardarBorrador();
-        mostrarToast("💼 Descripción de tareas completada");
+        mostrarToast("💼 Tareas agregadas");
       }
     }
 
@@ -2603,6 +2914,7 @@
         }
 
         sincronizarChipsDesdeBorrador(d);
+        actualizarTodasLasSugerenciasTareas();
 
         if (d.nombre) {
           mostrarToast("💾 Recuperamos tu borrador guardado");
