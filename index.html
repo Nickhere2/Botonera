@@ -205,7 +205,7 @@
             
             <!-- Sidebar Footer -->
             <div class="sidebar-footer flex-shrink-0 flex flex-col gap-1 px-1 pt-2 border-t border-border mt-2">
-                <a href="#" id="btn-install-pwa" class="nav-link text-emerald-400 font-semibold hover:text-emerald-300 hidden" title="Instalar Botonera como Aplicación">
+                <a href="#" id="btn-install-pwa" class="nav-link text-emerald-400 font-semibold hover:text-emerald-300" title="Instalar Botonera como Aplicación">
                     <i class="fas fa-download w-5 text-center"></i>
                     <span class="nav-link-text">Instalar App</span>
                 </a>
@@ -622,25 +622,75 @@ async function forceAppUpdate() {
     window.location.replace(cleanUrl);
 }
 
+function openInstallGuideModal() {
+    let html = `
+    <div id="modal-install-guide" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+        <div class="modal-container p-6 w-full max-w-lg bg-[#0d1527] border border-[#1e293b] rounded-2xl shadow-2xl relative text-left">
+            <button onclick="document.getElementById('modal-install-guide').remove()" class="absolute top-4 right-4 text-muted-foreground hover:text-foreground text-xl">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="flex items-center gap-3 mb-4">
+                <img src="icon-192.png" alt="Rear Window" class="w-12 h-12 rounded-xl object-contain shadow-md">
+                <div>
+                    <h3 class="text-xl font-bold text-foreground">Instalar Botonera</h3>
+                    <p class="text-xs text-cyan-400">Como aplicación con el logo de Rear Window</p>
+                </div>
+            </div>
+            
+            <div class="space-y-4 text-sm text-foreground/90">
+                <div class="p-3.5 rounded-xl bg-[#131d35] border border-[#1e293b]">
+                    <h4 class="font-bold text-cyan-300 flex items-center gap-2 mb-2">
+                        <i class="fab fa-android text-emerald-400 text-lg"></i> En Celular (Android / Chrome)
+                    </h4>
+                    <ol class="list-decimal list-inside space-y-1.5 text-xs text-muted-foreground">
+                        <li>Tocá los <strong class="text-foreground">3 puntos (⋮)</strong> de Chrome arriba a la derecha.</li>
+                        <li>Seleccioná <strong class="text-emerald-400">"Instalar aplicación"</strong> (o <em>"Agregar a la pantalla principal"</em>).</li>
+                        <li>¡Listo! Te quedará el ícono en tu pantalla de inicio con el logo de Rear Window.</li>
+                    </ol>
+                </div>
+
+                <div class="p-3.5 rounded-xl bg-[#131d35] border border-[#1e293b]">
+                    <h4 class="font-bold text-cyan-300 flex items-center gap-2 mb-2">
+                        <i class="fab fa-windows text-blue-400 text-lg"></i> En Windows (Comet sesión Nico)
+                    </h4>
+                    <p class="text-xs text-muted-foreground mb-2">Ya tenés la aplicación y acceso directo listos en tu computadora:</p>
+                    <div class="flex flex-col gap-2">
+                        <div class="text-xs bg-[#090e1a] p-2.5 rounded-lg border border-border/50 text-cyan-200">
+                            <strong>Ubicación:</strong> Buscá en tu <strong>Escritorio</strong> el acceso directo llamado <strong class="text-white">Botonera</strong> (con el logo de Rear Window).
+                        </div>
+                        <p class="text-[11px] text-muted-foreground">O ejecutá el instalador en: <code>E:\\Apps\\Botonera\\Instalar-Botonera-Windows.bat</code></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-5 flex justify-end">
+                <button onclick="document.getElementById('modal-install-guide').remove()" class="btn btn-primary !py-2 !px-5 text-sm">Entendido</button>
+            </div>
+        </div>
+    </div>`;
+
+    const existing = document.getElementById('modal-install-guide');
+    if (existing) existing.remove();
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
 function setupPWAInstallation() {
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('./sw.js?v=2.1', { updateViaCache: 'none' })
-                .then(reg => {
-                    console.log('Botonera PWA SW registrado v2.1');
-                    reg.update();
-                    reg.onupdatefound = () => {
-                        const newWorker = reg.installing;
-                        newWorker.onstatechange = () => {
-                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                showToast("✨ Hay una nueva versión. Recargando...");
-                                setTimeout(() => window.location.reload(), 1000);
-                            }
-                        };
+        navigator.serviceWorker.register('./sw.js', { scope: './' })
+            .then(reg => {
+                console.log('Botonera PWA SW registrado v2.1');
+                reg.update();
+                reg.onupdatefound = () => {
+                    const newWorker = reg.installing;
+                    newWorker.onstatechange = () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            showToast("✨ Hay una nueva versión. Recargando...");
+                            setTimeout(() => window.location.reload(), 1000);
+                        }
                     };
-                })
-                .catch(err => console.log('SW error:', err));
-        });
+                };
+            })
+            .catch(err => console.log('SW error:', err));
 
         navigator.serviceWorker.addEventListener('controllerchange', () => {
             console.log('Controlador de Service Worker actualizado');
@@ -661,7 +711,6 @@ function setupPWAInstallation() {
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPromptPWA = e;
-        installBtn.classList.remove('hidden');
     });
 
     installBtn.addEventListener('click', async (e) => {
@@ -671,22 +720,16 @@ function setupPWAInstallation() {
             const { outcome } = await deferredPromptPWA.userChoice;
             if (outcome === 'accepted') {
                 showToast("🎉 ¡Botonera instalada como aplicación!");
-                installBtn.classList.add('hidden');
             }
             deferredPromptPWA = null;
         } else {
-            showToast("ℹ️ Podés instalar la Botonera desde el icono de la barra del navegador");
+            openInstallGuideModal();
         }
     });
 
     window.addEventListener('appinstalled', () => {
-        installBtn.classList.add('hidden');
         showToast("🚀 Botonera abierta en modo App");
     });
-
-    if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-        installBtn.classList.add('hidden');
-    }
 }
 
 // --- UI INITIALIZATION & EVENT LISTENERS ---

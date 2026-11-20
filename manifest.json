@@ -2,6 +2,7 @@
   "name": "Botonera - Centro de Accesos & Taller",
   "short_name": "Botonera",
   "description": "Centro de Accesos, IA y Herramientas del Taller Impresiones VCP",
+  "id": "./index.html",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -25,7 +26,7 @@
       "src": "icon-maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "maskable any"
     }
   ]
 }
