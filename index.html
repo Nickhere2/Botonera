@@ -239,6 +239,9 @@
                 min-height: 140px;
             }
         }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 <body class="dark"> <!-- Inicia en modo oscuro por defecto -->
@@ -318,23 +321,26 @@
         
         <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-30 hidden lg:hidden"></div>
 
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto lg:ml-[280px]">
-            <header class="header flex flex-col md:flex-row justify-between items-start mb-6 pb-4 gap-4">
-                <div class="flex items-center gap-4 w-full md:w-auto">
-                    <button id="menu-toggle" class="lg:hidden btn btn-ghost !p-2">
-                            <i class="fas fa-bars text-xl"></i>
+        <main class="flex-1 p-3 sm:p-6 lg:p-8 overflow-y-auto lg:ml-[280px]">
+            <header class="header flex flex-row items-center justify-between mb-2.5 pb-2 gap-2 border-b border-border/30">
+                <div class="flex items-center gap-1.5 sm:gap-3">
+                    <button id="menu-toggle" class="lg:hidden btn btn-ghost !p-1.5 -ml-1 text-foreground" title="Menú lateral">
+                            <i class="fas fa-bars text-lg sm:text-xl"></i>
                     </button>
-                    <h1 id="main-title" class="text-2xl sm:text-3xl font-bold tracking-tight">INICIO</h1>
+                    <h1 id="main-title" class="text-lg sm:text-2xl font-bold tracking-tight text-foreground">INICIO</h1>
                 </div>
-                <div class="flex items-center gap-2 sm:gap-4 w-full md:w-auto">
-                    <div id="global-view-switcher" class="view-switcher flex items-center bg-secondary p-1 rounded-lg ml-auto">
-                        <button data-view="grid" class="btn btn-sm btn-ghost !rounded-md px-3 py-1"><i class="fas fa-th-large"></i></button>
-                        <button data-view="list" class="btn btn-sm btn-ghost !rounded-md px-3 py-1"><i class="fas fa-bars"></i></button>
-                        <button data-view="table" title="Vista de Iconos" class="btn btn-sm btn-ghost !rounded-md px-3 py-1"><i class="fas fa-th"></i></button>
+                <div class="flex items-center gap-1.5 sm:gap-3 ml-auto">
+                    <div id="global-view-switcher" class="view-switcher flex items-center bg-secondary p-0.5 rounded-lg">
+                        <button data-view="grid" class="btn btn-sm btn-ghost !rounded-md px-2.5 py-1 text-xs"><i class="fas fa-th-large"></i></button>
+                        <button data-view="list" class="btn btn-sm btn-ghost !rounded-md px-2.5 py-1 text-xs"><i class="fas fa-bars"></i></button>
+                        <button data-view="table" title="Vista de Iconos" class="btn btn-sm btn-ghost !rounded-md px-2.5 py-1 text-xs"><i class="fas fa-th"></i></button>
                     </div>
-                    <!-- BOTÓN DE AÑADIR INTELIGENTE (AHORA SOLO "+") -->
-                    <button id="smartAddButton" class="btn btn-primary !rounded-full !p-0 w-10 h-10" title="Añadir con IA">
-                        <i class="fas fa-plus text-lg"></i>
+                    <button id="header-theme-toggle" class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground" title="Cambiar tema">
+                        <i id="header-theme-icon" class="fas fa-moon text-base"></i>
+                    </button>
+                    <!-- BOTÓN DE AÑADIR INTELIGENTE -->
+                    <button id="smartAddButton" class="btn btn-primary !rounded-full !p-0 w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center shadow-md flex-shrink-0" title="Añadir con IA">
+                        <i class="fas fa-plus text-sm sm:text-base"></i>
                     </button>
                 </div>
             </header>
@@ -925,6 +931,7 @@ function setupEventListeners() {
     document.getElementById('smartAddButton').addEventListener('click', handleSmartAdd);
 
     document.getElementById('fab-theme').addEventListener('click', changeTheme);
+    document.getElementById('header-theme-toggle')?.addEventListener('click', changeTheme);
     document.getElementById('open-settings-help').addEventListener('click', openSettingsHelpModal);
     
     const radarBtn = document.getElementById('open-radar-btn');
@@ -1226,36 +1233,35 @@ function renderDailyFocusSection(container) {
 
     const focusWrapper = document.createElement('div');
     focusWrapper.id = 'daily-focus-wrapper';
-    focusWrapper.className = 'mb-10';
+    focusWrapper.className = 'mb-3 sm:mb-8';
     focusWrapper.innerHTML = `
-        <div class="flex items-center justify-between mb-3.5 select-none">
-            <div class="flex items-center gap-2">
-                <span class="flex h-2.5 w-2.5 rounded-full bg-amber-400 animate-pulse"></span>
-                <h2 class="text-lg font-bold text-foreground">Foco Diario (Tus Accesos Clave)</h2>
-                <span class="text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground font-semibold">Nivel 1 &bull; ${Math.min(favorites.length, 10)} activos</span>
+        <div class="flex items-center justify-between mb-1.5 sm:mb-3 select-none">
+            <div class="flex items-center gap-1.5 sm:gap-2 min-w-0">
+                <span class="flex h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-amber-400 animate-pulse flex-shrink-0"></span>
+                <h2 class="text-sm sm:text-lg font-bold text-foreground truncate">Foco Diario</h2>
             </div>
-            <span class="text-xs text-muted-foreground hidden sm:inline">Tus herramientas cotidianas</span>
+            <span class="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-secondary text-muted-foreground font-semibold flex-shrink-0">${Math.min(favorites.length, 10)} accesos clave</span>
         </div>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3" id="daily-focus-grid"></div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3" id="daily-focus-grid"></div>
     `;
 
     const grid = focusWrapper.querySelector('#daily-focus-grid');
     favorites.slice(0, 10).forEach(item => {
         const card = document.createElement('div');
-        card.className = 'flex items-center gap-3 p-3 rounded-xl border border-border bg-card-background hover:border-primary/50 hover:bg-secondary/40 hover:shadow-md transition-all group cursor-pointer';
+        card.className = 'flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-xl border border-border bg-card-background hover:border-primary/50 hover:bg-secondary/40 hover:shadow-md transition-all group cursor-pointer min-h-[48px]';
         
         const safeTitle = (item.title || 'Sin título').replace(/</g, '&lt;').replace(/>/g, '&gt;');
         const safeCat = (item.category || item.type || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
         card.innerHTML = `
-            <div class="w-8 h-8 rounded-lg bg-secondary/80 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
-                ${getIconHtml(item.icon, 'text-base')}
+            <div class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-secondary/80 flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-transform">
+                ${getIconHtml(item.icon, 'text-sm sm:text-base')}
             </div>
             <div class="min-w-0 flex-1">
-                <div class="text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors">${safeTitle}</div>
-                <div class="text-[11px] text-muted-foreground truncate">${safeCat}</div>
+                <div class="text-xs sm:text-sm font-semibold text-foreground truncate group-hover:text-primary transition-colors leading-tight">${safeTitle}</div>
+                <div class="text-[10px] text-muted-foreground truncate mt-0.5">${safeCat}</div>
             </div>
-            <i class="fas fa-external-link-alt text-[10px] text-muted-foreground group-hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"></i>
+            <i class="hidden sm:inline-block fas fa-external-link-alt text-[10px] text-muted-foreground group-hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"></i>
         `;
 
         card.onclick = (e) => openItemAction(item.id);
@@ -1275,7 +1281,7 @@ function renderRediscoveryBanner(container) {
 
     const banner = document.createElement('div');
     banner.id = 'rediscovery-banner';
-    banner.className = 'mb-10 p-4 rounded-xl border border-violet-500/30 bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-transparent flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm';
+    banner.className = 'mb-4 sm:mb-10 p-3 sm:p-4 rounded-xl border border-violet-500/30 bg-gradient-to-r from-violet-500/10 via-purple-500/5 to-transparent flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4 shadow-sm';
     
     const safeTitle = (item.title || 'Sin título').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     const safeCat = (item.category || item.type || 'Recurso').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1437,11 +1443,11 @@ function renderHomeScratchpadWidget(container, gridClasses) {
 
 function getMainSearchBarHTML() {
     return `
-    <div class="main-search-bar-container mb-10 relative z-30 max-w-3xl mx-auto w-full">
+    <div class="main-search-bar-container mb-3 sm:mb-8 relative z-30 max-w-3xl mx-auto w-full">
         <div class="relative w-full">
-            <div class="flex relative w-full text-lg bg-card-background border border-border rounded-xl shadow-lg focus-within:ring-4 focus-within:ring-cyan-500/30 transition-all">
-                <div class="relative flex-shrink-0">
-                    <button class="search-engine-selector-button flex items-center gap-2 h-full pl-5 pr-4 text-sm font-medium text-foreground bg-secondary/50 rounded-l-xl hover:bg-muted focus:outline-none border-r border-border" type="button">
+            <div class="flex relative w-full text-base sm:text-lg bg-card-background border border-border rounded-xl shadow-md sm:shadow-lg focus-within:ring-2 sm:focus-within:ring-4 focus-within:ring-cyan-500/30 transition-all items-stretch h-12 sm:h-14">
+                <div class="relative flex-shrink-0 flex items-center">
+                    <button class="search-engine-selector-button flex items-center gap-1 h-full px-2.5 sm:pl-5 sm:pr-4 text-sm font-medium text-foreground bg-secondary/50 rounded-l-xl hover:bg-muted focus:outline-none border-r border-border" type="button" title="Cambiar motor de búsqueda">
                         <!-- JS will populate this -->
                     </button>
                     <div style="background-color: var(--card-background);" class="search-engine-dropdown absolute top-full left-0 mt-2 w-72 border border-border rounded-lg shadow-lg z-[1001] hidden">
@@ -1453,12 +1459,12 @@ function getMainSearchBarHTML() {
                         </div>
                     </div>
                 </div>
-                <input type="text" autocomplete="off" class="main-search-input relative w-full p-4 bg-transparent border-0 focus:ring-0 text-foreground placeholder:text-muted-foreground" placeholder="Busca con Google, YouTube o escribe algo para buscar...">
-                <div class="hidden sm:flex items-center px-3 pointer-events-none select-none">
+                <input type="text" autocomplete="off" class="main-search-input relative w-full px-3 py-2 sm:p-4 bg-transparent border-0 focus:ring-0 text-foreground placeholder:text-muted-foreground text-sm sm:text-base leading-normal" placeholder="Buscar en la Botonera o en la web...">
+                <div class="hidden md:flex items-center px-3 pointer-events-none select-none">
                     <kbd class="text-[10px] px-2 py-0.5 rounded bg-secondary/80 text-muted-foreground border border-border font-mono font-bold tracking-wider shadow-sm">Ctrl K</kbd>
                 </div>
-                <button class="main-search-button flex-shrink-0 px-6 text-white bg-primary rounded-r-xl border-l border-primary-hover hover:bg-primary-hover focus:outline-none" type="submit">
-                    <i class="fas fa-search text-lg"></i>
+                <button class="main-search-button flex-shrink-0 px-3.5 sm:px-6 text-white bg-primary rounded-r-xl border-l border-primary-hover hover:bg-primary-hover focus:outline-none flex items-center justify-center" type="submit" title="Buscar">
+                    <i class="fas fa-search text-base sm:text-lg"></i>
                 </button>
             </div>
 
@@ -1473,8 +1479,8 @@ function getMainSearchBarHTML() {
             </div>
         </div>
 
-        <!-- 4. CHIPS DE FILTRO RÁPIDO -->
-        <div class="search-filter-chips flex items-center justify-center gap-1.5 sm:gap-2 mt-3.5 flex-wrap text-xs select-none">
+        <!-- 4. CHIPS DE FILTRO RÁPIDO: Fila horizontal deslizable limpia en móvil -->
+        <div class="search-filter-chips flex items-center sm:justify-center gap-1.5 sm:gap-2 mt-2 overflow-x-auto no-scrollbar py-1 px-0.5 text-xs select-none whitespace-nowrap">
             <!-- Chips generated by JS -->
         </div>
 
@@ -2384,19 +2390,19 @@ function updateSearchEngineSelectorButton() {
     }
     
     if (engine) {
-        const titleHTML = `<span class="font-semibold text-sm text-foreground truncate max-w-[100px]">${engine.title}</span>`;
+        const titleHTML = `<span class="hidden sm:inline font-semibold text-sm text-foreground truncate max-w-[100px]">${engine.title}</span>`;
 
         button.innerHTML = `
-            <div class="flex items-center gap-2 pointer-events-none">
-                ${getIconHtml(engine.icon, 'text-xl')}
+            <div class="flex items-center gap-1 sm:gap-2 pointer-events-none">
+                ${getIconHtml(engine.icon, 'text-base sm:text-xl')}
                 ${titleHTML}
             </div>
-            <i class="fas fa-chevron-down chevron-icon ml-auto text-xs transition-transform"></i>
+            <i class="fas fa-chevron-down chevron-icon ml-1 sm:ml-auto text-[10px] sm:text-xs transition-transform opacity-70"></i>
         `;
     } else {
         button.innerHTML = `
-             <span class="font-semibold text-sm">Seleccionar</span>
-             <i class="fas fa-chevron-down chevron-icon ml-auto text-xs transition-transform"></i>
+             <span class="hidden sm:inline font-semibold text-sm">Seleccionar</span>
+             <i class="fas fa-chevron-down chevron-icon ml-1 sm:ml-auto text-[10px] sm:text-xs transition-transform opacity-70"></i>
         `;
     }
 }
@@ -2822,6 +2828,10 @@ function applyTheme(theme) {
     document.body.classList.remove('light', 'dark');
     document.body.classList.add(theme);
     localStorage.setItem('theme', theme);
+    const icon = document.getElementById('header-theme-icon');
+    if (icon) {
+        icon.className = theme === 'dark' ? 'fas fa-sun text-amber-400 text-base' : 'fas fa-moon text-slate-700 text-base';
+    }
 }
 
 function showToast(message, type = 'success') {
