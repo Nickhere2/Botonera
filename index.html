@@ -238,6 +238,18 @@
             #scratchpad-textarea:focus {
                 min-height: 140px;
             }
+
+            main {
+                padding-bottom: 5.5rem !important;
+            }
+
+            body.keyboard-open #mobile-bottom-bar {
+                display: none !important;
+            }
+        }
+
+        .safe-area-bottom {
+            padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
         }
 
         .no-scrollbar::-webkit-scrollbar { display: none; }
@@ -352,9 +364,112 @@
             <div id="section-notes-tasks" class="section hidden"></div>
             <div id="section-videos" class="section hidden"></div>
         </main>
+
+        <!-- MOBILE BOTTOM NAVIGATION BAR -->
+        <nav id="mobile-bottom-bar" class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-card-background/95 backdrop-blur-lg border-t border-border flex items-center justify-around py-1.5 px-1 select-none safe-area-bottom shadow-lg">
+            <button type="button" data-tab="inicio" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 py-1 text-cyan-400 font-bold transition-all active:scale-95">
+                <i class="fas fa-home text-base sm:text-lg"></i>
+                <span class="text-[10px] font-medium mt-0.5">Inicio</span>
+            </button>
+            <button type="button" id="btn-bottom-taller" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 py-1 text-muted-foreground hover:text-foreground transition-all active:scale-95">
+                <i class="fas fa-tools text-base sm:text-lg"></i>
+                <span class="text-[10px] font-medium mt-0.5">Taller</span>
+            </button>
+            <button type="button" data-tab="prompts" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 py-1 text-muted-foreground hover:text-foreground transition-all active:scale-95">
+                <i class="fas fa-brain text-base sm:text-lg"></i>
+                <span class="text-[10px] font-medium mt-0.5">Prompts</span>
+            </button>
+            <button type="button" data-tab="notes-tasks" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 py-1 text-muted-foreground hover:text-foreground transition-all active:scale-95">
+                <i class="fas fa-check-double text-base sm:text-lg"></i>
+                <span class="text-[10px] font-medium mt-0.5">Notas</span>
+            </button>
+            <button type="button" id="btn-bottom-menu" class="mobile-nav-btn flex flex-col items-center justify-center flex-1 py-1 text-muted-foreground hover:text-foreground transition-all active:scale-95">
+                <i class="fas fa-bars text-base sm:text-lg"></i>
+                <span class="text-[10px] font-medium mt-0.5">Menú</span>
+            </button>
+        </nav>
     </div>
     
     <!-- MODALS & OVERLAYS -->
+    <div id="tallerBottomSheet" class="hidden fixed inset-0 z-[1360] flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm p-0 sm:p-4 transition-all">
+        <div class="w-full sm:max-w-lg bg-card-background border-t sm:border border-border rounded-t-2xl sm:rounded-2xl shadow-2xl p-4 sm:p-6 flex flex-col max-h-[85vh] overflow-y-auto">
+            <div class="w-12 h-1.5 bg-muted-foreground/30 rounded-full mx-auto mb-3 sm:hidden"></div>
+            <div class="flex items-center justify-between pb-3 border-b border-border select-none">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center text-lg flex-shrink-0">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-base text-foreground">Taller e Impresiones VCP</h3>
+                        <p class="text-xs text-muted-foreground">Herramientas de producción y cálculo</p>
+                    </div>
+                </div>
+                <button onclick="closeTallerBottomSheet()" class="btn btn-ghost !p-2 text-muted-foreground hover:text-foreground">
+                    <i class="fas fa-times text-lg"></i>
+                </button>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-2.5 mt-3 select-none">
+                <a href="Curriculum.html" target="_blank" onclick="closeTallerBottomSheet()" class="flex items-center gap-3 p-3 rounded-xl border border-border/70 hover:border-cyan-500/50 bg-secondary/40 hover:bg-cyan-500/10 transition-all group">
+                    <div class="w-10 h-10 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+                        <i class="fas fa-file-invoice"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-bold text-sm text-foreground group-hover:text-cyan-400">Armar CVs</h4>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold">PDF</span>
+                        </div>
+                        <p class="text-xs text-muted-foreground truncate">Generador de Currículums en formato PDF listo para imprimir</p>
+                    </div>
+                    <i class="fas fa-arrow-right text-xs text-muted-foreground group-hover:text-cyan-400 ml-1"></i>
+                </a>
+
+                <a href="presupuesta.html" target="_blank" onclick="closeTallerBottomSheet()" class="flex items-center gap-3 p-3 rounded-xl border border-border/70 hover:border-emerald-500/50 bg-secondary/40 hover:bg-emerald-500/10 transition-all group">
+                    <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-sm text-foreground group-hover:text-emerald-400">Presupuestador</h4>
+                        <p class="text-xs text-muted-foreground truncate">Cotizador de trabajos, diseño y confección</p>
+                    </div>
+                    <i class="fas fa-arrow-right text-xs text-muted-foreground group-hover:text-emerald-400 ml-1"></i>
+                </a>
+
+                <a href="impresiones.html" target="_blank" onclick="closeTallerBottomSheet()" class="flex items-center gap-3 p-3 rounded-xl border border-border/70 hover:border-amber-500/50 bg-secondary/40 hover:bg-amber-500/10 transition-all group">
+                    <div class="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+                        <i class="fas fa-print"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-sm text-foreground group-hover:text-amber-400">Calculadora de Impresiones</h4>
+                        <p class="text-xs text-muted-foreground truncate">Cálculo de pliegos, copias y precios de imprenta</p>
+                    </div>
+                    <i class="fas fa-arrow-right text-xs text-muted-foreground group-hover:text-amber-400 ml-1"></i>
+                </a>
+
+                <a href="finanzas.html" target="_blank" onclick="closeTallerBottomSheet()" class="flex items-center gap-3 p-3 rounded-xl border border-border/70 hover:border-blue-500/50 bg-secondary/40 hover:bg-blue-500/10 transition-all group">
+                    <div class="w-10 h-10 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-sm text-foreground group-hover:text-blue-400">Panel Financiero</h4>
+                        <p class="text-xs text-muted-foreground truncate">Control de ingresos, egresos y caja diaria</p>
+                    </div>
+                    <i class="fas fa-arrow-right text-xs text-muted-foreground group-hover:text-blue-400 ml-1"></i>
+                </a>
+
+                <a href="MarcaAgua.html" target="_blank" onclick="closeTallerBottomSheet()" class="flex items-center gap-3 p-3 rounded-xl border border-border/70 hover:border-pink-500/50 bg-secondary/40 hover:bg-pink-500/10 transition-all group">
+                    <div class="w-10 h-10 rounded-lg bg-pink-500/20 text-pink-400 flex items-center justify-center text-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+                        <i class="fas fa-tint"></i>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-bold text-sm text-foreground group-hover:text-pink-400">Marca de Agua</h4>
+                        <p class="text-xs text-muted-foreground truncate">Estampar marcas de agua y logos en imágenes</p>
+                    </div>
+                    <i class="fas fa-arrow-right text-xs text-muted-foreground group-hover:text-pink-400 ml-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
     <div id="editPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="eventPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
     <div id="settingsHelpPanel" class="hidden fixed inset-0 z-[1000] p-4 flex items-center justify-center modal-overlay"></div>
@@ -927,6 +1042,25 @@ function setupEventListeners() {
             if (window.innerWidth < 1024) toggleMobileSidebar();
         }
     });
+
+    const btnBottomMenu = document.getElementById('btn-bottom-menu');
+    if (btnBottomMenu) {
+        btnBottomMenu.addEventListener('click', toggleMobileSidebar);
+    }
+    const btnBottomTaller = document.getElementById('btn-bottom-taller');
+    if (btnBottomTaller) {
+        btnBottomTaller.addEventListener('click', openTallerBottomSheet);
+    }
+    const bottomBar = document.getElementById('mobile-bottom-bar');
+    if (bottomBar) {
+        bottomBar.addEventListener('click', (e) => {
+            const tabBtn = e.target.closest('button[data-tab]');
+            if (tabBtn) {
+                const tab = tabBtn.dataset.tab;
+                if (tab) switchTab(tab);
+            }
+        });
+    }
     
     document.getElementById('smartAddButton').addEventListener('click', handleSmartAdd);
 
@@ -1032,6 +1166,14 @@ function switchTab(tabName) {
     } else {
         applyGlobalFilter();
     }
+
+    // Sincronizar barra de navegación inferior móvil
+    document.querySelectorAll('#mobile-bottom-bar button[data-tab]').forEach(btn => {
+        const isThisTab = btn.dataset.tab === tabName;
+        btn.classList.toggle('text-cyan-400', isThisTab);
+        btn.classList.toggle('font-bold', isThisTab);
+        btn.classList.toggle('text-muted-foreground', !isThisTab);
+    });
 }
 
 // --- RENDER FUNCTIONS ---
@@ -1459,7 +1601,17 @@ function getMainSearchBarHTML() {
                         </div>
                     </div>
                 </div>
-                <input type="text" autocomplete="off" class="main-search-input relative w-full px-3 py-2 sm:p-4 bg-transparent border-0 focus:ring-0 text-foreground placeholder:text-muted-foreground text-sm sm:text-base leading-normal" placeholder="Buscar en la Botonera o en la web...">
+                <div class="relative flex-1 flex items-center min-w-0">
+                    <input type="text" autocomplete="off" class="main-search-input relative w-full pl-3 pr-16 sm:pr-20 py-2 sm:p-4 bg-transparent border-0 focus:ring-0 text-foreground placeholder:text-muted-foreground text-sm sm:text-base leading-normal" placeholder="Buscar en la Botonera o en la web...">
+                    <div class="absolute right-2 flex items-center gap-0.5 sm:gap-1 z-10">
+                        <button type="button" class="btn-clear-search hidden text-muted-foreground hover:text-foreground p-1 text-sm rounded-full transition-colors" title="Borrar texto">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                        <button type="button" class="btn-voice-search text-muted-foreground hover:text-cyan-400 p-1.5 text-sm rounded-full transition-colors" title="Búsqueda por voz">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                    </div>
+                </div>
                 <div class="hidden md:flex items-center px-3 pointer-events-none select-none">
                     <kbd class="text-[10px] px-2 py-0.5 rounded bg-secondary/80 text-muted-foreground border border-border font-mono font-bold tracking-wider shadow-sm">Ctrl K</kbd>
                 </div>
@@ -1644,6 +1796,11 @@ function createListItem(item, searchTerm = '') {
     let extraActions = '';
     if (item.type === 'Video') {
         extraActions = `<button onclick="openVideoAIPanel(data.items.find(i=>i.id===${item.id}), event)" class="btn btn-ghost !p-2" title="Analizar con IA"><i class="fas fa-magic"></i></button>`;
+    } else if (item.type === 'Promp') {
+        extraActions = `
+            <button onclick="sendPromptToAI('${item.id}', 'chatgpt', event)" class="btn !py-1 !px-2 text-xs font-semibold bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 rounded" title="Abrir en ChatGPT">GPT</button>
+            <button onclick="sendPromptToAI('${item.id}', 'claude', event)" class="btn !py-1 !px-2 text-xs font-semibold bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 rounded" title="Abrir en Claude">Claude</button>
+        `;
     }
 
     listItem.innerHTML = `
@@ -1741,19 +1898,37 @@ function createNoteCard(item, searchTerm) {
 
 function createPromptCard(item, searchTerm) {
     const card = document.createElement('div');
-    card.className = 'card prompt-card';
+    card.className = 'card prompt-card flex flex-col justify-between';
     card.dataset.id = item.id;
     if (item.isFavorite) card.classList.add('is-favorite');
     card.innerHTML = `
         <div class="drag-handle absolute top-2 left-2 p-2 text-muted-foreground"><i class="fas fa-grip-vertical"></i></div>
-        <div class="flex justify-between items-start">
-            <h4 class="font-bold text-lg">${item.title}</h4>
-            <div class="card-actions flex gap-1">
-                <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-2"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
-                <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-2"><i class="fas fa-pencil-alt"></i></button>
+        <div class="flex-1 min-h-0 overflow-hidden flex flex-col">
+            <div class="flex justify-between items-start gap-2">
+                <h4 class="font-bold text-base sm:text-lg truncate text-foreground">${item.title}</h4>
+                <div class="card-actions flex gap-1 flex-shrink-0">
+                    <button onclick="toggleFavorite(event, '${item.id}')" class="btn btn-ghost !p-1.5" title="Favorito"><i class="${item.isFavorite ? 'fas' : 'far'} fa-star text-yellow-400"></i></button>
+                    <button onclick="openEditPanel(${item.id})" class="btn btn-ghost !p-1.5" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                </div>
+            </div>
+            <div class="mt-2 text-xs sm:text-sm text-muted-foreground overflow-y-auto flex-1 select-none">${item.action}</div>
+        </div>
+        <div class="mt-2.5 pt-2 border-t border-border/40 flex items-center justify-between gap-1 select-none flex-shrink-0" onclick="event.stopPropagation()">
+            <button onclick="copyPromptText('${item.id}', event)" class="btn btn-ghost !py-1 !px-2 text-xs text-muted-foreground hover:text-foreground flex items-center gap-1" title="Copiar texto">
+                <i class="far fa-copy text-xs"></i> Copiar
+            </button>
+            <div class="flex items-center gap-1">
+                <button onclick="sendPromptToAI('${item.id}', 'chatgpt', event)" class="btn !py-0.5 !px-2 text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 rounded" title="Abrir en ChatGPT">
+                    <i class="fas fa-robot text-[10px] mr-0.5"></i> GPT
+                </button>
+                <button onclick="sendPromptToAI('${item.id}', 'claude', event)" class="btn !py-0.5 !px-2 text-[11px] font-semibold bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 border border-amber-500/30 rounded" title="Abrir en Claude">
+                    Claude
+                </button>
+                <button onclick="sendPromptToAI('${item.id}', 'gemini', event)" class="btn !py-0.5 !px-2 text-[11px] font-semibold bg-blue-500/15 text-blue-400 hover:bg-blue-500/25 border border-blue-500/30 rounded" title="Abrir en Gemini">
+                    Gemini
+                </button>
             </div>
         </div>
-        <div class="mt-2 text-sm text-muted-foreground overflow-y-auto h-full">${item.action}</div>
     `;
     card.addEventListener('click', (e) => handleCardClick(item.id, e));
     return card;
@@ -1834,10 +2009,7 @@ function openItemAction(itemOrId) {
         }
         getActiveSectionContainer()?.querySelector('.main-search-input')?.focus();
     } else if (item.type === "Promp") {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = item.action || '';
-        const text = tempDiv.textContent || tempDiv.innerText || item.action || '';
-        navigator.clipboard.writeText(text).then(() => showToast("Prompt copiado al portapapeles."));
+        copyPromptText(item.id);
     } else {
         openEditPanel(item);
     }
@@ -1846,6 +2018,81 @@ function openItemAction(itemOrId) {
 function handleCardClick(id, event) {
     if (event && event.target && event.target.closest('button, input, .drag-handle')) return;    
     openItemAction(id);
+}
+
+// --- PROMPT UTILS & AI QUICK LAUNCHERS ---
+function getPromptRawText(item) {
+    if (!item) return '';
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = item.action || '';
+    return (tempDiv.textContent || tempDiv.innerText || item.action || '').trim();
+}
+
+function copyPromptText(itemId, event) {
+    if (event) event.stopPropagation();
+    const item = data.items.find(i => String(i.id) === String(itemId));
+    if (!item) return;
+    const text = getPromptRawText(item);
+    if (!text) {
+        showToast("El prompt está vacío.", "error");
+        return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+        showToast("📋 ¡Prompt copiado al portapapeles!", "success");
+    }).catch(() => {
+        showToast("Prompt copiado.");
+    });
+}
+
+function sendPromptToAI(itemId, provider, event) {
+    if (event) event.stopPropagation();
+    const item = data.items.find(i => String(i.id) === String(itemId));
+    if (!item) return;
+    const text = getPromptRawText(item);
+    if (!text) {
+        showToast("El prompt está vacío.", "error");
+        return;
+    }
+
+    navigator.clipboard.writeText(text).catch(() => {});
+
+    let targetUrl = '';
+    let name = 'IA';
+    if (provider === 'chatgpt') {
+        name = 'ChatGPT';
+        targetUrl = `https://chatgpt.com/?q=${encodeURIComponent(text)}`;
+    } else if (provider === 'claude') {
+        name = 'Claude';
+        targetUrl = `https://claude.ai/new?q=${encodeURIComponent(text)}`;
+    } else if (provider === 'gemini') {
+        name = 'Gemini';
+        targetUrl = `https://gemini.google.com/app`;
+        showToast("📋 Prompt copiado. Pégalo en Gemini con Ctrl+V.", "info");
+    } else {
+        targetUrl = `https://chatgpt.com/?q=${encodeURIComponent(text)}`;
+    }
+
+    const win = window.open(targetUrl, '_blank');
+    if (!win || win.closed || typeof win.closed === 'undefined') {
+        window.location.href = targetUrl;
+    } else {
+        showToast(`Abriendo en ${name}...`, "success");
+    }
+}
+
+// --- TALLER VCP BOTTOM SHEET CONTROLLERS ---
+function openTallerBottomSheet() {
+    const sheet = document.getElementById('tallerBottomSheet');
+    if (!sheet) return;
+    sheet.classList.remove('hidden');
+    sheet.onclick = (e) => {
+        if (e.target === sheet) closeTallerBottomSheet();
+    };
+}
+
+function closeTallerBottomSheet() {
+    const sheet = document.getElementById('tallerBottomSheet');
+    if (sheet) sheet.classList.add('hidden');
 }
 
 // --- BUSCADOR MEJORADO, CHIPS & RESULTADOS EN VIVO ---
@@ -2221,6 +2468,72 @@ function attachSearchBarListeners(container) {
             }
         }, 150));
     }
+
+    const clearBtn = searchBar.querySelector('.btn-clear-search');
+    const voiceBtn = searchBar.querySelector('.btn-voice-search');
+
+    if (clearBtn && searchInput) {
+        clearBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            searchInput.value = '';
+            clearBtn.classList.add('hidden');
+            closeLiveSearchDropdown();
+            searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+            searchInput.focus();
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            if (clearBtn) {
+                clearBtn.classList.toggle('hidden', searchInput.value.length === 0);
+            }
+        });
+    }
+
+    if (voiceBtn && searchInput) {
+        voiceBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                showToast("El dictado por voz no es compatible con este navegador.", "error");
+                return;
+            }
+            try {
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'es-AR';
+                recognition.interimResults = false;
+                recognition.maxAlternatives = 1;
+
+                voiceBtn.classList.add('text-red-500', 'animate-pulse');
+                showToast("🎙️ Escuchando... Di lo que buscas", "info");
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[0][0].transcript;
+                    searchInput.value = transcript;
+                    if (clearBtn) clearBtn.classList.remove('hidden');
+                    searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                    showToast(`Buscando: "${transcript}"`, "success");
+                    setTimeout(() => performMainSearch(), 400);
+                };
+
+                recognition.onerror = (err) => {
+                    console.warn("Speech error:", err);
+                    showToast("No se detectó voz o se canceló el micrófono.", "error");
+                };
+
+                recognition.onend = () => {
+                    voiceBtn.classList.remove('text-red-500', 'animate-pulse');
+                };
+
+                recognition.start();
+            } catch (err) {
+                console.error("Speech recognition error:", err);
+                showToast("Error al activar el micrófono.", "error");
+                voiceBtn.classList.remove('text-red-500', 'animate-pulse');
+            }
+        });
+    }
     
     const selectorButton = searchBar.querySelector('.search-engine-selector-button');
     if (selectorButton) selectorButton.addEventListener('click', toggleSearchEngineDropdown);
@@ -2438,7 +2751,7 @@ function handleGlobalShortcuts(e) {
     const isInputFocused = document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA' || document.activeElement.isContentEditable;
 
     if (e.key === 'Escape') {
-        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal', 'videoAIPanel', 'videoPlayerModal', 'radarModal'];
+        const modals = ['editPanel', 'eventPanel', 'settingsHelpPanel', 'confirmModal', 'videoAIPanel', 'videoPlayerModal', 'radarModal', 'tallerBottomSheet'];
         modals.forEach(id => document.getElementById(id)?.classList.add('hidden'));
         const videoPlayer = document.getElementById('videoPlayerModal')?.querySelector('iframe');
         if (videoPlayer) {
