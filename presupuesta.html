@@ -1194,6 +1194,14 @@
             font-family: var(--font-mono);
             text-align: right;
             font-weight: 600;
+            padding: 6px 4px;
+            -moz-appearance: textfield;
+        }
+
+        .sheet-row-inp.num::-webkit-outer-spin-button,
+        .sheet-row-inp.num::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
         }
 
         .sheet-table-toolbar {
@@ -1827,7 +1835,7 @@
                         <table class="sheet-table">
                             <thead>
                                 <tr>
-                                    <th style="width: 70px; text-align: center;">Cant.</th>
+                                    <th style="width: 76px; text-align: center;">Cant.</th>
                                     <th>Descripción / Detalle del Trabajo</th>
                                     <th style="width: 120px; text-align: right;">Precio Unit.</th>
                                     <th style="width: 120px; text-align: right;">Subtotal</th>
