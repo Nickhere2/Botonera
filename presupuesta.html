@@ -558,6 +558,55 @@
             font-size: 15px;
         }
 
+        .anillado-action-row {
+            display: flex;
+            align-items: stretch;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .anillado-qty-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-sm);
+            padding: 4px 8px;
+            width: 68px;
+            flex-shrink: 0;
+        }
+
+        .anillado-qty-box span {
+            font-size: 9px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-dim);
+            line-height: 1;
+            margin-bottom: 2px;
+        }
+
+        .anillado-qty-inp {
+            width: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 15px;
+            font-weight: 800;
+            text-align: center;
+            -moz-appearance: textfield;
+        }
+
+        .anillado-qty-inp::-webkit-outer-spin-button,
+        .anillado-qty-inp::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
         /* Tarjetas de Diseño */
         .design-stack {
             display: flex;
@@ -2100,6 +2149,29 @@
                     inCopies.blur();
                 }
             });
+
+            inPages.addEventListener('input', updateLiveButtonHints);
+            inCopies.addEventListener('input', updateLiveButtonHints);
+        }
+
+        function updateLiveButtonHints() {
+            document.querySelectorAll('.tap-action-btn[data-code]').forEach(btn => {
+                const code = btn.getAttribute('data-code');
+                for (const item of catalogPrints) {
+                    const opt = item.options.find(o => o.code === code);
+                    if (opt) {
+                        const priceEl = btn.querySelector('.btn-price-display');
+                        if (priceEl) priceEl.textContent = getActivePrintPrice(opt);
+                        break;
+                    }
+                }
+            });
+
+            const anilladoInp = document.getElementById('inp-anillado-qty');
+            if (anilladoInp) {
+                const copies = getInputs().copies;
+                anilladoInp.placeholder = copies > 1 ? String(copies) : '1';
+            }
         }
 
         // Navegación de pestañas
@@ -2144,7 +2216,7 @@
                             </div>
                             <div class="card-buttons-pair">
                                 ${item.options.map(opt => `
-                                    <button class="tap-action-btn" onclick="addPrintToCart('${item.name}', '${opt.label}', '${opt.code}')">
+                                    <button class="tap-action-btn" data-code="${opt.code}" onclick="addPrintToCart('${item.name}', '${opt.label}', '${opt.code}')">
                                         <span class="btn-label">${opt.label}</span>
                                         <span class="btn-price-display">${getActivePrintPrice(opt)}</span>
                                     </button>
@@ -2164,10 +2236,16 @@
                                 <div class="card-desc">Tapa cristal + contratapa negra</div>
                             </div>
                         </div>
-                        <button class="full-width-action-btn" onclick="addSpecialToCart('Anillado Espiral A4', 2000)">
-                            <span style="font-weight: 700; font-size: 13px;">Anillar Documento</span>
-                            <span class="action-price">$2.000</span>
-                        </button>
+                        <div class="anillado-action-row">
+                            <label class="anillado-qty-box" title="Cantidad de anillados">
+                                <span>Cant.</span>
+                                <input type="number" id="inp-anillado-qty" class="anillado-qty-inp" min="1" placeholder="${getInputs().copies > 1 ? getInputs().copies : 1}" autocomplete="off">
+                            </label>
+                            <button class="full-width-action-btn" onclick="addAnilladoToCart(2000)">
+                                <span style="font-weight: 700; font-size: 13px;">Anillar Documento</span>
+                                <span class="action-price">$2.000</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
@@ -2215,6 +2293,30 @@
                                                 <span class="btn-price-display">${opt.btnText || '$'+opt.fixedPrice}</span>
                                             </button>
                                         `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        } else if (item.name.includes('Anillado')) {
+                            return `
+                                <div class="service-card">
+                                    <div class="card-top">
+                                        <div class="card-icon-box" style="color: ${item.color};">
+                                            <i class="ph ${item.icon}"></i>
+                                        </div>
+                                        <div class="card-info">
+                                            <div class="card-name">${item.name}</div>
+                                            <div class="card-desc">${item.subtitle}</div>
+                                        </div>
+                                    </div>
+                                    <div class="anillado-action-row">
+                                        <label class="anillado-qty-box" title="Cantidad de anillados">
+                                            <span>Cant.</span>
+                                            <input type="number" id="inp-anillado-qty" class="anillado-qty-inp" min="1" placeholder="${getInputs().copies > 1 ? getInputs().copies : 1}" autocomplete="off">
+                                        </label>
+                                        <button class="full-width-action-btn" onclick="addAnilladoToCart(${item.singlePrice})">
+                                            <span style="font-weight: 700; font-size: 13px;">Precio Unitario</span>
+                                            <span class="action-price">$${item.singlePrice.toLocaleString('es-AR')}</span>
+                                        </button>
                                     </div>
                                 </div>
                             `;
@@ -2288,7 +2390,31 @@
         function resetInputsAfterAdd() {
             document.getElementById('inp-pages').value = '';
             document.getElementById('inp-copies').value = '';
+            const anilladoInp = document.getElementById('inp-anillado-qty');
+            if (anilladoInp) anilladoInp.value = '';
+            updateLiveButtonHints();
             document.getElementById('inp-pages').focus();
+        }
+
+        function addAnilladoToCart(price) {
+            const qInp = document.getElementById('inp-anillado-qty');
+            const parsedQ = qInp ? parseInt(qInp.value) : NaN;
+            const units = (!isNaN(parsedQ) && parsedQ >= 1) ? parsedQ : getInputs().copies;
+
+            cart.push({
+                id: Date.now() + Math.random(),
+                name: 'Anillado Espiral A4',
+                type: 'special',
+                pages: units,
+                copies: 1,
+                units: units,
+                unitPrice: price,
+                finalPrice: units * price,
+                appliedRate: 'fixed'
+            });
+
+            resetInputsAfterAdd();
+            recalculateCart();
         }
 
         // Agregar al carrito
@@ -2628,7 +2754,7 @@
                     <td style="text-align: right;">
                         <input type="number" class="sheet-row-inp num" value="${item.unitPrice}" min="0" oninput="updateRemitoRow(${idx}, 'unitPrice', this.value)">
                     </td>
-                    <td style="text-align: right; font-family: var(--font-mono); font-weight: 700; color: #0f172a;">
+                    <td id="remito-row-sub-${idx}" style="text-align: right; font-family: var(--font-mono); font-weight: 700; color: #0f172a;">
                         $${item.subtotal.toLocaleString('es-AR')}
                     </td>
                     <td style="text-align: center;">
@@ -2648,14 +2774,19 @@
 
             if (field === 'qty') {
                 item.qty = parseInt(value) || 0;
+                item.subtotal = Math.round(item.qty * item.unitPrice);
             } else if (field === 'unitPrice') {
                 item.unitPrice = parseFloat(value) || 0;
+                item.subtotal = Math.round(item.qty * item.unitPrice);
             } else if (field === 'desc') {
                 item.desc = value;
             }
 
-            item.subtotal = item.qty * item.unitPrice;
-            renderRemitoTable();
+            const subCell = document.getElementById(`remito-row-sub-${idx}`);
+            if (subCell) {
+                subCell.textContent = `$${item.subtotal.toLocaleString('es-AR')}`;
+            }
+            recalculateRemitoSummary();
         }
 
         function addManualRemitoRow() {
@@ -2869,6 +3000,7 @@
             const notes = document.getElementById('remito-notes-field').value || '';
 
             const subtotal = document.getElementById('remito-subtotal-txt').textContent;
+            const discount = parseFloat(document.getElementById('remito-discount-inp').value) || 0;
             const total = document.getElementById('remito-total-txt').textContent;
             const deposit = document.getElementById('remito-deposit-inp').value || '0';
             const balance = document.getElementById('remito-balance-txt').textContent;
@@ -2887,6 +3019,9 @@
 
             text += `--------------------------------\n`;
             text += `Subtotal: ${subtotal}\n`;
+            if (discount > 0) {
+                text += `Descuento: -$${discount.toLocaleString('es-AR')}\n`;
+            }
             text += `*TOTAL FINAL: ${total}*\n`;
             if (parseFloat(deposit) > 0) {
                 text += `Seña abonada: $${parseFloat(deposit).toLocaleString('es-AR')}\n`;
